@@ -1967,7 +1967,7 @@ function renderGameDayCard(g,isNext){
   else if(done)statusBadge='<div class="gd-status gd-status-done">FINALIZADO</div>';
   else statusBadge='<div class="gd-status gd-status-pending">A JOGAR</div>';
   
-  var h='<div class="gd-card'+(isNext?" gd-next":"")+'" onclick="openTorneioGame(\''+g.id+'\')">';
+  var h='<div class="gd-card'+(isNext?" gd-next":"")+'" onclick="openGameDayCard(\''+g.id+'\')">';
   if(isNext)h+='<div class="gd-next-tag">\u25B6 PR\u00d3XIMO JOGO</div>';
   // Faixa lateral
   h+='<div class="gd-side">2026 ADULT OPEN CHAMPIONSHIP</div>';
@@ -1992,11 +1992,15 @@ function renderGameDayCard(g,isNext){
   h+=statusBadge;
   // Ação
   h+='<div class="gd-action">'+(done||hasData?"\uD83D\uDCCA Ver estat\u00edsticas":"\u25B6 Abrir scout")+'</div>';
-  // Botao editar (so jogos pendentes) + excluir (protegidos por senha admin)
-  if(!live&&!done){
-    h+='<button class="gd-edit" onclick="event.stopPropagation();openTorneioEditarJogo(\''+g.id+'\')" title="Editar jogo">\u270F\uFE0F Editar jogo</button>';
+  // Botao editar (so jogos pendentes) + excluir (protegidos por senha admin).
+  // Fase B1.1: so aparecem no modo torneio isolado (legado). Na aba unificada
+  // os botoes voltam via Fase B2, ligados ao papel admin do login geral.
+  if(torneioMode){
+    if(!live&&!done){
+      h+='<button class="gd-edit" onclick="event.stopPropagation();openTorneioEditarJogo(\''+g.id+'\')" title="Editar jogo">\u270F\uFE0F Editar jogo</button>';
+    }
+    h+='<button class="gd-del" onclick="event.stopPropagation();excluirTorneioJogo(\''+g.id+'\')" title="Excluir jogo">\uD83D\uDDD1 Excluir jogo</button>';
   }
-  h+='<button class="gd-del" onclick="event.stopPropagation();excluirTorneioJogo(\''+g.id+'\')" title="Excluir jogo">\uD83D\uDDD1 Excluir jogo</button>';
   h+='</div>';
   h+='</div>';
   return h;
@@ -2017,6 +2021,37 @@ function openTorneioGame(gid){
     }
     S={aid:gid,sp:null,sa:null,cs:g.ss.length,us:[],tm:0,rn:false,ti:null};
   }
+  render();
+}
+
+// === Fase B1.1: helpers do fluxo unificado de torneios ===
+// tnyLayout(tor): qual layout o detalhe do torneio usa ('gameday' = cards
+// GAME DAY estilo USA; 'default' = listagem de jogos padrao via team-hub).
+// Fallback hardcoded p/ o torneio USA legado (id 't_usa_open') ate que o
+// campo tor.layout seja preenchido no banco.
+function tnyLayout(tor){
+  if(!tor) return 'default';
+  if(tor.layout==='gameday') return 'gameday';
+  if(tor.id==='t_usa_open') return 'gameday';
+  return 'default';
+}
+
+// openGameDayCard(gid): dispatcher unificado do click no GAME DAY card.
+// Em modo isolado (torneioMode) delega pro fluxo legado openTorneioGame.
+// Em modo aba prepara o jogo (ss/act/lineup) e navega pra tab=scout.
+function openGameDayCard(gid){
+  if(torneioMode){ openTorneioGame(gid); return; }
+  var g=gF(gid);
+  if(!g) return;
+  if(!g.ss||!g.ss.length) g.ss=[{u:0,t:0}];
+  if(!g.act) g.act=[];
+  var tor = (typeof tFnd==='function') ? tFnd(g.torId) : null;
+  if((!g.lineup||!g.lineup.length) && tor && tnyLayout(tor)==='gameday' && typeof buildUsaLineup==='function'){
+    g.lineup=buildUsaLineup();
+    if(typeof save==='function') save();
+  }
+  S={aid:gid,sp:null,sa:null,cs:g.ss.length,us:[],tm:0,rn:false,ti:null};
+  tab='scout';
   render();
 }
 
@@ -3480,6 +3515,35 @@ function rTorDetail(torId){
   h+='<div style="background:rgba(255,255,255,.18);padding:10px;border-radius:10px;text-align:center"><div style="font-family:Bebas Neue,sans-serif;font-size:26px;line-height:1">'+nL+'</div><div style="font-size:10px;letter-spacing:1px;opacity:.85">DERROTAS</div></div>';
   h+='<div style="background:rgba(255,255,255,.18);padding:10px;border-radius:10px;text-align:center"><div style="font-family:Bebas Neue,sans-serif;font-size:26px;line-height:1">'+games.length+'</div><div style="font-size:10px;letter-spacing:1px;opacity:.85">JOGOS</div></div>';
   h+='</div></div>';
+
+  // Fase B1.1: torneios com layout 'gameday' (USA + futuros) ja abrem em
+  // estilo GAME DAY direto na aba \u2014 reusa renderGameDayCard. Botoes de admin
+  // (criar/editar/excluir) voltam em Fase B2 ligados ao login geral.
+  if(tnyLayout(t)==='gameday'){
+    var gdGames=games.slice().sort(function(a,b){
+      var da=(a.dt||"")+(a.tm||"");var db=(b.dt||"")+(b.tm||"");
+      return db.localeCompare(da);
+    });
+    var gdNextId=null;
+    (function(){
+      var nowKey=(function(){var d=new Date(),z=function(n){return(n<10?"0":"")+n;};return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())+z(d.getHours())+":"+z(d.getMinutes());})();
+      var pend=[];
+      for(var i=0;i<gdGames.length;i++){var g=gdGames[i];if(g.st==="live"||g.st==="done")continue;pend.push({id:g.id,key:(g.dt||"")+(g.tm||"")});}
+      pend.sort(function(a,b){return a.key.localeCompare(b.key);});
+      for(var j=0;j<pend.length;j++){if(pend[j].key>=nowKey){gdNextId=pend[j].id;break;}}
+      if(!gdNextId&&pend.length)gdNextId=pend[pend.length-1].id;
+    })();
+    if(!gdGames.length){
+      h+='<div style="padding:40px 20px;text-align:center;color:var(--rs-fg-mute);position:relative;z-index:1"><div style="font-size:38px;margin-bottom:10px">\ud83c\udfd0</div>Nenhum jogo cadastrado neste torneio.</div>';
+    }else{
+      h+='<div class="usa-cards" style="padding:0;max-width:none">';
+      for(var gi=0;gi<gdGames.length;gi++){h+=renderGameDayCard(gdGames[gi],gdGames[gi].id===gdNextId);}
+      h+='</div>';
+    }
+    h+='</div>';
+    return h;
+  }
+
   if(isCoord){h+='<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="bt bp bsm" onclick="openGameEditor(null,\''+t.id+'\')">\u2795 Novo Jogo neste Torneio</button></div>';}
   if(!games.length){
     h+='<div class="cd" style="padding:30px;text-align:center;color:var(--gray)">Nenhum jogo cadastrado neste torneio.</div>';

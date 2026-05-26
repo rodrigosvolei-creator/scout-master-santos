@@ -198,6 +198,20 @@ body.rs-shell .rs-tor-detail .rs-tor-detail-title::after{content:"";flex:1;heigh
 body.rs-shell .rs-tor-detail .bt.bg{background:rgba(255,255,255,.07);color:var(--rs-fg-mute);border:1px solid var(--rs-line)}
 body.rs-shell .rs-tor-detail .bt.bg:hover{background:rgba(255,255,255,.1);color:var(--rs-fg)}
 
+/* === Fase C: Torneio encerrado / histórico === */
+/* Card cinza/dessaturado no rTor listing */
+.rs-tor-card.is-archived{filter:grayscale(.75) opacity(.85)}
+.rs-tor-card.is-archived::before{background:#475569;box-shadow:none}
+.rs-tor-card.is-archived::after{display:none}
+.rs-tor-card.is-archived .rs-tor-card-title{color:rgba(232,238,249,.78)}
+.rs-tor-archived-badge{position:absolute;top:10px;right:10px;z-index:3;background:linear-gradient(135deg,#475569,#334155);color:#e2e8f0;font-size:10px;font-weight:800;letter-spacing:1.5px;padding:5px 11px 5px 12px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1);text-transform:uppercase}
+
+/* Detalhe do torneio arquivado: faixa "ENCERRADO" no banner */
+.rs-tor-detail-archived-badge{position:absolute;top:12px;right:14px;background:rgba(15,23,42,.7);color:#e2e8f0;font-size:10px;font-weight:800;letter-spacing:2px;padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.18);text-transform:uppercase;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.rs-tor-detail.is-archived{position:relative}
+/* GAME DAY cards dentro de um detalhe arquivado tambem dessaturam */
+.rs-tor-detail.is-archived .gd-card{filter:grayscale(.55) opacity(.9)}
+
 /* === TORNEIO USA — TELA ISOLADA === */
 .usa-wrap{min-height:100vh;background:linear-gradient(160deg,#0a0e1a 0%,#111a2e 45%,#0f172a 100%);padding-bottom:40px}
 .usa-wrap::before{content:'';position:fixed;inset:0;background-image:radial-gradient(ellipse at 15% 10%,rgba(96,165,250,.12) 0%,transparent 50%),radial-gradient(ellipse at 85% 90%,rgba(250,204,21,.07) 0%,transparent 50%);pointer-events:none;z-index:0}
@@ -2018,8 +2032,9 @@ function renderGameDayCard(g,isNext){
   // Botao editar (so jogos pendentes) + excluir.
   // Fase B2.2: aparecem pra quem pode gerenciar. No isolado legado todo usuario
   // ve (a senha eh pedida no clique). No fluxo unificado so admin/coord ve.
-  // A funcao chamada (openTorneioEditarJogo/excluirTorneioJogo) faz o gate de execucao.
-  var showAdminBtns = torneioMode || isAdmin || isCoord;
+  // Fase C: nunca mostra se o torneio do jogo esta arquivado (so-leitura).
+  var cardTor = (typeof tFnd==='function') ? tFnd(g.torId) : null;
+  var showAdminBtns = (torneioMode || isAdmin || isCoord) && !isArchivedTor(cardTor);
   if(showAdminBtns){
     if(!live&&!done){
       h+='<button class="gd-edit" onclick="event.stopPropagation();openTorneioEditarJogo(\''+g.id+'\')" title="Editar jogo">\u270F\uFE0F Editar jogo</button>';
@@ -2114,6 +2129,30 @@ function gameAutoTarja(g){
   return 'no_data';
 }
 
+// === Fase C: torneio encerrado / historico ===
+// Torneio com tor.archived=true vira so-leitura (sem criar/editar/excluir jogo).
+// Visualmente: card cinza no rTor + selo ENCERRADO, rTorDetail tambem.
+// O bloqueio das ACOES de scout fica como follow-up — por ora a UI admin some.
+function isArchivedTor(t){ return !!(t && t.archived); }
+
+// canEditTorneioGames(tor): admin pode gerenciar jogos do torneio NAO encerrado.
+function canEditTorneioGames(tor){
+  return canManageTorneio() && !isArchivedTor(tor);
+}
+
+// Toggle do status arquivado (admin/coord) — confirma antes de re-ativar.
+function toggleTorneioArchived(torId){
+  if(!canManageTorneio()){
+    if(typeof toast==='function') toast('So admin pode mudar o status do torneio.','bad');
+    return;
+  }
+  var t = tFnd(torId); if(!t) return;
+  t.archived = !t.archived;
+  if(typeof save==='function') save();
+  if(typeof toast==='function') toast(t.archived?'Torneio marcado como encerrado.':'Torneio reativado.','ok');
+  render();
+}
+
 // ===== CRIAR JOGO NO TORNEIO (protegido por senha de admin) =====
 var _tnjLogoData=null; // base64 do logo carregado
 var _tnjEditId=null;   // id do jogo em edicao (null = modo criar)
@@ -2126,6 +2165,9 @@ function openTorneioEditarJogo(gid){
     if(typeof toast==="function")toast("So jogos pendentes podem ser editados.","bad");
     return;
   }
+  // Fase C: torneio arquivado nao aceita edicao de jogo (defense-in-depth).
+  var jTor = tFnd(g.torId);
+  if(isArchivedTor(jTor)){ if(typeof toast==="function")toast("Torneio encerrado — só leitura.","bad"); return; }
   if(!canManageTorneio()){ _tnjEditId=gid; openTorneioAdminGate(); return; }
   _tnjEditId=gid;
   openTorneioNovoJogo();
@@ -2135,6 +2177,13 @@ function openTorneioNovoJogo(){
   // Gate de admin: senha no modo isolado, papel (admin/coord) no fluxo unificado.
   if(!canManageTorneio()){
     openTorneioAdminGate();
+    return;
+  }
+  // Fase C: torneio ativo arquivado bloqueia criacao.
+  var activeTorId = torneioMode ? torneioId : selTor;
+  var activeTor = activeTorId ? tFnd(activeTorId) : null;
+  if(isArchivedTor(activeTor)){
+    if(typeof toast==="function") toast("Torneio encerrado — não aceita novos jogos.","bad");
     return;
   }
   _tnjLogoData=null;
@@ -2260,6 +2309,12 @@ function excluirTorneioJogo(gid){
   // Gate de admin: senha no modo isolado, papel (admin/coord) no fluxo unificado.
   if(!canManageTorneio()){
     openTorneioAdminGateFor("excluir",gid);
+    return;
+  }
+  // Fase C: torneio do jogo arquivado bloqueia exclusao (defense-in-depth).
+  var dgg = gF(gid);
+  if(dgg && isArchivedTor(tFnd(dgg.torId))){
+    if(typeof toast==="function") toast("Torneio encerrado — não aceita exclusão.","bad");
     return;
   }
   var g=gF(gid);if(!g)return;
@@ -3526,12 +3581,14 @@ function rTor(){
     h+='<div class="rs-tor-empty"><div class="rs-tor-empty-icon">\uD83C\uDFC6</div><div class="rs-tor-empty-title">Nenhum torneio cadastrado</div>'+(isCoord?'<div class="rs-tor-empty-sub">Clique em "Novo Torneio" para come\u00e7ar.</div>':'')+'</div></div>';
     return h;
   }
-  // Separar por status
-  var live=[],done=[],pending=[];
+  // Separar por status. Fase C: encerrados (archived) viram grupo proprio,
+  // independente de st \u2014 torneio so-leitura/historico.
+  var live=[],done=[],pending=[],archived=[];
   for(var i=0;i<tournaments.length;i++){
     var t=tournaments[i];
-    if(t.st==="done")done.push(t);
-    else if(t.st==="live")live.push(t);
+    if(isArchivedTor(t)) archived.push(t);
+    else if(t.st==="done") done.push(t);
+    else if(t.st==="live") live.push(t);
     else pending.push(t);
   }
   function renderGroup(title,arr){
@@ -3546,7 +3603,10 @@ function rTor(){
       }
       var color=t.color||"#2563eb";
       var pct=t.tot?Math.min(100,Math.round(nDone/t.tot*100)):0;
-      hh+='<div class="rs-tor-card" style="--tcol:'+color+'" onclick="selectTor(\''+t.id+'\')">';
+      // Fase C: cards arquivados ganham classe is-archived (cinza) + selo.
+      var archCls = isArchivedTor(t) ? ' is-archived' : '';
+      hh+='<div class="rs-tor-card'+archCls+'" style="--tcol:'+color+'" onclick="selectTor(\''+t.id+'\')">';
+      if(isArchivedTor(t)) hh+='<div class="rs-tor-archived-badge">\uD83D\uDCE6 ENCERRADO</div>';
       hh+='<div class="rs-tor-card-body">';
       hh+='<div class="rs-tor-card-head">';
       hh+='<div class="rs-tor-card-title">'+esc(t.n)+'</div>';
@@ -3567,6 +3627,7 @@ function rTor(){
   h+=renderGroup("\u25CF Em andamento",live);
   h+=renderGroup("\u23F3 Programados",pending);
   h+=renderGroup("\u2713 Conclu\u00eddos",done);
+  h+=renderGroup("\uD83D\uDCE6 Encerrados / Hist\u00F3rico",archived);
   h+='</div>';
   return h;
 }
@@ -3585,14 +3646,28 @@ function rTorDetail(torId){
     else if(r.type==="loss"||r.type==="wo_loss")nL++;
   }
   // Fase A2: detalhe escopado em .rs-tor-detail pra receber overrides de tema.
-  var h='<div class="rs-tor-detail">';
+  // Fase C: classe is-archived aplica visual de historico no detalhe.
+  var torArchived = isArchivedTor(t);
+  h='<div class="rs-tor-detail'+(torArchived?' is-archived':'')+'">';
   h+='<div style="margin-bottom:14px"><button class="bt bg" onclick="selectTor(null)">\u2190 Torneios</button></div>';
-  h+='<div style="background:linear-gradient(135deg,'+color+'ee,'+color+'aa);border-radius:18px;padding:22px;color:white;margin-bottom:16px;box-shadow:0 8px 24px '+color+'40">';
+  h+='<div style="background:linear-gradient(135deg,'+color+'ee,'+color+'aa);border-radius:18px;padding:22px;color:white;margin-bottom:16px;box-shadow:0 8px 24px '+color+'40;position:relative">';
+  // Fase C: selo ENCERRADO no canto sup. direito do banner quando torneio arquivado
+  if(torArchived) h+='<div class="rs-tor-detail-archived-badge">\uD83D\uDCE6 ENCERRADO \u00b7 S\u00D3 LEITURA</div>';
   h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">';
   h+='<div style="flex:1"><div style="font-size:11px;letter-spacing:2px;font-weight:800;opacity:.85;margin-bottom:4px">TORNEIO</div>';
   h+='<div style="font-family:Bebas Neue,sans-serif;font-size:30px;letter-spacing:1px;line-height:1">'+esc(t.n)+'</div>';
   h+='<div style="font-size:13px;opacity:.9;margin-top:4px">'+esc(t.cat||"")+(t.season?" \u00b7 "+esc(t.season):"")+'</div></div>';
-  if(isCoord)h+='<button class="bt bsm" style="background:rgba(255,255,255,.18);border:none;color:#fff" onclick="openTorEditor(\''+t.id+'\')">\u270F\uFE0F Editar</button>';
+  // Fase C: botoes admin no banner \u2014 Editar torneio + toggle Encerrar/Reativar
+  if(isCoord||isAdmin){
+    h+='<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">';
+    h+='<button class="bt bsm" style="background:rgba(255,255,255,.18);border:none;color:#fff" onclick="openTorEditor(\''+t.id+'\')">\u270F\uFE0F Editar</button>';
+    if(torArchived){
+      h+='<button class="bt bsm" style="background:rgba(22,163,74,.35);border:none;color:#fff" onclick="toggleTorneioArchived(\''+t.id+'\')">\u21BA Reativar</button>';
+    }else{
+      h+='<button class="bt bsm" style="background:rgba(100,116,139,.45);border:none;color:#fff" onclick="toggleTorneioArchived(\''+t.id+'\')">\uD83D\uDCE6 Encerrar</button>';
+    }
+    h+='</div>';
+  }
   h+='</div>';
   if(t.title)h+='<div style="background:rgba(255,255,255,.2);padding:10px 14px;border-radius:10px;margin-top:14px;display:flex;align-items:center;gap:10px"><span style="font-size:24px">\uD83C\uDFC6</span><span style="font-weight:700;letter-spacing:1px">'+esc(t.title)+'</span></div>';
   h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px">';
@@ -3619,7 +3694,8 @@ function rTorDetail(torId){
       if(!gdNextId&&pend.length)gdNextId=pend[pend.length-1].id;
     })();
     // Fase B2.2: botao Novo Jogo no topo do gameday \u2014 visivel pra admin/coord.
-    if(isCoord||isAdmin){
+    // Fase C: oculto quando torneio arquivado (so-leitura).
+    if((isCoord||isAdmin) && !torArchived){
       h+='<div style="display:flex;justify-content:flex-end;margin-bottom:14px;position:relative;z-index:1"><button class="tnj-btn" onclick="openTorneioNovoJogo()">\u2795 Novo Jogo</button></div>';
     }
     if(!gdGames.length){
@@ -3633,7 +3709,8 @@ function rTorDetail(torId){
     return h;
   }
 
-  if(isCoord){h+='<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="bt bp bsm" onclick="openGameEditor(null,\''+t.id+'\')">\u2795 Novo Jogo neste Torneio</button></div>';}
+  // Fase C: tambem oculta o botao "Novo Jogo neste Torneio" no fluxo default quando arquivado.
+  if((isCoord||isAdmin) && !torArchived){h+='<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="bt bp bsm" onclick="openGameEditor(null,\''+t.id+'\')">\u2795 Novo Jogo neste Torneio</button></div>';}
   if(!games.length){
     h+='<div class="cd" style="padding:30px;text-align:center;color:var(--gray)">Nenhum jogo cadastrado neste torneio.</div>';
     h+='</div>';

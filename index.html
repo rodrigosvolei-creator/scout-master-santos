@@ -1797,15 +1797,13 @@ var blob=new Blob([ph],{type:"text/html"});var url=URL.createObjectURL(blob);var
 // === TELA DO TORNEIO ISOLADO (USA) ===
 function renderTorneioIsolado(){
   var tor=tFnd(torneioId);
-  // Tela de senha (não desbloqueado)
-  if(!torneioUnlocked){
-    return renderTorneioSenha(tor);
-  }
-  // Jogo aberto no scout
+  // Fase B1.3: senha de acesso ao torneio foi removida. Login geral basta;
+  // o modo isolado (legado) entra direto nos cards. As funcoes
+  // renderTorneioSenha/checkTorneioPwd seguem existindo (dead code) ate
+  // B1.4 nukear o modo isolado inteiro.
   if(torneioGameOpen){
     return renderTorneioScout(torneioGameOpen);
   }
-  // Lista de cards GAME DAY
   return renderTorneioCards(tor);
 }
 

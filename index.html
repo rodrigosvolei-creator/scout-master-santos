@@ -156,6 +156,48 @@ body.rs-shell .app-header{border-bottom:1px solid var(--rs-line);box-shadow:0 4p
 /* Conteúdo do shell fica acima da marca d'água */
 body.rs-shell .app-content{position:relative;z-index:1}
 
+/* === RS-SCOUT — TORNEIOS NO TEMA ESCURO (Fase A2) === */
+/* Listagem (rTor) */
+.rs-tor-page{position:relative;z-index:1}
+.rs-tor-actions{display:flex;justify-content:flex-end;margin-bottom:18px}
+.rs-tor-newbtn{padding:11px 18px;background:linear-gradient(135deg,var(--rs-gold),#f59e0b);color:#1a1410;border:none;border-radius:11px;font-size:13px;font-weight:800;letter-spacing:.5px;cursor:pointer;font-family:inherit;box-shadow:0 8px 20px rgba(251,191,36,.28),inset 0 1px 0 rgba(255,255,255,.25);transition:transform .15s,box-shadow .15s}
+.rs-tor-newbtn:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(251,191,36,.36),inset 0 1px 0 rgba(255,255,255,.3)}
+.rs-tor-newbtn:active{transform:translateY(0)}
+.rs-tor-empty{background:linear-gradient(165deg,#101a30 0%,#16223d 55%,#0d1525 100%);border:1px solid var(--rs-line);border-radius:18px;padding:48px 24px;text-align:center;box-shadow:0 14px 36px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05)}
+.rs-tor-empty-icon{font-size:48px;margin-bottom:12px;opacity:.7;filter:grayscale(.3)}
+.rs-tor-empty-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--rs-fg);margin-bottom:6px}
+.rs-tor-empty-sub{font-size:13px;color:var(--rs-fg-mute)}
+.rs-tor-group{margin-bottom:22px}
+.rs-tor-group-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--rs-gold);margin:6px 2px 14px;display:flex;align-items:center;gap:10px}
+.rs-tor-group-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(251,191,36,.45),transparent)}
+.rs-tor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.rs-tor-card{position:relative;background:linear-gradient(155deg,#101a30 0%,#16223d 55%,#0d1525 100%);border:1px solid var(--rs-line);border-radius:18px;overflow:hidden;cursor:pointer;box-shadow:0 14px 36px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .18s,box-shadow .18s}
+.rs-tor-card:hover{transform:translateY(-3px);box-shadow:0 20px 48px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08)}
+.rs-tor-card::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--tcol,#2563eb);box-shadow:0 0 18px var(--tcol,#2563eb)}
+.rs-tor-card::after{content:"";position:absolute;top:0;right:0;width:140px;height:140px;background-image:radial-gradient(circle,color-mix(in srgb,var(--tcol,#2563eb) 22%,transparent) 0%,transparent 65%);pointer-events:none}
+.rs-tor-card-body{padding:18px 16px 14px;position:relative;z-index:1}
+.rs-tor-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px}
+.rs-tor-card-title{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:1.5px;line-height:1.05;color:var(--rs-fg);flex:1}
+.rs-tor-card-trophy{font-size:22px;filter:drop-shadow(0 2px 6px rgba(251,191,36,.4))}
+.rs-tor-card-chips{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.rs-tor-card-chip{padding:3px 9px;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:.3px}
+.rs-tor-card-chip--cat{background:color-mix(in srgb,var(--tcol,#2563eb) 18%,transparent);color:var(--tcol,#2563eb);border:1px solid color-mix(in srgb,var(--tcol,#2563eb) 35%,transparent)}
+.rs-tor-card-chip--season{background:rgba(255,255,255,.06);color:var(--rs-fg-mute);border:1px solid var(--rs-line)}
+.rs-tor-card-medal{font-size:12px;font-weight:800;margin-bottom:10px;letter-spacing:.3px}
+.rs-tor-progress-row{display:flex;justify-content:space-between;font-size:11px;color:var(--rs-fg-mute);margin-bottom:6px;letter-spacing:.3px}
+.rs-tor-progress-row b{color:var(--rs-fg);font-weight:800}
+.rs-tor-progress-track{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.rs-tor-progress-fill{height:100%;background:var(--tcol,#2563eb);transition:width .3s;box-shadow:0 0 12px var(--tcol,#2563eb)}
+
+/* Detalhe (rTorDetail) — overrides escopados pra escurecer .cd e textos soltos */
+body.rs-shell .rs-tor-detail .cd{background:linear-gradient(155deg,#101a30 0%,#16223d 55%,#0d1525 100%);border:1px solid var(--rs-line);color:var(--rs-fg);box-shadow:0 12px 30px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04)}
+body.rs-shell .rs-tor-detail .cd .cd{background:transparent;border:1px solid transparent;box-shadow:none}
+body.rs-shell .rs-tor-detail{position:relative;z-index:1}
+body.rs-shell .rs-tor-detail .rs-tor-detail-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--rs-gold);margin:14px 2px 12px;display:flex;align-items:center;gap:10px}
+body.rs-shell .rs-tor-detail .rs-tor-detail-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(251,191,36,.45),transparent)}
+body.rs-shell .rs-tor-detail .bt.bg{background:rgba(255,255,255,.07);color:var(--rs-fg-mute);border:1px solid var(--rs-line)}
+body.rs-shell .rs-tor-detail .bt.bg:hover{background:rgba(255,255,255,.1);color:var(--rs-fg)}
+
 /* === TORNEIO USA — TELA ISOLADA === */
 .usa-wrap{min-height:100vh;background:linear-gradient(160deg,#0a0e1a 0%,#111a2e 45%,#0f172a 100%);padding-bottom:40px}
 .usa-wrap::before{content:'';position:fixed;inset:0;background-image:radial-gradient(ellipse at 15% 10%,rgba(96,165,250,.12) 0%,transparent 50%),radial-gradient(ellipse at 85% 90%,rgba(250,204,21,.07) 0%,transparent 50%);pointer-events:none;z-index:0}
@@ -772,7 +814,7 @@ function rFilters(teamVar,gameVar,onTeamChange,onGameChange){
   return h;
 }
 
-var D=null,tab="scout",subTab="teams",statView="overview",selAthl=null,selTor=null,gFiltSet="all";
+var D=null,tab="torneios",subTab="teams",statView="overview",selAthl=null,selTor=null,gFiltSet="all";
 // Filtros separados por sub-aba (cada uma tem seu próprio par Equipe/Jogo)
 // Stats: começa SEM filtro selecionado — força usuário a escolher antes de ver dados
 // Decisão: mostrar dashboard limpo até filtro ser aplicado (evita poluição visual)
@@ -1090,7 +1132,7 @@ auth.onAuthStateChanged(function(user){
   if(!user){
     userProfile=null;
     updateRoleFlags();
-    if(tab==="config")tab="scout";
+    if(tab==="config")tab="torneios";
     render();
     return;
   }
@@ -1423,7 +1465,7 @@ function finishSignup(){
   signupToken=null;
   signupStep="welcome";
   showLanding=false;
-  tab="scout";
+  tab="torneios";
   render();
 }
 
@@ -3353,14 +3395,15 @@ return h;
 // ==========================================================
 function rTor(){
   if(selTor){return rTorDetail(selTor);}
-  // Listagem
+  // Fase A2: aba Torneios reformulada no tema escuro de transmissao. Cards
+  // sao a porta de entrada do app pos-login. CSS namespaced em .rs-tor-*.
   var tournaments=D.tournaments||[];
-  var h='';
+  var h='<div class="rs-tor-page">';
   if(isCoord){
-    h+='<div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="bt bp" onclick="openTorEditor(null)">\u2795 Novo Torneio</button></div>';
+    h+='<div class="rs-tor-actions"><button class="rs-tor-newbtn" onclick="openTorEditor(null)">\u2795 Novo Torneio</button></div>';
   }
   if(!tournaments.length){
-    h+='<div class="cd" style="padding:40px 20px;text-align:center;color:var(--gray)"><div style="font-size:42px;margin-bottom:10px">\uD83C\uDFC6</div><div style="font-size:15px;font-weight:600;margin-bottom:6px">Nenhum torneio cadastrado</div>'+(isCoord?'<div style="font-size:12px">Clique em "Novo Torneio" para come\u00e7ar.</div>':'')+'</div>';
+    h+='<div class="rs-tor-empty"><div class="rs-tor-empty-icon">\uD83C\uDFC6</div><div class="rs-tor-empty-title">Nenhum torneio cadastrado</div>'+(isCoord?'<div class="rs-tor-empty-sub">Clique em "Novo Torneio" para come\u00e7ar.</div>':'')+'</div></div>';
     return h;
   }
   // Separar por status
@@ -3373,8 +3416,8 @@ function rTor(){
   }
   function renderGroup(title,arr){
     if(!arr.length)return '';
-    var hh='<div style="font-family:Bebas Neue,sans-serif;font-size:18px;letter-spacing:2px;color:var(--navy);margin:18px 0 10px">'+title+'</div>';
-    hh+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">';
+    var hh='<div class="rs-tor-group"><div class="rs-tor-group-title">'+title+'</div>';
+    hh+='<div class="rs-tor-grid">';
     for(var k=0;k<arr.length;k++){
       var t=arr[k];
       var nGames=0,nDone=0;
@@ -3383,27 +3426,28 @@ function rTor(){
       }
       var color=t.color||"#2563eb";
       var pct=t.tot?Math.min(100,Math.round(nDone/t.tot*100)):0;
-      hh+='<div class="cd" style="cursor:pointer;padding:0;overflow:hidden;border-top:5px solid '+color+'" onclick="selectTor(\''+t.id+'\')">';
-      hh+='<div style="padding:14px 16px">';
-      hh+='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px">';
-      hh+='<div style="font-family:Bebas Neue,sans-serif;font-size:20px;letter-spacing:1px;line-height:1.1;color:var(--navy);flex:1">'+esc(t.n)+'</div>';
-      if(t.title)hh+='<div style="font-size:24px" title="'+esc(t.title)+'">\uD83C\uDFC6</div>';
+      hh+='<div class="rs-tor-card" style="--tcol:'+color+'" onclick="selectTor(\''+t.id+'\')">';
+      hh+='<div class="rs-tor-card-body">';
+      hh+='<div class="rs-tor-card-head">';
+      hh+='<div class="rs-tor-card-title">'+esc(t.n)+'</div>';
+      if(t.title)hh+='<div class="rs-tor-card-trophy" title="'+esc(t.title)+'">\uD83C\uDFC6</div>';
       hh+='</div>';
-      hh+='<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">';
-      hh+='<span style="background:'+color+'15;color:'+color+';padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700">'+esc(t.cat||"")+'</span>';
-      if(t.season)hh+='<span style="background:var(--card2);color:var(--gray);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700">'+esc(t.season)+'</span>';
+      hh+='<div class="rs-tor-card-chips">';
+      if(t.cat)hh+='<span class="rs-tor-card-chip rs-tor-card-chip--cat">'+esc(t.cat)+'</span>';
+      if(t.season)hh+='<span class="rs-tor-card-chip rs-tor-card-chip--season">'+esc(t.season)+'</span>';
       hh+='</div>';
-      if(t.title){hh+='<div style="font-size:13px;color:'+color+';font-weight:700;margin-bottom:8px">\uD83E\uDD47 '+esc(t.title)+'</div>';}
-      hh+='<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray);margin-bottom:6px"><span>Progresso</span><span><b>'+nDone+'</b> de '+(t.tot||nGames)+' jogos</span></div>';
-      hh+='<div style="height:6px;background:var(--card2);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+color+';transition:width .3s"></div></div>';
+      if(t.title){hh+='<div class="rs-tor-card-medal" style="color:'+color+'">\uD83E\uDD47 '+esc(t.title)+'</div>';}
+      hh+='<div class="rs-tor-progress-row"><span>Progresso</span><span><b>'+nDone+'</b> de '+(t.tot||nGames)+' jogos</span></div>';
+      hh+='<div class="rs-tor-progress-track"><div class="rs-tor-progress-fill" style="width:'+pct+'%"></div></div>';
       hh+='</div></div>';
     }
-    hh+='</div>';
+    hh+='</div></div>';
     return hh;
   }
   h+=renderGroup("\u25CF Em andamento",live);
   h+=renderGroup("\u23F3 Programados",pending);
   h+=renderGroup("\u2713 Conclu\u00eddos",done);
+  h+='</div>';
   return h;
 }
 
@@ -3420,7 +3464,9 @@ function rTorDetail(torId){
     if(r.type==="win"||r.type==="wo_win")nW++;
     else if(r.type==="loss"||r.type==="wo_loss")nL++;
   }
-  var h='<div style="margin-bottom:14px"><button class="bt bg" onclick="selectTor(null)">\u2190 Torneios</button></div>';
+  // Fase A2: detalhe escopado em .rs-tor-detail pra receber overrides de tema.
+  var h='<div class="rs-tor-detail">';
+  h+='<div style="margin-bottom:14px"><button class="bt bg" onclick="selectTor(null)">\u2190 Torneios</button></div>';
   h+='<div style="background:linear-gradient(135deg,'+color+'ee,'+color+'aa);border-radius:18px;padding:22px;color:white;margin-bottom:16px;box-shadow:0 8px 24px '+color+'40">';
   h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">';
   h+='<div style="flex:1"><div style="font-size:11px;letter-spacing:2px;font-weight:800;opacity:.85;margin-bottom:4px">TORNEIO</div>';
@@ -3437,6 +3483,7 @@ function rTorDetail(torId){
   if(isCoord){h+='<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="bt bp bsm" onclick="openGameEditor(null,\''+t.id+'\')">\u2795 Novo Jogo neste Torneio</button></div>';}
   if(!games.length){
     h+='<div class="cd" style="padding:30px;text-align:center;color:var(--gray)">Nenhum jogo cadastrado neste torneio.</div>';
+    h+='</div>';
     return h;
   }
   // Toggle de visualização (default: por equipe)
@@ -3448,9 +3495,10 @@ function rTorDetail(torId){
   if(gTorView==="team"){
     h+=renderTeamHub(games,{showHistory:true});
   }else{
-    h+='<div style="font-family:Bebas Neue,sans-serif;font-size:18px;letter-spacing:2px;color:var(--navy);margin:6px 0 10px">JOGOS</div>';
+    h+='<div class="rs-tor-detail-title">JOGOS</div>';
     for(var i=0;i<games.length;i++){h+=renderGameCard(games[i],color);}
   }
+  h+='</div>';
   return h;
 }
 

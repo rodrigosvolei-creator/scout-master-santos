@@ -26,6 +26,10 @@ const w=dom.window;
 setTimeout(()=>{
  try{
   ['teams','games','tournaments','athletes','invites'].forEach(k=>{const p='torneio-master-santos/'+k;if(listeners[p])listeners[p]({val:()=>getAt(p)});});
+  // Fase B1.2: o URL parser nao seta mais torneioMode/torneioId/torneioToken.
+  // Este teste exercita as funcoes do modo isolado legado, entao re-estabelece
+  // o estado manualmente (sera removido na Fase B1.4 junto com o modo isolado).
+  w.torneioMode=true; w.torneioId='t_usa_open'; w.torneioToken='usa';
   let pass=0,fail=0;function ck(n,c){if(c){pass++;console.log('✅ '+n);}else{fail++;console.log('❌ '+n);}}
 
   // TELA DE SENHA

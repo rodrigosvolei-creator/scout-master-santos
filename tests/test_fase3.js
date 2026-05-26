@@ -30,6 +30,8 @@ const w=dom.window;
 setTimeout(()=>{
  try{
   ['teams','games','tournaments','athletes','invites'].forEach(k=>{const p='torneio-master-santos/'+k;if(listeners[p])listeners[p]({val:()=>getAt(p)});});
+  // Fase B1.2 shim: restaurar estado legado (URL parser nao seta mais).
+  w.torneioMode=true; w.torneioId='t_usa_open'; w.torneioToken='usa';
   w.torneioUnlocked=true;
   let pass=0,fail=0;function ck(n,c){if(c){pass++;console.log('✅ '+n);}else{fail++;console.log('❌ '+n);}}
 

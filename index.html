@@ -962,19 +962,14 @@ function buildUsaLineup(){
       signupToken=cadastro;
       showLanding=false;
     }
-    // Modo torneio isolado: ?torneio=usa
+    // Deep-link ?torneio=usa: agora redireciona pro fluxo unificado (Fase B1.2)
+    // — vai direto pra aba Torneios com o torneio selecionado, sem torneioMode.
+    // Senha por torneio sera removida em B1.3; login geral basta.
     var torneio=url.searchParams.get("torneio");
     if(torneio&&TOURNEY_ACCESS[torneio]){
-      torneioMode=true;
-      torneioToken=torneio;
-      torneioId=TOURNEY_ACCESS[torneio].torId;
+      selTor=TOURNEY_ACCESS[torneio].torId;
+      tab="torneios";
       showLanding=false;
-      // Verifica se já desbloqueou antes (sessão)
-      try{
-        if(window.sessionStorage&&window.sessionStorage.getItem("tourney_"+torneio)==="1"){
-          torneioUnlocked=true;
-        }
-      }catch(e){}
     }
     // Permite pular landing com ?app=1
     if(url.searchParams.get("app")==="1"){

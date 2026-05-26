@@ -633,6 +633,14 @@ body.rs-shell .rs-tor-detail .bt.bg:hover{background:rgba(255,255,255,.1);color:
 .tnj-err{color:#fca5a5;font-size:11px;font-weight:600;margin-top:-8px;margin-bottom:10px;min-height:14px}
 .tnj-inherit{background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:9px;padding:9px 12px;margin-bottom:16px;font-size:11px;color:#93c5fd}
 .tnj-inherit b{color:#fff}
+/* Fase B2.2: radios de tarja (Nenhuma / SEM DADOS / CANCELADO) no editor de jogo */
+.tnj-tarja-row{display:flex;gap:8px;flex-wrap:wrap}
+.tnj-tarja-opt{flex:1;min-width:90px;display:flex;align-items:center;gap:6px;padding:9px 10px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);font-size:11px;font-weight:700;color:#cbd5e1;cursor:pointer;letter-spacing:.5px;transition:all .15s}
+.tnj-tarja-opt:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.18)}
+.tnj-tarja-opt input{accent-color:#fbbf24;cursor:pointer}
+.tnj-tarja-opt.tnj-tarja-nodata{color:#cbd5e1}
+.tnj-tarja-opt.tnj-tarja-cancelled{color:#fca5a5;border-color:rgba(220,38,38,.3);background:rgba(220,38,38,.08)}
+.tnj-tarja-opt.tnj-tarja-cancelled:hover{background:rgba(220,38,38,.14)}
 
 </style>
 </head>
@@ -2007,10 +2015,12 @@ function renderGameDayCard(g,isNext){
   h+=statusBadge;
   // Ação
   h+='<div class="gd-action">'+(done||hasData?"\uD83D\uDCCA Ver estat\u00edsticas":"\u25B6 Abrir scout")+'</div>';
-  // Botao editar (so jogos pendentes) + excluir (protegidos por senha admin).
-  // Fase B1.1: so aparecem no modo torneio isolado (legado). Na aba unificada
-  // os botoes voltam via Fase B2, ligados ao papel admin do login geral.
-  if(torneioMode){
+  // Botao editar (so jogos pendentes) + excluir.
+  // Fase B2.2: aparecem pra quem pode gerenciar. No isolado legado todo usuario
+  // ve (a senha eh pedida no clique). No fluxo unificado so admin/coord ve.
+  // A funcao chamada (openTorneioEditarJogo/excluirTorneioJogo) faz o gate de execucao.
+  var showAdminBtns = torneioMode || isAdmin || isCoord;
+  if(showAdminBtns){
     if(!live&&!done){
       h+='<button class="gd-edit" onclick="event.stopPropagation();openTorneioEditarJogo(\''+g.id+'\')" title="Editar jogo">\u270F\uFE0F Editar jogo</button>';
     }
@@ -2076,6 +2086,15 @@ function openGameDayCard(gid){
   render();
 }
 
+// === Fase B2.2: gate unificado pra gestao do torneio ===
+// Antes era apenas torneioAdminUnlocked (senha de admin no modo isolado).
+// Agora quem tem papel admin/coord no login geral destrava direto na aba.
+function canManageTorneio(){
+  if(torneioMode && torneioAdminUnlocked) return true;
+  if(!torneioMode && (isAdmin || isCoord)) return true;
+  return false;
+}
+
 // === Fase B2.1: helper unico de tarja do card de jogo ===
 // gameAutoTarja(g): retorna 'cancelled', 'no_data' ou null.
 // Prioridade: tarja manual setada por admin (g.status_tag) prevalece sobre auto.
@@ -2107,14 +2126,14 @@ function openTorneioEditarJogo(gid){
     if(typeof toast==="function")toast("So jogos pendentes podem ser editados.","bad");
     return;
   }
-  if(!torneioAdminUnlocked){ _tnjEditId=gid; openTorneioAdminGate(); return; }
+  if(!canManageTorneio()){ _tnjEditId=gid; openTorneioAdminGate(); return; }
   _tnjEditId=gid;
   openTorneioNovoJogo();
 }
 
 function openTorneioNovoJogo(){
-  // Exige senha de admin antes de abrir o formulario
-  if(!torneioAdminUnlocked){
+  // Gate de admin: senha no modo isolado, papel (admin/coord) no fluxo unificado.
+  if(!canManageTorneio()){
     openTorneioAdminGate();
     return;
   }
@@ -2137,6 +2156,13 @@ function openTorneioNovoJogo(){
   m+='<option value="3">Melhor de 3 sets</option><option value="5">Melhor de 5 sets</option>';
   m+='</select></div>';
   m+='</div>';
+  // Fase B2.2: tarja admin (Nenhuma / SEM DADOS / CANCELADO). Manual prevalece sobre auto.
+  m+='<div class="tnj-field"><span class="tnj-lb">Tarja (admin)</span>';
+  m+='<div class="tnj-tarja-row">';
+  m+='<label class="tnj-tarja-opt"><input type="radio" name="tnj-tarja" value=""> Nenhuma</label>';
+  m+='<label class="tnj-tarja-opt tnj-tarja-nodata"><input type="radio" name="tnj-tarja" value="no_data"> SEM DADOS</label>';
+  m+='<label class="tnj-tarja-opt tnj-tarja-cancelled"><input type="radio" name="tnj-tarja" value="cancelled"> CANCELADO</label>';
+  m+='</div></div>';
   m+='<div class="tnj-field"><span class="tnj-lb">Logo do advers\u00e1rio (opcional)</span>';
   m+='<div class="tnj-logo-drop" id="tnj-logo-drop" onclick="document.getElementById(\'tnj-logo-input\').click()">';
   m+='<div class="tnj-logo-txt" id="tnj-logo-txt">\uD83D\uDCF7 Toque para escolher uma imagem</div></div>';
@@ -2160,6 +2186,14 @@ function openTorneioNovoJogo(){
       var txt=document.getElementById("tnj-logo-txt");
       if(txt)txt.textContent="\u2705 Logo atual mantido \u2014 toque para trocar";
     }
+    // Fase B2.2: pre-seleciona o radio da tarja conforme estado atual
+    var curTarja=editG.status_tag||"";
+    var radios=document.getElementsByName("tnj-tarja");
+    for(var ri=0;ri<radios.length;ri++){ if(radios[ri].value===curTarja) radios[ri].checked=true; }
+  }else{
+    // Modo criar: marca "Nenhuma" como default
+    var radios2=document.getElementsByName("tnj-tarja");
+    if(radios2.length) radios2[0].checked=true;
   }
 }
 
@@ -2223,8 +2257,8 @@ function cancelTorneioModal(){
 }
 
 function excluirTorneioJogo(gid){
-  // Exige senha de admin
-  if(!torneioAdminUnlocked){
+  // Gate de admin: senha no modo isolado, papel (admin/coord) no fluxo unificado.
+  if(!canManageTorneio()){
     openTorneioAdminGateFor("excluir",gid);
     return;
   }
@@ -2279,12 +2313,19 @@ function salvarTorneioJogo(){
   opp=(opp||"").trim();
   if(!opp){if(errEl)errEl.textContent="Informe o nome do advers\u00e1rio.";return;}
   if(!dt){if(errEl)errEl.textContent="Informe a data do jogo.";return;}
+  // Fase B2.2: torneio ativo. No modo isolado, vem do global torneioId.
+  // No fluxo unificado (aba) vem do selTor (torneio selecionado em rTorDetail).
+  var activeTorId = torneioMode ? torneioId : selTor;
   // Herdar a equipe RS: pega do 1o jogo do torneio, ou 1a equipe disponivel
   var tid="";
-  if(D.games)for(var i=0;i<D.games.length;i++){if(D.games[i].torId===torneioId){tid=D.games[i].tid;break;}}
+  if(D.games)for(var i=0;i<D.games.length;i++){if(D.games[i].torId===activeTorId){tid=D.games[i].tid;break;}}
   if(!tid&&D.teams&&D.teams.length)tid=D.teams[0].id;
   if(!tid){if(errEl)errEl.textContent="Nenhuma equipe encontrada para o torneio.";return;}
   var t=tF(tid);
+  // Fase B2.2: ler radio da tarja admin (vazio = sem tarja).
+  var newStatusTag="";
+  var tarjaRadios=document.getElementsByName("tnj-tarja");
+  for(var tri=0;tri<tarjaRadios.length;tri++){ if(tarjaRadios[tri].checked){ newStatusTag=tarjaRadios[tri].value||""; break; } }
   // ---- MODO EDICAO: atualiza um jogo pendente existente ----
   if(_tnjEditId){
     var eg=gF(_tnjEditId);
@@ -2297,6 +2338,8 @@ function salvarTorneioJogo(){
     eg.phase=phase||"Fase de Classifica\u00e7\u00e3o";
     eg.maxSets=fmt;
     if(_tnjLogoData)eg.oppLogoData=_tnjLogoData;
+    // Fase B2.2: persiste tarja admin (vazio remove a tarja manual; auto continua valendo)
+    if(newStatusTag) eg.status_tag=newStatusTag; else delete eg.status_tag;
     save();
     _tnjLogoData=null;_tnjEditId=null;
     closeTorneioModal();
@@ -2306,15 +2349,17 @@ function salvarTorneioJogo(){
   }
   // ---- MODO CRIAR ----
   var novoJogo={
-    id:uid("g_"),tid:tid,torId:torneioId,tor:(t?t.n:""),
+    id:uid("g_"),tid:tid,torId:activeTorId,tor:(t?t.n:""),
     cat:"Adulto",phase:phase||"Fase de Classifica\u00e7\u00e3o",
     maxSets:fmt,
     opp:opp,dt:dt,tm:tm||"",loc:"",
     pl:[],act:[],ss:[],st:"pending",result:null,
-    lineup:buildUsaLineup()
+    lineup:(typeof buildUsaLineup==='function'?buildUsaLineup():[])
   };
   // Logo: se enviou imagem, guarda no proprio jogo (base64)
   if(_tnjLogoData)novoJogo.oppLogoData=_tnjLogoData;
+  // Fase B2.2: persiste tarja admin (se selecionada)
+  if(newStatusTag) novoJogo.status_tag=newStatusTag;
   if(!D.games)D.games=[];
   D.games.push(novoJogo);
   save();
@@ -3573,6 +3618,10 @@ function rTorDetail(torId){
       for(var j=0;j<pend.length;j++){if(pend[j].key>=nowKey){gdNextId=pend[j].id;break;}}
       if(!gdNextId&&pend.length)gdNextId=pend[pend.length-1].id;
     })();
+    // Fase B2.2: botao Novo Jogo no topo do gameday \u2014 visivel pra admin/coord.
+    if(isCoord||isAdmin){
+      h+='<div style="display:flex;justify-content:flex-end;margin-bottom:14px;position:relative;z-index:1"><button class="tnj-btn" onclick="openTorneioNovoJogo()">\u2795 Novo Jogo</button></div>';
+    }
     if(!gdGames.length){
       h+='<div style="padding:40px 20px;text-align:center;color:var(--rs-fg-mute);position:relative;z-index:1"><div style="font-size:38px;margin-bottom:10px">\ud83c\udfd0</div>Nenhum jogo cadastrado neste torneio.</div>';
     }else{

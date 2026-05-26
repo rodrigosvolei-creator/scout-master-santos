@@ -264,6 +264,25 @@ body.rs-shell .rs-tor-detail .bt.bg:hover{background:rgba(255,255,255,.1);color:
 .gd-edit:hover{background:rgba(37,99,235,.22);color:#bfdbfe}
 .gd-del:hover{background:rgba(220,38,38,.22);color:#fff}
 
+/* === Fase B2.1: Tarja no GAME DAY card (CANCELADO / SEM DADOS) === */
+.gd-card[data-tarja]{opacity:.85}
+.gd-card[data-tarja] .gd-body{filter:grayscale(.4)}
+.gd-card[data-tarja="cancelled"]{opacity:.72}
+.gd-card[data-tarja="cancelled"] .gd-body{filter:grayscale(.55) sepia(.1)}
+.gd-tarja{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:5}
+.gd-tarja-text{position:relative;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:20px;font-weight:800;letter-spacing:4px;background:#7f1d1d;padding:9px 24px;border-radius:5px;transform:rotate(-6deg);box-shadow:0 8px 22px rgba(0,0,0,.55),0 0 0 2px rgba(255,255,255,.15);text-transform:uppercase;white-space:nowrap}
+.gd-tarja-text::before,.gd-tarja-text::after{content:'';position:absolute;top:50%;width:300px;height:4px;background:repeating-linear-gradient(90deg,#7f1d1d 0,#7f1d1d 8px,#fff 8px,#fff 12px);transform:translateY(-50%);opacity:.7}
+.gd-tarja-text::before{right:100%;margin-right:6px}
+.gd-tarja-text::after{left:100%;margin-left:6px}
+.gd-tarja-text.is-cancelled{background:#0f172a}
+.gd-tarja-text.is-cancelled::before,.gd-tarja-text.is-cancelled::after{background:repeating-linear-gradient(90deg,#0f172a 0,#0f172a 8px,#fff 8px,#fff 12px)}
+
+/* Tarja CANCELADO no card de jogo simples (renderGameCard) — segue padrao .game-tarja-text */
+.game-tarja-text.is-cancelled{background:#0f172a}
+.game-tarja-text.is-cancelled::before,.game-tarja-text.is-cancelled::after{background:repeating-linear-gradient(90deg,#0f172a 0,#0f172a 8px,#fff 8px,#fff 12px)}
+.cd.game-cancelled{opacity:.72}
+.cd.game-cancelled > div:first-child{filter:grayscale(.55) sepia(.1)}
+
 /* Scout dentro do torneio */
 .usa-scout-wrap{min-height:100vh;background:linear-gradient(170deg,#eef2f7 0%,#e7ecf3 60%,#dfe5ee 100%);position:relative;overflow:hidden}
 .usa-scout-wrap::before{content:"";position:fixed;right:1%;top:52%;transform:translateY(-50%);width:min(480px,64vw);height:min(480px,64vw);background-image:var(--rs-watermark);background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.22;pointer-events:none;z-index:0;filter:grayscale(.2)}
@@ -1960,7 +1979,10 @@ function renderGameDayCard(g,isNext){
   else if(done)statusBadge='<div class="gd-status gd-status-done">FINALIZADO</div>';
   else statusBadge='<div class="gd-status gd-status-pending">A JOGAR</div>';
   
-  var h='<div class="gd-card'+(isNext?" gd-next":"")+'" onclick="openGameDayCard(\''+g.id+'\')">';
+  // Fase B2.1: tarja unificada (CANCELADO / SEM DADOS) via gameAutoTarja.
+  // data-tarja no card escurece/dessatura o conteudo (CSS .gd-card[data-tarja]).
+  var gdTarja = (typeof gameAutoTarja==='function') ? gameAutoTarja(g) : null;
+  var h='<div class="gd-card'+(isNext?" gd-next":"")+'"'+(gdTarja?' data-tarja="'+gdTarja+'"':'')+' onclick="openGameDayCard(\''+g.id+'\')">';
   if(isNext)h+='<div class="gd-next-tag">\u25B6 PR\u00d3XIMO JOGO</div>';
   // Faixa lateral
   h+='<div class="gd-side">2026 ADULT OPEN CHAMPIONSHIP</div>';
@@ -1995,6 +2017,12 @@ function renderGameDayCard(g,isNext){
     h+='<button class="gd-del" onclick="event.stopPropagation();excluirTorneioJogo(\''+g.id+'\')" title="Excluir jogo">\uD83D\uDDD1 Excluir jogo</button>';
   }
   h+='</div>';
+  // Tarja CANCELADO / SEM DADOS (overlay) \u2014 fora do .gd-body pra cobrir o card inteiro.
+  if(gdTarja){
+    var gdTxt = gdTarja==='cancelled' ? 'CANCELADO' : 'SEM DADOS';
+    var gdMod = gdTarja==='cancelled' ? ' is-cancelled' : '';
+    h+='<div class="gd-tarja"><span class="gd-tarja-text'+gdMod+'">'+gdTxt+'</span></div>';
+  }
   h+='</div>';
   return h;
 }
@@ -2046,6 +2074,25 @@ function openGameDayCard(gid){
   S={aid:gid,sp:null,sa:null,cs:g.ss.length,us:[],tm:0,rn:false,ti:null};
   tab='scout';
   render();
+}
+
+// === Fase B2.1: helper unico de tarja do card de jogo ===
+// gameAutoTarja(g): retorna 'cancelled', 'no_data' ou null.
+// Prioridade: tarja manual setada por admin (g.status_tag) prevalece sobre auto.
+// Auto: jogo passado (g.dt anterior a hoje) + sem acoes registradas
+// + sem resultado declarado (g.result.type) => 'no_data'.
+function gameAutoTarja(g){
+  if(!g) return null;
+  if(g.status_tag==='cancelled') return 'cancelled';
+  if(g.status_tag==='no_data') return 'no_data';
+  if(!g.dt) return null;
+  var hoje=new Date();hoje.setHours(0,0,0,0);
+  var dt=new Date(g.dt+"T12:00:00");
+  if(dt>=hoje) return null;
+  var nActions=(g.act&&g.act.length)||0;
+  if(nActions>0) return null;
+  if(g.result && g.result.type) return null;
+  return 'no_data';
 }
 
 // ===== CRIAR JOGO NO TORNEIO (protegido por senha de admin) =====
@@ -3802,21 +3849,12 @@ function renderGameCard(g,torColor){
   var clickable=isCoord?'cursor:pointer':'';
   var clickHandler=isCoord?' onclick="openGameEditor(\''+g.id+'\')"':'';
   
-  // Detectar jogo passado sem scout (data anterior a hoje E sem ações registradas)
-  var isPastWithoutData=false;
-  if(g.dt){
-    var hoje=new Date();hoje.setHours(0,0,0,0);
-    var dataJogo=new Date(g.dt+"T12:00:00");
-    if(dataJogo<hoje){
-      var nActions=(g.act&&g.act.length)||0;
-      // Sem ações E sem result.type (não foi marcado como W/D/WO)
-      if(nActions===0&&!r.type){
-        isPastWithoutData=true;
-      }
-    }
-  }
-  
-  var h='<div class="cd '+(isPastWithoutData?'game-no-data':'')+'" style="padding:0;margin-bottom:8px;border-left:4px solid '+borderColor+';overflow:hidden;position:relative;'+clickable+'"'+clickHandler+'>';
+  // Fase B2.1: tarja unificada (CANCELADO / SEM DADOS) via gameAutoTarja.
+  // Manual (admin via g.status_tag) prevalece sobre auto (passado sem dados).
+  var tarja = (typeof gameAutoTarja==='function') ? gameAutoTarja(g) : null;
+  var cardTarjaCls = tarja==='cancelled' ? 'game-cancelled' : (tarja==='no_data' ? 'game-no-data' : '');
+
+  var h='<div class="cd '+cardTarjaCls+'" style="padding:0;margin-bottom:8px;border-left:4px solid '+borderColor+';overflow:hidden;position:relative;'+clickable+'"'+clickHandler+'>';
   h+='<div style="padding:12px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">';
   h+='<div style="text-align:center;min-width:50px"><div style="font-family:Bebas Neue,sans-serif;font-size:18px;color:var(--navy);line-height:1">'+dt.substring(0,5)+'</div><div style="font-size:11px;color:var(--gray);margin-top:2px">'+tm+'</div></div>';
   h+='<div style="flex:1;min-width:140px">';
@@ -3831,9 +3869,11 @@ function renderGameCard(g,torColor){
   h+='</div>';
   h+='<div>'+resultLabel+'</div>';
   h+='</div>';
-  // Tarja SEM DADOS
-  if(isPastWithoutData){
-    h+='<div class="game-tarja"><span class="game-tarja-text">SEM DADOS</span></div>';
+  // Tarja (CANCELADO / SEM DADOS) — manual prevalece sobre auto via gameAutoTarja
+  if(tarja){
+    var tarjaTxt = tarja==='cancelled' ? 'CANCELADO' : 'SEM DADOS';
+    var tarjaMod = tarja==='cancelled' ? ' is-cancelled' : '';
+    h+='<div class="game-tarja"><span class="game-tarja-text'+tarjaMod+'">'+tarjaTxt+'</span></div>';
   }
   h+='</div>';
   return h;

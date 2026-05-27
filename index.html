@@ -198,6 +198,99 @@ body.rs-shell .rs-tor-detail .rs-tor-detail-title::after{content:"";flex:1;heigh
 body.rs-shell .rs-tor-detail .bt.bg{background:rgba(255,255,255,.07);color:var(--rs-fg-mute);border:1px solid var(--rs-line)}
 body.rs-shell .rs-tor-detail .bt.bg:hover{background:rgba(255,255,255,.1);color:var(--rs-fg)}
 
+/* === Fase D: tema escuro nas demais abas (CSS sweep escopado) === */
+/* Vars antigas redefinidas DENTRO do .app-content do shell — flipa inline styles
+   (style="color:var(--navy)", style="background:var(--card2)") sem reescrever JS.
+   Header e tabs ja tem o tratamento dark proprio (A1), por isso o scope nao
+   vaza pra cima. */
+body.rs-shell .app-content{
+  --navy:#e8eef9;
+  --gray:rgba(232,238,249,.62);
+  --txt:#e8eef9;
+  --txl:rgba(232,238,249,.82);
+  --brd:rgba(255,255,255,.10);
+  --card:linear-gradient(155deg,#101a30 0%,#16223d 55%,#0d1525 100%);
+  --card2:rgba(255,255,255,.05);
+  --bg:transparent
+}
+/* Cards .cd ganham superficie dark + sombra mais funda */
+body.rs-shell .app-content .cd{
+  background:linear-gradient(155deg,#101a30 0%,#16223d 55%,#0d1525 100%);
+  border:1px solid var(--rs-line);
+  box-shadow:0 10px 26px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04);
+  color:var(--rs-fg)
+}
+body.rs-shell .app-content .cd:hover{
+  box-shadow:0 14px 34px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)
+}
+/* Cards de equipe do team-hub (renderTeamHub) seguem o mesmo padrao */
+body.rs-shell .app-content .th-card{
+  background:linear-gradient(155deg,#101a30 0%,#16223d 55%,#0d1525 100%);
+  box-shadow:0 10px 26px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04);
+  color:var(--rs-fg)
+}
+body.rs-shell .app-content .th-card:hover{
+  box-shadow:0 14px 34px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)
+}
+body.rs-shell .app-content .th-name{color:var(--rs-fg)}
+/* Form fields */
+body.rs-shell .app-content input,
+body.rs-shell .app-content select,
+body.rs-shell .app-content textarea{
+  background:rgba(255,255,255,.05);
+  color:var(--rs-fg);
+  border:1px solid var(--rs-line)
+}
+body.rs-shell .app-content input:focus,
+body.rs-shell .app-content select:focus,
+body.rs-shell .app-content textarea:focus{
+  border-color:var(--rs-blue);
+  box-shadow:0 0 0 3px rgba(37,99,235,.18)
+}
+body.rs-shell .app-content input::placeholder,
+body.rs-shell .app-content textarea::placeholder{color:rgba(232,238,249,.4)}
+body.rs-shell .app-content select option{background:#101a30;color:var(--rs-fg)}
+/* Botoes ghost/outline */
+body.rs-shell .app-content .bg{
+  background:rgba(255,255,255,.07);
+  color:var(--rs-fg);
+  border:1px solid var(--rs-line)
+}
+body.rs-shell .app-content .bg:hover{background:rgba(255,255,255,.12);color:var(--rs-fg)}
+body.rs-shell .app-content .bo{background:transparent;color:var(--rs-fg);border:2px solid var(--rs-line)}
+body.rs-shell .app-content .bo:hover{background:rgba(255,255,255,.04)}
+/* Sub-tabs (.stb buttons) — segue padrao das tabs principais */
+body.rs-shell .app-content .stb{background:transparent;padding:0;border-radius:0}
+body.rs-shell .app-content .stb button{
+  background:rgba(255,255,255,.04);
+  color:var(--rs-fg-mute);
+  border:1px solid var(--rs-line)
+}
+body.rs-shell .app-content .stb button:hover{background:rgba(255,255,255,.08);color:var(--rs-fg)}
+body.rs-shell .app-content .stb button.on{
+  background:rgba(251,191,36,.10);
+  color:var(--rs-gold);
+  border-color:rgba(251,191,36,.45)
+}
+/* Pills de fundamento (.pb) usadas em painel e selecoes */
+body.rs-shell .app-content .pb{
+  background:rgba(255,255,255,.04);
+  border-color:var(--rs-line);
+  color:var(--rs-fg)
+}
+body.rs-shell .app-content .pb.on{
+  background:rgba(37,99,235,.18);
+  border-color:rgba(96,165,250,.5);
+  color:#cfe2ff
+}
+/* Tabelas dentro do shell */
+body.rs-shell .app-content th,
+body.rs-shell .app-content td{color:var(--rs-fg);border-color:var(--rs-line)}
+/* Labels .lb (sao usadas em formularios em varias abas) */
+body.rs-shell .app-content .lb{color:var(--rs-fg-mute)}
+/* hr e separadores */
+body.rs-shell .app-content hr{border-color:var(--rs-line)}
+
 /* === Fase C: Torneio encerrado / histórico === */
 /* Card cinza/dessaturado no rTor listing */
 .rs-tor-card.is-archived{filter:grayscale(.75) opacity(.85)}

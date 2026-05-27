@@ -1113,9 +1113,23 @@ function buildUsaLineup(rosterOverride){
 }
 
 // === Fase PG: roster e logo do time Praia Grande (página isolada) ===
-// PG_ROSTER fica vazio ate o cliente enviar a lista. Cada item: {nu, nm, po}.
+// PG_ROSTER: time feminino. Posicoes em branco — admin pode preencher depois
+// pelo app principal (Config > Atletas). gender:"F" pra estatisticas/relatorios.
 var PG_ROSTER=[
-  // a ser preenchido com a lista de atletas (numero + nome + posicao)
+  {nu:2,  nm:"Paixão",    po:"", gender:"F"},
+  {nu:3,  nm:"Venturelli",po:"", gender:"F"},
+  {nu:5,  nm:"Maysa",     po:"", gender:"F"},
+  {nu:6,  nm:"Sofia",     po:"", gender:"F"},
+  {nu:8,  nm:"Luiza",     po:"", gender:"F"},
+  {nu:9,  nm:"Anna",      po:"", gender:"F"},
+  {nu:12, nm:"Magano",    po:"", gender:"F"},
+  {nu:13, nm:"Gabi",      po:"", gender:"F"},
+  {nu:14, nm:"Cova",      po:"", gender:"F"},
+  {nu:15, nm:"Isis",      po:"", gender:"F"},
+  {nu:16, nm:"Ghelare",   po:"", gender:"F"},
+  {nu:18, nm:"Fuzinato",  po:"", gender:"F"},
+  {nu:19, nm:"Catarina",  po:"", gender:"F"},
+  {nu:20, nm:"Helô",      po:"", gender:"F"}
 ];
 
 // Logo placeholder do Praia Grande. Substituir por base64 do logo real quando chegar.

@@ -331,6 +331,13 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .usa-header-sub{font-size:11px;letter-spacing:2.5px;color:rgba(148,163,184,.95);font-weight:700;margin-top:8px}
 .usa-logout{position:absolute;top:22px;right:16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:11px;font-weight:700;padding:7px 15px;border-radius:9px;cursor:pointer;backdrop-filter:blur(8px)}
 .usa-logout:hover{background:rgba(255,255,255,.2)}
+/* Fase PG: botao admin "Editar brand" — fica ao lado do Sair (left), so visivel pra admin */
+.usa-brand-edit{position:absolute;top:22px;right:78px;background:rgba(251,191,36,.18);border:1px solid rgba(251,191,36,.4);color:#fde68a;font-size:11px;font-weight:800;padding:7px 13px;border-radius:9px;cursor:pointer;backdrop-filter:blur(8px);letter-spacing:.3px;font-family:inherit;transition:all .15s}
+.usa-brand-edit:hover{background:rgba(251,191,36,.28);color:#fef3c7;transform:translateY(-1px)}
+@media(max-width:480px){
+  .usa-brand-edit{top:auto;bottom:-44px;right:50%;transform:translateX(50%);font-size:10px;padding:6px 11px}
+  .usa-brand-edit:hover{transform:translateX(50%) translateY(-1px)}
+}
 .usa-cards{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
 @media(max-width:680px){.usa-cards{grid-template-columns:1fr;max-width:480px}}
 .usa-foot{position:relative;z-index:1;text-align:center;color:rgba(148,163,184,.5);font-size:10px;padding:24px;letter-spacing:1px}
@@ -1038,8 +1045,25 @@ var appStarted=true;
 var isMob=window.innerWidth<640;
 
 // Mapa de tokens → torneio (qual senha abre qual torneio)
+// Fase Time Praia Grande: TOURNEY_ACCESS controla os deep-links de torneios isolados.
+// USA fica no fluxo unificado (sem standalone). PG e pagina a parte (standalone:true).
+// Campo standalone:true => URL parser ativa torneioMode + senha gate (volta o fluxo
+// classico do USA antigo). Sem standalone => redirect pra aba unificada (B1.2).
 var TOURNEY_ACCESS={
-  "usa":{token:"usa",pwd:"usa2026",adminPwd:"rsadmin2026",torId:"t_usa_open"}
+  "usa":{token:"usa",pwd:"usa2026",adminPwd:"rsadmin2026",torId:"t_usa_open"},
+  "pg":{
+    token:"pg", pwd:"PG2026", adminPwd:"pgadmin2026",
+    torId:"t_pg_open", teamId:"t_pg_main",
+    standalone:true,
+    logoVar:"PG_LOGO", rosterVar:"PG_ROSTER",
+    brandFlag:"🏐 PRAIA GRANDE",
+    brandSub:"PRAIA GRANDE",
+    brandTitle:"JOGOS REGIONAIS 2026",
+    brandCat:"PRAIA<br>GRANDE",
+    brandTeam:"PRAIA GRANDE",
+    brandColor:"#06b6d4",
+    teamLogoCls:"usa-pg-logo"
+  }
 };
 // Destrava de admin do torneio (criar/editar/excluir jogo) — separada da senha de acesso
 var torneioAdminUnlocked=false;
@@ -1063,11 +1087,13 @@ var USA_ROSTER=[
   {nu:15,nm:"Fabiano",  po:"Ponta"}
 ];
 // Monta o lineup default: acha cada atleta por nome (cria se nao existir) e retorna [{aid,nu}]
-function buildUsaLineup(){
+function buildUsaLineup(rosterOverride){
+  // Fase PG: aceita roster custom. Sem arg, mantem o padrao USA (backward compat).
+  var roster = rosterOverride && rosterOverride.length ? rosterOverride : USA_ROSTER;
   if(!D.athletes)D.athletes=[];
   var lineup=[];
-  for(var i=0;i<USA_ROSTER.length;i++){
-    var r=USA_ROSTER[i];
+  for(var i=0;i<roster.length;i++){
+    var r=roster[i];
     var ath=null;
     for(var j=0;j<D.athletes.length;j++){
       var a=D.athletes[j];
@@ -1075,7 +1101,7 @@ function buildUsaLineup(){
     }
     if(!ath){
       // atleta nao existe no banco — cria
-      ath={aid:uid("a_"),nm:r.nm,po:r.po,gender:"M",legacy_ids:[],tags:[]};
+      ath={aid:uid("a_"),nm:r.nm,po:r.po,gender:(r.gender||"M"),legacy_ids:[],tags:[]};
       D.athletes.push(ath);
     }else if(!ath.po){
       // atleta existe mas sem posicao — completa
@@ -1084,6 +1110,56 @@ function buildUsaLineup(){
     lineup.push({aid:ath.aid,nu:r.nu});
   }
   return lineup;
+}
+
+// === Fase PG: roster e logo do time Praia Grande (página isolada) ===
+// PG_ROSTER fica vazio ate o cliente enviar a lista. Cada item: {nu, nm, po}.
+var PG_ROSTER=[
+  // a ser preenchido com a lista de atletas (numero + nome + posicao)
+];
+
+// Logo placeholder do Praia Grande. Substituir por base64 do logo real quando chegar.
+// SVG inline pra ficar leve. O encodeURIComponent roda 1x no boot.
+var PG_LOGO=(function(){
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">'+
+    '<defs><linearGradient id="pgbg" x1="0" y1="0" x2="1" y2="1">'+
+    '<stop offset="0%" stop-color="#0891b2"/><stop offset="100%" stop-color="#155e75"/>'+
+    '</linearGradient></defs>'+
+    '<rect width="256" height="256" rx="48" fill="url(#pgbg)"/>'+
+    '<circle cx="128" cy="96" r="58" fill="rgba(255,255,255,.14)"/>'+
+    '<text x="128" y="138" text-anchor="middle" font-family="Arial, sans-serif" font-size="86" font-weight="900" fill="#fff" letter-spacing="-2">PG</text>'+
+    '<text x="128" y="202" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="rgba(255,255,255,.92)" letter-spacing="3">PRAIA GRANDE</text>'+
+    '</svg>';
+  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+})();
+
+// getBrand(token): centraliza o branding (logo, textos, cor) por torneio isolado.
+// Prioridade dos dados: torneio (editavel pelo admin via app) > constante PG_LOGO/etc
+// (placeholder) > LR (default USA, backward compat).
+// Sem token / token desconhecido => default USA.
+function getBrand(token){
+  var access=(token && TOURNEY_ACCESS[token]) || {};
+  // 1. Logo do constante (placeholder PG_LOGO, etc)
+  var logo=LR;
+  if(access.logoVar && typeof window!=='undefined' && typeof window[access.logoVar]!=='undefined'){
+    logo=window[access.logoVar];
+  }
+  // 2. Tentar pegar o torneio do banco — se admin ja personalizou, prevalece.
+  var tor=null;
+  if(access.torId && typeof tFnd==='function'){
+    try{ tor=tFnd(access.torId); }catch(e){}
+  }
+  if(tor && tor.brandLogoData) logo=tor.brandLogoData;
+  return {
+    logo: logo,
+    flag: (tor&&tor.brandFlag) || access.brandFlag || '🏆 USA TOURNAMENT',
+    sub: (tor&&tor.brandSub) || access.brandSub || 'RS-VOLEIBOL · ADULTO MASCULINO',
+    title: (tor&&tor.n) || access.brandTitle || '2026 ADULT OPEN CHAMPIONSHIP',
+    cat: (tor&&tor.brandCat) || access.brandCat || 'ADULTO<br>MASCULINO',
+    team: (tor&&tor.brandTeam) || access.brandTeam || 'RS VOLEIBOL',
+    color: (tor&&tor.color) || (tor&&tor.brandColor) || access.brandColor || '#1d7a3a',
+    teamLogoCls: access.teamLogoCls || 'usa-rs-logo'
+  };
 }
 
 // Detectar URL params no boot
@@ -1096,14 +1172,28 @@ function buildUsaLineup(){
       signupToken=cadastro;
       showLanding=false;
     }
-    // Deep-link ?torneio=usa: agora redireciona pro fluxo unificado (Fase B1.2)
-    // — vai direto pra aba Torneios com o torneio selecionado, sem torneioMode.
-    // Senha por torneio sera removida em B1.3; login geral basta.
+    // Deep-link ?torneio=<token>.
+    // - access.standalone=true (PG): pagina isolada com senha (modo legado).
+    // - sem standalone (USA): redireciona pro fluxo unificado (B1.2).
     var torneio=url.searchParams.get("torneio");
     if(torneio&&TOURNEY_ACCESS[torneio]){
-      selTor=TOURNEY_ACCESS[torneio].torId;
-      tab="torneios";
-      showLanding=false;
+      var __access=TOURNEY_ACCESS[torneio];
+      if(__access.standalone){
+        torneioMode=true;
+        torneioToken=torneio;
+        torneioId=__access.torId;
+        showLanding=false;
+        // Cache de senha em sessionStorage — evita pedir senha em cada reload
+        try{
+          if(window.sessionStorage && window.sessionStorage.getItem("tourney_"+torneio)==="1"){
+            torneioUnlocked=true;
+          }
+        }catch(e){}
+      }else{
+        selTor=__access.torId;
+        tab="torneios";
+        showLanding=false;
+      }
     }
     // Permite pular landing com ?app=1
     if(url.searchParams.get("app")==="1"){
@@ -1931,10 +2021,13 @@ var blob=new Blob([ph],{type:"text/html"});var url=URL.createObjectURL(blob);var
 // === TELA DO TORNEIO ISOLADO (USA) ===
 function renderTorneioIsolado(){
   var tor=tFnd(torneioId);
-  // Fase B1.3: senha de acesso ao torneio foi removida. Login geral basta;
-  // o modo isolado (legado) entra direto nos cards. As funcoes
-  // renderTorneioSenha/checkTorneioPwd seguem existindo (dead code) ate
-  // B1.4 nukear o modo isolado inteiro.
+  // Fase PG: torneios standalone (PG) voltam a ter o gate de senha de acesso.
+  // USA (sem standalone) ja foi redirecionado pra aba unificada no URL parser,
+  // entao nao chega aqui no fluxo normal — mas se chegar, entra direto.
+  var __access = torneioToken ? TOURNEY_ACCESS[torneioToken] : null;
+  if(__access && __access.standalone && !torneioUnlocked){
+    return renderTorneioSenha(tor);
+  }
   if(torneioGameOpen){
     return renderTorneioScout(torneioGameOpen);
   }
@@ -1942,10 +2035,12 @@ function renderTorneioIsolado(){
 }
 
 function renderTorneioSenha(tor){
-  var nome=tor?tor.n:"Torneio";
-  var h='<div class="usa-wrap" style="--rs-watermark:url(\''+LR+'\')"><div class="usa-lock-screen">';
+  // Fase PG: brand parametrizado (logo + nome) \u2014 USA usa LR, PG usa PG_LOGO.
+  var brand=getBrand(torneioToken);
+  var nome=tor?tor.n:(brand.title||"Torneio");
+  var h='<div class="usa-wrap" style="--rs-watermark:url(\''+brand.logo+'\')"><div class="usa-lock-screen">';
   h+='<div class="usa-lock-card">';
-  h+='<div class="usa-lock-crest"><img src="'+LR+'" alt="RS"></div>';
+  h+='<div class="usa-lock-crest"><img src="'+brand.logo+'" alt="logo"></div>';
   h+='<div class="usa-lock-title">'+esc(nome)+'</div>';
   h+='<div class="usa-lock-sub">Acesso restrito \u00b7 Scout do torneio</div>';
   h+='<div class="usa-lock-field"><input type="password" id="usa-pwd" placeholder="Senha de acesso" autocomplete="off" onkeydown="if(event.key===\'Enter\')checkTorneioPwd()"></div>';
@@ -2041,12 +2136,18 @@ function renderTorneioCards(tor){
     if(!nextGameId&&pend.length)nextGameId=pend[pend.length-1].id;
   })();
   
-  var h='<div class="usa-wrap" style="--rs-watermark:url(\''+LR+'\')">';
+  // Fase PG: brand parametrizado pelo torneioToken (USA=RS, PG=Praia Grande etc).
+  var brand=getBrand(torneioToken);
+  var h='<div class="usa-wrap" style="--rs-watermark:url(\''+brand.logo+'\')">';
   // Header
   h+='<div class="usa-header">';
-  h+='<div class="usa-header-flag">\uD83C\uDFC6 USA TOURNAMENT</div>';
+  h+='<div class="usa-header-flag">'+brand.flag+'</div>';
   h+='<div class="usa-header-title">'+esc(nome)+'</div>';
-  h+='<div class="usa-header-sub">RS-VOLEIBOL \u00b7 ADULTO MASCULINO</div>';
+  h+='<div class="usa-header-sub">'+brand.sub+'</div>';
+  // Fase PG: admin pode editar logo + nome + subtitulo do celular sem deploy.
+  if(canManageTorneio()){
+    h+='<button class="usa-brand-edit" onclick="openBrandEditor()" title="Editar logo, nome e subtítulo">🖼 Editar brand</button>';
+  }
   h+='<button class="usa-logout" onclick="exitTorneio()">Sair</button>';
   h+='</div>';
 
@@ -2097,18 +2198,28 @@ function renderGameDayCard(g,isNext){
   // Fase B2.1: tarja unificada (CANCELADO / SEM DADOS) via gameAutoTarja.
   // data-tarja no card escurece/dessatura o conteudo (CSS .gd-card[data-tarja]).
   var gdTarja = (typeof gameAutoTarja==='function') ? gameAutoTarja(g) : null;
+  // Fase PG: brand parametrizado por torneioToken \u2014 quando o card eh renderizado
+  // FORA do modo isolado (aba unificada), usa o brand do proprio torneio do jogo.
+  var cardBrandToken = torneioMode ? torneioToken : null;
+  if(!cardBrandToken){
+    // No fluxo unificado, descobre o token via torId \u2014 varre TOURNEY_ACCESS.
+    for(var __tk in TOURNEY_ACCESS){
+      if(TOURNEY_ACCESS[__tk].torId===g.torId){cardBrandToken=__tk;break;}
+    }
+  }
+  var brand=getBrand(cardBrandToken);
   var h='<div class="gd-card'+(isNext?" gd-next":"")+'"'+(gdTarja?' data-tarja="'+gdTarja+'"':'')+' onclick="openGameDayCard(\''+g.id+'\')">';
   if(isNext)h+='<div class="gd-next-tag">\u25B6 PR\u00d3XIMO JOGO</div>';
   // Faixa lateral
-  h+='<div class="gd-side">2026 ADULT OPEN CHAMPIONSHIP</div>';
+  h+='<div class="gd-side">'+brand.title+'</div>';
   h+='<div class="gd-body">';
   // Header GAME DAY
-  h+='<div class="gd-head"><span class="gd-game">GAME</span><span class="gd-day">DAY</span><span class="gd-cat">ADULTO<br>MASCULINO</span></div>';
+  h+='<div class="gd-head"><span class="gd-game">GAME</span><span class="gd-day">DAY</span><span class="gd-cat">'+brand.cat+'</span></div>';
   // Fase
   h+='<div class="gd-phase">'+esc(g.phase||"FASE DE CLASSIFICA\u00c7\u00c3O").toUpperCase()+'</div>';
   // Confronto
   h+='<div class="gd-match">';
-  h+='<div class="gd-team"><div class="usa-rs-logo"><img src="'+LR+'" alt="RS"></div><div class="gd-team-name">RS VOLEIBOL</div></div>';
+  h+='<div class="gd-team"><div class="'+brand.teamLogoCls+'"><img src="'+brand.logo+'" alt="logo"></div><div class="gd-team-name">'+brand.team+'</div></div>';
   h+='<div class="gd-x">X</div>';
   h+='<div class="gd-team">'+oppLogoSvg(g.oppLogo,g.opp,g.oppLogoData)+'<div class="gd-team-name">'+esc(g.opp||"").toUpperCase()+'</div></div>';
   h+='</div>';
@@ -2153,10 +2264,18 @@ function openTorneioGame(gid){
     // Garantir estruturas do scout (igual openG faz) — jogos importados podem nao ter ss/act
     if(!g.ss||!g.ss.length)g.ss=[{u:0,t:0}];
     if(!g.act)g.act=[];
-    // Jogo do torneio sem escalacao — aplica o elenco padrao do torneio USA
+    // Jogo do torneio sem escalacao — Fase PG: pega o roster certo via TOURNEY_ACCESS.
     if((!g.lineup||!g.lineup.length)&&g.torId===torneioId){
-      g.lineup=buildUsaLineup();
-      save();
+      var __acc=TOURNEY_ACCESS[torneioToken];
+      var __roster=null;
+      if(__acc && __acc.rosterVar && typeof window!=='undefined' && window[__acc.rosterVar] && window[__acc.rosterVar].length){
+        __roster=window[__acc.rosterVar];
+      }
+      var built=buildUsaLineup(__roster);
+      if(built && built.length){
+        g.lineup=built;
+        save();
+      }
     }
     S={aid:gid,sp:null,sa:null,cs:g.ss.length,us:[],tm:0,rn:false,ti:null};
   }
@@ -2392,6 +2511,89 @@ function closeTorneioModal(){
   var d=document.getElementById("tnjModal");if(d)d.remove();
 }
 
+// === Fase PG: editor de brand (logo + nome + subtitulo) ===
+// Admin abre modal, faz upload da imagem, ajusta texto e salva. Persistido no
+// torneio (tor.brandLogoData/brandSub/n). getBrand() prefere torneio sobre
+// constantes — entao a mudanca eh visivel imediatamente sem deploy.
+var _brandLogoData=null;
+function openBrandEditor(){
+  if(!canManageTorneio()){ openTorneioAdminGate(); return; }
+  _brandLogoData=null;
+  var torId=torneioMode ? torneioId : selTor;
+  var tor=torId ? tFnd(torId) : null;
+  var brand=getBrand(torneioMode ? torneioToken : null);
+  // Pre-fill com valores atuais
+  var curTitle=(tor&&tor.n) || brand.title || '';
+  var curSub=(tor&&tor.brandSub) || brand.sub || '';
+  var curLogo=(tor&&tor.brandLogoData) || brand.logo;
+
+  var m='<div class="tnj-modal" onclick="cancelTorneioModal()"><div class="tnj-box" onclick="event.stopPropagation()">';
+  m+='<div class="tnj-title">🖼 EDITAR BRAND</div>';
+  m+='<div class="tnj-sub">Logo, nome e subtítulo do torneio</div>';
+  m+='<div class="tnj-field"><span class="tnj-lb">Logo do time</span>';
+  m+='<div class="tnj-logo-drop has" id="brand-logo-drop" onclick="document.getElementById(\'brand-logo-input\').click()">';
+  m+='<div class="tnj-logo-txt" id="brand-logo-txt">';
+  m+='<div class="tnj-logo-preview"><img src="'+curLogo+'" alt="logo"></div>';
+  m+='Toque para trocar (PNG/JPG, até 2MB)</div></div>';
+  m+='<input type="file" id="brand-logo-input" accept="image/*" style="display:none" onchange="handleBrandLogo(this)">';
+  m+='</div>';
+  m+='<div class="tnj-field"><span class="tnj-lb">Nome do torneio</span><input id="brand-title" placeholder="Ex: Jogos Regionais 2026" autocomplete="off" value="'+esc(curTitle)+'"></div>';
+  m+='<div class="tnj-field"><span class="tnj-lb">Subtítulo</span><input id="brand-sub" placeholder="Ex: PRAIA GRANDE" autocomplete="off" value="'+esc(curSub)+'"></div>';
+  m+='<div class="tnj-err" id="brand-err"></div>';
+  m+='<div class="tnj-actions"><button class="tnj-cancel" onclick="cancelTorneioModal()">Cancelar</button>';
+  m+='<button class="tnj-save" onclick="saveBrandEditor()">✓ Salvar</button></div>';
+  m+='</div></div>';
+  var d=document.createElement("div");d.id="tnjModal";d.innerHTML=m;document.body.appendChild(d);
+}
+
+function handleBrandLogo(input){
+  var file=input.files&&input.files[0];if(!file)return;
+  if(file.size>2*1024*1024){
+    var e=document.getElementById("brand-err");if(e)e.textContent="Imagem muito grande (máx 2MB).";
+    return;
+  }
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    _brandLogoData=ev.target.result;
+    var txt=document.getElementById("brand-logo-txt");
+    if(txt) txt.innerHTML='<div class="tnj-logo-preview"><img src="'+_brandLogoData+'"></div>Nova logo selecionada — toque pra trocar';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveBrandEditor(){
+  var torId=torneioMode ? torneioId : selTor;
+  var __acc=torneioMode && torneioToken ? TOURNEY_ACCESS[torneioToken] : null;
+  // Bootstrap: se torneio nao existe ainda (1o acesso PG), cria.
+  if(!tFnd(torId)){
+    if(__acc && __acc.standalone){
+      if(!D.tournaments) D.tournaments=[];
+      D.tournaments.push({
+        id:torId, n:__acc.brandTitle||"Torneio",
+        c:__acc.brandColor||"#06b6d4", color:__acc.brandColor||"#06b6d4",
+        cat:__acc.brandSub||"", season:(new Date()).getFullYear()+"",
+        layout:"gameday", st:"live"
+      });
+    }
+  }
+  var tor=tFnd(torId);
+  if(!tor){
+    var e=document.getElementById("brand-err");if(e)e.textContent="Torneio não encontrado.";
+    return;
+  }
+  var newTitle=(document.getElementById("brand-title")||{}).value||"";
+  var newSub=(document.getElementById("brand-sub")||{}).value||"";
+  newTitle=newTitle.trim(); newSub=newSub.trim();
+  if(newTitle) tor.n=newTitle;
+  if(newSub) tor.brandSub=newSub; else delete tor.brandSub;
+  if(_brandLogoData) tor.brandLogoData=_brandLogoData;
+  if(typeof save==='function') save();
+  _brandLogoData=null;
+  closeTorneioModal();
+  if(typeof toast==='function') toast("Brand atualizado!","ok");
+  render();
+}
+
 // Cancelar pelo usuario: fecha e limpa o estado de edicao/logo pendente.
 function cancelTorneioModal(){
   _tnjEditId=null;_tnjLogoData=null;
@@ -2464,9 +2666,35 @@ function salvarTorneioJogo(){
   // Fase B2.2: torneio ativo. No modo isolado, vem do global torneioId.
   // No fluxo unificado (aba) vem do selTor (torneio selecionado em rTorDetail).
   var activeTorId = torneioMode ? torneioId : selTor;
-  // Herdar a equipe RS: pega do 1o jogo do torneio, ou 1a equipe disponivel
+  // Fase PG: bootstrap standalone \u2014 se o torneio configurado nao existe ainda,
+  // cria o torneio + a equipe (Praia Grande etc) no primeiro jogo. Garante que
+  // o time NAO eh herdado do RS (que seria o D.teams[0] fallback).
+  var __access = torneioMode && TOURNEY_ACCESS[torneioToken];
+  if(__access && __access.standalone){
+    // 1. Garante torneio
+    if(!tFnd(__access.torId)){
+      if(!D.tournaments) D.tournaments=[];
+      D.tournaments.push({
+        id:__access.torId, n:__access.brandTitle||"Torneio",
+        c:__access.brandColor||"#06b6d4", color:__access.brandColor||"#06b6d4",
+        cat:__access.brandSub||"", season:(new Date()).getFullYear()+"",
+        layout:"gameday", st:"live"
+      });
+    }
+    // 2. Garante equipe
+    if(__access.teamId && !tF(__access.teamId)){
+      if(!D.teams) D.teams=[];
+      D.teams.push({
+        id:__access.teamId, n:__access.brandTeam||"Time",
+        c:__access.brandColor||"#06b6d4",
+        roster:[]
+      });
+    }
+  }
+  // Herdar a equipe: prioridade pra teamId standalone, depois 1o jogo do torneio, depois fallback
   var tid="";
-  if(D.games)for(var i=0;i<D.games.length;i++){if(D.games[i].torId===activeTorId){tid=D.games[i].tid;break;}}
+  if(__access && __access.standalone && __access.teamId) tid=__access.teamId;
+  if(!tid && D.games)for(var i=0;i<D.games.length;i++){if(D.games[i].torId===activeTorId){tid=D.games[i].tid;break;}}
   if(!tid&&D.teams&&D.teams.length)tid=D.teams[0].id;
   if(!tid){if(errEl)errEl.textContent="Nenhuma equipe encontrada para o torneio.";return;}
   var t=tF(tid);
@@ -2502,7 +2730,16 @@ function salvarTorneioJogo(){
     maxSets:fmt,
     opp:opp,dt:dt,tm:tm||"",loc:"",
     pl:[],act:[],ss:[],st:"pending",result:null,
-    lineup:(typeof buildUsaLineup==='function'?buildUsaLineup():[])
+    // Fase PG: standalone usa o roster proprio (PG_ROSTER, etc). Default = USA.
+    lineup:(function(){
+      if(typeof buildUsaLineup!=='function') return [];
+      if(__access && __access.standalone && __access.rosterVar){
+        var customRoster=(typeof window!=='undefined' && window[__access.rosterVar]) ? window[__access.rosterVar] : null;
+        if(customRoster && customRoster.length) return buildUsaLineup(customRoster);
+        return []; // roster ainda vazio (cliente vai enviar)
+      }
+      return buildUsaLineup();
+    })()
   };
   // Logo: se enviou imagem, guarda no proprio jogo (base64)
   if(_tnjLogoData)novoJogo.oppLogoData=_tnjLogoData;

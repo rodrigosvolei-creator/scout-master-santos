@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preview · Praia Grande · ?torneio=pg</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_styles.css">
+<style>
+/* Preview wrapper: mostra as 2 telas lado a lado em desktop, empilhadas em mobile */
+.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px;max-width:1500px;margin:0 auto}
+@media(max-width:900px){.preview-grid{grid-template-columns:1fr}}
+.preview-card{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden;position:relative}
+.preview-card-label{position:absolute;top:10px;left:14px;font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:3px;color:#fbbf24;background:rgba(0,0,0,.55);padding:5px 12px;border-radius:6px;z-index:99;border:1px solid rgba(251,191,36,.3)}
+.scene{position:relative;min-height:780px;overflow:hidden}
+/* Sobreescreve fixed → absolute pra cada cena renderizar dentro do seu cartao */
+.scene .usa-wrap{min-height:780px}
+.scene .usa-wrap::before,
+.scene .usa-wrap::after{position:absolute !important}
+.scene .usa-lock-screen{min-height:780px}
+body{margin:0;background:#070d1c;color:#e8eef9;font-family:'Inter',sans-serif}
+.preview-title{text-align:center;padding:28px 20px 4px;font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:5px;color:#fbbf24}
+.preview-sub{text-align:center;padding-bottom:10px;font-size:12px;color:rgba(232,238,249,.5);letter-spacing:2px}
+.preview-note{max-width:1100px;margin:18px auto 8px;padding:14px 18px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.25);border-radius:12px;font-size:13px;color:#fde68a;line-height:1.5}
+.preview-note b{color:#fbbf24}
+</style>
+</head>
+<body>
+
+<div class="preview-title">PREVIEW · TIME PRAIA GRANDE</div>
+<div class="preview-sub">acesso via master.associacaoscoladevoleibol.com.br/?torneio=pg</div>
+
+<div class="preview-note">
+<b>Mockup estático</b>. Logo é placeholder com "PG" — admin pode trocar do celular via botão <b style="color:#fde68a">🖼 Editar brand</b> no header (ver cena 2, canto superior direito). Esse botão abre o modal da cena 3 onde você faz upload da imagem real + ajusta nome/subtítulo. Tudo persiste no Firebase, sem precisar redeploy.
+</div>
+
+<div class="preview-grid">
+
+  <!-- CENA 1: TELA DE SENHA -->
+  <div class="preview-card">
+    <div class="preview-card-label">CENA 1 · TELA DE ACESSO (senha PG2026)</div>
+    <div class="scene">
+      <div class="usa-wrap" style="--rs-watermark:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22pgbg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230891b2%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23155e75%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20rx%3D%2248%22%20fill%3D%22url(%23pgbg)%22%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2296%22%20r%3D%2258%22%20fill%3D%22rgba(255%2C255%2C255%2C.14)%22%2F%3E%3Ctext%20x%3D%22128%22%20y%3D%22138%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2286%22%20font-weight%3D%22900%22%20fill%3D%22%23fff%22%20letter-spacing%3D%22-2%22%3EPG%3C%2Ftext%3E%3Ctext%20x%3D%22128%22%20y%3D%22202%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22800%22%20fill%3D%22rgba(255%2C255%2C255%2C.92)%22%20letter-spacing%3D%223%22%3EPRAIA%20GRANDE%3C%2Ftext%3E%3C%2Fsvg%3E')">
+        <div class="usa-lock-screen">
+          <div class="usa-lock-card">
+            <div class="usa-lock-crest"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22pgbg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230891b2%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23155e75%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20rx%3D%2248%22%20fill%3D%22url(%23pgbg)%22%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2296%22%20r%3D%2258%22%20fill%3D%22rgba(255%2C255%2C255%2C.14)%22%2F%3E%3Ctext%20x%3D%22128%22%20y%3D%22138%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2286%22%20font-weight%3D%22900%22%20fill%3D%22%23fff%22%20letter-spacing%3D%22-2%22%3EPG%3C%2Ftext%3E%3Ctext%20x%3D%22128%22%20y%3D%22202%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22800%22%20fill%3D%22rgba(255%2C255%2C255%2C.92)%22%20letter-spacing%3D%223%22%3EPRAIA%20GRANDE%3C%2Ftext%3E%3C%2Fsvg%3E" alt="logo"></div>
+            <div class="usa-lock-title">JOGOS REGIONAIS 2026</div>
+            <div class="usa-lock-sub">Acesso restrito · Scout do torneio</div>
+            <div class="usa-lock-field"><input type="password" placeholder="Senha de acesso" autocomplete="off"></div>
+            <button class="usa-lock-btn">Entrar</button>
+            <div class="usa-lock-foot">RS-Voleibol · 2026</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENA 2: CARDS GAME DAY -->
+  <div class="preview-card">
+    <div class="preview-card-label">CENA 2 · GAME DAY (com tarja auto SEM DADOS)</div>
+    <div class="scene">
+      <div class="usa-wrap" style="--rs-watermark:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22pgbg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230891b2%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23155e75%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20rx%3D%2248%22%20fill%3D%22url(%23pgbg)%22%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2296%22%20r%3D%2258%22%20fill%3D%22rgba(255%2C255%2C255%2C.14)%22%2F%3E%3Ctext%20x%3D%22128%22%20y%3D%22138%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2286%22%20font-weight%3D%22900%22%20fill%3D%22%23fff%22%20letter-spacing%3D%22-2%22%3EPG%3C%2Ftext%3E%3Ctext%20x%3D%22128%22%20y%3D%22202%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22800%22%20fill%3D%22rgba(255%2C255%2C255%2C.92)%22%20letter-spacing%3D%223%22%3EPRAIA%20GRANDE%3C%2Ftext%3E%3C%2Fsvg%3E')">
+        <div class="usa-header">
+          <div class="usa-header-flag">🏐 PRAIA GRANDE</div>
+          <div class="usa-header-title">JOGOS REGIONAIS 2026</div>
+          <div class="usa-header-sub">PRAIA GRANDE</div>
+          <button class="usa-brand-edit">🖼 Editar brand</button>
+          <button class="usa-logout">Sair</button>
+        </div>
+        <div style="position:relative;z-index:1;text-align:center;margin:6px 0 4px"><button class="tnj-btn">➕ Novo Jogo</button></div>
+        <div class="usa-cards" style="grid-template-columns:1fr">
+
+          <!-- Card 1: PRÓXIMO JOGO -->
+          <div class="gd-card gd-next">
+            <div class="gd-next-tag">▶ PRÓXIMO JOGO</div>
+            <div class="gd-side">JOGOS REGIONAIS 2026</div>
+            <div class="gd-body">
+              <div class="gd-head"><span class="gd-game">GAME</span><span class="gd-day">DAY</span><span class="gd-cat">PRAIA<br>GRANDE</span></div>
+              <div class="gd-phase">FASE DE CLASSIFICAÇÃO</div>
+              <div class="gd-match">
+                <div class="gd-team">
+                  <div class="usa-pg-logo"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22pgbg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230891b2%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23155e75%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20rx%3D%2248%22%20fill%3D%22url(%23pgbg)%22%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2296%22%20r%3D%2258%22%20fill%3D%22rgba(255%2C255%2C255%2C.14)%22%2F%3E%3Ctext%20x%3D%22128%22%20y%3D%22138%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2286%22%20font-weight%3D%22900%22%20fill%3D%22%23fff%22%20letter-spacing%3D%22-2%22%3EPG%3C%2Ftext%3E%3Ctext%20x%3D%22128%22%20y%3D%22202%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22800%22%20fill%3D%22rgba(255%2C255%2C255%2C.92)%22%20letter-spacing%3D%223%22%3EPRAIA%20GRANDE%3C%2Ftext%3E%3C%2Fsvg%3E" alt="PG"></div>
+                  <div class="gd-team-name">PRAIA GRANDE</div>
+                </div>
+                <div class="gd-x">X</div>
+                <div class="gd-team">
+                  <div class="usa-opp-logo" style="background:#7c2d12;color:#fed7aa">SC</div>
+                  <div class="gd-team-name">SANTOS CITY</div>
+                </div>
+              </div>
+              <div class="gd-date">15 DE JUNHO DE 2026</div>
+              <div class="gd-time">10:00 🇧🇷</div>
+              <div class="gd-status gd-status-pending">A JOGAR</div>
+              <div class="gd-action">▶ Abrir scout</div>
+              <button class="gd-edit">✏️ Editar jogo</button>
+              <button class="gd-del">🗑 Excluir jogo</button>
+            </div>
+          </div>
+
+          <!-- Card 2: SEM DADOS auto-tarja -->
+          <div class="gd-card" data-tarja="no_data">
+            <div class="gd-side">JOGOS REGIONAIS 2026</div>
+            <div class="gd-body">
+              <div class="gd-head"><span class="gd-game">GAME</span><span class="gd-day">DAY</span><span class="gd-cat">PRAIA<br>GRANDE</span></div>
+              <div class="gd-phase">AMISTOSO</div>
+              <div class="gd-match">
+                <div class="gd-team">
+                  <div class="usa-pg-logo"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22pgbg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230891b2%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23155e75%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20rx%3D%2248%22%20fill%3D%22url(%23pgbg)%22%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2296%22%20r%3D%2258%22%20fill%3D%22rgba(255%2C255%2C255%2C.14)%22%2F%3E%3Ctext%20x%3D%22128%22%20y%3D%22138%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2286%22%20font-weight%3D%22900%22%20fill%3D%22%23fff%22%20letter-spacing%3D%22-2%22%3EPG%3C%2Ftext%3E%3Ctext%20x%3D%22128%22%20y%3D%22202%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22800%22%20fill%3D%22rgba(255%2C255%2C255%2C.92)%22%20letter-spacing%3D%223%22%3EPRAIA%20GRANDE%3C%2Ftext%3E%3C%2Fsvg%3E" alt="PG"></div>
+                  <div class="gd-team-name">PRAIA GRANDE</div>
+                </div>
+                <div class="gd-x">X</div>
+                <div class="gd-team">
+                  <div class="usa-opp-logo" style="background:#7c2d12;color:#fed7aa">CV</div>
+                  <div class="gd-team-name">CUBATÃO V.</div>
+                </div>
+              </div>
+              <div class="gd-date">28 DE MAIO DE 2026</div>
+              <div class="gd-time">19:00 🇧🇷</div>
+              <div class="gd-action">📊 Ver estatísticas</div>
+              <button class="gd-del">🗑 Excluir jogo</button>
+            </div>
+            <div class="gd-tarja"><span class="gd-tarja-text">SEM DADOS</span></div>
+          </div>
+
+        </div>
+        <div class="usa-foot">RS-Voleibol 2026 · Associação Scola de Voleibol</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CENA 3: MODAL EDITAR BRAND -->
+<div style="max-width:1500px;margin:0 auto 40px;padding:0 24px">
+  <div class="preview-card">
+    <div class="preview-card-label">CENA 3 · MODAL "EDITAR BRAND" (admin tocou no botão 🖼)</div>
+    <div class="scene" style="min-height:680px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55)">
+      <div class="tnj-box" style="position:relative">
+        <div class="tnj-title">🖼 EDITAR BRAND</div>
+        <div class="tnj-sub">Logo, nome e subtítulo do torneio</div>
+        <div class="tnj-field"><span class="tnj-lb">Logo do time</span>
+          <div class="tnj-logo-drop has">
+            <div class="tnj-logo-txt">
+              <div class="tnj-logo-preview"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22pgbg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230891b2%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23155e75%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20rx%3D%2248%22%20fill%3D%22url(%23pgbg)%22%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2296%22%20r%3D%2258%22%20fill%3D%22rgba(255%2C255%2C255%2C.14)%22%2F%3E%3Ctext%20x%3D%22128%22%20y%3D%22138%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2286%22%20font-weight%3D%22900%22%20fill%3D%22%23fff%22%20letter-spacing%3D%22-2%22%3EPG%3C%2Ftext%3E%3Ctext%20x%3D%22128%22%20y%3D%22202%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22800%22%20fill%3D%22rgba(255%2C255%2C255%2C.92)%22%20letter-spacing%3D%223%22%3EPRAIA%20GRANDE%3C%2Ftext%3E%3C%2Fsvg%3E" alt="logo"></div>
+              Toque para trocar (PNG/JPG, até 2MB)
+            </div>
+          </div>
+        </div>
+        <div class="tnj-field"><span class="tnj-lb">Nome do torneio</span><input type="text" value="Jogos Regionais 2026"></div>
+        <div class="tnj-field"><span class="tnj-lb">Subtítulo</span><input type="text" value="PRAIA GRANDE"></div>
+        <div class="tnj-actions">
+          <button class="tnj-cancel">Cancelar</button>
+          <button class="tnj-save">✓ Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

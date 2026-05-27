@@ -348,6 +348,9 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .gd-team-name{font-size:11px;font-weight:800;color:#e2e8f0;line-height:1.15;text-transform:uppercase;letter-spacing:.3px}
 .usa-rs-logo{width:64px;height:64px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,.4)}
 .usa-rs-logo img{width:100%;height:100%;object-fit:contain;padding:3px}
+/* Logo do Praia Grande no card GAME DAY — mesma dimensao do RS (64x64). */
+.usa-pg-logo{width:64px;height:64px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,.4);overflow:hidden}
+.usa-pg-logo img{width:100%;height:100%;object-fit:contain}
 .usa-opp-logo{width:64px;height:64px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;box-shadow:0 6px 16px rgba(0,0,0,.4);overflow:hidden;background:#1e293b}
 .usa-opp-logo-img{background:#fff}
 .usa-opp-logo-img img{width:100%;height:100%;object-fit:contain;padding:11px}

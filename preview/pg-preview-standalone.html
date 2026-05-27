@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preview · Praia Grande · ?torneio=pg</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+
+
+:root{--bg:#f0f2f5;--card:#fff;--card2:#f8f9fb;--brd:#e2e8f0;--navy:#0f172a;--blue:#2563eb;--pink:#db2777;--green:#059669;--red:#dc2626;--orange:#ea580c;--gray:#64748b;--txt:#1e293b;--txl:#475569}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;font-size:14px}
+.app{display:flex;min-height:100vh;position:relative}
+/* ===== HEADER + TABS (novo layout horizontal) ===== */
+.app-header{background:var(--navy);color:#fff;position:sticky;top:0;z-index:40;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.app-header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:12px 20px;height:60px}
+.app-header-logo{height:36px;width:auto;flex-shrink:0;background:#fff;border-radius:6px;padding:3px}
+.app-header-brand{display:flex;flex-direction:column;line-height:1.1}
+.app-header-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.app-header-sub{font-size:9px;color:rgba(255,255,255,.4);letter-spacing:3px;font-weight:600;margin-top:2px}
+.app-header-context{flex:1;text-align:center;font-size:12px;color:rgba(255,255,255,.6);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app-header-context b{color:#fff}
+.app-header-live{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.4);color:#fca5a5;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.5px}
+.app-header-live::before{content:"";width:6px;height:6px;border-radius:50%;background:#dc2626;animation:livepulse 1.5s infinite}
+@keyframes livepulse{0%,100%{opacity:1}50%{opacity:.3}}
+.app-header-admin{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 12px;color:rgba(255,255,255,.7);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .15s;flex-shrink:0}
+.app-header-admin:hover{background:rgba(255,255,255,.1);color:#fff}
+.app-header-admin.on{border-color:rgba(96,165,250,.5);background:rgba(37,99,235,.15);color:#60a5fa}
+
+.app-tabs{background:#fff;border-bottom:1px solid var(--brd);position:sticky;top:60px;z-index:39}
+.app-tabs-inner{max-width:1200px;margin:0 auto;display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.app-tabs-inner::-webkit-scrollbar{display:none}
+.app-tabs button{flex:1;min-width:90px;padding:14px 16px;border:none;background:transparent;color:var(--gray);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap}
+.app-tabs button:hover{color:var(--ink);background:rgba(0,0,0,.02)}
+.app-tabs button.on{color:var(--blue);border-bottom-color:var(--blue);background:rgba(37,99,235,.04)}
+.app-tabs .tabi{font-size:18px}
+
+.app-content{max-width:1200px;margin:0 auto;padding:24px 20px;min-height:calc(100vh - 60px - 50px)}
+.cd{background:var(--card);border-radius:14px;border:1px solid var(--brd);padding:16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.lb{font-size:10px;font-weight:700;color:var(--gray);letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:4px}
+input,select{background:var(--card2);border:1px solid var(--brd);border-radius:10px;padding:10px 14px;color:var(--txt);font-size:14px;outline:none;width:100%;font-family:inherit;-webkit-appearance:none}
+input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.bt{border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit;transition:all .15s}
+.bp{background:var(--blue);color:#fff}.bs{background:var(--green);color:#fff}.bd{background:var(--red);color:#fff}
+.bg{background:var(--card2);color:var(--txl);border:1px solid var(--brd)}.bo{background:transparent;color:var(--blue);border:2px solid var(--blue)}
+.bsm{padding:7px 12px;font-size:11px}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px}
+.rw{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ga{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:6px}
+.stb{display:flex;gap:6px;margin-bottom:14px}
+.stb button{flex:1;padding:10px 0;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid var(--brd);background:var(--card);color:var(--gray);transition:all .15s}
+.stb button.on{border-color:var(--blue);background:rgba(37,99,235,.06);color:var(--blue)}
+.pb{display:flex;flex-direction:column;align-items:center;padding:10px 2px;border-radius:12px;cursor:pointer;font-family:inherit;border:2px solid var(--brd);background:var(--card);color:var(--txl);transition:all .1s}
+.pb.on{color:var(--txt)}.pbn{font-size:20px;font-weight:900;line-height:1}.pbnm{font-size:9px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.ab{display:flex;align-items:center;justify-content:center;gap:4px;padding:14px 4px;border-radius:12px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;border:2px solid var(--brd);background:var(--card);color:var(--txl);transition:all .1s}
+.ab.on{border-color:var(--blue);background:rgba(37,99,235,.06);color:var(--blue)}
+.ob{padding:16px 4px;border-radius:12px;border:none;color:#fff;cursor:pointer;font-size:15px;font-weight:800;font-family:inherit;transition:transform .1s}.ob:active{transform:scale(.95)}
+.sa{background:var(--card);padding:14px 18px;border-radius:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.sn{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;color:var(--navy)}
+.hd{display:none}
+.pr{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:var(--card2);margin-bottom:4px}
+.pnm{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px 6px;color:var(--gray);font-weight:700;font-size:10px;border-bottom:2px solid var(--brd)}
+td{padding:8px 6px;border-bottom:1px solid var(--card2)}
+
+
+
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes rsToastIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
+.chart-bar{display:flex;align-items:flex-end;gap:4px;height:140px;padding:0 4px}
+.chart-bar .bar{flex:1;border-radius:6px 6px 0 0;min-width:22px;position:relative;transition:height .3s}
+.chart-bar .bar-label{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--gray);white-space:nowrap}
+.chart-bar .bar-val{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700}
+.chart-pie{width:160px;height:160px;border-radius:50%;position:relative;margin:0 auto}
+.pie-legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+.pie-legend span{font-size:11px;display:flex;align-items:center;gap:4px}
+.pie-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.stat-box{background:var(--card2);border-radius:12px;padding:14px;text-align:center;border:1px solid var(--brd)}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1}
+.stat-lbl{font-size:10px;color:var(--gray);font-weight:600;text-transform:uppercase;margin-top:2px}
+.athlete-card{background:var(--card);border-radius:16px;border:1px solid var(--brd);padding:20px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.athlete-header{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.athlete-num{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:28px}
+.admin-modal{position:fixed;inset:0;z-index:300;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px}
+.admin-box{background:#fff;border-radius:20px;padding:32px;width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.pwd-wrap{position:relative}.pwd-wrap input{padding-right:44px}
+.pwd-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;color:var(--gray);padding:4px}
+@media(max-width:640px){
+/* Mobile (≤640px): mantém header+tabs mas mais compactos */
+.app-header-inner{padding:10px 14px;height:54px;gap:10px}
+.app-header-logo{height:30px;padding:2px}
+.app-header-title{font-size:18px;letter-spacing:2px}
+.app-header-sub{display:none}
+.app-header-context{font-size:11px}
+.app-header-admin{padding:5px 10px;font-size:11px}
+.app-header-admin .lbl{display:none}
+.app-tabs{top:54px}
+.app-tabs button{padding:11px 8px;font-size:11px;min-width:72px;gap:4px;flex-direction:column}
+.app-tabs .tabi{font-size:18px}
+.app-tabs button .tabl{font-size:10px;letter-spacing:.3px}
+.app-content{padding:16px 14px;min-height:calc(100vh - 54px - 60px)}
+.stat-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+@keyframes pulse{from{filter:drop-shadow(0 0 8px rgba(251,191,36,.2))}to{filter:drop-shadow(0 0 20px rgba(251,191,36,.5))}}
+.cd:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.08);transition:all .2s}
+.ob{transition:all .15s}.ob:hover{filter:brightness(1.1);transform:scale(1.03)}
+.athlete-card{transition:all .2s}.athlete-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
+
+
+.score-flash.on{opacity:1}
+
+/* === RS-SCOUT — TEMA ESCURO GLOBAL (Fase A1) === */
+/* Vars do tema escuro (cores aprovadas no torneio USA, escopo global).
+   As vars antigas (--bg/--card/--brd/--txt) seguem ativas: serão migradas
+   junto do conteúdo das abas nas próximas fases. */
+:root{
+  --rs-bg-1:#0c1322;--rs-bg-2:#141d33;--rs-bg-3:#0a0f1c;
+  --rs-line:rgba(255,255,255,.07);--rs-line-strong:rgba(255,255,255,.14);
+  --rs-fg:#e8eef9;--rs-fg-mute:rgba(232,238,249,.62);
+  --rs-gold:#fbbf24;--rs-blue:#2563eb;--rs-green:#16a34a;--rs-red:#dc2626
+}
+/* Fundo escuro global. A USA wrap, landing e signup pintam por cima — o
+   gradiente fica só visível nas frestas, sem custo de regressão. */
+body{background:linear-gradient(165deg,var(--rs-bg-1) 0%,var(--rs-bg-2) 55%,var(--rs-bg-3) 100%) fixed}
+/* Marca d'água RS aparece SÓ no shell do app (toggled via body.rs-shell pelo
+   render()). USA/Landing/Signup têm a própria marca, não duplica. */
+body.rs-shell::after{
+  content:"";position:fixed;right:1%;top:54%;transform:translateY(-50%);
+  width:min(520px,68vw);height:min(520px,68vw);
+  background-image:var(--rs-watermark);background-size:contain;background-repeat:no-repeat;background-position:center;
+  opacity:.07;pointer-events:none;z-index:0
+}
+/* Tabs migradas pro tema escuro */
+body.rs-shell .app-tabs{
+  background:linear-gradient(180deg,rgba(20,29,51,.92) 0%,rgba(12,19,34,.92) 100%);
+  border-bottom:1px solid var(--rs-line);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)
+}
+body.rs-shell .app-tabs button{color:var(--rs-fg-mute)}
+body.rs-shell .app-tabs button:hover{color:var(--rs-fg);background:rgba(255,255,255,.04)}
+body.rs-shell .app-tabs button.on{color:var(--rs-gold);border-bottom-color:var(--rs-gold);background:rgba(251,191,36,.06)}
+/* Reforço sutil no header (já era navy) */
+body.rs-shell .app-header{border-bottom:1px solid var(--rs-line);box-shadow:0 4px 24px rgba(0,0,0,.4)}
+/* Conteúdo do shell fica acima da marca d'água */
+body.rs-shell .app-content{position:relative;z-index:1}
+
+/* === RS-SCOUT — TORNEIOS NO TEMA ESCURO (Fase A2) === */
+/* Listagem (rTor) */
+.rs-tor-page{position:relative;z-index:1}
+.rs-tor-actions{display:flex;justify-content:flex-end;margin-bottom:18px}
+.rs-tor-newbtn{padding:11px 18px;background:linear-gradient(135deg,var(--rs-gold),#f59e0b);color:#1a1410;border:none;border-radius:11px;font-size:13px;font-weight:800;letter-spacing:.5px;cursor:pointer;font-family:inherit;box-shadow:0 8px 20px rgba(251,191,36,.28),inset 0 1px 0 rgba(255,255,255,.25);transition:transform .15s,box-shadow .15s}
+.rs-tor-newbtn:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(251,191,36,.36),inset 0 1px 0 rgba(255,255,255,.3)}
+.rs-tor-newbtn:active{transform:translateY(0)}
+.rs-tor-empty{background:linear-gradient(165deg,#101a30 0%,#16223d 55%,#0d1525 100%);border:1px solid var(--rs-line);border-radius:18px;padding:48px 24px;text-align:center;box-shadow:0 14px 36px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05)}
+.rs-tor-empty-icon{font-size:48px;margin-bottom:12px;opacity:.7;filter:grayscale(.3)}
+.rs-tor-empty-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--rs-fg);margin-bottom:6px}
+.rs-tor-empty-sub{font-size:13px;color:var(--rs-fg-mute)}
+.rs-tor-group{margin-bottom:22px}
+.rs-tor-group-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--rs-gold);margin:6px 2px 14px;display:flex;align-items:center;gap:10px}
+.rs-tor-group-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(251,191,36,.45),transparent)}
+.rs-tor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.rs-tor-card{position:relative;background:linear-gradient(155deg,#101a30 0%,#16223d 55%,#0d1525 100%);border:1px solid var(--rs-line);border-radius:18px;overflow:hidden;cursor:pointer;box-shadow:0 14px 36px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .18s,box-shadow .18s}
+.rs-tor-card:hover{transform:translateY(-3px);box-shadow:0 20px 48px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08)}
+.rs-tor-card::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--tcol,#2563eb);box-shadow:0 0 18px var(--tcol,#2563eb)}
+.rs-tor-card::after{content:"";position:absolute;top:0;right:0;width:140px;height:140px;background-image:radial-gradient(circle,color-mix(in srgb,var(--tcol,#2563eb) 22%,transparent) 0%,transparent 65%);pointer-events:none}
+.rs-tor-card-body{padding:18px 16px 14px;position:relative;z-index:1}
+.rs-tor-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px}
+.rs-tor-card-title{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:1.5px;line-height:1.05;color:var(--rs-fg);flex:1}
+.rs-tor-card-trophy{font-size:22px;filter:drop-shadow(0 2px 6px rgba(251,191,36,.4))}
+.rs-tor-card-chips{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.rs-tor-card-chip{padding:3px 9px;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:.3px}
+.rs-tor-card-chip--cat{background:color-mix(in srgb,var(--tcol,#2563eb) 18%,transparent);color:var(--tcol,#2563eb);border:1px solid color-mix(in srgb,var(--tcol,#2563eb) 35%,transparent)}
+.rs-tor-card-chip--season{background:rgba(255,255,255,.06);color:var(--rs-fg-mute);border:1px solid var(--rs-line)}
+.rs-tor-card-medal{font-size:12px;font-weight:800;margin-bottom:10px;letter-spacing:.3px}
+.rs-tor-progress-row{display:flex;justify-content:space-between;font-size:11px;color:var(--rs-fg-mute);margin-bottom:6px;letter-spacing:.3px}
+.rs-tor-progress-row b{color:var(--rs-fg);font-weight:800}
+.rs-tor-progress-track{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.rs-tor-progress-fill{height:100%;background:var(--tcol,#2563eb);transition:width .3s;box-shadow:0 0 12px var(--tcol,#2563eb)}
+
+/* Detalhe (rTorDetail) — overrides escopados pra escurecer .cd e textos soltos */
+body.rs-shell .rs-tor-detail .cd{background:linear-gradient(155deg,#101a30 0%,#16223d 55%,#0d1525 100%);border:1px solid var(--rs-line);color:var(--rs-fg);box-shadow:0 12px 30px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04)}
+body.rs-shell .rs-tor-detail .cd .cd{background:transparent;border:1px solid transparent;box-shadow:none}
+body.rs-shell .rs-tor-detail{position:relative;z-index:1}
+body.rs-shell .rs-tor-detail .rs-tor-detail-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--rs-gold);margin:14px 2px 12px;display:flex;align-items:center;gap:10px}
+body.rs-shell .rs-tor-detail .rs-tor-detail-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(251,191,36,.45),transparent)}
+body.rs-shell .rs-tor-detail .bt.bg{background:rgba(255,255,255,.07);color:var(--rs-fg-mute);border:1px solid var(--rs-line)}
+body.rs-shell .rs-tor-detail .bt.bg:hover{background:rgba(255,255,255,.1);color:var(--rs-fg)}
+
+/* === Fase D: tema escuro nas demais abas (CSS sweep escopado) === */
+/* Vars antigas redefinidas DENTRO do .app-content do shell — flipa inline styles
+   (style="color:var(--navy)", style="background:var(--card2)") sem reescrever JS.
+   Header e tabs ja tem o tratamento dark proprio (A1), por isso o scope nao
+   vaza pra cima. */
+body.rs-shell .app-content{
+  --navy:#e8eef9;
+  --gray:rgba(232,238,249,.62);
+  --txt:#e8eef9;
+  --txl:rgba(232,238,249,.82);
+  --brd:rgba(255,255,255,.10);
+  --card:linear-gradient(155deg,#101a30 0%,#16223d 55%,#0d1525 100%);
+  --card2:rgba(255,255,255,.05);
+  --bg:transparent
+}
+/* Cards .cd ganham superficie dark + sombra mais funda */
+body.rs-shell .app-content .cd{
+  background:linear-gradient(155deg,#101a30 0%,#16223d 55%,#0d1525 100%);
+  border:1px solid var(--rs-line);
+  box-shadow:0 10px 26px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04);
+  color:var(--rs-fg)
+}
+body.rs-shell .app-content .cd:hover{
+  box-shadow:0 14px 34px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)
+}
+/* Cards de equipe do team-hub (renderTeamHub) seguem o mesmo padrao */
+body.rs-shell .app-content .th-card{
+  background:linear-gradient(155deg,#101a30 0%,#16223d 55%,#0d1525 100%);
+  box-shadow:0 10px 26px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04);
+  color:var(--rs-fg)
+}
+body.rs-shell .app-content .th-card:hover{
+  box-shadow:0 14px 34px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)
+}
+body.rs-shell .app-content .th-name{color:var(--rs-fg)}
+/* Form fields */
+body.rs-shell .app-content input,
+body.rs-shell .app-content select,
+body.rs-shell .app-content textarea{
+  background:rgba(255,255,255,.05);
+  color:var(--rs-fg);
+  border:1px solid var(--rs-line)
+}
+body.rs-shell .app-content input:focus,
+body.rs-shell .app-content select:focus,
+body.rs-shell .app-content textarea:focus{
+  border-color:var(--rs-blue);
+  box-shadow:0 0 0 3px rgba(37,99,235,.18)
+}
+body.rs-shell .app-content input::placeholder,
+body.rs-shell .app-content textarea::placeholder{color:rgba(232,238,249,.4)}
+body.rs-shell .app-content select option{background:#101a30;color:var(--rs-fg)}
+/* Botoes ghost/outline */
+body.rs-shell .app-content .bg{
+  background:rgba(255,255,255,.07);
+  color:var(--rs-fg);
+  border:1px solid var(--rs-line)
+}
+body.rs-shell .app-content .bg:hover{background:rgba(255,255,255,.12);color:var(--rs-fg)}
+body.rs-shell .app-content .bo{background:transparent;color:var(--rs-fg);border:2px solid var(--rs-line)}
+body.rs-shell .app-content .bo:hover{background:rgba(255,255,255,.04)}
+/* Sub-tabs (.stb buttons) — segue padrao das tabs principais */
+body.rs-shell .app-content .stb{background:transparent;padding:0;border-radius:0}
+body.rs-shell .app-content .stb button{
+  background:rgba(255,255,255,.04);
+  color:var(--rs-fg-mute);
+  border:1px solid var(--rs-line)
+}
+body.rs-shell .app-content .stb button:hover{background:rgba(255,255,255,.08);color:var(--rs-fg)}
+body.rs-shell .app-content .stb button.on{
+  background:rgba(251,191,36,.10);
+  color:var(--rs-gold);
+  border-color:rgba(251,191,36,.45)
+}
+/* Pills de fundamento (.pb) usadas em painel e selecoes */
+body.rs-shell .app-content .pb{
+  background:rgba(255,255,255,.04);
+  border-color:var(--rs-line);
+  color:var(--rs-fg)
+}
+body.rs-shell .app-content .pb.on{
+  background:rgba(37,99,235,.18);
+  border-color:rgba(96,165,250,.5);
+  color:#cfe2ff
+}
+/* Tabelas dentro do shell */
+body.rs-shell .app-content th,
+body.rs-shell .app-content td{color:var(--rs-fg);border-color:var(--rs-line)}
+/* Labels .lb (sao usadas em formularios em varias abas) */
+body.rs-shell .app-content .lb{color:var(--rs-fg-mute)}
+/* hr e separadores */
+body.rs-shell .app-content hr{border-color:var(--rs-line)}
+
+/* === Fase C: Torneio encerrado / histórico === */
+/* Card cinza/dessaturado no rTor listing */
+.rs-tor-card.is-archived{filter:grayscale(.75) opacity(.85)}
+.rs-tor-card.is-archived::before{background:#475569;box-shadow:none}
+.rs-tor-card.is-archived::after{display:none}
+.rs-tor-card.is-archived .rs-tor-card-title{color:rgba(232,238,249,.78)}
+.rs-tor-archived-badge{position:absolute;top:10px;right:10px;z-index:3;background:linear-gradient(135deg,#475569,#334155);color:#e2e8f0;font-size:10px;font-weight:800;letter-spacing:1.5px;padding:5px 11px 5px 12px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1);text-transform:uppercase}
+
+/* Detalhe do torneio arquivado: faixa "ENCERRADO" no banner */
+.rs-tor-detail-archived-badge{position:absolute;top:12px;right:14px;background:rgba(15,23,42,.7);color:#e2e8f0;font-size:10px;font-weight:800;letter-spacing:2px;padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.18);text-transform:uppercase;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.rs-tor-detail.is-archived{position:relative}
+/* GAME DAY cards dentro de um detalhe arquivado tambem dessaturam */
+.rs-tor-detail.is-archived .gd-card{filter:grayscale(.55) opacity(.9)}
+
+/* === TORNEIO USA — TELA ISOLADA === */
+.usa-wrap{min-height:100vh;background:linear-gradient(160deg,#0a0e1a 0%,#111a2e 45%,#0f172a 100%);padding-bottom:40px}
+.usa-wrap::before{content:'';position:fixed;inset:0;background-image:radial-gradient(ellipse at 15% 10%,rgba(96,165,250,.12) 0%,transparent 50%),radial-gradient(ellipse at 85% 90%,rgba(250,204,21,.07) 0%,transparent 50%);pointer-events:none;z-index:0}
+.usa-wrap::after{content:'';position:fixed;right:1%;top:54%;transform:translateY(-50%);width:min(520px,68vw);height:min(520px,68vw);background-image:var(--rs-watermark);background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.07;pointer-events:none;z-index:0}
+/* Tela de senha */
+.usa-lock-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;z-index:1}
+.usa-lock-card{background:linear-gradient(165deg,#0e1729 0%,#16203a 55%,#0c1322 100%);border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:40px 30px;max-width:380px;width:100%;text-align:center;box-shadow:0 25px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.05);position:relative;overflow:hidden}
+.usa-lock-card::before{content:"";position:absolute;top:-40%;left:-20%;width:140%;height:80%;background:radial-gradient(ellipse,rgba(37,99,235,.16),transparent 60%);pointer-events:none}
+.usa-lock-crest{width:84px;height:84px;margin:0 auto 14px;border-radius:20px;background:rgba(255,255,255,.96);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 28px rgba(0,0,0,.4);position:relative;z-index:1}
+.usa-lock-crest img{width:100%;height:100%;object-fit:contain;padding:8px}
+.usa-lock-title{font-family:'Bebas Neue',sans-serif;font-size:25px;letter-spacing:1.5px;color:#fff;line-height:1.1;margin-bottom:6px;position:relative;z-index:1}
+.usa-lock-sub{font-size:11px;color:#94a3b8;margin-bottom:24px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;position:relative;z-index:1}
+.usa-lock-field input{width:100%;padding:14px 16px;border:1.5px solid rgba(255,255,255,.12);border-radius:12px;font-size:15px;text-align:center;font-weight:600;outline:none;font-family:inherit;background:rgba(255,255,255,.05);color:#fff;position:relative;z-index:1}
+.usa-lock-field input::placeholder{color:#64748b}
+.usa-lock-field input:focus{border-color:#fbbf24;box-shadow:0 0 0 3px rgba(251,191,36,.15)}
+.usa-lock-err{color:#fca5a5;font-size:12px;margin-top:10px;font-weight:600;position:relative;z-index:1}
+.usa-lock-btn{width:100%;margin-top:16px;padding:14px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;letter-spacing:.5px;cursor:pointer;font-family:inherit;position:relative;z-index:1;box-shadow:0 8px 22px rgba(37,99,235,.4)}
+.usa-lock-btn:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(37,99,235,.5)}
+.usa-lock-foot{margin-top:20px;font-size:10px;color:#475569;letter-spacing:1.5px;position:relative;z-index:1}
+/* Header da lista */
+.usa-header{position:relative;z-index:1;text-align:center;padding:32px 20px 12px;color:#fff}
+.usa-header-flag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:2px;color:#fbbf24;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);padding:5px 14px;border-radius:20px;margin-bottom:10px}
+.usa-header-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;line-height:1;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.4)}
+.usa-header-sub{font-size:11px;letter-spacing:2.5px;color:rgba(148,163,184,.95);font-weight:700;margin-top:8px}
+.usa-logout{position:absolute;top:22px;right:16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:11px;font-weight:700;padding:7px 15px;border-radius:9px;cursor:pointer;backdrop-filter:blur(8px)}
+.usa-logout:hover{background:rgba(255,255,255,.2)}
+/* Fase PG: botao admin "Editar brand" — fica ao lado do Sair (left), so visivel pra admin */
+.usa-brand-edit{position:absolute;top:22px;right:78px;background:rgba(251,191,36,.18);border:1px solid rgba(251,191,36,.4);color:#fde68a;font-size:11px;font-weight:800;padding:7px 13px;border-radius:9px;cursor:pointer;backdrop-filter:blur(8px);letter-spacing:.3px;font-family:inherit;transition:all .15s}
+.usa-brand-edit:hover{background:rgba(251,191,36,.28);color:#fef3c7;transform:translateY(-1px)}
+@media(max-width:480px){
+  .usa-brand-edit{top:auto;bottom:-44px;right:50%;transform:translateX(50%);font-size:10px;padding:6px 11px}
+  .usa-brand-edit:hover{transform:translateX(50%) translateY(-1px)}
+}
+.usa-cards{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(max-width:680px){.usa-cards{grid-template-columns:1fr;max-width:480px}}
+.usa-foot{position:relative;z-index:1;text-align:center;color:rgba(148,163,184,.5);font-size:10px;padding:24px;letter-spacing:1px}
+
+/* CARD GAME DAY — tema escuro */
+.gd-card{background:linear-gradient(155deg,#101a30 0%,#16223d 55%,#0d1525 100%);border-radius:18px;overflow:hidden;cursor:pointer;display:flex;box-shadow:0 14px 36px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);transition:transform .18s,box-shadow .18s;position:relative}
+.gd-card:hover{transform:translateY(-3px);box-shadow:0 20px 48px rgba(0,0,0,.55)}
+.gd-next{border:1.5px solid rgba(251,191,36,.65);box-shadow:0 14px 36px rgba(0,0,0,.45),0 0 0 1px rgba(251,191,36,.15),inset 0 1px 0 rgba(255,255,255,.05)}
+.gd-next:hover{box-shadow:0 20px 48px rgba(0,0,0,.55),0 0 0 1px rgba(251,191,36,.25)}
+.gd-next-tag{position:absolute;top:0;right:0;z-index:3;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#3a2606;font-size:9px;font-weight:800;letter-spacing:1px;padding:5px 12px 5px 14px;border-bottom-left-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.gd-card::after{content:'';position:absolute;top:0;right:0;width:160px;height:160px;background-image:radial-gradient(circle,rgba(37,99,235,.18) 0%,transparent 70%);pointer-events:none}
+.gd-side{flex-shrink:0;width:32px;background:linear-gradient(180deg,#1d4ed8,#1e3a8a);color:rgba(255,255,255,.9);writing-mode:vertical-rl;transform:rotate(180deg);display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:800;letter-spacing:2px;padding:14px 0;text-transform:uppercase}
+.gd-body{flex:1;padding:18px 16px 16px;text-align:center;min-width:0;position:relative;z-index:1}
+.gd-head{display:flex;align-items:center;justify-content:center;gap:7px;line-height:.9}
+.gd-game{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;color:#fff}
+.gd-day{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;color:#fbbf24}
+.gd-cat{font-size:9px;font-weight:800;color:#94a3b8;text-align:left;line-height:1.15;letter-spacing:.5px}
+.gd-phase{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:#60a5fa;margin:12px 0 16px}
+.gd-match{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px}
+.gd-team{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.gd-team-name{font-size:11px;font-weight:800;color:#e2e8f0;line-height:1.15;text-transform:uppercase;letter-spacing:.3px}
+.usa-rs-logo{width:64px;height:64px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,.4)}
+.usa-rs-logo img{width:100%;height:100%;object-fit:contain;padding:3px}
+.usa-opp-logo{width:64px;height:64px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;box-shadow:0 6px 16px rgba(0,0,0,.4);overflow:hidden;background:#1e293b}
+.usa-opp-logo-img{background:#fff}
+.usa-opp-logo-img img{width:100%;height:100%;object-fit:contain;padding:11px}
+.gd-x{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#475569;flex-shrink:0}
+.gd-date{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:1px;color:#fff;margin-top:4px}
+.gd-time{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;color:#fbbf24;margin-top:3px}
+.gd-score{font-family:'Bebas Neue',sans-serif;font-size:34px;color:#fff;margin-top:8px;letter-spacing:3px}
+.gd-status{display:inline-block;margin-top:10px;padding:5px 16px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:1px}
+.gd-status-live{background:rgba(220,38,38,.2);color:#fca5a5;border:1px solid rgba(220,38,38,.4);animation:livePulse 1.5s infinite}
+.gd-status-done{background:rgba(16,185,129,.16);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.gd-status-pending{background:rgba(255,255,255,.07);color:#94a3b8;border:1px solid rgba(255,255,255,.12)}
+.gd-action{margin-top:14px;padding-top:13px;border-top:1px dashed rgba(255,255,255,.12);font-size:13px;font-weight:800;color:#60a5fa}
+.gd-del{margin-top:10px;width:100%;background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.3);color:#fca5a5;font-size:10px;font-weight:700;letter-spacing:.5px;padding:7px;border-radius:8px;cursor:pointer;font-family:inherit;transition:all .15s}
+.gd-edit{margin-top:10px;width:100%;background:rgba(37,99,235,.14);border:1px solid rgba(37,99,235,.35);color:#93c5fd;font-size:10px;font-weight:700;letter-spacing:.5px;padding:7px;border-radius:8px;cursor:pointer;font-family:inherit;transition:all .15s}
+.gd-edit:hover{background:rgba(37,99,235,.22);color:#bfdbfe}
+.gd-del:hover{background:rgba(220,38,38,.22);color:#fff}
+
+/* === Fase B2.1: Tarja no GAME DAY card (CANCELADO / SEM DADOS) === */
+.gd-card[data-tarja]{opacity:.85}
+.gd-card[data-tarja] .gd-body{filter:grayscale(.4)}
+.gd-card[data-tarja="cancelled"]{opacity:.72}
+.gd-card[data-tarja="cancelled"] .gd-body{filter:grayscale(.55) sepia(.1)}
+.gd-tarja{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:5}
+.gd-tarja-text{position:relative;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:20px;font-weight:800;letter-spacing:4px;background:#7f1d1d;padding:9px 24px;border-radius:5px;transform:rotate(-6deg);box-shadow:0 8px 22px rgba(0,0,0,.55),0 0 0 2px rgba(255,255,255,.15);text-transform:uppercase;white-space:nowrap}
+.gd-tarja-text::before,.gd-tarja-text::after{content:'';position:absolute;top:50%;width:300px;height:4px;background:repeating-linear-gradient(90deg,#7f1d1d 0,#7f1d1d 8px,#fff 8px,#fff 12px);transform:translateY(-50%);opacity:.7}
+.gd-tarja-text::before{right:100%;margin-right:6px}
+.gd-tarja-text::after{left:100%;margin-left:6px}
+.gd-tarja-text.is-cancelled{background:#0f172a}
+.gd-tarja-text.is-cancelled::before,.gd-tarja-text.is-cancelled::after{background:repeating-linear-gradient(90deg,#0f172a 0,#0f172a 8px,#fff 8px,#fff 12px)}
+
+/* Tarja CANCELADO no card de jogo simples (renderGameCard) — segue padrao .game-tarja-text */
+.game-tarja-text.is-cancelled{background:#0f172a}
+.game-tarja-text.is-cancelled::before,.game-tarja-text.is-cancelled::after{background:repeating-linear-gradient(90deg,#0f172a 0,#0f172a 8px,#fff 8px,#fff 12px)}
+.cd.game-cancelled{opacity:.72}
+.cd.game-cancelled > div:first-child{filter:grayscale(.55) sepia(.1)}
+
+/* Scout dentro do torneio */
+.usa-scout-wrap{min-height:100vh;background:linear-gradient(170deg,#eef2f7 0%,#e7ecf3 60%,#dfe5ee 100%);position:relative;overflow:hidden}
+.usa-scout-wrap::before{content:"";position:fixed;right:1%;top:52%;transform:translateY(-50%);width:min(480px,64vw);height:min(480px,64vw);background-image:var(--rs-watermark);background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.22;pointer-events:none;z-index:0;filter:grayscale(.2)}
+.usa-scout-body{padding:16px;max-width:900px;margin:0 auto;position:relative;z-index:1}
+.usa-scout-bar{background:linear-gradient(135deg,#0d5c2c,#13803d);padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.usa-scout-back{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:12px;font-weight:700;padding:7px 14px;border-radius:8px;cursor:pointer}
+.usa-scout-back:hover{background:rgba(255,255,255,.3)}
+.usa-scout-title{color:#fff;font-weight:800;font-size:15px;flex:1}
+@media(max-width:480px){
+  .gd-game,.gd-day{font-size:32px}
+  .usa-rs-logo,.usa-opp-logo{width:52px;height:52px}
+}
+
+/* === TEAM HUB (cards de equipe agrupando jogos) === */
+.th-card{background:#fff;border:1.5px solid;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 8px rgba(15,23,42,.04);transition:box-shadow .2s}
+.th-card:hover{box-shadow:0 6px 18px rgba(15,23,42,.08)}
+.th-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+.th-logo-wrap{width:48px;height:48px;border-radius:12px;border:1.5px solid;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.th-logo-wrap img{width:32px;height:32px;border-radius:8px;object-fit:contain}
+.th-info{flex:1;min-width:0}
+.th-name{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;line-height:1.1;margin-bottom:4px}
+.th-meta{display:flex;flex-wrap:wrap;gap:5px}
+.th-chip{padding:2px 8px;border-radius:5px;font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;line-height:1.4;display:inline-block}
+.th-chip-live{background:#d9770620;color:#d97706;animation:livePulse 1.5s infinite}
+.th-chip-up{}
+.th-chip-past{background:#f1f5f9;color:#64748b}
+.th-toggle{font-size:11px;color:#94a3b8;flex-shrink:0;transition:transform .2s;padding:6px}
+.th-body{padding:0 16px 14px;max-height:5000px;overflow:hidden;transition:max-height .3s ease,padding .3s ease}
+.th-body.th-collapsed{max-height:0;padding-top:0;padding-bottom:0}
+.th-section{margin-top:10px}
+.th-section-title{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;padding:6px 10px;background:#f8fafc;border-radius:6px;display:inline-block}
+.th-section-past{opacity:.85}
+.th-section-title-past{color:#64748b !important;background:#f1f5f9 !important}
+.thg{display:flex;align-items:center;gap:12px;padding:10px 12px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:6px;position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.thg:hover{transform:translateX(2px);box-shadow:0 3px 10px rgba(15,23,42,.06)}
+.thg-date{width:48px;flex-shrink:0;text-align:center;padding:4px 0;border:1.5px solid;border-radius:8px;font-weight:800}
+.thg-day{font-size:18px;line-height:1;font-family:'Bebas Neue',sans-serif;letter-spacing:.5px}
+.thg-month{font-size:9px;text-transform:uppercase;letter-spacing:.5px;opacity:.7;margin-top:2px}
+.thg-info{flex:1;min-width:0}
+.thg-opp{font-size:13px;color:#0f172a;line-height:1.2}
+.thg-meta{font-size:10px;color:#64748b;margin-top:3px;font-weight:500}
+.thg-result{flex-shrink:0;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:800;letter-spacing:.4px}
+.thg-no-data{opacity:.85}
+.thg-no-data > div:not(.game-tarja){filter:grayscale(.3)}
+
+/* === TARJA SEM DADOS (jogo passado sem scout) === */
+.game-no-data{opacity:.85}
+.game-no-data > div:first-child{filter:grayscale(.4)}
+.game-tarja{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.game-tarja-text{position:relative;z-index:2;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:13px;font-weight:800;letter-spacing:3px;background:#7f1d1d;padding:5px 16px;border-radius:4px;transform:rotate(-6deg);box-shadow:0 4px 14px rgba(0,0,0,.35),0 0 0 2px rgba(255,255,255,.15);text-transform:uppercase}
+.game-tarja-text::before,.game-tarja-text::after{content:'';position:absolute;top:50%;width:200px;height:3px;background:repeating-linear-gradient(90deg,#7f1d1d 0,#7f1d1d 8px,#fff 8px,#fff 12px);transform:translateY(-50%);opacity:.7}
+.game-tarja-text::before{right:100%;margin-right:4px}
+.game-tarja-text::after{left:100%;margin-left:4px}
+
+/* === PERFIL DE ATLETA === */
+.perfil-card{background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--brd);margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.perfil-cover{height:80px;background:linear-gradient(135deg,#1e3a8a 0%,#7c3aed 50%,#ec4899 100%)}
+.perfil-body{padding:0 18px 18px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.perfil-avatar{width:90px;height:90px;border-radius:50%;border:4px solid #fff;background:#dbeafe;margin-top:-45px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.perfil-avatar-fallback{display:flex;align-items:center;justify-content:center;color:#1e3a8a;font-weight:800;font-size:36px}
+.perfil-info{flex:1;min-width:0;padding-top:14px}
+.perfil-apelido{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--navy);line-height:1.1}
+.perfil-nome{font-size:13px;color:var(--gray);margin-top:2px;font-weight:600}
+.perfil-meta{font-size:12px;color:var(--gray);margin-top:6px}
+.perfil-section{padding:0 18px 18px;width:100%;flex-basis:100%;margin-top:6px}
+.perfil-section-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;color:var(--navy);margin-bottom:8px}
+.perfil-teams{display:flex;flex-wrap:wrap;gap:6px}
+.perfil-team{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--card2);border-left:3px solid;border-radius:6px;font-size:12px;font-weight:700;color:var(--ink)}
+.perfil-team-color{width:6px;height:14px;border-radius:2px}
+.perfil-game{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card2);border-left:3px solid;border-radius:8px;margin-bottom:8px}
+.perfil-game-info{flex:1;min-width:0}
+.perfil-game-team{font-size:13px;font-weight:700;color:var(--ink);line-height:1.2}
+.perfil-game-meta{font-size:11px;color:var(--gray);margin-top:3px}
+.perfil-presence{flex-shrink:0;text-align:right}
+.perfil-presence-label{font-size:10px;color:var(--gray);font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.perfil-presence-btns{display:flex;gap:4px}
+.pp-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--brd);background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:0}
+.pp-btn:hover{transform:scale(1.05)}
+.pp-btn.on.yes{background:#dcfce7;border-color:#86efac}
+.pp-btn.on.no{background:#fee2e2;border-color:#fca5a5}
+.pp-btn.on.maybe{background:#fef3c7;border-color:#fde047}
+@media(max-width:480px){
+  .perfil-game{flex-direction:column;align-items:stretch}
+  .perfil-presence{text-align:left;margin-top:8px}
+  .perfil-presence-btns{justify-content:flex-start}
+}
+
+/* === LANDING PAGE === */
+.lp-wrap{background:#fff;min-height:100vh}
+.lp-hero{position:relative;background:linear-gradient(135deg,#1a0b2e 0%,#2d1b4e 30%,#5b21b6 60%,#9f1d5e 100%);color:#fff;padding:60px 24px 80px;overflow:hidden}
+.lp-hero-bg{position:absolute;inset:0;background-image:radial-gradient(ellipse at 25% 30%,rgba(236,72,153,.28) 0%,transparent 55%),radial-gradient(ellipse at 75% 70%,rgba(139,92,246,.22) 0%,transparent 55%),radial-gradient(ellipse at 50% 100%,rgba(251,191,36,.08) 0%,transparent 50%);pointer-events:none}
+.lp-hero-content{position:relative;max-width:920px;margin:0 auto;text-align:center}
+.lp-logo{width:140px;height:140px;border-radius:28px;background:#fff;padding:8px;box-shadow:0 25px 80px rgba(236,72,153,.5),0 0 100px rgba(124,58,237,.3);margin-bottom:26px;animation:lpFloat 4s ease-in-out infinite alternate}
+@keyframes lpFloat{0%{transform:translateY(0)}100%{transform:translateY(-12px)}}
+.lp-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(50px,9.5vw,90px);letter-spacing:5px;line-height:.95;background:linear-gradient(135deg,#fbbf24 0%,#ec4899 50%,#a855f7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;text-shadow:0 0 60px rgba(236,72,153,.4);filter:drop-shadow(0 4px 14px rgba(0,0,0,.3))}
+.lp-subtitle{font-family:'Bebas Neue',sans-serif;font-size:clamp(24px,4vw,38px);letter-spacing:8px;color:#fbbf24;margin-bottom:18px;text-shadow:0 2px 12px rgba(0,0,0,.4)}
+.lp-tagline{font-size:clamp(13px,2vw,15px);color:rgba(255,255,255,.85);max-width:560px;margin:0 auto 38px;line-height:1.6;font-weight:500;letter-spacing:.3px}
+.lp-cta-row{display:flex;flex-direction:column;gap:12px;max-width:420px;margin:0 auto}
+.lp-cta{display:flex;align-items:center;gap:14px;padding:18px 22px;border-radius:14px;border:none;cursor:pointer;text-align:left;transition:all .2s;font-family:inherit}
+.lp-cta:hover{transform:translateY(-2px)}
+.lp-cta-icon{font-size:32px;flex-shrink:0}
+.lp-cta-title{font-size:16px;font-weight:800;line-height:1.1;margin-bottom:3px}
+.lp-cta-sub{font-size:11px;opacity:.75;font-weight:500}
+.lp-cta-primary{background:linear-gradient(135deg,#ec4899 0%,#db2777 100%);color:#fff;box-shadow:0 12px 30px rgba(236,72,153,.4)}
+.lp-cta-primary:hover{box-shadow:0 16px 40px rgba(236,72,153,.55)}
+.lp-cta-secondary{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(10px)}
+.lp-cta-secondary:hover{background:rgba(255,255,255,.13)}
+.lp-cta-tertiary{background:transparent;color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.15)}
+.lp-cta-tertiary:hover{background:rgba(255,255,255,.06)}
+.lp-stats{display:grid;grid-template-columns:repeat(3,1fr);max-width:720px;margin:-40px auto 0;gap:14px;padding:0 24px;position:relative;z-index:2}
+.lp-stat{background:#fff;border-radius:16px;padding:22px 16px;text-align:center;box-shadow:0 12px 35px rgba(15,23,42,.12);border:1px solid #f1f5f9}
+.lp-stat-num{font-family:'Bebas Neue',sans-serif;font-size:42px;color:#1e3a8a;line-height:1;margin-bottom:4px}
+.lp-stat-lbl{font-size:11px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.lp-section{max-width:720px;margin:60px auto;padding:0 24px}
+.lp-section-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;color:#1e3a8a;text-align:center;margin-bottom:20px}
+.lp-section-text{font-size:15px;color:#334155;line-height:1.7;text-align:center}
+.lp-games{display:grid;grid-template-columns:1fr;gap:10px}
+.lp-game{background:#fff;border:1px solid #e2e8f0;border-left:4px solid;border-radius:10px;padding:14px 16px}
+.lp-game-team{font-size:13px;font-weight:800;color:#0f172a;margin-bottom:4px}
+.lp-game-vs{font-size:13px;color:#475569;margin-bottom:6px}
+.lp-game-meta{font-size:11px;color:#94a3b8;font-weight:600}
+.lp-link{background:none;border:none;color:#2563eb;font-weight:700;font-size:13px;cursor:pointer;padding:8px;font-family:inherit}
+.lp-link:hover{text-decoration:underline}
+.lp-footer{background:#0f172a;color:rgba(255,255,255,.6);padding:40px 24px;text-align:center;margin-top:40px}
+.lp-footer-text{font-size:12px;font-weight:600;letter-spacing:1.5px}
+@media(min-width:640px){
+  .lp-cta-row{flex-direction:column;max-width:480px}
+  .lp-games{grid-template-columns:1fr 1fr 1fr}
+}
+
+/* === SIGNUP === */
+.su-wrap{min-height:100vh;background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%);padding:30px 16px 60px}
+.su-header{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:28px}
+.su-logo{width:54px;height:54px;border-radius:12px;background:#fff;padding:6px}
+.su-brand{color:#fff}
+.su-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;line-height:1}
+.su-sub{font-size:11px;color:rgba(251,191,36,.9);letter-spacing:2px;margin-top:3px}
+.su-card{background:#fff;border-radius:20px;padding:32px 26px;max-width:440px;margin:0 auto;box-shadow:0 25px 60px rgba(0,0,0,.3)}
+.su-icon{font-size:56px;text-align:center;margin-bottom:14px}
+.su-h{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:#1e3a8a;text-align:center;margin-bottom:12px;line-height:1.1}
+.su-h2{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1.5px;color:#1e3a8a;margin-bottom:14px;margin-top:0}
+.su-p{font-size:14px;color:#475569;line-height:1.5;text-align:center;margin-bottom:14px}
+.su-err{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;text-align:center}
+.su-btn-google{display:flex;align-items:center;justify-content:center;width:100%;padding:14px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;font-size:15px;font-weight:700;color:#0f172a;cursor:pointer;transition:all .15s;font-family:inherit}
+.su-btn-google:hover{border-color:#cbd5e1;box-shadow:0 4px 14px rgba(0,0,0,.06)}
+.su-btn-google:disabled{opacity:.6;cursor:not-allowed}
+.su-btn-primary{display:block;width:100%;padding:14px;background:linear-gradient(135deg,#ec4899 0%,#db2777 100%);border:none;border-radius:12px;font-size:15px;font-weight:800;color:#fff;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:all .15s;margin-top:10px}
+.su-btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(236,72,153,.4)}
+.su-btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.su-link{background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline}
+.su-welcome-row{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.su-avatar{width:54px;height:54px;border-radius:50%;flex-shrink:0;border:2px solid #e2e8f0}
+.su-avatar-fallback{display:flex;align-items:center;justify-content:center;background:#dbeafe;color:#1e3a8a;font-weight:800;font-size:22px}
+.su-greet{font-size:16px;font-weight:800;color:#0f172a;line-height:1.1}
+.su-greet-sub{font-size:11px;color:#94a3b8;margin-top:2px}
+.su-divider{height:1px;background:#e2e8f0;margin:18px 0}
+.su-field{margin-bottom:14px}
+.su-field label{display:block;font-size:11px;font-weight:800;color:#475569;margin-bottom:6px;letter-spacing:.8px;text-transform:uppercase}
+.su-field input,.su-field select{width:100%;padding:11px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#fff;color:#0f172a;font-weight:500}
+.su-field input:focus,.su-field select:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.su-teams{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.su-team{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;cursor:pointer;background:#f8fafc;transition:all .15s}
+.su-team:hover{background:#f1f5f9}
+.su-team.on{background:#fff;border-width:2px;font-weight:700}
+.su-team input{margin:0;flex-shrink:0}
+.su-team-color{width:8px;height:24px;border-radius:3px;flex-shrink:0}
+.su-team-name{font-size:12px;font-weight:600;color:#0f172a}
+@media(max-width:480px){
+  .su-teams{grid-template-columns:1fr}
+}
+
+/* ===== TELA DE SCOUT — painel de transmissao esportiva (tema escuro) ===== */
+.sc-arena{background:linear-gradient(165deg,#0c1322 0%,#141d33 55%,#0a0f1c 100%);border-radius:18px;padding:0;margin-bottom:12px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04);position:relative}
+.sc-arena::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 0%,rgba(37,99,235,.12),transparent 45%),radial-gradient(circle at 85% 100%,rgba(219,39,119,.10),transparent 45%);pointer-events:none}
+.sc-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;position:relative;z-index:1}
+.sc-set{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:#94a3b8}
+.sc-set b{color:#fbbf24}
+.sc-livedot{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;letter-spacing:1px;color:#fca5a5;background:rgba(220,38,38,.18);padding:3px 9px;border-radius:20px;border:1px solid rgba(220,38,38,.35)}
+.sc-livedot::before{content:"";width:7px;height:7px;border-radius:50%;background:#ef4444;animation:scPulse 1.4s infinite}
+@keyframes scPulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(239,68,68,.6)}50%{opacity:.55;box-shadow:0 0 0 6px rgba(239,68,68,0)}}
+.sc-icobtn{width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#cbd5e1;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;padding:0}
+.sc-icobtn:hover{background:rgba(255,255,255,.13);color:#fff}
+.sc-icobtn.warn{border-color:rgba(251,191,36,.4);color:#fbbf24}
+.sc-back{font-size:12px;font-weight:700;color:#cbd5e1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:7px 12px;cursor:pointer;font-family:inherit}
+.sc-back:hover{background:rgba(255,255,255,.13);color:#fff}
+/* placar */
+.sc-board{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;padding:8px 16px 18px;position:relative;z-index:1}
+.sc-side{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.sc-crest{width:62px;height:62px;border-radius:14px;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,.35);overflow:hidden}
+.sc-crest img{width:100%;height:100%;object-fit:contain;padding:6px}
+.sc-crest.rs img{padding:3px}
+.sc-crest.opp img{padding:11px}
+.sc-crest.ph{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#1e293b;background:linear-gradient(135deg,#e2e8f0,#cbd5e1)}
+.sc-tname{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;line-height:1.2;min-height:26px;display:flex;align-items:center;text-align:center}
+.sc-pts{font-family:'Bebas Neue',sans-serif;font-size:88px;line-height:.82;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.5);font-feature-settings:"tnum"}
+.sc-vs{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#475569;align-self:flex-start;margin-top:78px}
+.sc-scorebtns{display:flex;gap:7px;margin-top:2px}
+.sc-sb{width:42px;height:38px;border-radius:11px;border:none;font-size:20px;font-weight:900;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s}
+.sc-sb:active{transform:scale(.9)}
+.sc-sb-plus{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.4)}
+.sc-sb-minus{background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12)}
+.sc-sets{text-align:center;font-size:11px;color:#94a3b8;padding:0 16px 12px;position:relative;z-index:1}
+.sc-sets .chip{display:inline-block;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:3px 9px;margin:0 3px;font-weight:700}
+.sc-sets .chip.cur{background:rgba(251,191,36,.16);border-color:rgba(251,191,36,.4);color:#fbbf24}
+/* barra de controles */
+.sc-ctrls{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:12px 14px;background:rgba(0,0,0,.25);border-top:1px solid rgba(255,255,255,.06);position:relative;z-index:1}
+.sc-cbtn{font-size:12px;font-weight:700;font-family:inherit;border-radius:10px;padding:9px 14px;cursor:pointer;border:1px solid transparent;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.sc-cbtn-start{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;width:100%;justify-content:center;padding:15px;font-size:15px;box-shadow:0 6px 18px rgba(22,163,74,.4)}
+.sc-cbtn-set{background:rgba(255,255,255,.07);color:#e2e8f0;border-color:rgba(255,255,255,.14)}
+.sc-cbtn-fin{background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff}
+.sc-cbtn-zerar{background:rgba(255,255,255,.07);color:#94a3b8;border-color:rgba(255,255,255,.12)}
+.sc-cbtn-wpp{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
+.sc-cbtn:active{transform:scale(.96)}
+.sc-hint{font-size:10px;color:#64748b;text-align:center;padding:8px 14px;background:rgba(0,0,0,.25);position:relative;z-index:1}
+.sc-hint b{color:#fbbf24}
+/* painel de selecao */
+.sc-panel{margin-top:12px}
+.sc-seclabel{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;color:var(--navy);margin:14px 0 8px;display:flex;align-items:center;gap:8px}
+.sc-seclabel::after{content:"";flex:1;height:2px;background:linear-gradient(90deg,var(--brd),transparent)}
+.sc-players{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px}
+.sc-pcard{position:relative;background:#fff;border:2px solid var(--brd);border-radius:14px;padding:10px 4px 8px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;transition:all .12s;overflow:hidden}
+.sc-pcard:active{transform:scale(.94)}
+.sc-pcard .num{font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:.9;color:var(--navy);transition:color .12s}
+.sc-pcard .nm{font-size:9.5px;font-weight:700;color:var(--gray);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:uppercase;letter-spacing:.3px}
+.sc-pcard.on{border-color:transparent;color:#fff;box-shadow:0 8px 20px rgba(0,0,0,.22);transform:translateY(-2px)}
+.sc-pcard.on .num{color:#fff}
+.sc-pcard.on .nm{color:rgba(255,255,255,.85)}
+.sc-funds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sc-fund{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:14px 4px;border-radius:14px;border:2px solid var(--brd);background:#fff;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;color:var(--txl);transition:all .12s;text-transform:uppercase;letter-spacing:.3px}
+.sc-fund .fi{font-size:22px;line-height:1}
+.sc-fund:active{transform:scale(.95)}
+.sc-fund.on{color:#fff;border-color:transparent;box-shadow:0 8px 20px rgba(0,0,0,.22);transform:translateY(-2px)}
+.sc-outs{display:grid;gap:8px}
+.sc-out{padding:18px 4px;border-radius:14px;border:none;color:#fff;cursor:pointer;font-size:16px;font-weight:900;font-family:inherit;letter-spacing:.5px;text-transform:uppercase;transition:transform .1s;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+.sc-out:active{transform:scale(.93)}
+.sc-feed{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+.sc-fitem{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--card2);border-radius:10px;font-size:12px;border-left:3px solid var(--brd)}
+.sc-fitem .fnum{font-family:'Bebas Neue',sans-serif;font-size:17px;min-width:24px}
+.sc-fitem .ffund{font-weight:700;color:var(--txl)}
+.sc-fitem .foc{font-weight:800;margin-left:auto;font-size:11px;padding:2px 8px;border-radius:6px;color:#fff}
+.sc-fitem .fset{font-size:9px;color:var(--gray);background:#fff;padding:2px 6px;border-radius:5px}
+
+/* ===== SCOUT NO CELULAR — versao compacta ===== */
+@media(max-width:480px){
+  /* placar menor */
+  .sc-pts{font-size:56px}
+  .sc-crest,.sc-crest.rs,.sc-crest.opp{width:44px;height:44px}
+  .sc-vs{margin-top:46px;font-size:15px}
+  .sc-tname{font-size:9.5px;min-height:20px}
+  .sc-board{padding:6px 10px 10px;gap:4px}
+  .sc-sb{width:36px;height:32px;font-size:17px}
+  /* dica do ponto automatico — bem enxuta */
+  .sc-hint{font-size:8.5px;padding:4px 10px;line-height:1.3}
+  /* cards de atleta — bem menores, 5 por linha */
+  .sc-players{grid-template-columns:repeat(5,1fr);gap:4px}
+  .sc-pcard{padding:4px 2px 3px;border-width:1.5px;border-radius:8px;gap:0}
+  .sc-pcard .num{font-size:16px}
+  .sc-pcard .nm{font-size:6.5px}
+  /* fundamentos — mais baixos e compactos */
+  .sc-funds{gap:4px}
+  .sc-fund{padding:6px 2px;font-size:8.5px;border-width:1.5px;border-radius:8px;gap:1px}
+  .sc-fund .fi{font-size:14px}
+  /* resultado e feed compactos */
+  .sc-out{padding:10px 4px;font-size:13px;border-radius:10px}
+  .sc-seclabel{font-size:12px;margin:8px 0 4px}
+  .sc-ctrls{padding:8px 10px;gap:5px}
+  .sc-cbtn{padding:7px 10px;font-size:10.5px}
+  .sc-fitem{padding:5px 8px;font-size:10px}
+}
+
+/* ===== TORNEIO — PAINEL AO VIVO (lv-*) ===== */
+.lv-ov{position:fixed;inset:0;z-index:1200;background:rgba(4,7,13,.72);display:flex;justify-content:flex-end;animation:lvfade .18s ease}
+@keyframes lvfade{from{opacity:0}to{opacity:1}}
+.lv-panel{width:min(420px,100%);height:100%;overflow-y:auto;background:linear-gradient(165deg,#0c1322,#141d33,#0a0f1c);border-left:1px solid rgba(255,255,255,.08);box-shadow:-12px 0 50px rgba(0,0,0,.6);position:relative;animation:lvslide .22s ease}
+@keyframes lvslide{from{transform:translateX(40px);opacity:.4}to{transform:translateX(0);opacity:1}}
+.lv-panel::after{content:'';position:fixed;right:1%;top:54%;transform:translateY(-50%);width:min(420px,60vw);height:min(420px,60vw);background-image:var(--rs-watermark);background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.07;pointer-events:none;z-index:0}
+.lv-hd{display:flex;align-items:center;justify-content:space-between;padding:15px 16px 12px;border-bottom:1px solid rgba(255,255,255,.07);position:relative;z-index:1}
+.lv-ttl{font-family:'Bebas Neue',sans-serif;font-size:23px;letter-spacing:1.6px;color:#fff;line-height:1;display:flex;align-items:center;gap:9px}
+.lv-dot{width:8px;height:8px;border-radius:50%;background:#dc2626;display:inline-block;animation:lvpulse 1.4s infinite}
+@keyframes lvpulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.5)}50%{box-shadow:0 0 0 6px rgba(220,38,38,0)}}
+.lv-x{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#94a3b8;font-size:17px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
+.lv-x:active{transform:scale(.92)}
+.lv-sub{padding:9px 16px 3px;font-size:10.5px;color:#64748b;letter-spacing:.5px;position:relative;z-index:1}
+.lv-tgl{display:flex;gap:6px;padding:9px 16px 14px;position:relative;z-index:1}
+.lv-tbtn{flex:1;text-align:center;padding:8px 4px;border-radius:9px;font-size:11px;font-weight:800;letter-spacing:.4px;cursor:pointer;font-family:inherit;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#94a3b8;transition:all .12s}
+.lv-tbtn.on{background:linear-gradient(150deg,#2563eb,#2563ebcc);border-color:transparent;color:#fff}
+.lv-sec{padding:2px 16px 4px;position:relative;z-index:1}
+.lv-seclbl{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1.4px;color:#fbbf24;display:flex;align-items:center;gap:7px;margin:10px 0 9px}
+.lv-seclbl span{flex:1;height:2px;background:linear-gradient(90deg,rgba(251,191,36,.4),transparent)}
+.lv-seclbl small{flex:none;height:auto;background:none;font-family:'Inter',sans-serif;font-size:8px;color:#64748b;letter-spacing:.5px}
+.lv-kpis{display:flex;gap:8px}
+.lv-kpi{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:11px 5px;text-align:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.lv-kpi.ok{border-color:rgba(22,163,74,.4)}
+.lv-kpi.warn{border-color:rgba(217,119,6,.45)}
+.lv-kpi.bad{border-color:rgba(220,38,38,.5)}
+.lv-kval{font-family:'Bebas Neue',sans-serif;font-size:33px;line-height:.9}
+.lv-klbl{font-size:8.5px;color:#94a3b8;letter-spacing:.3px;margin-top:3px;line-height:1.25}
+.lv-ktr{font-size:9px;margin-top:3px}
+.lv-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;margin-bottom:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.lv-card.bad{border-color:rgba(220,38,38,.4)}
+.lv-card.good{border-color:rgba(22,163,74,.35)}
+.lv-strip{height:3px}
+.lv-cbody{padding:9px 11px}
+.lv-chd{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.lv-num{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fff;background:rgba(37,99,235,.25);border:1px solid rgba(37,99,235,.5);border-radius:7px;width:30px;height:26px;display:flex;align-items:center;justify-content:center;flex:none}
+.lv-nm{font-size:13px;font-weight:700;color:#f1f5f9;flex:1;text-transform:uppercase}
+.lv-tag{font-size:8.5px;padding:2px 7px;border-radius:20px;font-weight:700;flex:none}
+.lv-tag.bad{color:#f87171;background:rgba(220,38,38,.16);border:1px solid rgba(220,38,38,.35)}
+.lv-tag.good{color:#22c55e;background:rgba(22,163,74,.16);border:1px solid rgba(22,163,74,.35)}
+.lv-frow{display:flex;align-items:center;gap:7px;font-size:10px;margin-top:5px}
+.lv-flbl{color:#94a3b8;width:52px;flex:none}
+.lv-bar{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;display:flex}
+.lv-bar i{display:block;height:100%}
+.lv-fval{color:#cbd5e1;width:90px;text-align:right;flex:none}
+.lv-ftxt{flex:1;color:#64748b;font-size:10px}
+.lv-empty{text-align:center;color:#64748b;font-size:11px;padding:26px 10px;position:relative;z-index:1}
+@media(max-width:480px){
+  .lv-ov{justify-content:stretch}
+  .lv-panel{width:100%}
+  .lv-kval{font-size:28px}
+}
+
+/* ===== TORNEIO — botao e modal de NOVO JOGO ===== */
+.tnj-btn{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:11px;padding:11px 20px;font-size:13px;font-weight:800;letter-spacing:.5px;cursor:pointer;font-family:inherit;box-shadow:0 8px 22px rgba(37,99,235,.4);transition:transform .15s}
+.tnj-btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(37,99,235,.5)}
+.tnj-modal{position:fixed;inset:0;z-index:320;background:rgba(8,12,22,.78);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px}
+.tnj-box{background:linear-gradient(165deg,#0f1a2e 0%,#16213c 55%,#0c1322 100%);border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:26px 22px;width:100%;max-width:380px;max-height:92vh;overflow-y:auto;box-shadow:0 28px 70px rgba(0,0,0,.6);position:relative}
+.tnj-title{font-family:'Bebas Neue',sans-serif;font-size:23px;letter-spacing:1.5px;color:#fff;text-align:center;margin-bottom:4px}
+.tnj-sub{font-size:11px;color:#94a3b8;text-align:center;margin-bottom:20px;letter-spacing:.5px}
+.tnj-lb{font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:.8px;text-transform:uppercase;display:block;margin-bottom:5px}
+.tnj-field{margin-bottom:14px}
+.tnj-field input,.tnj-field select{width:100%;padding:12px 14px;border:1.5px solid rgba(255,255,255,.12);border-radius:11px;font-size:14px;font-weight:600;outline:none;font-family:inherit;background:rgba(255,255,255,.05);color:#fff}
+.tnj-field input::placeholder{color:#5b6b85}
+.tnj-field input:focus,.tnj-field select:focus{border-color:#fbbf24;box-shadow:0 0 0 3px rgba(251,191,36,.15)}
+.tnj-field select option{background:#16213c}
+.tnj-row{display:flex;gap:10px}
+.tnj-row .tnj-field{flex:1}
+.tnj-logo-drop{border:1.5px dashed rgba(255,255,255,.2);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all .15s;background:rgba(255,255,255,.03)}
+.tnj-logo-drop:hover{border-color:#fbbf24;background:rgba(251,191,36,.06)}
+.tnj-logo-drop.has{border-style:solid;border-color:rgba(37,99,235,.5)}
+.tnj-logo-preview{width:56px;height:56px;border-radius:12px;background:#fff;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tnj-logo-preview img{width:100%;height:100%;object-fit:contain;padding:6px}
+.tnj-logo-txt{font-size:11px;color:#94a3b8;font-weight:600}
+.tnj-actions{display:flex;gap:9px;margin-top:8px}
+.tnj-cancel{flex:1;padding:13px;background:rgba(255,255,255,.07);color:#cbd5e1;border:1px solid rgba(255,255,255,.12);border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.tnj-save{flex:1.4;padding:13px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:11px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(22,163,74,.4)}
+.tnj-save:active,.tnj-cancel:active{transform:scale(.97)}
+.tnj-err{color:#fca5a5;font-size:11px;font-weight:600;margin-top:-8px;margin-bottom:10px;min-height:14px}
+.tnj-inherit{background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:9px;padding:9px 12px;margin-bottom:16px;font-size:11px;color:#93c5fd}
+.tnj-inherit b{color:#fff}
+/* Fase B2.2: radios de tarja (Nenhuma / SEM DADOS / CANCELADO) no editor de jogo */
+.tnj-tarja-row{display:flex;gap:8px;flex-wrap:wrap}
+.tnj-tarja-opt{flex:1;min-width:90px;display:flex;align-items:center;gap:6px;padding:9px 10px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);font-size:11px;font-weight:700;color:#cbd5e1;cursor:pointer;letter-spacing:.5px;transition:all .15s}
+.tnj-tarja-opt:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.18)}
+.tnj-tarja-opt input{accent-color:#fbbf24;cursor:pointer}
+.tnj-tarja-opt.tnj-tarja-nodata{color:#cbd5e1}
+.tnj-tarja-opt.tnj-tarja-cancelled{color:#fca5a5;border-color:rgba(220,38,38,.3);background:rgba(220,38,38,.08)}
+.tnj-tarja-opt.tnj-tarja-cancelled:hover{background:rgba(220,38,38,.14)}
+
+
+</style>
+<style>
+/* Preview wrapper: mostra as 2 telas lado a lado em desktop, empilhadas em mobile */
+.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px;max-width:1500px;margin:0 auto}
+@media(max-width:900px){.preview-grid{grid-template-columns:1fr}}
+.preview-card{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden;position:relative}
+.preview-card-label{position:absolute;top:10px;left:14px;font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:3px;color:#fbbf24;background:rgba(0,0,0,.55);padding:5px 12px;border-radius:6px;z-index:99;border:1px solid rgba(251,191,36,.3)}
+.scene{position:relative;min-height:780px;overflow:hidden}
+/* Sobreescreve fixed → absolute pra cada cena renderizar dentro do seu cartao */
+.scene .usa-wrap{min-height:780px}
+.scene .usa-wrap::before,
+.scene .usa-wrap::after{position:absolute !important}
+.scene .usa-lock-screen{min-height:780px}
+body{margin:0;background:#070d1c;color:#e8eef9;font-family:'Inter',sans-serif}
+.preview-title{text-align:center;padding:28px 20px 4px;font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:5px;color:#fbbf24}
+.preview-sub{text-align:center;padding-bottom:10px;font-size:12px;color:rgba(232,238,249,.5);letter-spacing:2px}
+.preview-note{max-width:1100px;margin:18px auto 8px;padding:14px 18px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.25);border-radius:12px;font-size:13px;color:#fde68a;line-height:1.5}
+.preview-note b{color:#fbbf24}
+</style>
+</head>
+<body>
+
+<div class="preview-title">PREVIEW · TIME PRAIA GRANDE</div>
+<div class="preview-sub">acesso via master.associacaoscoladevoleibol.com.br/?torneio=pg</div>
+
+<div class="preview-note">
+<b>Mockup estático</b>. Logo é placeholder com "PG" — admin pode trocar do celular via botão <b style="color:#fde68a">🖼 Editar brand</b> no header (ver cena 2, canto superior direito). Esse botão abre o modal da cena 3 onde você faz upload da imagem real + ajusta nome/subtítulo. Tudo persiste no Firebase, sem precisar redeploy.
+</div>
+
+<div class="preview-grid">
+
+  <!-- CENA 1: TELA DE SENHA -->
+  <div class="preview-card">
+    <div class="preview-card-label">CENA 1 · TELA DE ACESSO (senha PG2026)</div>
+    <div class="scene">
+      <div class="usa-wrap" style="--rs-watermark:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22pgbg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230891b2%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23155e75%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20rx%3D%2248%22%20fill%3D%22url(%23pgbg)%22%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2296%22%20r%3D%2258%22%20fill%3D%22rgba(255%2C255%2C255%2C.14)%22%2F%3E%3Ctext%20x%3D%22128%22%20y%3D%22138%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2286%22%20font-weight%3D%22900%22%20fill%3D%22%23fff%22%20letter-spacing%3D%22-2%22%3EPG%3C%2Ftext%3E%3Ctext%20x%3D%22128%22%20y%3D%22202%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22800%22%20fill%3D%22rgba(255%2C255%2C255%2C.92)%22%20letter-spacing%3D%223%22%3EPRAIA%20GRANDE%3C%2Ftext%3E%3C%2Fsvg%3E')">
+        <div class="usa-lock-screen">
+          <div class="usa-lock-card">
+            <div class="usa-lock-crest"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22pgbg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230891b2%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23155e75%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20rx%3D%2248%22%20fill%3D%22url(%23pgbg)%22%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2296%22%20r%3D%2258%22%20fill%3D%22rgba(255%2C255%2C255%2C.14)%22%2F%3E%3Ctext%20x%3D%22128%22%20y%3D%22138%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2286%22%20font-weight%3D%22900%22%20fill%3D%22%23fff%22%20letter-spacing%3D%22-2%22%3EPG%3C%2Ftext%3E%3Ctext%20x%3D%22128%22%20y%3D%22202%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22800%22%20fill%3D%22rgba(255%2C255%2C255%2C.92)%22%20letter-spacing%3D%223%22%3EPRAIA%20GRANDE%3C%2Ftext%3E%3C%2Fsvg%3E" alt="logo"></div>
+            <div class="usa-lock-title">JOGOS REGIONAIS 2026</div>
+            <div class="usa-lock-sub">Acesso restrito · Scout do torneio</div>
+            <div class="usa-lock-field"><input type="password" placeholder="Senha de acesso" autocomplete="off"></div>
+            <button class="usa-lock-btn">Entrar</button>
+            <div class="usa-lock-foot">RS-Voleibol · 2026</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENA 2: CARDS GAME DAY -->
+  <div class="preview-card">
+    <div class="preview-card-label">CENA 2 · GAME DAY (com tarja auto SEM DADOS)</div>
+    <div class="scene">
+      <div class="usa-wrap" style="--rs-watermark:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22pgbg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230891b2%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23155e75%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20rx%3D%2248%22%20fill%3D%22url(%23pgbg)%22%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2296%22%20r%3D%2258%22%20fill%3D%22rgba(255%2C255%2C255%2C.14)%22%2F%3E%3Ctext%20x%3D%22128%22%20y%3D%22138%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2286%22%20font-weight%3D%22900%22%20fill%3D%22%23fff%22%20letter-spacing%3D%22-2%22%3EPG%3C%2Ftext%3E%3Ctext%20x%3D%22128%22%20y%3D%22202%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22800%22%20fill%3D%22rgba(255%2C255%2C255%2C.92)%22%20letter-spacing%3D%223%22%3EPRAIA%20GRANDE%3C%2Ftext%3E%3C%2Fsvg%3E')">
+        <div class="usa-header">
+          <div class="usa-header-flag">🏐 PRAIA GRANDE</div>
+          <div class="usa-header-title">JOGOS REGIONAIS 2026</div>
+          <div class="usa-header-sub">PRAIA GRANDE</div>
+          <button class="usa-brand-edit">🖼 Editar brand</button>
+          <button class="usa-logout">Sair</button>
+        </div>
+        <div style="position:relative;z-index:1;text-align:center;margin:6px 0 4px"><button class="tnj-btn">➕ Novo Jogo</button></div>
+        <div class="usa-cards" style="grid-template-columns:1fr">
+
+          <!-- Card 1: PRÓXIMO JOGO -->
+          <div class="gd-card gd-next">
+            <div class="gd-next-tag">▶ PRÓXIMO JOGO</div>
+            <div class="gd-side">JOGOS REGIONAIS 2026</div>
+            <div class="gd-body">
+              <div class="gd-head"><span class="gd-game">GAME</span><span class="gd-day">DAY</span><span class="gd-cat">PRAIA<br>GRANDE</span></div>
+              <div class="gd-phase">FASE DE CLASSIFICAÇÃO</div>
+              <div class="gd-match">
+                <div class="gd-team">
+                  <div class="usa-pg-logo"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22pgbg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230891b2%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23155e75%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20rx%3D%2248%22%20fill%3D%22url(%23pgbg)%22%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2296%22%20r%3D%2258%22%20fill%3D%22rgba(255%2C255%2C255%2C.14)%22%2F%3E%3Ctext%20x%3D%22128%22%20y%3D%22138%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2286%22%20font-weight%3D%22900%22%20fill%3D%22%23fff%22%20letter-spacing%3D%22-2%22%3EPG%3C%2Ftext%3E%3Ctext%20x%3D%22128%22%20y%3D%22202%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22800%22%20fill%3D%22rgba(255%2C255%2C255%2C.92)%22%20letter-spacing%3D%223%22%3EPRAIA%20GRANDE%3C%2Ftext%3E%3C%2Fsvg%3E" alt="PG"></div>
+                  <div class="gd-team-name">PRAIA GRANDE</div>
+                </div>
+                <div class="gd-x">X</div>
+                <div class="gd-team">
+                  <div class="usa-opp-logo" style="background:#7c2d12;color:#fed7aa">SC</div>
+                  <div class="gd-team-name">SANTOS CITY</div>
+                </div>
+              </div>
+              <div class="gd-date">15 DE JUNHO DE 2026</div>
+              <div class="gd-time">10:00 🇧🇷</div>
+              <div class="gd-status gd-status-pending">A JOGAR</div>
+              <div class="gd-action">▶ Abrir scout</div>
+              <button class="gd-edit">✏️ Editar jogo</button>
+              <button class="gd-del">🗑 Excluir jogo</button>
+            </div>
+          </div>
+
+          <!-- Card 2: SEM DADOS auto-tarja -->
+          <div class="gd-card" data-tarja="no_data">
+            <div class="gd-side">JOGOS REGIONAIS 2026</div>
+            <div class="gd-body">
+              <div class="gd-head"><span class="gd-game">GAME</span><span class="gd-day">DAY</span><span class="gd-cat">PRAIA<br>GRANDE</span></div>
+              <div class="gd-phase">AMISTOSO</div>
+              <div class="gd-match">
+                <div class="gd-team">
+                  <div class="usa-pg-logo"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22pgbg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230891b2%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23155e75%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20rx%3D%2248%22%20fill%3D%22url(%23pgbg)%22%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2296%22%20r%3D%2258%22%20fill%3D%22rgba(255%2C255%2C255%2C.14)%22%2F%3E%3Ctext%20x%3D%22128%22%20y%3D%22138%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2286%22%20font-weight%3D%22900%22%20fill%3D%22%23fff%22%20letter-spacing%3D%22-2%22%3EPG%3C%2Ftext%3E%3Ctext%20x%3D%22128%22%20y%3D%22202%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22800%22%20fill%3D%22rgba(255%2C255%2C255%2C.92)%22%20letter-spacing%3D%223%22%3EPRAIA%20GRANDE%3C%2Ftext%3E%3C%2Fsvg%3E" alt="PG"></div>
+                  <div class="gd-team-name">PRAIA GRANDE</div>
+                </div>
+                <div class="gd-x">X</div>
+                <div class="gd-team">
+                  <div class="usa-opp-logo" style="background:#7c2d12;color:#fed7aa">CV</div>
+                  <div class="gd-team-name">CUBATÃO V.</div>
+                </div>
+              </div>
+              <div class="gd-date">28 DE MAIO DE 2026</div>
+              <div class="gd-time">19:00 🇧🇷</div>
+              <div class="gd-action">📊 Ver estatísticas</div>
+              <button class="gd-del">🗑 Excluir jogo</button>
+            </div>
+            <div class="gd-tarja"><span class="gd-tarja-text">SEM DADOS</span></div>
+          </div>
+
+        </div>
+        <div class="usa-foot">RS-Voleibol 2026 · Associação Scola de Voleibol</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CENA 3: MODAL EDITAR BRAND -->
+<div style="max-width:1500px;margin:0 auto 40px;padding:0 24px">
+  <div class="preview-card">
+    <div class="preview-card-label">CENA 3 · MODAL "EDITAR BRAND" (admin tocou no botão 🖼)</div>
+    <div class="scene" style="min-height:680px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55)">
+      <div class="tnj-box" style="position:relative">
+        <div class="tnj-title">🖼 EDITAR BRAND</div>
+        <div class="tnj-sub">Logo, nome e subtítulo do torneio</div>
+        <div class="tnj-field"><span class="tnj-lb">Logo do time</span>
+          <div class="tnj-logo-drop has">
+            <div class="tnj-logo-txt">
+              <div class="tnj-logo-preview"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22pgbg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230891b2%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23155e75%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20rx%3D%2248%22%20fill%3D%22url(%23pgbg)%22%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2296%22%20r%3D%2258%22%20fill%3D%22rgba(255%2C255%2C255%2C.14)%22%2F%3E%3Ctext%20x%3D%22128%22%20y%3D%22138%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2286%22%20font-weight%3D%22900%22%20fill%3D%22%23fff%22%20letter-spacing%3D%22-2%22%3EPG%3C%2Ftext%3E%3Ctext%20x%3D%22128%22%20y%3D%22202%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22800%22%20fill%3D%22rgba(255%2C255%2C255%2C.92)%22%20letter-spacing%3D%223%22%3EPRAIA%20GRANDE%3C%2Ftext%3E%3C%2Fsvg%3E" alt="logo"></div>
+              Toque para trocar (PNG/JPG, até 2MB)
+            </div>
+          </div>
+        </div>
+        <div class="tnj-field"><span class="tnj-lb">Nome do torneio</span><input type="text" value="Jogos Regionais 2026"></div>
+        <div class="tnj-field"><span class="tnj-lb">Subtítulo</span><input type="text" value="PRAIA GRANDE"></div>
+        <div class="tnj-actions">
+          <button class="tnj-cancel">Cancelar</button>
+          <button class="tnj-save">✓ Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -70,7 +70,7 @@ setTimeout(()=>{
     chk(w.TOURNEY_ACCESS.pg.teamId==='t_pg_main','PG: teamId = t_pg_main (separado do RS)');
 
     // 2. PG_LOGO e PG_ROSTER no escopo global
-    chk(typeof w.PG_LOGO==='string' && w.PG_LOGO.indexOf('data:image/svg')===0,'PG_LOGO: data URI SVG presente');
+    chk(typeof w.PG_LOGO==='string' && w.PG_LOGO.indexOf('data:image/')===0,'PG_LOGO: data URI (SVG ou JPEG) presente');
     chk(Array.isArray(w.PG_ROSTER),'PG_ROSTER: array (vazio por enquanto)');
 
     // 3. URL ?torneio=pg ATIVOU modo isolado
@@ -91,8 +91,8 @@ setTimeout(()=>{
     var brand=w.getBrand('pg');
     chk(brand.logo===w.PG_LOGO,'getBrand("pg"): logo = PG_LOGO');
     chk(brand.team==='PRAIA GRANDE','getBrand("pg"): team = PRAIA GRANDE');
-    chk(brand.title==='JOGOS REGIONAIS 2026','getBrand("pg"): title = JOGOS REGIONAIS 2026');
-    chk(brand.color==='#06b6d4','getBrand("pg"): color = #06b6d4 (placeholder)');
+    chk(brand.title==='PAULISTA SUB 17 2026','getBrand("pg"): title = PAULISTA SUB 17 2026');
+    chk(brand.color==='#dc2626','getBrand("pg"): color = #dc2626 (vermelho escudo)');
     // Default (sem token) volta pro USA pra backward compat
     var brand0=w.getBrand(null);
     chk(brand0.logo===w.LR,'getBrand(null): default logo = LR (USA fallback)');
@@ -121,7 +121,7 @@ setTimeout(()=>{
     var html_c = w.renderGameDayCard(mockG, true);
     chk(html_c.indexOf('PRAIA GRANDE')>=0,'GAME DAY card: time = PRAIA GRANDE');
     chk(html_c.indexOf('RS VOLEIBOL')<0,'GAME DAY card: NAO mostra RS VOLEIBOL');
-    chk(html_c.indexOf('JOGOS REGIONAIS 2026')>=0,'GAME DAY card: faixa lateral = JOGOS REGIONAIS 2026');
+    chk(html_c.indexOf('PAULISTA SUB 17 2026')>=0,'GAME DAY card: faixa lateral = PAULISTA SUB 17 2026');
     chk(html_c.indexOf('ADULT OPEN CHAMPIONSHIP')<0,'GAME DAY card: NAO mostra texto do USA');
 
     // 10. salvarTorneioJogo (admin) bootstrap: cria torneio + equipe PG

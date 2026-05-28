@@ -1080,6 +1080,28 @@ var TOURNEY_ACCESS={
 // Destrava de admin do torneio (criar/editar/excluir jogo) — separada da senha de acesso
 var torneioAdminUnlocked=false;
 
+// === Fase PG isolamento: helpers pra filtrar torneios standalone ===
+// Torneios com flag `standalone:true` em TOURNEY_ACCESS (ex: Praia Grande) sao
+// acessiveis APENAS via ?torneio=<token>. Nao devem aparecer nas listagens do
+// app principal (Scout, Torneios, Agenda) pra nao misturar com RS.
+function isStandaloneTor(torId){
+  if(!torId || typeof TOURNEY_ACCESS==='undefined') return false;
+  for(var __k in TOURNEY_ACCESS){
+    var __a = TOURNEY_ACCESS[__k];
+    if(__a && __a.standalone && __a.torId===torId) return true;
+  }
+  return false;
+}
+function isStandaloneGame(g){ return !!(g && isStandaloneTor(g.torId)); }
+function isStandaloneTeam(tid){
+  if(!tid || typeof TOURNEY_ACCESS==='undefined') return false;
+  for(var __k in TOURNEY_ACCESS){
+    var __a = TOURNEY_ACCESS[__k];
+    if(__a && __a.standalone && __a.teamId===tid) return true;
+  }
+  return false;
+}
+
 // Elenco padrao do torneio USA — todo jogo novo nasce escalado com estes 15 atletas
 var USA_ROSTER=[
   {nu:1, nm:"Mateus",   po:"L\u00edbero"},
@@ -3628,8 +3650,9 @@ if(!isScouter){
   // === MODO VISITANTE / ATLETA: visualização Hub por equipe ===
   var lv="";
   // Banner de jogos ao vivo (em destaque no topo)
+  // Fase PG isolamento: oculta jogos de torneios standalone (acessiveis so via ?torneio=).
   var liveGames=[];
-  if(D.games)for(var gi=0;gi<D.games.length;gi++){if(D.games[gi].st==="live")liveGames.push(D.games[gi]);}
+  if(D.games)for(var gi=0;gi<D.games.length;gi++){if(D.games[gi].st==="live" && !isStandaloneGame(D.games[gi]))liveGames.push(D.games[gi]);}
   if(liveGames.length){
     lv+='<div style="font-family:Bebas Neue,sans-serif;font-size:20px;letter-spacing:2px;margin-bottom:12px;color:var(--navy)">\u{1F3D0} JOGO AO VIVO</div>';
     for(var li=0;li<liveGames.length;li++){
@@ -3646,10 +3669,14 @@ if(!isScouter){
     }
   }
   // Hub por equipe (próximos + histórico)
+  // Fase PG isolamento: oculta torneios standalone tambem aqui.
   var allGames=D.games?D.games.slice():[];
-  // Excluir jogos ao vivo (já mostrados acima)
   var hubGames=[];
-  for(var i=0;i<allGames.length;i++)if(allGames[i].st!=="live")hubGames.push(allGames[i]);
+  for(var i=0;i<allGames.length;i++){
+    if(allGames[i].st==="live") continue; // ja mostrado acima
+    if(isStandaloneGame(allGames[i])) continue;
+    hubGames.push(allGames[i]);
+  }
   if(hubGames.length){
     lv+='<div style="font-family:Bebas Neue,sans-serif;font-size:20px;letter-spacing:2px;margin:'+(liveGames.length?"24px":"0")+' 0 12px;color:var(--navy)">\u{1F3C6} EQUIPES</div>';
     lv+=renderTeamHub(hubGames,{showHistory:true});
@@ -3671,7 +3698,7 @@ if(gm&&gm.lineup){
     }
   }
 }
-if(!S.aid||!gm){var h='<div style="font-family:Bebas Neue,sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:14px;color:var(--navy)">SELECIONE UM JOGO</div>';var pn=[];if(D.games)for(var i=0;i<D.games.length;i++){if(D.games[i].st!=="done")pn.push(D.games[i]);}
+if(!S.aid||!gm){var h='<div style="font-family:Bebas Neue,sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:14px;color:var(--navy)">SELECIONE UM JOGO</div>';var pn=[];if(D.games)for(var i=0;i<D.games.length;i++){if(D.games[i].st!=="done" && !isStandaloneGame(D.games[i]))pn.push(D.games[i]);}
 pn.sort(function(a,b){if(!a.dt&&!b.dt)return 0;if(!a.dt)return 1;if(!b.dt)return-1;var da=new Date(a.dt+"T"+(a.tm||"23:59")),db=new Date(b.dt+"T"+(b.tm||"23:59"));return da-db;});
 if(!pn.length)h+='<div class="cd" style="text-align:center;padding:40px;color:var(--gray);font-size:15px">\u{1F4CB} Nenhum jogo pendente.<br><br>Acesse <b>Config \u2192 Jogos</b> para cadastrar.</div>';
 for(var i=0;i<pn.length;i++){var g=pn[i];var t2=tF(g.tid);var c2=t2?t2.c:"var(--gray)";h+='<div class="cd" style="cursor:pointer;border-left:4px solid '+c2+';padding:14px 16px" onclick="openG(\''+g.id+'\')"><div style="display:flex;align-items:center;gap:10px">'+tLs(t2)+'<div style="flex:1"><div style="font-size:16px;font-weight:800;color:'+c2+'">'+t2.n+'</div><div style="font-size:13px;color:var(--txl);margin-top:2px">vs '+esc(g.opp)+'</div><div style="font-size:11px;color:var(--gray);margin-top:3px">'+(g.dt?fD(g.dt):"A Definir")+(g.tm?" \u00b7 "+g.tm.substring(0,5):"")+'</div></div><div style="text-align:right"><span class="badge" style="background:'+(g.st==="live"?"#d9770620;color:#d97706":"var(--card2);color:var(--gray)")+'">'+(g.st==="live"?"\u25CF Ao Vivo":"Pendente")+'</span></div></div></div>';}return h;}
@@ -3932,9 +3959,11 @@ function rTor(){
   }
   // Separar por status. Fase C: encerrados (archived) viram grupo proprio,
   // independente de st \u2014 torneio so-leitura/historico.
+  // Fase PG isolamento: torneios standalone (PG) so via deep-link \u2014 nao aparecem aqui.
   var live=[],done=[],pending=[],archived=[];
   for(var i=0;i<tournaments.length;i++){
     var t=tournaments[i];
+    if(isStandaloneTor(t.id)) continue;
     if(isArchivedTor(t)) archived.push(t);
     else if(t.st==="done") done.push(t);
     else if(t.st==="live") live.push(t);
@@ -4361,6 +4390,8 @@ function selectTor(id){selTor=id;render();}
 // ==========================================================
 function rAge(){
   var allGames=(D.games||[]).slice();
+  // Fase PG isolamento: oculta jogos de torneios standalone (PG) da agenda.
+  allGames=allGames.filter(function(g){return !isStandaloneGame(g);});
   if(gAgTor!=="all")allGames=allGames.filter(function(g){return g.torId===gAgTor;});
   if(gAgCat!=="all")allGames=allGames.filter(function(g){return g.cat===gAgCat;});
   var todayStr=new Date().toISOString().slice(0,10);

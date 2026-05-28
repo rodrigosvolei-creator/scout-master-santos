@@ -5529,7 +5529,13 @@ function exGamePDF(gid){
     }
   }
   ph+="<div class=ft><span>RS-Scout 2026 \u00b7 Associa\u00e7\u00e3o Scola de Voleibol</span><span>Gerado em "+new Date().toLocaleString("pt-BR")+"</span></div>";
-  ph+="</div></body></html>";
+  // Botao fallback (se o auto-print for bloqueado) + auto-trigger do dialogo de impressao.
+  // Usuario escolhe "Salvar como PDF" no proprio dialogo do navegador.
+  ph+="</div>";
+  ph+='<style>@media print{.pdf-print-btn{display:none!important}} .pdf-print-btn{position:fixed;top:14px;right:14px;background:#dc2626;color:#fff;border:none;padding:11px 18px;border-radius:9px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(0,0,0,.25);letter-spacing:.3px;z-index:9999}.pdf-print-btn:hover{background:#b91c1c}</style>';
+  ph+='<button class="pdf-print-btn" onclick="window.print()">\ud83d\udda8\ufe0f Salvar como PDF</button>';
+  ph+='<script>setTimeout(function(){try{window.print();}catch(e){}},450);<\/script>';
+  ph+="</body></html>";
   var blob=new Blob([ph],{type:"text/html"});
   var url=URL.createObjectURL(blob);
   var a2=document.createElement("a");a2.href=url;a2.target="_blank";a2.click();

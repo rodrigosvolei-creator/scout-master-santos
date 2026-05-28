@@ -401,8 +401,8 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .cd.game-cancelled > div:first-child{filter:grayscale(.55) sepia(.1)}
 
 /* Scout dentro do torneio */
-.usa-scout-wrap{min-height:100vh;background:linear-gradient(170deg,#eef2f7 0%,#e7ecf3 60%,#dfe5ee 100%);position:relative;overflow:hidden}
-.usa-scout-wrap::before{content:"";position:fixed;right:1%;top:52%;transform:translateY(-50%);width:min(480px,64vw);height:min(480px,64vw);background-image:var(--rs-watermark);background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.22;pointer-events:none;z-index:0;filter:grayscale(.2)}
+.usa-scout-wrap{min-height:100vh;background:linear-gradient(160deg,#0a0e1a 0%,#111a2e 45%,#0f172a 100%);position:relative;overflow:hidden;color:#e8eef9}
+.usa-scout-wrap::before{content:"";position:fixed;right:1%;top:52%;transform:translateY(-50%);width:min(360px,48vw);height:min(360px,48vw);background-image:var(--rs-watermark);background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.07;pointer-events:none;z-index:0;filter:grayscale(.1)}
 .usa-scout-body{padding:16px;max-width:900px;margin:0 auto;position:relative;z-index:1}
 .usa-scout-bar{background:linear-gradient(135deg,#0d5c2c,#13803d);padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
 .usa-scout-back{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:12px;font-weight:700;padding:7px 14px;border-radius:8px;cursor:pointer}
@@ -804,7 +804,16 @@ var IT=[{id:"tf",n:"FEM RS-VOLEIBOL 30+",c:"#db2777",p:[],logo:"rs"},{id:"tm",n:
 function getD(){return{teams:JSON.parse(JSON.stringify(IT)),games:[],tournaments:[],athletes:[]};}
 function fD(d){if(!d)return"A Definir";try{return new Date(d+"T12:00:00").toLocaleDateString("pt-BR")}catch(e){return d;}}
 function tL(t){return LR;}
-function tLs(t){return '<img src="'+LR+'" style="width:34px;height:34px;border-radius:6px;object-fit:contain">';}
+function tLs(t){
+  // Logo do time: prioriza upload do proprio time (logoData), depois URL fixa (logo),
+  // depois LR (fallback RS). Resolve PG mostrando logo proprio em vez do RS.
+  var src=LR;
+  if(t){
+    if(t.logoData) src=t.logoData;
+    else if(t.logo && typeof t.logo==='string' && t.logo.indexOf('data:')===0) src=t.logo;
+  }
+  return '<img src="'+src+'" style="width:34px;height:34px;border-radius:6px;object-fit:contain">';
+}
 function tF(id){if(!D||!D.teams)return null;for(var i=0;i<D.teams.length;i++){if(D.teams[i].id===id)return D.teams[i];}return null;}
 function getActiveTeams(){if(!D||!D.teams)return [];return D.teams.filter(function(t){return !t.archived;});}
 function getArchivedTeams(){if(!D||!D.teams)return [];return D.teams.filter(function(t){return t.archived;});}
@@ -2784,10 +2793,12 @@ function exitTorneio(){
 function renderTorneioScout(gid){
   var g=gF(gid);
   if(!g)return '<div class="usa-wrap"><div style="padding:40px;text-align:center;color:#fff">Jogo n\u00e3o encontrado</div></div>';
-  var h='<div class="usa-scout-wrap" style="--rs-watermark:url(\''+LR+'\')">';
+  // Fase PG: brand do torneio ativo (USA=RS, PG=Praia Grande) \u2014 watermark + titulo.
+  var __brand=getBrand(torneioToken);
+  var h='<div class="usa-scout-wrap" style="--rs-watermark:url(\''+__brand.logo+'\')">';
   h+='<div class="usa-scout-bar">';
   h+='<button class="usa-scout-back" onclick="backToTorneioCards()">\u2190 Voltar aos jogos</button>';
-  h+='<div class="usa-scout-title">RS vs '+esc(g.opp||"")+'</div>';
+  h+='<div class="usa-scout-title">'+esc(__brand.team)+' vs '+esc(g.opp||"")+'</div>';
   h+='</div>';
   h+='<div class="usa-scout-body" id="usa-scout-body">';
   // Reusa o motor de scout do app — força isScouter pra liberar controles
@@ -3706,9 +3717,12 @@ if(!locked){
 h+='</div></div>';
 // placar
 h+='<div class="sc-board">';
-// lado RS
+// lado do nosso time (PG, RS etc — usa logo do time se uploaded, senao brand do torneio, senao LR)
+var __nossoLogo = LR;
+if(te && te.logoData) __nossoLogo = te.logoData;
+else if(torneioMode){ var __b = getBrand(torneioToken); if(__b && __b.logo) __nossoLogo = __b.logo; }
 h+='<div class="sc-side">';
-h+='<div class="sc-crest rs"><img src="'+LR+'" alt="RS"></div>';
+h+='<div class="sc-crest rs"><img src="'+__nossoLogo+'" alt="time"></div>';
 h+='<div class="sc-tname" style="color:'+te.c+'">'+esc(nmRS)+'</div>';
 h+='<div class="sc-pts">'+cur.u+'</div>';
 if(!locked)h+='<div class="sc-scorebtns"><button class="sc-sb sc-sb-minus" onclick="scDn(\'u\')">\u2212</button><button class="sc-sb sc-sb-plus" onclick="scUp(\'u\')">+</button></div>';
@@ -3760,9 +3774,10 @@ if(!locked){
   if(isCoord)h+='<button class="sc-cbtn sc-cbtn-set" onclick="exAllAthIndividualPDFs(\''+gm.id+'\')">\u{1F4DD} PDFs Individuais</button>';
 }
 h+='</div>';
-// dica do ponto automatico
+// dica do ponto automatico \u2014 usa o nome do time atual (PG, RS, etc) em vez de hardcode
 if(gm.st==="live"&&!locked){
-  h+='<div class="sc-hint">\u26A1 <b>Ace / Ponto</b> sobem o placar do RS \u00b7 <b>Erro</b> sobe o do advers\u00e1rio \u00b7 use +/\u2212 para ajustes</div>';
+  var __hintTeam = (te && te.n) ? esc(nmRS) : "nosso time";
+  h+='<div class="sc-hint">\u26A1 <b>Ace / Ponto</b> sobem o placar do '+__hintTeam+' \u00b7 <b>Erro</b> sobe o do advers\u00e1rio \u00b7 use +/\u2212 para ajustes</div>';
 }
 h+='</div>'; // fecha .sc-arena
 // ===== PAINEL DE SCOUT — atleta / fundamento / resultado =====

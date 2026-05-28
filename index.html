@@ -5490,7 +5490,19 @@ function exGamePDF(gid){
   var ph="<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>"+esc(teamName)+" vs "+esc(g.opp)+"</title><style>"+css+"</style></head><body><div class=wrap>";
   // cabecalho
   ph+="<div class=hd>";
-  ph+="<div class=hd-team><img src=\""+LR+"\"><div class=nm>"+esc(teamName)+"</div></div>";
+  // Logo do nosso time no PDF: prioriza upload do time, depois brand do torneio do jogo, depois LR.
+  var __pdfLogo = LR;
+  if(te && te.logoData) __pdfLogo = te.logoData;
+  else {
+    // descobre brand pelo torId do jogo
+    var __pdfTok = null;
+    if(typeof TOURNEY_ACCESS !== 'undefined'){
+      for(var __k in TOURNEY_ACCESS){ if(TOURNEY_ACCESS[__k].torId===g.torId){ __pdfTok=__k; break; } }
+    }
+    var __pdfBrand = getBrand(__pdfTok);
+    if(__pdfBrand && __pdfBrand.logo) __pdfLogo = __pdfBrand.logo;
+  }
+  ph+="<div class=hd-team><img src=\""+__pdfLogo+"\"><div class=nm>"+esc(teamName)+"</div></div>";
   ph+="<div class=hd-mid><div class=score>"+setsRS+" x "+setsADV+"</div><div class=lbl>SETS</div></div>";
   ph+="<div class=hd-team>"+(advLogo?"<img src=\""+advLogo+"\">":"<div style=\"height:54px\"></div>")+"<div class=nm>"+esc(g.opp||"Advers\u00e1rio")+"</div></div>";
   ph+="</div>";

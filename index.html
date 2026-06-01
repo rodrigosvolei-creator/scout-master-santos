@@ -380,6 +380,9 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .gd-edit{margin-top:10px;width:100%;background:rgba(37,99,235,.14);border:1px solid rgba(37,99,235,.35);color:#93c5fd;font-size:10px;font-weight:700;letter-spacing:.5px;padding:7px;border-radius:8px;cursor:pointer;font-family:inherit;transition:all .15s}
 .gd-edit:hover{background:rgba(37,99,235,.22);color:#bfdbfe}
 .gd-del:hover{background:rgba(220,38,38,.22);color:#fff}
+/* Fase B2: botao "Painel AO VIVO" no card GAME DAY — verde, abre o overlay direto */
+.gd-live-btn{margin-top:10px;width:100%;background:linear-gradient(135deg,rgba(22,163,74,.18),rgba(22,163,74,.1));border:1px solid rgba(22,163,74,.45);color:#86efac;font-size:11px;font-weight:800;letter-spacing:.5px;padding:9px;border-radius:9px;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.gd-live-btn:hover{background:linear-gradient(135deg,rgba(22,163,74,.28),rgba(22,163,74,.18));color:#bbf7d0;transform:translateY(-1px);box-shadow:0 4px 12px rgba(22,163,74,.25)}
 
 /* === Fase B2.1: Tarja no GAME DAY card (CANCELADO / SEM DADOS) === */
 .gd-card[data-tarja]{opacity:.85}
@@ -2437,6 +2440,11 @@ function renderGameDayCard(g,isNext){
   h+=statusBadge;
   // Ação
   h+='<div class="gd-action">'+(done||hasData?"\uD83D\uDCCA Ver estat\u00edsticas":"\u25B6 Abrir scout")+'</div>';
+  // Fase B2: botao "Painel AO VIVO" direto no card \u2014 qualquer usuario abre o
+  // overlay sem precisar entrar no scout. So aparece se o jogo tem acoes.
+  if(hasData){
+    h+='<button class="gd-live-btn" onclick="event.stopPropagation();openLivePanel(\''+g.id+'\')" title="Abrir painel ao vivo">\uD83D\uDCCA Painel AO VIVO</button>';
+  }
   // Botao editar (so jogos pendentes) + excluir.
   // Fase B2.2: aparecem pra quem pode gerenciar. No isolado legado todo usuario
   // ve (a senha eh pedida no clique). No fluxo unificado so admin/coord ve.

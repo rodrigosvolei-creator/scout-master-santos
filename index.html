@@ -1179,6 +1179,23 @@ function getPublicGames(){
   return arr.filter(function(g){return !isSpecialGame(g);});
 }
 
+// Equipes "special": vinculadas a um TOURNEY_ACCESS standalone (ex: PRAIA GRANDE
+// no PG). Nao devem aparecer no signup do RS pra evitar mistura. Mesma logica
+// do isSpecialTour/Game — em torneioMode o filtro fica desligado.
+function isSpecialTeam(tid){
+  if(!tid || typeof TOURNEY_ACCESS==='undefined') return false;
+  for(var __k in TOURNEY_ACCESS){
+    var __a=TOURNEY_ACCESS[__k];
+    if(__a && __a.standalone && __a.teamId===tid) return true;
+  }
+  return false;
+}
+function getPublicTeams(){
+  var arr=(D&&D.teams)?D.teams:[];
+  if(torneioMode) return arr.slice();
+  return arr.filter(function(t){return !isSpecialTeam(t.id);});
+}
+
 // --- Helpers de data pra janela da agenda do Scout ---
 function scoutDaysUntil(dtStr){
   if(!dtStr) return null;
@@ -3116,7 +3133,9 @@ function renderSignup(){
     for(var k=0;k<POS.length;k++)h+='<option'+(POS[k]===signupPos?" selected":"")+'>'+POS[k]+'</option>';
     h+='</select></div>';
     h+='<div class="su-field"><label>Equipes em que joga (marque todas)</label>';
-    var activeTeams=(D.teams||[]).filter(function(t){return !t.archived;});
+    // Cadastro RS so mostra equipes RS — equipes standalone (PRAIA GRANDE) ficam
+    // ocultas pra nao misturar contextos. Atletas PG entram pelo fluxo proprio.
+    var activeTeams=getPublicTeams().filter(function(t){return !t.archived;});
     if(!activeTeams.length){
       h+='<div style="font-size:12px;color:var(--gray);padding:8px">Nenhuma equipe dispon\u00edvel.</div>';
     }else{

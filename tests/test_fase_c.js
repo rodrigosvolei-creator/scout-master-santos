@@ -19,17 +19,19 @@ function setAt(p,v){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i
 function makeRef(p){return{_path:p,on:function(e,cb){listeners[p]=cb;},once:function(){return Promise.resolve({val:()=>getAt(p)});},set:function(v){setAt(p,v);return Promise.resolve();},update:function(){return Promise.resolve();}};}
 global.firebaseMock={initializeApp:()=>{},database:()=>({ref:makeRef}),auth:()=>({onAuthStateChanged:function(cb){setTimeout(()=>cb(null),0);},signInWithPopup:()=>Promise.resolve(),signOut:()=>Promise.resolve()})};
 
-// 2 torneios: USA encerrado (archived=true), Liga ativa (sem archived).
+// 2 torneios: t_arch_test encerrado (archived=true), Liga ativa.
+// (NAO usar t_usa_open aqui porque isSpecialTour filtra todos torneios do
+// TOURNEY_ACCESS — USA some completamente do app principal, igual o PG.)
 const seed = {
   'torneio-master-santos': {
     teams:[{id:'trs',n:'RS Adulto Masc',c:'#2563eb',roster:[{aid:'a1'}]}],
     athletes:[{aid:'a1',nm:'Atleta 1',po:'Ponta'}],
     tournaments:[
-      {id:'t_usa_open',n:'2026 Adult Open Championship',c:'#1d7a3a',color:'#1d7a3a',cat:'Adulto',season:'2026',archived:true},
+      {id:'t_arch_test',n:'Torneio Encerrado Teste',c:'#1d7a3a',color:'#1d7a3a',cat:'Adulto',season:'2026',archived:true},
       {id:'t_liga',n:'Liga Ativa',c:'#2563eb',color:'#2563eb',cat:'Adulto',season:'2026'}
     ],
     games:[
-      {id:'g_usa_1',torId:'t_usa_open',tid:'trs',opp:'Arlington',dt:'2026-06-10',tm:'10:00',st:'pending',lineup:[{aid:'a1',nu:1}]},
+      {id:'g_usa_1',torId:'t_arch_test',tid:'trs',opp:'Arlington',dt:'2026-06-10',tm:'10:00',st:'pending',lineup:[{aid:'a1',nu:1}]},
       {id:'g_liga_1',torId:'t_liga',tid:'trs',opp:'Time A',dt:'2026-07-10',tm:'10:00',st:'pending',lineup:[{aid:'a1',nu:1}]}
     ],
     invites:{}
@@ -69,7 +71,7 @@ setTimeout(()=>{
     chk(typeof w.toggleTorneioArchived==='function','toggleTorneioArchived() helper existe');
 
     // 2. Comportamento dos helpers
-    var torUsa = w.tFnd('t_usa_open');
+    var torUsa = w.tFnd('t_arch_test');
     var torLiga = w.tFnd('t_liga');
     chk(w.isArchivedTor(torUsa)===true,'isArchivedTor: torneio com archived=true => true');
     chk(w.isArchivedTor(torLiga)===false,'isArchivedTor: torneio sem flag => false');
@@ -91,7 +93,7 @@ setTimeout(()=>{
     chk(groupCount===2,'rTor: 2 grupos (1 ativo + 1 encerrado): '+groupCount);
 
     // 4. Selecionar o USA (arquivado) — detalhe deve mostrar badge encerrado + botao Reativar
-    w.selectTor('t_usa_open');
+    w.selectTor('t_arch_test');
     var m1 = w.document.getElementById('mainApp').innerHTML;
     chk(m1.indexOf('rs-tor-detail is-archived')>=0,'rTorDetail USA tem classe is-archived');
     chk(m1.indexOf('rs-tor-detail-archived-badge')>=0,'rTorDetail USA mostra badge ENCERRADO');
@@ -112,7 +114,7 @@ setTimeout(()=>{
     chk(m2.indexOf('Novo Jogo neste Torneio')>=0,'rTorDetail Liga ativa: botao Novo Jogo (default layout)');
 
     // 7. Funcoes admin recusam em torneio arquivado (defense-in-depth)
-    w.selectTor('t_usa_open'); // contexto = USA arquivado
+    w.selectTor('t_arch_test'); // contexto = USA arquivado
     // Captura toasts pra inspecionar mensagens (sem depender da UI real)
     var toasts=[];
     w.toast = function(msg,kind){ toasts.push({msg:msg,kind:kind}); };
@@ -138,10 +140,10 @@ setTimeout(()=>{
     chk(toasts.some(function(t){return /encerrado/i.test(t.msg);}),'excluirTorneioJogo arquivado: toast com "encerrado"');
 
     // 8. toggleTorneioArchived flipa o estado
-    w.toggleTorneioArchived('t_usa_open');
-    chk(w.tFnd('t_usa_open').archived===false,'toggleTorneioArchived: torneio arquivado => ativo (false)');
-    w.toggleTorneioArchived('t_usa_open');
-    chk(w.tFnd('t_usa_open').archived===true,'toggleTorneioArchived: ativo => arquivado (true) novamente');
+    w.toggleTorneioArchived('t_arch_test');
+    chk(w.tFnd('t_arch_test').archived===false,'toggleTorneioArchived: torneio arquivado => ativo (false)');
+    w.toggleTorneioArchived('t_arch_test');
+    chk(w.tFnd('t_arch_test').archived===true,'toggleTorneioArchived: ativo => arquivado (true) novamente');
 
     // 9. Sem permissao: toggle nao funciona
     w.isAdmin=false; w.isCoord=false; toasts.length=0;

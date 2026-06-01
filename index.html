@@ -1127,27 +1127,10 @@ var TOURNEY_ACCESS={
 // Destrava de admin do torneio (criar/editar/excluir jogo) — separada da senha de acesso
 var torneioAdminUnlocked=false;
 
-// === Fase PG isolamento: helpers pra filtrar torneios standalone ===
-// Torneios com flag `standalone:true` em TOURNEY_ACCESS (ex: Praia Grande) sao
-// acessiveis APENAS via ?torneio=<token>. Nao devem aparecer nas listagens do
-// app principal (Scout, Torneios, Agenda) pra nao misturar com RS.
-function isStandaloneTor(torId){
-  if(!torId || typeof TOURNEY_ACCESS==='undefined') return false;
-  for(var __k in TOURNEY_ACCESS){
-    var __a = TOURNEY_ACCESS[__k];
-    if(__a && __a.standalone && __a.torId===torId) return true;
-  }
-  return false;
-}
-function isStandaloneGame(g){ return !!(g && isStandaloneTor(g.torId)); }
-function isStandaloneTeam(tid){
-  if(!tid || typeof TOURNEY_ACCESS==='undefined') return false;
-  for(var __k in TOURNEY_ACCESS){
-    var __a = TOURNEY_ACCESS[__k];
-    if(__a && __a.standalone && __a.teamId===tid) return true;
-  }
-  return false;
-}
+// (Helpers isStandaloneTor/isStandaloneGame/isStandaloneTeam removidos —
+// substituidos por isSpecialTour/isSpecialGame/getPublicTournaments/getPublicGames
+// declarados mais abaixo, que filtram TODO torneio em TOURNEY_ACCESS, nao so
+// os com standalone:true. Isso isola USA + PG do app principal.)
 
 // ==========================================================
 // SCOUT — janela de proximos jogos + cards GAME DAY (tema escuro)

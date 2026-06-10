@@ -904,6 +904,20 @@ function getNu(aid,gameId,teamId){
 function pFind(pid,gameId,preferTid){
   if(!D)return null;
   var a=aFind(pid);
+  // Atleta ad-hoc (PG, fluxo isolado): nao esta em D.athletes, vive so na lineup
+  // do jogo. Sintetiza um objeto minimo pra a action display funcionar.
+  if(!a && gameId){
+    var __g=gF(gameId);
+    if(__g && __g.lineup){
+      for(var __i=0;__i<__g.lineup.length;__i++){
+        var __le=__g.lineup[__i];
+        if(__le.aid===pid && __le.nm){
+          var __team=__g.tid?tF(__g.tid):null;
+          return {id:pid,aid:pid,nm:__le.nm,nu:__le.nu||0,po:__le.po||"",tid:__g.tid,tn:__team?__team.n:"",tc:__team?__team.c:"#64748b",adhoc:true};
+        }
+      }
+    }
+  }
   if(!a)return null;
   // Determinar equipe
   var team=null;
@@ -1407,10 +1421,12 @@ function getBrand(token){
         torneioToken=torneio;
         torneioId=__access.torId;
         showLanding=false;
-        // Cache de senha em sessionStorage — evita pedir senha em cada reload
+        // Cache de senha em sessionStorage — evita pedir senha em cada reload.
+        // Standalone (PG): a senha de acesso ja destrava admin junto.
         try{
           if(window.sessionStorage && window.sessionStorage.getItem("tourney_"+torneio)==="1"){
             torneioUnlocked=true;
+            if(__access.standalone) torneioAdminUnlocked=true;
           }
         }catch(e){}
       }else{
@@ -2283,6 +2299,9 @@ function checkTorneioPwd(){
   if(!access){torneioPwdError="Torneio inv\u00e1lido";render();return;}
   if(val===access.pwd){
     torneioUnlocked=true;
+    // PG e outros standalone: senha de acesso ja libera TUDO (sem 2a senha).
+    // Mantemos compat com o fluxo legado caso algum dia exista pwd != adminPwd.
+    if(access.standalone) torneioAdminUnlocked=true;
     torneioPwdError="";
     try{if(window.sessionStorage)window.sessionStorage.setItem("tourney_"+torneioToken,"1");}catch(e){}
     render();
@@ -3883,15 +3902,17 @@ if(!isScouter){
   return lv;
 }
 var gm=gF(S.aid);var te=gm?tF(gm.tid):null;
-// Construir gp a partir de gm.lineup (escalação do jogo)
+// Construir gp a partir de gm.lineup (escalação do jogo).
+// Atletas ad-hoc (entry.nm preenchido) viajam dentro da propria lineup sem
+// depender de D.athletes — usado pelo fluxo PG isolado.
 var gp=[];
 if(gm&&gm.lineup){
   for(var i=0;i<gm.lineup.length;i++){
     var le=gm.lineup[i];
     var ath=aFind(le.aid);
-    if(ath){
-      gp.push({id:le.aid,nm:ath.nm,nu:le.nu,po:ath.po||""});
-    }
+    var nm=(le.nm)||(ath&&ath.nm)||"";
+    var po=(le.po)||(ath&&ath.po)||"";
+    if(nm) gp.push({id:le.aid,nm:nm,nu:le.nu,po:po});
   }
 }
 if(!S.aid||!gm){return renderScoutSelection();}
@@ -5399,50 +5420,64 @@ function openG(id){var g=gF(id);if(!g)return;if(g.st==="pending"){g.act=[];g.ss=
 // Modal de escalação do jogo
 function openLineup(gameId){
   var g=gF(gameId);if(!g){toast("Jogo n\u00e3o encontrado","error");return;}
-  var t=tF(g.tid);if(!t){toast("Equipe n\u00e3o encontrada","error");return;}
-  var roster=t.roster||[];
-  if(!roster.length){toast("Equipe sem atletas no roster. Adicione em Config \u2192 Equipes.","error");return;}
-  // Estado atual da escalação (para edição)
-  var lineupNow={};
-  if(g.lineup)for(var i=0;i<g.lineup.length;i++)lineupNow[g.lineup[i].aid]=g.lineup[i].nu;
-  var inLineup=Object.keys(lineupNow).length>0;
-  // Construir lista enriquecida ordenada por nome
-  var list=[];
-  for(var i=0;i<roster.length;i++){
-    var entry=roster[i];
-    var ath=aFind(entry.aid);
-    if(!ath)continue;
-    // Pré-preencher número:
-    // 1. Se já está no lineup atual, usa esse
-    // 2. Senão, último número usado nessa equipe
-    // 3. Senão, vazio
-    var nu="";
-    if(inLineup&&lineupNow[entry.aid]!==undefined){nu=lineupNow[entry.aid];}
-    else if(ath.last_nu_by_team&&ath.last_nu_by_team[t.id]!==undefined){nu=ath.last_nu_by_team[t.id];}
-    // Marcado por padrão: se já tem lineup, marca quem está nele; senão marca tudo
-    var checked=inLineup?(lineupNow[entry.aid]!==undefined):true;
-    list.push({aid:entry.aid,nm:ath.nm,po:ath.po||"",nu:nu,checked:checked});
+  var t=tF(g.tid);
+  var roster=(t&&t.roster)||[];
+  // Estado atual da lineup (mantem ordem dos entries existentes)
+  var lineupNow={}, lineupOrder=[];
+  if(g.lineup){
+    for(var i=0;i<g.lineup.length;i++){
+      var le=g.lineup[i]; lineupNow[le.aid]=le; lineupOrder.push(le.aid);
+    }
   }
-  list.sort(function(a,b){return (a.nm||"").localeCompare(b.nm||"");});
+  // Lista: 1) atletas ja na lineup (mantem ordem), 2) atletas do roster
+  // que ainda nao foram escalados. Ad-hoc = nao esta em D.athletes.
+  var seen={}, list=[];
+  for(var i=0;i<lineupOrder.length;i++){
+    var aid=lineupOrder[i]; if(seen[aid])continue; seen[aid]=true;
+    var entry=lineupNow[aid]; var ath=aFind(aid);
+    var nm=(entry&&entry.nm)||(ath&&ath.nm)||"";
+    var po=(entry&&entry.po)||(ath&&ath.po)||"";
+    var adhoc=!ath;
+    list.push({aid:aid,nm:nm,po:po,nu:entry.nu,checked:true,adhoc:adhoc});
+  }
+  for(var i=0;i<roster.length;i++){
+    var aid=roster[i].aid; if(seen[aid])continue; seen[aid]=true;
+    var ath=aFind(aid); if(!ath)continue;
+    var nu="";
+    if(ath.last_nu_by_team&&t&&ath.last_nu_by_team[t.id]!==undefined) nu=ath.last_nu_by_team[t.id];
+    list.push({aid:aid,nm:ath.nm,po:ath.po||"",nu:nu,checked:false,adhoc:false});
+  }
   
   var m='<div class="admin-modal" onclick="closeLineup()"><div class="admin-box" onclick="event.stopPropagation()" style="text-align:left;max-width:480px;max-height:90vh;display:flex;flex-direction:column">';
   m+='<div style="font-family:Bebas Neue,sans-serif;font-size:22px;letter-spacing:2px;color:var(--navy);margin-bottom:6px;text-align:center">ESCALA\u00c7\u00c3O</div>';
-  m+='<div style="font-size:13px;color:var(--gray);margin-bottom:14px;text-align:center">vs <b>'+esc(g.opp||"")+'</b> \u00b7 '+esc(t.n)+'</div>';
+  m+='<div style="font-size:13px;color:var(--gray);margin-bottom:14px;text-align:center">vs <b>'+esc(g.opp||"")+'</b>'+(t?' \u00b7 '+esc(t.n):'')+'</div>';
   m+='<div style="background:#fef3c7;border:1px solid #fde68a;color:#92400e;padding:8px 12px;border-radius:8px;font-size:11px;margin-bottom:12px">\u{1F4A1} Desmarque quem n\u00e3o veio. Ajuste os n\u00fameros conforme as camisas de hoje.</div>';
   m+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:11px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.5px"><span>Atleta</span><span>N\u00ba</span></div>';
   m+='<div id="lu-list" style="overflow-y:auto;flex:1;border:1px solid var(--brd);border-radius:10px;background:var(--card2);max-height:50vh">';
   for(var i=0;i<list.length;i++){
     var it=list[i];
-    m+='<label class="lu-row" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--brd);cursor:pointer">';
+    var rowExtra = it.adhoc?'<button class="lu-remove" data-aid="'+it.aid+'" title="Remover" onclick="event.preventDefault();event.stopPropagation();removeLineupRow(\''+it.aid+'\')" style="background:rgba(220,38,38,.14);border:1px solid rgba(220,38,38,.35);color:#fca5a5;width:28px;height:28px;border-radius:7px;font-weight:800;cursor:pointer;flex-shrink:0;font-size:14px">\u2715</button>':'';
+    m+='<label class="lu-row'+(it.adhoc?' lu-adhoc':'')+'" data-aid="'+it.aid+'" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--brd);cursor:pointer">';
     m+='<input type="checkbox" class="lu-chk" data-aid="'+it.aid+'"'+(it.checked?" checked":"")+' style="width:18px;height:18px;flex-shrink:0;cursor:pointer">';
-    m+='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">'+esc(it.nm)+'</div>';
+    m+='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">'+esc(it.nm)+(it.adhoc?' <span style="font-size:9px;color:#fbbf24;font-weight:800;letter-spacing:.5px;background:rgba(251,191,36,.12);padding:2px 6px;border-radius:4px;margin-left:4px">NOVO</span>':'')+'</div>';
     if(it.po)m+='<div style="font-size:10px;color:var(--gray)">'+esc(it.po)+'</div>';
     m+='</div>';
     m+='<input type="number" class="lu-nu" data-aid="'+it.aid+'" value="'+(it.nu===""?"":it.nu)+'" min="0" max="99" placeholder="\u2014" style="width:58px;text-align:center;font-weight:800;font-size:15px;padding:6px 4px">';
+    m+=rowExtra;
     m+='</label>';
   }
   m+='</div>';
   m+='<div style="display:flex;gap:6px;margin-top:12px"><button class="bt bg bsm" onclick="lineupAll(true)">\u2713 Marcar todos</button><button class="bt bg bsm" onclick="lineupAll(false)">\u2715 Desmarcar todos</button></div>';
+  
+  // UI de adicionar atleta ad-hoc — fica so na lineup, nao mexe no banco
+  m+='<div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:10px;margin-top:12px">';
+  m+='<div style="font-size:11px;font-weight:800;color:var(--blue);letter-spacing:.5px;margin-bottom:8px">\u2795 ADICIONAR ATLETA (so neste jogo)</div>';
+  m+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
+  m+='<input id="lu-new-nu" type="number" min="0" max="99" placeholder="N\u00ba" style="width:60px;padding:8px;text-align:center;font-weight:800;font-size:14px">';
+  m+='<input id="lu-new-nm" type="text" placeholder="Nome" maxlength="30" style="flex:2;min-width:120px;padding:8px;font-size:13px">';
+  m+='<input id="lu-new-po" type="text" placeholder="Posi\u00e7\u00e3o" maxlength="20" style="flex:1.4;min-width:90px;padding:8px;font-size:12px">';
+  m+='<button class="bt bp bsm" onclick="addAdhocAthlete(\''+gameId+'\')" style="flex-shrink:0">\u2795 Adicionar</button>';
+  m+='</div></div>';
   m+='<div style="display:flex;gap:8px;margin-top:12px"><button class="bt bg" style="flex:1" onclick="closeLineup()">Cancelar</button><button class="bt bs" style="flex:2" onclick="saveLineup(\''+gameId+'\')">\u2713 Salvar Escala\u00e7\u00e3o</button></div>';
   m+='</div></div>';
   var d=document.createElement("div");d.id="lineupModal";d.innerHTML=m;document.body.appendChild(d);
@@ -5453,48 +5488,96 @@ function lineupAll(checked){
 }
 function saveLineup(gameId){
   var g=gF(gameId);if(!g)return;
-  var t=tF(g.tid);if(!t)return;
-  var chks=document.querySelectorAll(".lu-chk");
-  var nus=document.querySelectorAll(".lu-nu");
+  var t=tF(g.tid); // pode ser null em fluxo ad-hoc puro
+  var rows=document.querySelectorAll(".lu-row");
   var newLineup=[];
-  var nuMap={};
   var seen={};
-  for(var i=0;i<chks.length;i++){
-    var aid=chks[i].getAttribute("data-aid");
-    if(!chks[i].checked)continue;
-    // Encontrar input de número correspondente
-    var nuStr="";
-    for(var j=0;j<nus.length;j++){
-      if(nus[j].getAttribute("data-aid")===aid){nuStr=nus[j].value;break;}
-    }
-    if(nuStr===""||nuStr===null||nuStr===undefined){
-      var ath=aFind(aid);toast("Defina o n\u00famero de "+(ath?ath.nm:"atleta"),"error");return;
-    }
-    var nuV=parseInt(nuStr);
-    if(isNaN(nuV)||nuV<0||nuV>99){
-      var ath=aFind(aid);toast("N\u00famero inv\u00e1lido para "+(ath?ath.nm:"atleta")+" (use 0-99)","error");return;
-    }
-    if(seen[nuV]){
-      var ath=aFind(aid);toast("N\u00famero "+nuV+" repetido na escala\u00e7\u00e3o","error");return;
-    }
+  for(var i=0;i<rows.length;i++){
+    var row=rows[i];
+    var aid=row.getAttribute("data-aid");
+    var chk=row.querySelector(".lu-chk");
+    if(!chk||!chk.checked)continue;
+    var nuInp=row.querySelector(".lu-nu");
+    var nuStr=nuInp?nuInp.value:"";
+    var labelNm=(function(){var el=row.querySelector('div[style*="font-weight:700"]');return el?(el.textContent||"").replace(/NOVO\s*$/,"").trim():"";})();
+    if(nuStr===""||nuStr==null){toast("Defina o n\u00famero de "+labelNm,"error");return;}
+    var nuV=parseInt(nuStr,10);
+    if(isNaN(nuV)||nuV<0||nuV>99){toast("N\u00famero inv\u00e1lido para "+labelNm+" (0-99)","error");return;}
+    if(seen[nuV]){toast("N\u00famero "+nuV+" repetido na escala\u00e7\u00e3o","error");return;}
     seen[nuV]=true;
-    newLineup.push({aid:aid,nu:nuV});
-    nuMap[aid]=nuV;
+    var isAdhoc = row.classList && row.classList.contains("lu-adhoc");
+    var entry={aid:aid,nu:nuV};
+    if(isAdhoc){
+      // Preserva nm/po dentro do proprio entry — atleta vive so na lineup
+      entry.nm=labelNm;
+      var poEl=row.querySelector('div[style*="color:var(--gray)"]');
+      if(poEl)entry.po=(poEl.textContent||"").trim();
+    }
+    newLineup.push(entry);
   }
   if(!newLineup.length){toast("Selecione pelo menos uma atleta","error");return;}
   g.lineup=newLineup;
-  // Atualizar last_nu_by_team de cada atleta escalado (memória pra próximo jogo)
-  for(var i=0;i<newLineup.length;i++){
-    var ath=aFind(newLineup[i].aid);
-    if(ath){
-      if(!ath.last_nu_by_team)ath.last_nu_by_team={};
-      ath.last_nu_by_team[t.id]=newLineup[i].nu;
+  // Atualizar last_nu_by_team so dos atletas que existem em D.athletes
+  if(t){
+    for(var i=0;i<newLineup.length;i++){
+      var ath=aFind(newLineup[i].aid);
+      if(ath){
+        if(!ath.last_nu_by_team)ath.last_nu_by_team={};
+        ath.last_nu_by_team[t.id]=newLineup[i].nu;
+      }
     }
   }
   closeLineup();
   toast("Escala\u00e7\u00e3o salva ("+newLineup.length+" atletas)","ok");
   save();
 }
+
+// === Helpers ad-hoc (PG isolado) ===
+// addAdhocAthlete: pega inputs do "+ Adicionar atleta" e cria uma row ad-hoc
+// visivel imediatamente. So entra na lineup ao clicar "Salvar Escalacao".
+function addAdhocAthlete(gameId){
+  var nuEl=document.getElementById("lu-new-nu");
+  var nmEl=document.getElementById("lu-new-nm");
+  var poEl=document.getElementById("lu-new-po");
+  if(!nuEl||!nmEl)return;
+  var nu=parseInt((nuEl.value||"").trim(),10);
+  var nm=(nmEl.value||"").trim();
+  var po=(poEl?poEl.value:"").trim();
+  if(!nm){toast("Informe o nome da atleta","error");return;}
+  if(isNaN(nu)||nu<0||nu>99){toast("N\u00famero inv\u00e1lido (0-99)","error");return;}
+  // Verifica conflito de numero na lista visivel
+  var existingNus=document.querySelectorAll(".lu-row .lu-chk:checked + div + .lu-nu, .lu-row .lu-nu");
+  for(var i=0;i<existingNus.length;i++){
+    var row=existingNus[i].closest(".lu-row");
+    var chk=row?row.querySelector(".lu-chk"):null;
+    if(!chk||!chk.checked)continue;
+    if(parseInt(existingNus[i].value,10)===nu){
+      toast("N\u00famero "+nu+" ja em uso. Escolha outro.","error");return;
+    }
+  }
+  var aid="adhoc_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  var listEl=document.getElementById("lu-list");
+  if(!listEl)return;
+  var labelHtml='<label class="lu-row lu-adhoc" data-aid="'+aid+'" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--brd);cursor:pointer">';
+  labelHtml+='<input type="checkbox" class="lu-chk" data-aid="'+aid+'" checked style="width:18px;height:18px;flex-shrink:0;cursor:pointer">';
+  labelHtml+='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">'+esc(nm)+' <span style="font-size:9px;color:#fbbf24;font-weight:800;letter-spacing:.5px;background:rgba(251,191,36,.12);padding:2px 6px;border-radius:4px;margin-left:4px">NOVO</span></div>';
+  if(po)labelHtml+='<div style="font-size:10px;color:var(--gray)">'+esc(po)+'</div>';
+  labelHtml+='</div>';
+  labelHtml+='<input type="number" class="lu-nu" data-aid="'+aid+'" value="'+nu+'" min="0" max="99" placeholder="\u2014" style="width:58px;text-align:center;font-weight:800;font-size:15px;padding:6px 4px">';
+  labelHtml+='<button class="lu-remove" data-aid="'+aid+'" title="Remover" onclick="event.preventDefault();event.stopPropagation();removeLineupRow(\''+aid+'\')" style="background:rgba(220,38,38,.14);border:1px solid rgba(220,38,38,.35);color:#fca5a5;width:28px;height:28px;border-radius:7px;font-weight:800;cursor:pointer;flex-shrink:0;font-size:14px">\u2715</button>';
+  labelHtml+='</label>';
+  var temp=document.createElement("div");temp.innerHTML=labelHtml;
+  listEl.appendChild(temp.firstChild);
+  nuEl.value="";nmEl.value="";if(poEl)poEl.value="";
+  nmEl.focus();
+}
+
+// removeLineupRow: remove a row do DOM. Atleta nao escalada (no caso ad-hoc, removida de vez).
+function removeLineupRow(aid){
+  var row=document.querySelector('.lu-row[data-aid="'+aid+'"]');
+  if(row)row.parentNode.removeChild(row);
+}
+
 function closeLineup(){var m=document.getElementById("lineupModal");if(m)m.remove();}
 
 function startG(){var gm=gF(S.aid);if(!gm)return;if(!gm.ss||!gm.ss.length)gm.ss=[{u:0,t:0}];if(!gm.act)gm.act=[];gm.st="live";save();render();}

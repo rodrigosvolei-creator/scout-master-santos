@@ -762,6 +762,20 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .tnj-tarja-opt.tnj-tarja-cancelled{color:#fca5a5;border-color:rgba(220,38,38,.3);background:rgba(220,38,38,.08)}
 .tnj-tarja-opt.tnj-tarja-cancelled:hover{background:rgba(220,38,38,.14)}
 
+/* === Overlay de PDF inline (substitui blob+_blank que sobrepoe app no iOS) === */
+.pdf-overlay{position:fixed;inset:0;background:#fff;z-index:99999;display:flex;flex-direction:column}
+.pdf-overlay-bar{background:#0f172a;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.25);flex-shrink:0}
+.pdf-overlay-back,.pdf-overlay-print{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;padding:9px 14px;border-radius:9px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;letter-spacing:.3px;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.pdf-overlay-back:active{background:rgba(255,255,255,.2)}
+.pdf-overlay-print{background:#dc2626;border-color:#b91c1c;box-shadow:0 4px 14px rgba(220,38,38,.4)}
+.pdf-overlay-print:active{background:#991b1b}
+.pdf-overlay-title{flex:1;text-align:center;font-weight:700;font-size:14px;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fde68a}
+.pdf-overlay-iframe{flex:1;border:0;width:100%;background:#fff}
+@media(max-width:480px){
+  .pdf-overlay-title{font-size:11px}
+  .pdf-overlay-back,.pdf-overlay-print{padding:7px 10px;font-size:11px}
+}
+
 /* === SCOUT — selecao de jogos em cards GAME DAY (tema escuro) === */
 .sct-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:14px;color:var(--rs-gold)}
 .sct-period{display:flex;gap:6px;margin-bottom:16px;background:rgba(255,255,255,.04);padding:4px;border-radius:12px;border:1px solid var(--rs-line)}
@@ -5833,17 +5847,41 @@ function exGamePDF(gid){
     }
   }
   ph+="<div class=ft><span>RS-Scout 2026 \u00b7 Associa\u00e7\u00e3o Scola de Voleibol</span><span>Gerado em "+new Date().toLocaleString("pt-BR")+"</span></div>";
-  // Botao fallback (se o auto-print for bloqueado) + auto-trigger do dialogo de impressao.
-  // Usuario escolhe "Salvar como PDF" no proprio dialogo do navegador.
-  ph+="</div>";
-  ph+='<style>@media print{.pdf-print-btn{display:none!important}} .pdf-print-btn{position:fixed;top:14px;right:14px;background:#dc2626;color:#fff;border:none;padding:11px 18px;border-radius:9px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(0,0,0,.25);letter-spacing:.3px;z-index:9999}.pdf-print-btn:hover{background:#b91c1c}</style>';
-  ph+='<button class="pdf-print-btn" onclick="window.print()">\ud83d\udda8\ufe0f Salvar como PDF</button>';
-  ph+='<script>setTimeout(function(){try{window.print();}catch(e){}},450);<\/script>';
-  ph+="</body></html>";
-  var blob=new Blob([ph],{type:"text/html"});
-  var url=URL.createObjectURL(blob);
-  var a2=document.createElement("a");a2.href=url;a2.target="_blank";a2.click();
-  setTimeout(function(){URL.revokeObjectURL(url);},2000);
+  ph+="</div></body></html>";
+  // Renderiza em overlay inline (iframe) em vez de nova aba \u2014 no iOS Safari o
+  // blob URL com target=_blank abre um in-app browser sobrepondo o app. Esse
+  // approach funciona em iOS/Android/desktop igualmente.
+  openPdfOverlay(ph, "Partida vs "+(g.opp||""));
+}
+
+// === Overlay de PDF (inline, evita nova aba/in-app browser do iOS) ===
+function openPdfOverlay(fullHtml, title){
+  closePdfOverlay();
+  var overlay=document.createElement("div");
+  overlay.id="pdfOverlay";
+  overlay.className="pdf-overlay";
+  var bar='<div class="pdf-overlay-bar">';
+  bar+='<button class="pdf-overlay-back" onclick="closePdfOverlay()">\u2190 Voltar</button>';
+  bar+='<div class="pdf-overlay-title">'+esc(title||"PDF")+'</div>';
+  bar+='<button class="pdf-overlay-print" onclick="printPdfOverlay()">\ud83d\udda8\ufe0f Salvar PDF</button>';
+  bar+='</div>';
+  // srcdoc isola o CSS do PDF do CSS do app
+  var iframe='<iframe id="pdfOverlayFrame" class="pdf-overlay-iframe" srcdoc="'+(fullHtml||"").replace(/"/g,"&quot;")+'"></iframe>';
+  overlay.innerHTML=bar+iframe;
+  document.body.appendChild(overlay);
+  document.body.style.overflow="hidden";
+}
+function printPdfOverlay(){
+  var f=document.getElementById("pdfOverlayFrame");
+  if(f && f.contentWindow){
+    try{ f.contentWindow.focus(); f.contentWindow.print(); return; }catch(e){}
+  }
+  try{ window.print(); }catch(e){}
+}
+function closePdfOverlay(){
+  var el=document.getElementById("pdfOverlay");
+  if(el) el.parentNode.removeChild(el);
+  document.body.style.overflow="";
 }
 
 /* ===== PAINEL AO VIVO (torneio) — so leitura de gm.act ===== */

@@ -79,12 +79,13 @@ setTimeout(()=>{
   var e=null;
   try{ w.exGamePDF('g1'); }catch(ex){ e=ex; }
   ck('exGamePDF roda sem erro no jogo com dados', !e);
-  // verificar conteudo do PDF: interceptar Blob
+  // verificar conteudo do PDF: interceptar openPdfOverlay (substituiu o Blob+_blank
+  // pra evitar in-app browser do iOS — o HTML do PDF agora roda dentro de um iframe).
   var pdfHtml='';
-  var OrigBlob=w.Blob;
-  w.Blob=function(parts,opts){pdfHtml=parts.join('');return new OrigBlob(parts,opts);};
+  var OrigOpen=w.openPdfOverlay;
+  w.openPdfOverlay=function(html,title){pdfHtml=html||'';};
   w.exGamePDF('g1');
-  w.Blob=OrigBlob;
+  w.openPdfOverlay=OrigOpen;
   ck('PDF tem cabecalho com placar de sets', pdfHtml.indexOf('SETS')>=0);
   ck('PDF tem KPIs (Acoes totais)', pdfHtml.indexOf('es totais')>=0);
   ck('PDF tem resumo por atleta', pdfHtml.indexOf('por atleta')>=0);

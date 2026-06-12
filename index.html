@@ -781,6 +781,21 @@ body.rs-shell .app-content .pb .pbnm{color:#475569;font-size:10px;font-weight:70
 .usa-scout-wrap .pb.on .pbnm,
 body.rs-shell .app-content .pb.on .pbnm{color:#92400e}
 
+/* === Escalacao: row com toggle visual proprio (sem checkbox nativo) === */
+/* Funciona robusto no iOS — area de toque grande, estado obvio. */
+.lu-row{display:flex;align-items:center;gap:12px;padding:12px 12px;border-bottom:1px solid var(--brd);cursor:pointer;-webkit-tap-highlight-color:transparent;background:transparent;transition:background .12s;user-select:none}
+.lu-row:active{background:rgba(0,0,0,.04)}
+.lu-row.on{background:rgba(22,163,74,.10)}
+.lu-toggle{width:28px;height:28px;border-radius:8px;border:2px solid #cbd5e1;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.lu-toggle-check{color:#fff;font-size:16px;font-weight:900;line-height:1;opacity:0;transition:opacity .12s}
+.lu-row.on .lu-toggle{background:#16a34a;border-color:#16a34a;box-shadow:0 2px 8px rgba(22,163,74,.4)}
+.lu-row.on .lu-toggle .lu-toggle-check{opacity:1}
+.lu-remove{background:rgba(220,38,38,.14);border:1px solid rgba(220,38,38,.35);color:#dc2626;width:32px;height:32px;border-radius:8px;font-weight:800;cursor:pointer;flex-shrink:0;font-size:15px;-webkit-tap-highlight-color:transparent}
+.lu-remove:active{background:rgba(220,38,38,.25)}
+/* Contraste do nome/posicao da row independente do tema */
+.lu-row > div > div{color:#0f172a}
+.lu-row .lu-nu{color:#0f172a;background:#fff;border:1px solid #cbd5e1;border-radius:8px}
+
 /* === Overlay de PDF inline (sem iframe — print funciona via @media print) === */
 .pdf-overlay{position:fixed;inset:0;background:#fff;z-index:99999;display:flex;flex-direction:column;overflow:hidden}
 .pdf-overlay-bar{background:#0f172a;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.25);flex-shrink:0}
@@ -5476,6 +5491,8 @@ function openLineup(gameId){
   }
   // Lista: 1) atletas ja na lineup (mantem ordem), 2) atletas do roster
   // que ainda nao foram escalados. Ad-hoc = nao esta em D.athletes.
+  // Default: jogo SEM lineup ainda -> marca todos. Com lineup -> so quem ja esta.
+  var hadLineup = lineupOrder.length>0;
   var seen={}, list=[];
   for(var i=0;i<lineupOrder.length;i++){
     var aid=lineupOrder[i]; if(seen[aid])continue; seen[aid]=true;
@@ -5490,7 +5507,7 @@ function openLineup(gameId){
     var ath=aFind(aid); if(!ath)continue;
     var nu="";
     if(ath.last_nu_by_team&&t&&ath.last_nu_by_team[t.id]!==undefined) nu=ath.last_nu_by_team[t.id];
-    list.push({aid:aid,nm:ath.nm,po:ath.po||"",nu:nu,checked:false,adhoc:false});
+    list.push({aid:aid,nm:ath.nm,po:ath.po||"",nu:nu,checked:!hadLineup,adhoc:false});
   }
   
   var m='<div class="admin-modal" onclick="closeLineup()"><div class="admin-box" onclick="event.stopPropagation()" style="text-align:left;max-width:480px;max-height:90vh;display:flex;flex-direction:column">';
@@ -5501,15 +5518,17 @@ function openLineup(gameId){
   m+='<div id="lu-list" style="overflow-y:auto;flex:1;border:1px solid var(--brd);border-radius:10px;background:var(--card2);max-height:50vh">';
   for(var i=0;i<list.length;i++){
     var it=list[i];
-    var rowExtra = it.adhoc?'<button class="lu-remove" data-aid="'+it.aid+'" title="Remover" onclick="event.preventDefault();event.stopPropagation();removeLineupRow(\''+it.aid+'\')" style="background:rgba(220,38,38,.14);border:1px solid rgba(220,38,38,.35);color:#fca5a5;width:28px;height:28px;border-radius:7px;font-weight:800;cursor:pointer;flex-shrink:0;font-size:14px">\u2715</button>':'';
-    m+='<label class="lu-row'+(it.adhoc?' lu-adhoc':'')+'" data-aid="'+it.aid+'" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--brd);cursor:pointer">';
-    m+='<input type="checkbox" class="lu-chk" data-aid="'+it.aid+'"'+(it.checked?" checked":"")+' style="width:18px;height:18px;flex-shrink:0;cursor:pointer">';
+    var rowExtra = it.adhoc?'<button class="lu-remove" data-aid="'+it.aid+'" title="Remover" onclick="event.preventDefault();event.stopPropagation();removeLineupRow(\''+it.aid+'\')">\u2715</button>':'';
+    // Row com toggle visual proprio (sem checkbox nativo) \u2014 toque robusto no iOS.
+    // Clicar na row inteira alterna marcado/nao. data-on guarda o estado.
+    m+='<div class="lu-row'+(it.adhoc?' lu-adhoc':'')+(it.checked?' on':'')+'" data-aid="'+it.aid+'" data-on="'+(it.checked?1:0)+'" onclick="toggleLuRow(this,event)">';
+    m+='<div class="lu-toggle"><span class="lu-toggle-check">\u2713</span></div>';
     m+='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">'+esc(it.nm)+(it.adhoc?' <span style="font-size:9px;color:#fbbf24;font-weight:800;letter-spacing:.5px;background:rgba(251,191,36,.12);padding:2px 6px;border-radius:4px;margin-left:4px">NOVO</span>':'')+'</div>';
     if(it.po)m+='<div style="font-size:10px;color:var(--gray)">'+esc(it.po)+'</div>';
     m+='</div>';
-    m+='<input type="number" class="lu-nu" data-aid="'+it.aid+'" value="'+(it.nu===""?"":it.nu)+'" min="0" max="99" placeholder="\u2014" style="width:58px;text-align:center;font-weight:800;font-size:15px;padding:6px 4px">';
+    m+='<input type="number" class="lu-nu" data-aid="'+it.aid+'" value="'+(it.nu===""?"":it.nu)+'" min="0" max="99" placeholder="\u2014" onclick="event.stopPropagation()" style="width:58px;text-align:center;font-weight:800;font-size:16px;padding:8px 4px">';
     m+=rowExtra;
-    m+='</label>';
+    m+='</div>';
   }
   m+='</div>';
   m+='<div style="display:flex;gap:6px;margin-top:12px"><button class="bt bg bsm" onclick="lineupAll(true)">\u2713 Marcar todos</button><button class="bt bg bsm" onclick="lineupAll(false)">\u2715 Desmarcar todos</button></div>';
@@ -5527,9 +5546,21 @@ function openLineup(gameId){
   m+='</div></div>';
   var d=document.createElement("div");d.id="lineupModal";d.innerHTML=m;document.body.appendChild(d);
 }
+// Alterna o estado marcado/nao de uma row (toggle visual). Ignora cliques que
+// vieram do input de numero ou do botao remover (esses tem stopPropagation).
+function toggleLuRow(el,ev){
+  if(!el)return;
+  var on = el.getAttribute("data-on")==="1";
+  on = !on;
+  el.setAttribute("data-on", on?"1":"0");
+  if(on) el.classList.add("on"); else el.classList.remove("on");
+}
 function lineupAll(checked){
-  var chks=document.querySelectorAll(".lu-chk");
-  for(var i=0;i<chks.length;i++)chks[i].checked=!!checked;
+  var rows=document.querySelectorAll(".lu-row");
+  for(var i=0;i<rows.length;i++){
+    rows[i].setAttribute("data-on", checked?"1":"0");
+    if(checked) rows[i].classList.add("on"); else rows[i].classList.remove("on");
+  }
 }
 function saveLineup(gameId){
   var g=gF(gameId);if(!g)return;
@@ -5540,8 +5571,7 @@ function saveLineup(gameId){
   for(var i=0;i<rows.length;i++){
     var row=rows[i];
     var aid=row.getAttribute("data-aid");
-    var chk=row.querySelector(".lu-chk");
-    if(!chk||!chk.checked)continue;
+    if(row.getAttribute("data-on")!=="1")continue;
     var nuInp=row.querySelector(".lu-nu");
     var nuStr=nuInp?nuInp.value:"";
     var labelNm=(function(){var el=row.querySelector('div[style*="font-weight:700"]');return el?(el.textContent||"").replace(/NOVO\s*$/,"").trim():"";})();
@@ -5590,28 +5620,27 @@ function addAdhocAthlete(gameId){
   var po=(poEl?poEl.value:"").trim();
   if(!nm){toast("Informe o nome da atleta","error");return;}
   if(isNaN(nu)||nu<0||nu>99){toast("N\u00famero inv\u00e1lido (0-99)","error");return;}
-  // Verifica conflito de numero na lista visivel
-  var existingNus=document.querySelectorAll(".lu-row .lu-chk:checked + div + .lu-nu, .lu-row .lu-nu");
-  for(var i=0;i<existingNus.length;i++){
-    var row=existingNus[i].closest(".lu-row");
-    var chk=row?row.querySelector(".lu-chk"):null;
-    if(!chk||!chk.checked)continue;
-    if(parseInt(existingNus[i].value,10)===nu){
+  // Verifica conflito de numero entre as rows marcadas
+  var allRows=document.querySelectorAll(".lu-row");
+  for(var i=0;i<allRows.length;i++){
+    if(allRows[i].getAttribute("data-on")!=="1")continue;
+    var rNu=allRows[i].querySelector(".lu-nu");
+    if(rNu&&parseInt(rNu.value,10)===nu){
       toast("N\u00famero "+nu+" ja em uso. Escolha outro.","error");return;
     }
   }
   var aid="adhoc_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   var listEl=document.getElementById("lu-list");
   if(!listEl)return;
-  var labelHtml='<label class="lu-row lu-adhoc" data-aid="'+aid+'" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--brd);cursor:pointer">';
-  labelHtml+='<input type="checkbox" class="lu-chk" data-aid="'+aid+'" checked style="width:18px;height:18px;flex-shrink:0;cursor:pointer">';
-  labelHtml+='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">'+esc(nm)+' <span style="font-size:9px;color:#fbbf24;font-weight:800;letter-spacing:.5px;background:rgba(251,191,36,.12);padding:2px 6px;border-radius:4px;margin-left:4px">NOVO</span></div>';
-  if(po)labelHtml+='<div style="font-size:10px;color:var(--gray)">'+esc(po)+'</div>';
-  labelHtml+='</div>';
-  labelHtml+='<input type="number" class="lu-nu" data-aid="'+aid+'" value="'+nu+'" min="0" max="99" placeholder="\u2014" style="width:58px;text-align:center;font-weight:800;font-size:15px;padding:6px 4px">';
-  labelHtml+='<button class="lu-remove" data-aid="'+aid+'" title="Remover" onclick="event.preventDefault();event.stopPropagation();removeLineupRow(\''+aid+'\')" style="background:rgba(220,38,38,.14);border:1px solid rgba(220,38,38,.35);color:#fca5a5;width:28px;height:28px;border-radius:7px;font-weight:800;cursor:pointer;flex-shrink:0;font-size:14px">\u2715</button>';
-  labelHtml+='</label>';
-  var temp=document.createElement("div");temp.innerHTML=labelHtml;
+  var rowHtml='<div class="lu-row lu-adhoc on" data-aid="'+aid+'" data-on="1" onclick="toggleLuRow(this,event)">';
+  rowHtml+='<div class="lu-toggle"><span class="lu-toggle-check">\u2713</span></div>';
+  rowHtml+='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">'+esc(nm)+' <span style="font-size:9px;color:#fbbf24;font-weight:800;letter-spacing:.5px;background:rgba(251,191,36,.12);padding:2px 6px;border-radius:4px;margin-left:4px">NOVO</span></div>';
+  if(po)rowHtml+='<div style="font-size:10px;color:var(--gray)">'+esc(po)+'</div>';
+  rowHtml+='</div>';
+  rowHtml+='<input type="number" class="lu-nu" data-aid="'+aid+'" value="'+nu+'" min="0" max="99" placeholder="\u2014" onclick="event.stopPropagation()" style="width:58px;text-align:center;font-weight:800;font-size:16px;padding:8px 4px">';
+  rowHtml+='<button class="lu-remove" data-aid="'+aid+'" title="Remover" onclick="event.preventDefault();event.stopPropagation();removeLineupRow(\''+aid+'\')">\u2715</button>';
+  rowHtml+='</div>';
+  var temp=document.createElement("div");temp.innerHTML=rowHtml;
   listEl.appendChild(temp.firstChild);
   nuEl.value="";nmEl.value="";if(poEl)poEl.value="";
   nmEl.focus();

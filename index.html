@@ -1998,46 +1998,13 @@ function playTone(f,d){try{var ctx=new(window.AudioContext||window.webkitAudioCo
 // Abrir PDFs INDIVIDUAIS de cada atleta de um jogo, em abas separadas
 // Útil pra admin/coord distribuir relatórios pessoais pós-jogo
 function exAllAthIndividualPDFs(gid){
-  if(!gid||gid==="all"){toast("Selecione um jogo espec\u00edfico antes","error");return;}
+  if(!gid||gid==="all"){toast("Selecione um jogo especifico antes","error");return;}
   var g=gF(gid);
-  if(!g){toast("Jogo n\u00e3o encontrado","error");return;}
-  if(!g.act||!g.act.length){toast("Esse jogo ainda n\u00e3o tem a\u00e7\u00f5es registradas","error");return;}
-  // Coletar pids únicos das ações
-  var pids={};
-  for(var i=0;i<g.act.length;i++){
-    if(g.act[i].pid)pids[g.act[i].pid]=true;
-  }
-  var pidsArr=Object.keys(pids);
-  if(!pidsArr.length){toast("Sem atletas com a\u00e7\u00f5es nesse jogo","error");return;}
-  
-  // Confirmar antes (vai abrir várias abas — pode ser muito)
-  confirmModal({
-    title:"PDFs INDIVIDUAIS",
-    body:"Vou abrir <b>"+pidsArr.length+" abas</b>, uma com o PDF de cada atleta deste jogo.<br><br><span style=\"font-size:12px;color:var(--gray)\">\u26A0\uFE0F Seu navegador pode bloquear popups. Permita popups deste site quando aparecer o aviso.</span>",
-    confirmLabel:"Abrir "+pidsArr.length+" PDFs",
-    confirmStyle:"bp",
-    onConfirm:function(){
-      // Abre um a um, com pequeno delay pra evitar bloqueio total
-      var opened=0,blocked=0;
-      for(var i=0;i<pidsArr.length;i++){
-        (function(pid,idx){
-          setTimeout(function(){
-            try{
-              // exAthPDF abre uma aba (window.open via blob URL)
-              exAthPDF(pid,gid,"all");
-              opened++;
-            }catch(e){blocked++;}
-            if(idx===pidsArr.length-1){
-              setTimeout(function(){
-                if(blocked>0)toast(opened+" PDFs abertos. "+blocked+" bloqueados (verifique popups)","error");
-                else toast(opened+" PDFs abertos com sucesso","ok");
-              },300);
-            }
-          },idx*200);
-        })(pidsArr[i],i);
-      }
-    }
-  });
+  if(!g){toast("Jogo nao encontrado","error");return;}
+  if(!g.act||!g.act.length){toast("Esse jogo ainda nao tem acoes registradas","error");return;}
+  // Antes abria N abas (bloqueado no iOS). Agora gera UM PDF com uma pagina por
+  // atleta (page-break) via exAllAthPDF — 1 toque, funciona em qualquer celular.
+  exAllAthPDF(gid);
 }
 
 function exAllAthPDF(gid){
@@ -2063,7 +2030,7 @@ var setKeys=Object.keys(d.bySets).sort();
 if(setKeys.length>1){for(var ski=0;ski<setKeys.length;ski++){var sk2=setKeys[ski];var sd2=d.bySets[sk2];ph+="<h3>Set "+sk2+" ("+sd2.n+" a\u00e7\u00f5es)<\/h3>";ph+="<table><tr><th>Fundamento<\/th><th>Total<\/th><th>Detalhes<\/th><\/tr>";var sfks=Object.keys(sd2.byF);for(var sfi=0;sfi<sfks.length;sfi++){var sak2=sfks[sfi];var soks2=Object.keys(sd2.byF[sak2]);var sttl=0;for(var soi2=0;soi2<soks2.length;soi2++)sttl+=sd2.byF[sak2][soks2[soi2]];var sdet2="";for(var soi3=0;soi3<soks2.length;soi3++){sdet2+=soks2[soi3]+": "+sd2.byF[sak2][soks2[soi3]];if(soi3<soks2.length-1)sdet2+=", ";}ph+="<tr><td><b>"+(ACT[sak2]?ACT[sak2].l:sak2)+"<\/b><\/td><td>"+sttl+"<\/td><td>"+sdet2+"<\/td><\/tr>";}ph+="<\/table>";}}
 ph+="<\/div>";}
 ph+="<div class=ft><span>RS-Scout 2026<\/span><span>"+new Date().toLocaleString("pt-BR")+"<\/span><\/div><\/body><\/html>";
-var blob=new Blob([ph],{type:"text/html"});var url=URL.createObjectURL(blob);var a2=document.createElement("a");a2.href=url;a2.target="_blank";a2.click();URL.revokeObjectURL(url);}
+openPdfOverlay(ph, "Resumo · "+label);}
 
 function exAthPDF(pid,gid,sid){
 var pf=pFind(pid,(gid&&gid!=="all")?gid:null);if(!pf)return;
@@ -2238,6 +2205,9 @@ else if(eficiencia>15){emoji="\uD83D\uDCAA";frase="Continue se esfor\u00e7ando!"
 // Header do PDF
 var dataHora=new Date().toLocaleString("pt-BR");
 var photoUrl=(aFind(pid)||{}).photoURL||"";
+// Logo: jogo especifico usa o do torneio/equipe daquele jogo; "all" usa o time do atleta
+var _athLogoG = (gid&&gid!=="all") ? gF(gid) : {tid:pf.tid};
+var _athLogo = pdfTeamLogo(_athLogoG||{tid:pf.tid});
 
 var ph='<html><head><meta charset="UTF-8"><title>'+esc(pf.nm)+" \u00b7 RS-Scout"+'</title>';
 ph+='<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Helvetica,Arial,sans-serif;color:#1e293b;background:#fff;padding:0}.page{max-width:800px;margin:0 auto;padding:24px}';
@@ -2270,7 +2240,7 @@ ph+='@page{margin:1cm}@media print{.page{padding:0}}';
 ph+='</style></head><body><div class="page">';
 
 // Brand
-ph+='<div class="brand"><img src="'+LR+'" class="brand-logo"><div class="brand-text"><div class="brand-title">RS-VOLEIBOL 2026</div><div class="brand-sub">Relat\u00f3rio Individual de Atleta</div></div><div class="brand-date">'+dataHora+'</div></div>';
+ph+='<div class="brand"><img src="'+_athLogo+'" class="brand-logo"><div class="brand-text"><div class="brand-title">Relat\u00f3rio Individual de Atleta</div><div class="brand-sub">'+esc(pf.tn||"")+'</div></div><div class="brand-date">'+dataHora+'</div></div>';
 
 // Header do atleta
 ph+='<div class="athlete-head">';
@@ -2312,8 +2282,7 @@ ph+=ranking();
 ph+='<div class="footer"><span>RS-Scout 2026 \u00b7 Associa\u00e7\u00e3o Scola de Voleibol</span><span>'+dataHora+'</span></div>';
 
 ph+='</div></body></html>';
-
-var blob=new Blob([ph],{type:"text/html"});var url=URL.createObjectURL(blob);var a3=document.createElement("a");a3.href=url;a3.target="_blank";a3.click();URL.revokeObjectURL(url);
+openPdfOverlay(ph, "Atleta · "+(pf.nm||""));
 }
 
 
@@ -5868,19 +5837,7 @@ function exGamePDF(gid){
   var ph="<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>"+esc(teamName)+" vs "+esc(g.opp)+"</title><style>"+css+"</style></head><body><div class=wrap>";
   // cabecalho
   ph+="<div class=hd>";
-  // Logo do nosso time no PDF: prioriza upload do time, depois brand do torneio do jogo, depois LR.
-  var __pdfLogo = LR;
-  if(te && te.logoData) __pdfLogo = te.logoData;
-  else {
-    // descobre brand pelo torId do jogo
-    var __pdfTok = null;
-    if(typeof TOURNEY_ACCESS !== 'undefined'){
-      for(var __k in TOURNEY_ACCESS){ if(TOURNEY_ACCESS[__k].torId===g.torId){ __pdfTok=__k; break; } }
-    }
-    var __pdfBrand = getBrand(__pdfTok);
-    if(__pdfBrand && __pdfBrand.logo) __pdfLogo = __pdfBrand.logo;
-  }
-  ph+="<div class=hd-team><img src=\""+__pdfLogo+"\"><div class=nm>"+esc(teamName)+"</div></div>";
+  ph+="<div class=hd-team><img src=\""+pdfTeamLogo(g)+"\"><div class=nm>"+esc(teamName)+"</div></div>";
   ph+="<div class=hd-mid><div class=score>"+setsRS+" x "+setsADV+"</div><div class=lbl>SETS</div></div>";
   ph+="<div class=hd-team>"+(advLogo?"<img src=\""+advLogo+"\">":"<div style=\"height:54px\"></div>")+"<div class=nm>"+esc(g.opp||"Advers\u00e1rio")+"</div></div>";
   ph+="</div>";
@@ -5919,6 +5876,18 @@ function exGamePDF(gid){
 // #pdfOverlay via prefixo automatico. @media print esconde o resto do app.
 // window.print() entao imprime so o conteudo do PDF, consistente em todas as
 // plataformas (desktop, Android, iOS Safari, iOS PWA standalone).
+// Logo do nosso time pra cabecalho de PDF: upload do time > brand do torneio
+// (USA/PG via getBrand) > LR (fallback RS). Usado pelos 3 PDFs.
+function pdfTeamLogo(g){
+  var te = (g && g.tid && typeof tF==='function') ? tF(g.tid) : null;
+  if(te && te.logoData) return te.logoData;
+  if(g && g.torId && typeof TOURNEY_ACCESS!=='undefined'){
+    var tok=null;
+    for(var k in TOURNEY_ACCESS){ if(TOURNEY_ACCESS[k] && TOURNEY_ACCESS[k].torId===g.torId){ tok=k; break; } }
+    if(tok){ var b=getBrand(tok); if(b && b.logo) return b.logo; }
+  }
+  return LR;
+}
 function openPdfOverlay(fullHtml, title){
   closePdfOverlay();
   var styleBlocks = "";

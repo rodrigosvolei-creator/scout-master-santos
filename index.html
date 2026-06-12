@@ -4957,8 +4957,13 @@ if(fg!=="all"){var setData={};for(var _si2=0;_si2<acts.length;_si2++){var _a=act
 var setKeys=Object.keys(setData).sort();
 if(setKeys.length>1){h+='<div class="cd"><b style="font-size:13px">Por Set</b><div style="overflow-x:auto;margin-top:8px"><table><tr><th>Set</th><th>A\u00e7\u00f5es</th><th>Pontos</th><th>Erros</th><th>Aces</th><th>Efic.</th></tr>';
 for(var _sk=0;_sk<setKeys.length;_sk++){var sd=setData[setKeys[_sk]];var eff2=sd.n>0?Math.round(sd.pts/sd.n*100):0;h+='<tr><td style="font-weight:700">Set '+setKeys[_sk]+'</td><td>'+sd.n+'</td><td style="color:var(--green)">'+sd.pts+'</td><td style="color:var(--red)">'+sd.err+'</td><td style="color:#d97706">'+sd.ace+'</td><td>'+eff2+'%</td></tr>';}h+='<\/table></div></div>';}}
-h+='<div style="display:flex;gap:8px;margin-top:12px"><button class="bt bp" style="flex:1;justify-content:center" onclick="exAll()">\u{1F4E4} WhatsApp</button></div>';
-if(fg!=="all")h+='<button class="bt bg" style="width:100%;justify-content:center;margin-top:6px" onclick="exGamePDF(\''+fg+'\')">\u{1F4C4} PDF Partida</button><button class="bt bg" style="width:100%;justify-content:center;margin-top:6px" onclick="exAllAthPDF(\''+fg+'\')">\u{1F4C4} PDF Resumo (Todas)</button><button class="bt bg" style="width:100%;justify-content:center;margin-top:6px" onclick="exAllAthIndividualPDFs(\''+fg+'\')">\u{1F4DD} PDFs Individuais</button>';
+// WhatsApp: jogo especifico => detalhado por atleta (exG). "Todos" => resumo geral (exAll).
+if(fg!=="all"){
+  h+='<div style="display:flex;gap:8px;margin-top:12px"><button class="bt bp" style="flex:1;justify-content:center" onclick="exG(\''+fg+'\')">\u{1F4E4} WhatsApp do jogo (detalhado)</button></div>';
+  h+='<button class="bt bg" style="width:100%;justify-content:center;margin-top:6px" onclick="exGamePDF(\''+fg+'\')">\u{1F4C4} PDF Partida</button><button class="bt bg" style="width:100%;justify-content:center;margin-top:6px" onclick="exAllAthPDF(\''+fg+'\')">\u{1F4C4} PDF Resumo (Todas)</button><button class="bt bg" style="width:100%;justify-content:center;margin-top:6px" onclick="exAllAthIndividualPDFs(\''+fg+'\')">\u{1F4DD} PDFs Individuais</button>';
+}else{
+  h+='<div style="display:flex;gap:8px;margin-top:12px"><button class="bt bp" style="flex:1;justify-content:center" onclick="exAll()">\u{1F4E4} WhatsApp (resumo geral)</button></div>';
+}
 }}
 else if(statView==="athletes"){
 if(gAtTeam==="none"&&gAtGame==="none"){h+=rFilterPlaceholder(gAtTeam,gAtGame,"setAtTeam(this.value)","setAtGame(this.value)");}

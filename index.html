@@ -645,6 +645,36 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .sc-fitem .foc{font-weight:800;margin-left:auto;font-size:11px;padding:2px 8px;border-radius:6px;color:#fff}
 .sc-fitem .fset{font-size:9px;color:var(--gray);background:#fff;padding:2px 6px;border-radius:5px}
 
+/* ===== QUADRA (scout com rotacao) ===== */
+.court-wrap{background:linear-gradient(170deg,#1d6f4e 0%,#17593f 100%);border-radius:16px;padding:10px 10px 12px;box-shadow:inset 0 2px 12px rgba(0,0,0,.3),0 8px 22px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);position:relative;overflow:hidden}
+.court-wrap::before{content:"";position:absolute;left:0;right:0;top:50%;height:3px;background:repeating-linear-gradient(90deg,#fff 0 14px,transparent 14px 26px);opacity:.25}
+.court-net{text-align:center;font-size:9px;letter-spacing:4px;font-weight:800;color:rgba(255,255,255,.55);margin-bottom:7px}
+.court-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;position:relative;z-index:1}
+.court-cell{position:relative;background:#fff;border:2px solid rgba(255,255,255,.6);border-radius:11px;padding:12px 4px 9px;text-align:center;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;transition:transform .1s,box-shadow .12s}
+.court-cell:active{transform:scale(.95)}
+.court-cell.empty{background:rgba(255,255,255,.14);border-style:dashed;border-color:rgba(255,255,255,.4)}
+.court-cell.server{box-shadow:0 0 0 3px #fbbf24,0 4px 14px rgba(251,191,36,.5)}
+.court-cell.sel{box-shadow:0 0 0 3px #fff,0 8px 20px rgba(0,0,0,.35)}
+.court-cell .court-pos{position:absolute;top:3px;left:6px;font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:.3px}
+.court-cell .court-num{font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:.9;color:#0f172a}
+.court-cell .court-nm{font-size:9.5px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.court-cell.sel .court-num,.court-cell.sel .court-nm{color:#fff}
+.court-cell .court-empty-txt{font-size:10px;color:rgba(255,255,255,.6);font-weight:700}
+.court-bench{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:6px}
+.court-bench-card{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px;border:2px solid var(--brd);background:#fff;border-radius:10px;cursor:pointer;font-family:inherit}
+.court-bench-num{font-family:'Bebas Neue',sans-serif;font-size:19px;color:#0f172a;line-height:1}
+.court-bench-nm{font-size:8.5px;font-weight:700;color:#475569;text-transform:uppercase}
+.court-serve-toggle{display:flex;gap:8px}
+.court-serve-toggle button{flex:1;padding:11px 4px;border-radius:11px;border:2px solid var(--brd);background:#fff;color:#0f172a;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit}
+.court-serve-toggle button.on{background:#fef3c7;border-color:#f59e0b;color:#92400e}
+.court-start{width:100%;margin-top:12px;padding:15px;border-radius:13px;border:none;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-weight:800;font-size:15px;letter-spacing:.5px;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(22,163,74,.4)}
+.court-start:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.court-ctrls{display:flex;gap:7px;margin-top:10px}
+.court-ctrls button{flex:1;padding:11px 4px;border-radius:11px;border:1px solid var(--brd);background:var(--card,#fff);color:var(--txt,#0f172a);font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}
+.court-ctrls button:active{transform:scale(.96)}
+/* contraste garantido no tema escuro do app */
+body.rs-shell .app-content .court-ctrls button,.usa-scout-wrap .court-ctrls button{background:rgba(255,255,255,.08);color:#e8eef9;border-color:rgba(255,255,255,.18)}
+
 /* ===== SCOUT NO CELULAR — versao compacta ===== */
 @media(max-width:480px){
   /* placar menor */
@@ -4045,6 +4075,7 @@ h+='<span class="sc-set">SET <b>'+S.cs+'</b> \u00b7 '+ts2+'</span></div>';
 h+='<div style="display:flex;gap:5px">';
 if(!locked){
   h+='<button class="sc-icobtn" onclick="openLineup(\''+gm.id+'\')" title="Escala\u00e7\u00e3o">\u{1F4CB}</button>';
+  h+='<button class="sc-icobtn'+(gm.courtMode?' on':'')+'" onclick="toggleCourtMode()" title="Scout com quadra (rota\u00e7\u00e3o)">\u{1F3D0}</button>';
   h+='<button class="sc-icobtn" onclick="tgTm()" title="Cron\u00f4metro">'+(S.rn?"\u23F8":"\u25B6")+'</button>';
   h+='<button class="sc-icobtn" onclick="undo()" title="Desfazer">\u21A9</button>';
   if(isCoord)h+='<button class="sc-icobtn warn" onclick="toggleLockGame(\''+gm.id+'\')" title="Travar">\uD83D\uDD12</button>';
@@ -4118,13 +4149,24 @@ h+='</div>'; // fecha .sc-arena
 // ===== PAINEL DE SCOUT — atleta / fundamento / resultado =====
 if(gm.st==="live"&&!locked){
   h+='<div class="sc-panel">';
-  // atletas
-  h+='<div class="sc-seclabel">\uD83D\uDC55 Atleta</div><div class="sc-players">';
-  gp.sort(function(a,b){return a.nu-b.nu;});
-  for(var i=0;i<gp.length;i++){var p=gp[i];var on=S.sp===p.id;
-    h+='<button class="sc-pcard'+(on?' on':'')+'" style="'+(on?'background:linear-gradient(150deg,'+te.c+','+te.c+'cc)':'')+'" onclick="slP(\''+p.id+'\')"><div class="num">'+p.nu+'</div><div class="nm">'+esc(p.nm.split(" ")[0])+'</div></button>';
+  // atletas \u2014 MODO QUADRA (courtMode) ou cards classicos
+  if(gm.courtMode){
+    var _cs=gm.court&&gm.court[String(S.cs)];
+    if(!_cs||!_cs.pos||_cs.pos.filter(Boolean).length<6){
+      // precisa posicionar o time antes de marcar
+      h+=courtRenderSetup(gm,gp);
+      h+='</div>'; // fecha .sc-panel
+      return h;
+    }
+    h+=courtRenderPanel(gm,gp,te);
+  }else{
+    h+='<div class="sc-seclabel">\uD83D\uDC55 Atleta</div><div class="sc-players">';
+    gp.sort(function(a,b){return a.nu-b.nu;});
+    for(var i=0;i<gp.length;i++){var p=gp[i];var on=S.sp===p.id;
+      h+='<button class="sc-pcard'+(on?' on':'')+'" style="'+(on?'background:linear-gradient(150deg,'+te.c+','+te.c+'cc)':'')+'" onclick="slP(\''+p.id+'\')"><div class="num">'+p.nu+'</div><div class="nm">'+esc(p.nm.split(" ")[0])+'</div></button>';
+    }
+    h+='</div>';
   }
-  h+='</div>';
   // fundamentos
   if(S.sp){
     h+='<div class="sc-seclabel">\uD83C\uDFAF Fundamento</div><div class="sc-funds">';
@@ -5762,6 +5804,117 @@ function courtRegisterPoint(side){
   gm.court[k]=courtApplyPoint(cs, side==="u"?"us":"them");
   return snap;
 }
+
+// === Q1: UI da quadra (toggle + posicionamento + render clicavel) ===
+var _courtDraft=null; // rascunho do posicionamento inicial {gid,set,pos:[6],serving}
+function _gpFind(gp,aid){for(var i=0;i<gp.length;i++){if(gp[i].id===aid)return gp[i];}return null;}
+
+function toggleCourtMode(){
+  var gm=gF(S.aid); if(!gm)return;
+  gm.courtMode=!gm.courtMode; _courtDraft=null;
+  if(typeof save==='function')save();
+  render();
+}
+
+// Garante o rascunho de posicionamento do set atual (pre-preenche com os 6 de menor numero)
+function courtDraftEnsure(gm,gp){
+  var k=String(S.cs);
+  if(_courtDraft&&_courtDraft.gid===gm.id&&_courtDraft.set===k)return _courtDraft;
+  var ordered=gp.slice().sort(function(a,b){return a.nu-b.nu;});
+  var pos=[null,null,null,null,null,null];
+  for(var i=0;i<6&&i<ordered.length;i++)pos[i]=ordered[i].id;
+  _courtDraft={gid:gm.id,set:k,pos:pos,serving:"us"};
+  return _courtDraft;
+}
+function courtDraftPlace(aid){
+  if(!_courtDraft)return;
+  var at=_courtDraft.pos.indexOf(aid);
+  if(at>=0){_courtDraft.pos[at]=null;render();return;}
+  for(var i=0;i<6;i++){if(!_courtDraft.pos[i]){_courtDraft.pos[i]=aid;break;}}
+  render();
+}
+function courtDraftRemove(idx){ if(_courtDraft){_courtDraft.pos[idx]=null;render();} }
+function courtDraftServer(side){ if(_courtDraft){_courtDraft.serving=side;render();} }
+function courtConfirmSetup(){
+  var gm=gF(S.aid); if(!gm||!_courtDraft)return;
+  if(_courtDraft.pos.filter(Boolean).length<6){if(typeof toast==='function')toast("Posicione as 6 atletas","error");return;}
+  if(!gm.court)gm.court={};
+  gm.court[_courtDraft.set]={pos:_courtDraft.pos.slice(),serving:_courtDraft.serving};
+  _courtDraft=null;
+  if(typeof save==='function')save();
+  render();
+}
+// Rotacao manual (rede de seguranca). dir>0 horario, dir<0 anti-horario.
+function courtManualRotate(dir){
+  var gm=gF(S.aid); if(!gm||!gm.court)return;
+  var k=String(S.cs); var cs=gm.court[k]; if(!cs||!cs.pos)return;
+  cs.pos = dir>0 ? rotateCourt(cs.pos) : rotateCourtBack(cs.pos);
+  if(typeof save==='function')save();
+  render();
+}
+
+// Ordem visual das posicoes (rede em cima): frente P4 P3 P2 / fundo P5 P6 P1.
+var _COURT_ORDER=[3,2,1,4,5,0];
+var _COURT_POSLBL=["1","2","3","4","5","6"];
+
+// Tela de posicionamento inicial do set
+function courtRenderSetup(gm,gp){
+  var d=courtDraftEnsure(gm,gp);
+  var h='<div class="sc-seclabel">🏐 Posicionar o time — Set '+S.cs+'</div>';
+  h+='<div class="court-wrap"><div class="court-net">REDE</div><div class="court-grid">';
+  for(var o=0;o<_COURT_ORDER.length;o++){
+    var idx=_COURT_ORDER[o]; var aid=d.pos[idx]; var p=aid?_gpFind(gp,aid):null;
+    var isServer=(idx===0);
+    h+='<div class="court-cell'+(p?' filled':' empty')+(isServer?' server':'')+'"'+(p?' onclick="courtDraftRemove('+idx+')"':'')+'>';
+    h+='<span class="court-pos">P'+_COURT_POSLBL[idx]+(isServer?' 🏐':'')+'</span>';
+    if(p){h+='<div class="court-num">'+p.nu+'</div><div class="court-nm">'+esc(p.nm.split(" ")[0])+'</div>';}
+    else{h+='<div class="court-empty-txt">vazio</div>';}
+    h+='</div>';
+  }
+  h+='</div></div>';
+  var used={}; d.pos.forEach(function(a){if(a)used[a]=1;});
+  var bench=gp.filter(function(p){return !used[p.id];});
+  h+='<div class="sc-seclabel" style="margin-top:10px">Banco — toque pra posicionar</div><div class="court-bench">';
+  if(!bench.length)h+='<span style="color:var(--rs-fg-mute,#94a3b8);font-size:12px">Todas posicionadas ✓</span>';
+  for(var b=0;b<bench.length;b++){var bp=bench[b];
+    h+='<button class="court-bench-card" onclick="courtDraftPlace(\''+bp.id+'\')"><span class="court-bench-num">'+bp.nu+'</span><span class="court-bench-nm">'+esc(bp.nm.split(" ")[0])+'</span></button>';
+  }
+  h+='</div>';
+  h+='<div class="sc-seclabel" style="margin-top:10px">Quem saca primeiro</div><div class="court-serve-toggle">';
+  h+='<button class="'+(d.serving==="us"?"on":"")+'" onclick="courtDraftServer(\'us\')">🏐 Nós sacamos</button>';
+  h+='<button class="'+(d.serving==="them"?"on":"")+'" onclick="courtDraftServer(\'them\')">Adversário</button>';
+  h+='</div>';
+  var ready=d.pos.filter(Boolean).length===6;
+  h+='<button class="court-start"'+(ready?'':' disabled')+' onclick="courtConfirmSetup()">✓ Iniciar set</button>';
+  return h;
+}
+
+// Quadra clicavel durante o jogo
+function courtRenderPanel(gm,gp,te){
+  var cs=gm.court[String(S.cs)];
+  var h2lbl=(cs.serving==="us"?'· nosso saque':'· saque adversário');
+  var h='<div class="sc-seclabel">🏐 Quadra '+h2lbl+'</div>';
+  h+='<div class="court-wrap"><div class="court-net">REDE</div><div class="court-grid live">';
+  for(var o=0;o<_COURT_ORDER.length;o++){
+    var idx=_COURT_ORDER[o]; var aid=cs.pos[idx]; var p=aid?_gpFind(gp,aid):null;
+    var isServer=(idx===0&&cs.serving==="us");
+    var on=(S.sp===aid&&aid);
+    h+='<button class="court-cell live'+(on?' sel':'')+(isServer?' server':'')+'"'+(aid?' onclick="slP(\''+aid+'\')"':'')+(on?' style="background:linear-gradient(150deg,'+te.c+','+te.c+'cc)"':'')+'>';
+    h+='<span class="court-pos">P'+_COURT_POSLBL[idx]+(isServer?' 🏐':'')+'</span>';
+    if(p){h+='<div class="court-num">'+p.nu+'</div><div class="court-nm">'+esc(p.nm.split(" ")[0])+'</div>';}
+    else{h+='<div class="court-empty-txt">—</div>';}
+    h+='</button>';
+  }
+  h+='</div></div>';
+  h+='<div class="court-ctrls">';
+  h+='<button onclick="courtSub()">🔄 Substituir</button>';
+  h+='<button onclick="courtManualRotate(1)">↻ Rodar</button>';
+  h+='<button onclick="courtManualRotate(-1)">↺ Voltar</button>';
+  h+='</div>';
+  return h;
+}
+// Substituicao — implementada na fase Q3
+function courtSub(){ if(typeof toast==='function')toast("Substituição chega na próxima fase 😉","ok"); }
 
 function rcO(oc){if(!S.sp||!S.sa)return;var gm=gF(S.aid);if(!gm||gm.st!=="live")return;var a={id:"a"+Date.now(),pid:S.sp,ak:S.sa,oc:oc,set:S.cs,ts:S.tm};
 // Ponto automatico — registra qual lado subiu, pra o undo reverter junto

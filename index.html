@@ -781,6 +781,19 @@ body.rs-shell .app-content .pb .pbnm{color:#475569;font-size:10px;font-weight:70
 .usa-scout-wrap .pb.on .pbnm,
 body.rs-shell .app-content .pb.on .pbnm{color:#92400e}
 
+/* === FIX CRITICO: cards de atleta no scout (.sc-pcard) === */
+/* A Fase D redefiniu --navy/--gray pra tons claros dentro de .app-content, mas
+   o .sc-pcard tem fundo branco fixo -> numero/nome ficavam invisiveis (claro
+   sobre branco). Forca cores escuras no card normal; branco no selecionado. */
+body.rs-shell .app-content .sc-pcard .num,
+.usa-scout-wrap .sc-pcard .num{color:#0f172a!important}
+body.rs-shell .app-content .sc-pcard .nm,
+.usa-scout-wrap .sc-pcard .nm{color:#475569!important}
+body.rs-shell .app-content .sc-pcard.on .num,
+.usa-scout-wrap .sc-pcard.on .num{color:#fff!important}
+body.rs-shell .app-content .sc-pcard.on .nm,
+.usa-scout-wrap .sc-pcard.on .nm{color:rgba(255,255,255,.9)!important}
+
 /* === Escalacao: row com toggle visual proprio (sem checkbox nativo) === */
 /* Funciona robusto no iOS — area de toque grande, estado obvio. */
 .lu-row{display:flex;align-items:center;gap:12px;padding:12px 12px;border-bottom:1px solid var(--brd);cursor:pointer;-webkit-tap-highlight-color:transparent;background:transparent;transition:background .12s;user-select:none}

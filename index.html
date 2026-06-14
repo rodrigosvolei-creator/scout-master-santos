@@ -794,6 +794,10 @@ body.rs-shell .app-content .sc-pcard.on .num,
 body.rs-shell .app-content .sc-pcard.on .nm,
 .usa-scout-wrap .sc-pcard.on .nm{color:rgba(255,255,255,.9)!important}
 
+/* Carimbo de build — discreto no canto inferior, nao atrapalha toque (pointer-events:none) */
+#buildStamp{position:fixed;bottom:4px;right:6px;z-index:9998;font-size:9px;font-weight:700;letter-spacing:.3px;color:rgba(148,163,184,.55);background:rgba(10,15,28,.45);padding:2px 7px;border-radius:6px;pointer-events:none;font-family:'Inter',sans-serif;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+@media print{#buildStamp{display:none!important}}
+
 /* === Escalacao: row com toggle visual proprio (sem checkbox nativo) === */
 /* Funciona robusto no iOS — area de toque grande, estado obvio. */
 .lu-row{display:flex;align-items:center;gap:12px;padding:12px 12px;border-bottom:1px solid var(--brd);cursor:pointer;-webkit-tap-highlight-color:transparent;background:transparent;transition:background .12s;user-select:none}
@@ -891,6 +895,8 @@ body.pdf-overlay-open{overflow:hidden}
 </div>
 
 </div>
+<!-- Carimbo de build: muda a cada deploy, pra confirmar que a versao subiu (vs cache) -->
+<div id="buildStamp"></div>
 
 
 <script>
@@ -917,6 +923,11 @@ var LR="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKkAAADcCAIAAACEWBYKAAB3x0
 // Fase A1: marca d'agua global. USA/landing/signup ja setam --rs-watermark
 // inline; aqui e fallback pro shell, modais e qualquer telinha do app.
 try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')");}catch(e){}
+
+// Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
+// canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
+var APP_BUILD="2026-06-12 · estabilizacao";
+try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
 var POS=["Levantador(a)","Oposto(a)","Ponteiro(a)","Central","L\u00edbero"];

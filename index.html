@@ -5920,7 +5920,9 @@ function rcO(oc){if(!S.sp||!S.sa)return;var gm=gF(S.aid);if(!gm||gm.st!=="live")
 // Ponto automatico — registra qual lado subiu, pra o undo reverter junto
 var scSide=autoScoreSide(S.sa,oc);
 if(scSide&&gm.ss&&gm.ss[S.cs-1]){if(scSide==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;}
-S.us.push({a:a,sc:scSide});if(!gm.act)gm.act=[];gm.act.push(a);S.sa=null;
+// Q2: rotacao automatica (no-op fora do modo quadra). Guarda snapshot pra o undo reverter.
+var _courtSnap=scSide?courtRegisterPoint(scSide):null;
+S.us.push({a:a,sc:scSide,court:_courtSnap});if(!gm.act)gm.act=[];gm.act.push(a);S.sa=null;
 if(navigator.vibrate)navigator.vibrate(40);
 var isGood=(oc==="Ace"||oc==="Ponto"||oc==="A");var isBad=(oc==="Erro");
 try{var actx=new(window.AudioContext||window.webkitAudioContext)();var osc=actx.createOscillator();var gain=actx.createGain();osc.connect(gain);gain.connect(actx.destination);osc.frequency.value=isGood?880:isBad?330:660;gain.gain.value=0.08;osc.start();osc.stop(actx.currentTime+0.08);}catch(e){}
@@ -5941,11 +5943,13 @@ function showFlash(color){
     setTimeout(function(){if(f)f.style.opacity="0";},140);
   }catch(e){}
 }
-function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");save();render();}
+function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;courtRegisterPoint(who);if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");save();render();}
 function scDn(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u"&&gm.ss[S.cs-1].u>0)gm.ss[S.cs-1].u--;else if(who==="t"&&gm.ss[S.cs-1].t>0)gm.ss[S.cs-1].t--;save();render();}
 function undo(){if(!S.us.length)return;var l=S.us.pop();var gm=gF(S.aid);if(!gm)return;if(l.a&&gm.act){gm.act=gm.act.filter(function(a){return a.id!==l.a.id;});}
 // Reverter ponto automatico, se houve — no set em que a acao foi marcada
 if(l.sc&&l.a&&gm.ss){var si=(l.a.set||S.cs)-1;if(gm.ss[si]){if(l.sc==="u"&&gm.ss[si].u>0)gm.ss[si].u--;else if(l.sc==="t"&&gm.ss[si].t>0)gm.ss[si].t--;}}
+// Q2: reverte a rotacao da quadra (restaura o snapshot guardado no momento do ponto)
+if(l.court&&gm.courtMode&&gm.court){gm.court[String(l.a.set||S.cs)]=l.court;}
 save();render();}
 function nxS(){var gm=gF(S.aid);if(!gm)return;
   var lim=(gm.maxSets===5)?5:3; // formato do jogo: melhor de 3 (padrao) ou de 5

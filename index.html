@@ -674,6 +674,16 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .court-ctrls button:active{transform:scale(.96)}
 /* contraste garantido no tema escuro do app */
 body.rs-shell .app-content .court-ctrls button,.usa-scout-wrap .court-ctrls button{background:rgba(255,255,255,.08);color:#e8eef9;border-color:rgba(255,255,255,.18)}
+/* Modal de substituicao */
+.court-sub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin-bottom:6px}
+.court-sub-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:9px 2px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);border-radius:10px;cursor:pointer;font-family:inherit}
+.court-sub-card .court-sub-pos{position:absolute;top:2px;left:5px;font-size:8px;font-weight:800;color:#94a3b8}
+.court-sub-card .court-sub-num{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#e8eef9;line-height:1}
+.court-sub-card .court-sub-nm{font-size:8.5px;font-weight:700;color:#cbd5e1;text-transform:uppercase}
+.court-sub-card.out{border-color:#dc2626;background:rgba(220,38,38,.18)}
+.court-sub-card.in:not([disabled]){border-color:#16a34a;background:rgba(22,163,74,.14)}
+.court-sub-card[disabled]{opacity:.4;cursor:not-allowed}
+.court-sub-card:active{transform:scale(.95)}
 
 /* ===== SCOUT NO CELULAR — versao compacta ===== */
 @media(max-width:480px){
@@ -975,7 +985,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-12c · scouter Raquel";
+var APP_BUILD="2026-06-12d · scout com quadra";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -5913,8 +5923,63 @@ function courtRenderPanel(gm,gp,te){
   h+='</div>';
   return h;
 }
-// Substituicao — implementada na fase Q3
-function courtSub(){ if(typeof toast==='function')toast("Substituição chega na próxima fase 😉","ok"); }
+// === Q3: Substituicao na quadra ===
+// Troca um jogador da quadra por um do banco (lineup nao-escalado), mantendo a posicao.
+var _courtSubOut=null; // aid selecionado pra sair
+// Reconstroi a lista de jogadores escalados (do lineup) — mesma logica do rSct
+function _courtGp(gm){
+  var gp=[];
+  if(gm&&gm.lineup)for(var i=0;i<gm.lineup.length;i++){
+    var le=gm.lineup[i]; var ath=(typeof aFind==='function')?aFind(le.aid):null;
+    var nm=(le.nm)||(ath&&ath.nm)||""; var po=(le.po)||(ath&&ath.po)||"";
+    if(nm)gp.push({id:le.aid,nm:nm,nu:le.nu,po:po});
+  }
+  return gp;
+}
+function courtSub(){
+  var gm=gF(S.aid); if(!gm||!gm.courtMode||!gm.court||!gm.court[String(S.cs)]){if(typeof toast==='function')toast("Posicione o time antes","error");return;}
+  _courtSubOut=null; _renderCourtSubModal();
+}
+function _renderCourtSubModal(){
+  var gm=gF(S.aid); if(!gm)return; var cs=gm.court[String(S.cs)]; if(!cs)return;
+  var gp=_courtGp(gm);
+  var inCourt={}; cs.pos.forEach(function(a){if(a)inCourt[a]=1;});
+  var bench=gp.filter(function(p){return !inCourt[p.id];});
+  var m='<div class="tnj-modal" onclick="closeCourtSub()"><div class="tnj-box" onclick="event.stopPropagation()">';
+  m+='<div class="tnj-title">🔄 SUBSTITUIÇÃO</div>';
+  m+='<div class="tnj-sub">'+(_courtSubOut?'Agora toque em quem ENTRA':'Toque em quem SAI da quadra')+'</div>';
+  m+='<div class="sc-seclabel" style="color:#fca5a5">Sai (em quadra)</div><div class="court-sub-grid">';
+  for(var o=0;o<_COURT_ORDER.length;o++){var idx=_COURT_ORDER[o];var aid=cs.pos[idx];var p=aid?_gpFind(gp,aid):null;if(!p)continue;
+    var sel=(_courtSubOut===aid);
+    m+='<button class="court-sub-card'+(sel?' out':'')+'" onclick="courtSubSelOut(\''+aid+'\')"><span class="court-sub-pos">P'+_COURT_POSLBL[idx]+'</span><span class="court-sub-num">'+p.nu+'</span><span class="court-sub-nm">'+esc(p.nm.split(" ")[0])+'</span></button>';
+  }
+  m+='</div>';
+  m+='<div class="sc-seclabel" style="color:#86efac">Entra (banco)</div><div class="court-sub-grid">';
+  if(!bench.length)m+='<span style="font-size:12px;color:#94a3b8">Sem atletas no banco. Escale mais pela escalação (📋).</span>';
+  for(var b=0;b<bench.length;b++){var bp=bench[b];
+    m+='<button class="court-sub-card in"'+(_courtSubOut?'':' disabled')+' onclick="courtSubDoIn(\''+bp.id+'\')"><span class="court-sub-num">'+bp.nu+'</span><span class="court-sub-nm">'+esc(bp.nm.split(" ")[0])+'</span></button>';
+  }
+  m+='</div>';
+  m+='<div class="tnj-actions"><button class="tnj-cancel" onclick="closeCourtSub()">Fechar</button></div>';
+  m+='</div></div>';
+  var d=document.getElementById("courtSubModal"); if(d)d.remove();
+  d=document.createElement("div");d.id="courtSubModal";d.innerHTML=m;document.body.appendChild(d);
+}
+function courtSubSelOut(aid){_courtSubOut=aid;_renderCourtSubModal();}
+function courtSubDoIn(inAid){
+  if(!_courtSubOut)return;
+  var gm=gF(S.aid); if(!gm)return; var cs=gm.court[String(S.cs)]; if(!cs)return;
+  var idx=cs.pos.indexOf(_courtSubOut);
+  if(idx<0){closeCourtSub();return;}
+  cs.pos[idx]=inAid;                 // entra mantendo a posicao
+  if(S.sp===_courtSubOut)S.sp=null;  // se o que saiu estava selecionado, limpa
+  _courtSubOut=null;
+  if(typeof save==='function')save();
+  closeCourtSub();
+  render();
+  if(typeof toast==='function')toast("Substituição feita","ok");
+}
+function closeCourtSub(){_courtSubOut=null;var d=document.getElementById("courtSubModal");if(d)d.remove();}
 
 function rcO(oc){if(!S.sp||!S.sa)return;var gm=gF(S.aid);if(!gm||gm.st!=="live")return;var a={id:"a"+Date.now(),pid:S.sp,ak:S.sa,oc:oc,set:S.cs,ts:S.tm};
 // Ponto automatico — registra qual lado subiu, pra o undo reverter junto

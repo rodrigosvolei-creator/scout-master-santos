@@ -781,10 +781,13 @@ body.rs-shell .app-content .pb .pbnm{color:#475569;font-size:10px;font-weight:70
 .usa-scout-wrap .pb.on .pbnm,
 body.rs-shell .app-content .pb.on .pbnm{color:#92400e}
 
-/* === FIX CRITICO: cards de atleta no scout (.sc-pcard) === */
-/* A Fase D redefiniu --navy/--gray pra tons claros dentro de .app-content, mas
-   o .sc-pcard tem fundo branco fixo -> numero/nome ficavam invisiveis (claro
-   sobre branco). Forca cores escuras no card normal; branco no selecionado. */
+/* === FIX CRITICO: texto escuro em TODOS os cards de fundo branco do scout === */
+/* A Fase D tornou --navy/--gray/--txl claras (pro fundo escuro do app), mas
+   .sc-pcard / .sc-fund / .sc-fitem tem fundo BRANCO fixo -> texto sumia (claro
+   sobre branco). Forca escuro no normal; branco no selecionado (.on tem fundo
+   colorido). Cobre app principal (rs-shell) E pagina PG (usa-scout-wrap).
+   VARREDURA COMPLETA do painel: numero, nome, fundamentos, feed de acoes. */
+/* Cards de atleta */
 body.rs-shell .app-content .sc-pcard .num,
 .usa-scout-wrap .sc-pcard .num{color:#0f172a!important}
 body.rs-shell .app-content .sc-pcard .nm,
@@ -793,6 +796,16 @@ body.rs-shell .app-content .sc-pcard.on .num,
 .usa-scout-wrap .sc-pcard.on .num{color:#fff!important}
 body.rs-shell .app-content .sc-pcard.on .nm,
 .usa-scout-wrap .sc-pcard.on .nm{color:rgba(255,255,255,.9)!important}
+/* Fundamentos (SAQUE, RECEPCAO, ATAQUE...) — eram invisiveis */
+body.rs-shell .app-content .sc-fund,
+.usa-scout-wrap .sc-fund{color:#0f172a!important}
+body.rs-shell .app-content .sc-fund.on,
+.usa-scout-wrap .sc-fund.on{color:#fff!important}
+/* Feed de ultimas acoes (texto do fundamento + badge do set) */
+body.rs-shell .app-content .sc-fitem .ffund,
+.usa-scout-wrap .sc-fitem .ffund{color:#475569!important}
+body.rs-shell .app-content .sc-fitem .fset,
+.usa-scout-wrap .sc-fitem .fset{color:#475569!important}
 
 /* Carimbo de build — discreto no canto inferior, nao atrapalha toque (pointer-events:none) */
 #buildStamp{position:fixed;bottom:4px;right:6px;z-index:9998;font-size:9px;font-weight:700;letter-spacing:.3px;color:rgba(148,163,184,.55);background:rgba(10,15,28,.45);padding:2px 7px;border-radius:6px;pointer-events:none;font-family:'Inter',sans-serif;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
@@ -926,7 +939,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-12 · estabilizacao";
+var APP_BUILD="2026-06-12b · scout legivel";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)

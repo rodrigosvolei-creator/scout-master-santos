@@ -14,7 +14,7 @@ const base=["a1","a2","a3","a4","a5","a6"];
 const seed = {
   'torneio-master-santos': {
     teams:[{id:'trs',n:'FEM RS',c:'#db2777',roster:[{aid:'a1'}]}],
-    athletes:[{aid:'a1',nm:'Ana'},{aid:'a2',nm:'Bia'},{aid:'a3',nm:'Lui'},{aid:'a4',nm:'Car'},{aid:'a5',nm:'Dud'},{aid:'a6',nm:'Fer'},{aid:'a7',nm:'Ghi'},{aid:'a8',nm:'Pai'}],
+    athletes:[{aid:'a1',nm:'Ana',po:'Ponteira'},{aid:'a2',nm:'Bia',po:'Central'},{aid:'a3',nm:'Lui',po:'Levantadora'},{aid:'a4',nm:'Car',po:'Central'},{aid:'a5',nm:'Dud',po:'Oposta'},{aid:'a6',nm:'Fer',po:'Ponteira'},{aid:'a7',nm:'Ghi',po:'Líbero'},{aid:'a8',nm:'Pai',po:'Ponteira'}],
     tournaments:[{id:'tA',n:'Liga'}],
     games:[
       {id:'g_court',torId:'tA',tid:'trs',opp:'X',st:'live',courtMode:true,
@@ -99,6 +99,28 @@ setTimeout(()=>{
     w.gF('g_court').court["1"].pos=["a7","a2","a3","a4","a5","a6"]; // a7 na P1 (sacador)
     w.scUp("u"); // nao estavamos sacando? serving=them -> recupera -> roda
     chk(w.gF('g_court').court["1"].pos[0]==="a2",'rotacao apos sub: a7 saiu do saque, a2 assume');
+
+    // 6b. ATALHO DO LIBERO
+    chk(w._isLibero({po:'Líbero'})&&w._isLibero({po:'Libero 1'})&&w._isLibero({po:'LIB'}),'_isLibero detecta variacoes (Líbero/Libero/LIB)');
+    chk(!w._isLibero({po:'Ponteira'})&&!w._isLibero({po:''}),'_isLibero ignora nao-libero');
+    // monta um banco com o libero (a7=Ghi=Líbero). Quadra = a1..a6, a7/a8 no banco.
+    w.S={aid:'g_court',sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};
+    w.gF('g_court').court["1"]={pos:['a1','a2','a3','a4','a5','a6'],serving:'us'};
+    w.courtSub();
+    // sem escolher quem sai ainda: nao mostra atalho do libero
+    chk(w.document.querySelector('.court-lib-shortcut')==null,'atalho do líbero so aparece depois de escolher quem sai');
+    // card do libero no banco vem destacado
+    chk(w.document.querySelector('.court-sub-card.lib')!=null,'líbero no banco vem destacado (.lib)');
+    // escolhe quem sai (a4 central) -> atalho do libero aparece
+    w.courtSubSelOut('a4');
+    var libBtn=w.document.querySelector('.court-lib-shortcut');
+    chk(libBtn!=null,'apos escolher quem sai: botão "Entra Líbero" aparece');
+    chk(libBtn.getAttribute('onclick').indexOf('a7')>=0,'botão do líbero entra o #a7 (Ghi/Líbero)');
+    // executa: libero entra no lugar do a4 (idx3)
+    w.courtSubDoIn('a7');
+    chk(w.gF('g_court').court["1"].pos[3]==='a7','líbero (a7) assumiu a posição do a4 (idx3)');
+    chk(w.gF('g_court').court["1"].pos.indexOf('a4')<0,'a4 saiu da quadra');
+    chk(w.document.getElementById('courtSubModal')==null,'modal fecha apos atalho do líbero');
 
     // 7. courtSub e seguro fora do modo quadra
     w.D.games.push({id:'g_nc',tid:'trs',torId:'tA',ss:[{u:0,t:0}],act:[],lineup:[]});

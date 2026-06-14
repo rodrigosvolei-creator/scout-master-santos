@@ -684,6 +684,11 @@ body.rs-shell .app-content .court-ctrls button,.usa-scout-wrap .court-ctrls butt
 .court-sub-card.in:not([disabled]){border-color:#16a34a;background:rgba(22,163,74,.14)}
 .court-sub-card[disabled]{opacity:.4;cursor:not-allowed}
 .court-sub-card:active{transform:scale(.95)}
+.court-sub-card.lib:not([disabled]){border-color:#f59e0b;background:rgba(245,158,11,.16)}
+.court-sub-card.lib .court-sub-num{color:#fbbf24}
+.court-lib-row{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.court-lib-shortcut{padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#1a1410;font-weight:800;font-size:14px;letter-spacing:.3px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(245,158,11,.4)}
+.court-lib-shortcut:active{transform:scale(.97)}
 
 /* ===== SCOUT NO CELULAR — versao compacta ===== */
 @media(max-width:480px){
@@ -5818,6 +5823,8 @@ function courtRegisterPoint(side){
 // === Q1: UI da quadra (toggle + posicionamento + render clicavel) ===
 var _courtDraft=null; // rascunho do posicionamento inicial {gid,set,pos:[6],serving}
 function _gpFind(gp,aid){for(var i=0;i<gp.length;i++){if(gp[i].id===aid)return gp[i];}return null;}
+// Detecta libero pela posicao da atleta (ex: "Libero", "Líbero 1", "Lib")
+function _isLibero(p){ return !!(p&&p.po&&/l[ií]bero|^lib/i.test(p.po)); }
 
 function toggleCourtMode(){
   var gm=gF(S.aid); if(!gm)return;
@@ -5954,10 +5961,19 @@ function _renderCourtSubModal(){
     m+='<button class="court-sub-card'+(sel?' out':'')+'" onclick="courtSubSelOut(\''+aid+'\')"><span class="court-sub-pos">P'+_COURT_POSLBL[idx]+'</span><span class="court-sub-num">'+p.nu+'</span><span class="court-sub-nm">'+esc(p.nm.split(" ")[0])+'</span></button>';
   }
   m+='</div>';
+  // Atalho do libero: 1 toque pra meter o(s) libero(s) do banco (apos escolher quem sai)
+  var liberos=bench.filter(_isLibero);
+  if(_courtSubOut && liberos.length){
+    m+='<div class="court-lib-row">';
+    for(var li=0;li<liberos.length;li++){var lb=liberos[li];
+      m+='<button class="court-lib-shortcut" onclick="courtSubDoIn(\''+lb.id+'\')">🦺 Entra Líbero · #'+lb.nu+' '+esc(lb.nm.split(" ")[0])+'</button>';
+    }
+    m+='</div>';
+  }
   m+='<div class="sc-seclabel" style="color:#86efac">Entra (banco)</div><div class="court-sub-grid">';
   if(!bench.length)m+='<span style="font-size:12px;color:#94a3b8">Sem atletas no banco. Escale mais pela escalação (📋).</span>';
-  for(var b=0;b<bench.length;b++){var bp=bench[b];
-    m+='<button class="court-sub-card in"'+(_courtSubOut?'':' disabled')+' onclick="courtSubDoIn(\''+bp.id+'\')"><span class="court-sub-num">'+bp.nu+'</span><span class="court-sub-nm">'+esc(bp.nm.split(" ")[0])+'</span></button>';
+  for(var b=0;b<bench.length;b++){var bp=bench[b];var lib=_isLibero(bp);
+    m+='<button class="court-sub-card in'+(lib?' lib':'')+'"'+(_courtSubOut?'':' disabled')+' onclick="courtSubDoIn(\''+bp.id+'\')"><span class="court-sub-num">'+bp.nu+'</span><span class="court-sub-nm">'+(lib?'🦺 ':'')+esc(bp.nm.split(" ")[0])+'</span></button>';
   }
   m+='</div>';
   m+='<div class="tnj-actions"><button class="tnj-cancel" onclick="closeCourtSub()">Fechar</button></div>';

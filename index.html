@@ -5721,6 +5721,48 @@ function autoScoreSide(ak,oc){
   if((ak==="saque"||ak==="ataque"||ak==="bloqueio")&&oc==="Erro")return"t";
   return null;
 }
+// ==========================================================
+// SCOUT COM QUADRA — posicionamento 1-6 + rotacao automatica (Q0: logica pura)
+// Tudo aqui e NO-OP se o jogo nao tem g.courtMode. Nao afeta o scout classico.
+// Modelo: g.court[setNumero] = { pos:[aidP1,aidP2,aidP3,aidP4,aidP5,aidP6], serving:"us"|"them" }
+//   pos[0]=Posicao 1 (sacador) ... pos[5]=Posicao 6.
+// ==========================================================
+// Rotacao horaria do volei: quem estava na P2 vai sacar (P1); P1 -> P6; P6 -> P5; etc.
+function rotateCourt(pos){
+  if(!pos||pos.length!==6)return pos?pos.slice():pos;
+  return [pos[1],pos[2],pos[3],pos[4],pos[5],pos[0]];
+}
+// Inverso (botao "voltar rotacao" / corrigir engano)
+function rotateCourtBack(pos){
+  if(!pos||pos.length!==6)return pos?pos.slice():pos;
+  return [pos[5],pos[0],pos[1],pos[2],pos[3],pos[4]];
+}
+// Regra side-out. cs={pos,serving}. scoredSide="us"|"them". Retorna NOVO estado (imutavel).
+// So rotacionamos quando GANHAMOS o ponto E nao estavamos sacando (recuperamos o saque).
+function courtApplyPoint(cs,scoredSide){
+  if(!cs||!cs.pos)return cs;
+  var next={pos:cs.pos.slice(),serving:cs.serving};
+  if(scoredSide==="us"){
+    if(cs.serving!=="us"){ next.pos=rotateCourt(cs.pos); next.serving="us"; }
+  }else if(scoredSide==="them"){
+    if(cs.serving!=="them"){ next.serving="them"; }
+  }
+  return next;
+}
+// Estado da quadra do set atual (ou null se nao for modo quadra)
+function courtCur(gm){ if(!gm||!gm.courtMode||!gm.court)return null; return gm.court[String(S.cs)]||null; }
+// Hook chamado APOS um ponto. side="u"(nosso)|"t"(deles). No-op fora do modo quadra.
+// Retorna o snapshot ANTERIOR (pra o undo restaurar) ou null.
+function courtRegisterPoint(side){
+  var gm=gF(S.aid);
+  if(!gm||!gm.courtMode||!gm.court)return null;
+  var k=String(S.cs); var cs=gm.court[k];
+  if(!cs||!cs.pos)return null;
+  var snap={pos:cs.pos.slice(),serving:cs.serving};
+  gm.court[k]=courtApplyPoint(cs, side==="u"?"us":"them");
+  return snap;
+}
+
 function rcO(oc){if(!S.sp||!S.sa)return;var gm=gF(S.aid);if(!gm||gm.st!=="live")return;var a={id:"a"+Date.now(),pid:S.sp,ak:S.sa,oc:oc,set:S.cs,ts:S.tm};
 // Ponto automatico — registra qual lado subiu, pra o undo reverter junto
 var scSide=autoScoreSide(S.sa,oc);

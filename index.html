@@ -689,6 +689,21 @@ body.rs-shell .app-content .court-ctrls button,.usa-scout-wrap .court-ctrls butt
 .court-lib-row{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .court-lib-shortcut{padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#1a1410;font-weight:800;font-size:14px;letter-spacing:.3px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(245,158,11,.4)}
 .court-lib-shortcut:active{transform:scale(.97)}
+/* === Frente B: placar compacto + fixo no modo quadra (nunca sai de vista) === */
+/* So a .sc-board (placar + botoes -/+) vira sticky e compacta. Topbar e controles rolam normal. */
+.sc-arena-court .sc-board{position:sticky;z-index:26;background:linear-gradient(165deg,#0c1322,#141d33);padding:7px 12px 9px;border-radius:0 0 14px 14px;box-shadow:0 8px 18px rgba(0,0,0,.45)}
+body.rs-shell .app-content .sc-arena-court .sc-board{top:104px}
+.usa-scout-wrap .sc-arena-court .sc-board{top:0}
+.sc-arena-court .sc-crest{display:none}
+.sc-arena-court .sc-pts{font-size:38px}
+.sc-arena-court .sc-tname{font-size:10px;min-height:0;margin:2px 0 0}
+.sc-arena-court .sc-vs{font-size:14px;margin-top:16px}
+.sc-arena-court .sc-hint{display:none}
+.sc-arena-court .sc-sets{margin-top:6px}
+/* quadra um pouco mais compacta no modo fixo, pra caber tudo */
+.sc-arena-court ~ .sc-panel .court-cell{min-height:54px;padding:9px 4px 7px}
+.sc-arena-court ~ .sc-panel .court-cell .court-num{font-size:24px}
+
 /* Atalho "trocar pelo libero" (aparece ao selecionar atleta na quadra) */
 .court-lib-swap{width:100%;margin:8px 0 0;padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#1a1410;font-weight:800;font-size:14px;letter-spacing:.3px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(245,158,11,.4)}
 .court-lib-swap:active{transform:scale(.98)}
@@ -3441,7 +3456,18 @@ h+='</div>';
 // === Modal de Login ===
 if(showLoginModal)h+=renderLoginModal();
 
-a.innerHTML=h;}
+a.innerHTML=h;
+// Frente B: placar fixo do modo quadra — mede header+tabs reais e ancora o sticky
+// no ponto certo (mobile/desktop/PG sem header). Roda apos cada render.
+try{
+  var _cb=document.querySelector('.sc-arena-court .sc-board');
+  if(_cb){
+    var _hh=(document.querySelector('.app-header')||{}).offsetHeight||0;
+    var _th=(document.querySelector('.app-tabs')||{}).offsetHeight||0;
+    _cb.style.top=(_hh+_th)+'px';
+  }
+}catch(e){}
+}
 window.addEventListener("resize",function(){render();});
 
 function rCfg(){var h='<div class="stb"><button class="'+(subTab==="teams"?"on":"")+'" onclick="setSubTab(\'teams\')">\u{1F465} Equipes</button><button class="'+(subTab==="athletes"?"on":"")+'" onclick="setSubTab(\'athletes\')">\u{1F46B} Atletas</button><button class="'+(subTab==="games"?"on":"")+'" onclick="setSubTab(\'games\')">\u{1F4C5} Jogos</button><button class="'+(subTab==="users"?"on":"")+'" onclick="setSubTab(\'users\')">\u{1F510} Usu\u00e1rios</button><button class="'+(subTab==="archive"?"on":"")+'" onclick="setSubTab(\'archive\')">\u{1F4E6} Arquivo</button></div>';return h+(subTab==="teams"?rTms():subTab==="athletes"?rAthletesBank():subTab==="archive"?rArchive():subTab==="users"?rUsers():rGms());}
@@ -4087,7 +4113,7 @@ if(locked){
 var oppLg=(typeof oppLogoSvg==="function")?null:null; // logo do adversario
 var nmRS=(te.n||"").replace(/RS-?VOLEIBOL\s*/i,"RS \u00b7 ").trim();if(nmRS.length>22)nmRS=nmRS.substring(0,22)+"\u2026";
 var nmAdv=(gm.opp||"Advers\u00e1rio");if(nmAdv.length>22)nmAdv=nmAdv.substring(0,22)+"\u2026";
-h+='<div class="sc-arena">';
+h+='<div class="sc-arena'+(gm.courtMode?' sc-arena-court':'')+'">';
 // topbar
 h+='<div class="sc-topbar"><button class="sc-back" onclick="scoutBack()">\u2190 Jogos</button>';
 h+='<div style="display:flex;align-items:center;gap:8px">';

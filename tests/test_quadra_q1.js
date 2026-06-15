@@ -121,10 +121,17 @@ setTimeout(()=>{
     chk(w.gF('g_court').courtMode===!wasOn,'toggleCourtMode inverte courtMode');
     w.toggleCourtMode(); // volta
 
-    // 9. REGRESSAO: jogo classico (sem courtMode) — rSct nao usa quadra
+    // 9. Frente B: modo quadra aplica classe sc-arena-court (placar fixo/compacto)
+    w.gF('g_court').court["1"]={pos:['a1','a2','a3','a4','a5','a6'],serving:'us'};
+    w.S={aid:'g_court',sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};
+    var scoutQuadra=w.rSct();
+    chk(scoutQuadra.indexOf('sc-arena-court')>=0,'Frente B: modo quadra aplica classe sc-arena-court (placar fixo)');
+
+    // 10. REGRESSAO: jogo classico (sem courtMode) — rSct nao usa quadra nem placar fixo
     w.S={aid:'g_classic',sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};
     var classic=w.rSct();
     chk(classic.indexOf('court-cell')<0,'jogo classico: SEM quadra (court-cell ausente)');
+    chk(classic.indexOf('sc-arena-court')<0,'jogo classico: SEM placar fixo (sc-arena-court ausente)');
     chk(classic.indexOf('sc-pcard')>=0 || classic.indexOf('sc-players')>=0,'jogo classico: cards .sc-pcard normais');
 
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');

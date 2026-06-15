@@ -1011,7 +1011,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-12d · scout com quadra";
+var APP_BUILD="2026-06-12e · quadra completa";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -5533,7 +5533,8 @@ function openGameEditor(gameId,defaultTorId){
   m+='<div style="margin-bottom:10px"><span class="lb">Advers\u00e1rio *</span><input id="g-opp" value="'+esc(g.opp||"")+'" placeholder="Nome do advers\u00e1rio"></div>';
   m+='<div class="rw" style="margin-bottom:10px"><div style="flex:1"><span class="lb">Data</span><input id="g-dt" type="date" value="'+(g.dt||"")+'"></div>';
   m+='<div style="flex:1"><span class="lb">Hor\u00e1rio</span><input id="g-tm" type="time" value="'+(g.tm?g.tm.substring(0,5):"")+'"></div></div>';
-  m+='<div style="margin-bottom:14px"><span class="lb">Local</span><input id="g-loc" value="'+esc(g.loc||"")+'" placeholder="Gin\u00e1sio / clube"></div>';
+  m+='<div class="rw" style="margin-bottom:14px"><div style="flex:1"><span class="lb">Local</span><input id="g-loc" value="'+esc(g.loc||"")+'" placeholder="Gin\u00e1sio / clube"></div>';
+  m+='<div style="flex:1"><span class="lb">Formato</span><select id="g-fmt"><option value="3"'+((g.maxSets===5?5:3)===3?" selected":"")+'>Melhor de 3</option><option value="5"'+(g.maxSets===5?" selected":"")+'>Melhor de 5</option></select></div></div>';
   m+='<div style="border-top:1px solid var(--brd);padding-top:14px;margin-top:8px"><div style="font-size:12px;font-weight:700;color:var(--gray);letter-spacing:1px;margin-bottom:8px">RESULTADO</div>';
   m+='<div class="rw" style="margin-bottom:10px"><div style="flex:1"><span class="lb">Tipo</span><select id="g-rtype">';
   var TYPES=[["","\u2014 N\u00e3o jogado \u2014"],["win","\u2705 Vit\u00f3ria"],["loss","\u274C Derrota"],["wo_win","\uD83C\uDFC6 W.O. a favor"],["wo_loss","\u274C W.O. contra"]];
@@ -5560,6 +5561,7 @@ function saveGameEditor(gameId){
   var rtype=document.getElementById("g-rtype").value;
   var rsets=document.getElementById("g-rsets").value.trim();
   var rtitle=document.getElementById("g-rtitle").value.trim();
+  var fmtEl=document.getElementById("g-fmt"); var maxSets=(fmtEl&&fmtEl.value==="5")?5:3; // formato 3 ou 5 sets
   if(!opp){toast("Informe o advers\u00e1rio","error");return;}
   if(!tid){toast("Selecione a equipe","error");return;}
   // Construir result
@@ -5576,13 +5578,14 @@ function saveGameEditor(gameId){
     // Não sobrescrever st="live" se já está em scout ao vivo
     if(g.st!=="live")g.st=st;
     g.tid=tid;g.torId=torId||null;g.cat=cat;g.phase=phase;g.opp=opp;g.dt=dt;g.tm=tm;g.loc=loc;
+    g.maxSets=maxSets;
     g.result=result;
     // Sync campo legado tor
     var t=tFnd(torId);g.tor=t?t.n:"";
     toast("Jogo atualizado","ok");
   }else{
     var t=tFnd(torId);
-    D.games.push({id:uid("g_"),tid:tid,torId:torId||null,tor:t?t.n:"",cat:cat,phase:phase,opp:opp,dt:dt,tm:tm,loc:loc,pl:[],act:[],ss:[],st:st,result:result});
+    D.games.push({id:uid("g_"),tid:tid,torId:torId||null,tor:t?t.n:"",cat:cat,phase:phase,opp:opp,dt:dt,tm:tm,loc:loc,maxSets:maxSets,pl:[],act:[],ss:[],st:st,result:result});
     toast("Jogo criado","ok");
   }
   closeGameEditor();

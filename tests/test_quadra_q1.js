@@ -126,6 +126,11 @@ setTimeout(()=>{
     w.S={aid:'g_court',sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};
     var scoutQuadra=w.rSct();
     chk(scoutQuadra.indexOf('sc-arena-court')>=0,'Frente B: modo quadra aplica classe sc-arena-court (placar fixo)');
+    chk(scoutQuadra.indexOf('courtMoreMenu')>=0,'UX: botao "⋯ Mais" presente na linha de controles da quadra');
+    chk(typeof w.courtMoreMenu==='function','courtMoreMenu existe');
+    // controles de jogo (Próx Set/Finalizar) NAO ficam soltos na arena no modo quadra live
+    var arenaSlice=scoutQuadra.split('sc-panel')[0];
+    chk(arenaSlice.indexOf('Finalizar')<0,'controles de jogo recolhidos (Finalizar nao fica solto na arena)');
 
     // 10. REGRESSAO: jogo classico (sem courtMode) — rSct nao usa quadra nem placar fixo
     w.S={aid:'g_classic',sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};

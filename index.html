@@ -701,12 +701,11 @@ body.rs-shell .app-content .sc-arena-court .sc-board{top:104px}
 .sc-arena-court .sc-vs{font-size:14px;margin-top:22px}
 .sc-arena-court .sc-hint{display:none}
 .sc-arena-court .sc-sets{margin-top:6px}
-/* Menu "Mais acoes" recolhido (sets/PDF/WhatsApp/finalizar) no modo quadra */
-.court-more{margin-top:8px}
-.court-more-sum{list-style:none;cursor:pointer;text-align:center;font-size:12px;font-weight:700;color:var(--rs-fg-mute,#94a3b8);background:rgba(255,255,255,.05);border:1px solid var(--rs-line,rgba(255,255,255,.1));border-radius:10px;padding:9px;letter-spacing:.3px;-webkit-tap-highlight-color:transparent}
-.court-more-sum::-webkit-details-marker{display:none}
-.court-more[open] .court-more-sum{border-bottom-left-radius:0;border-bottom-right-radius:0;color:var(--rs-fg,#e8eef9)}
-.court-more .sc-ctrls{margin-top:0}
+/* Menu "Mais acoes" (modal) — controles de jogo recolhidos no modo quadra */
+.court-more-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.court-more-grid button{padding:13px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e8eef9;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;text-align:center;-webkit-tap-highlight-color:transparent}
+.court-more-grid button:active{transform:scale(.98)}
+.court-more-grid .court-more-fin{background:linear-gradient(135deg,#dc2626,#b91c1c);border:none;color:#fff}
 /* quadra um pouco mais compacta no modo fixo, pra caber tudo */
 .sc-arena-court ~ .sc-panel .court-cell{min-height:54px;padding:9px 4px 7px}
 .sc-arena-court ~ .sc-panel .court-cell .court-num{font-size:24px}
@@ -1018,7 +1017,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-12e · quadra completa";
+var APP_BUILD="2026-06-12f · quadra enxuta";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -4174,9 +4173,10 @@ if(gm.ss&&gm.ss.length>1){
   for(var j=0;j<gm.ss.length;j++)h+='<span class="chip'+(j+1===S.cs?' cur':'')+'">'+gm.ss[j].u+'-'+gm.ss[j].t+'</span>';
   h+='</div>';
 }
-// controles \u2014 no modo quadra (jogo rolando), recolhe num "Mais acoes" pra liberar a tela
-var _ctrlsCollapse = gm.courtMode && gm.st!=="pending" && !locked;
-if(_ctrlsCollapse) h+='<details class="court-more"><summary class="court-more-sum">\u22EF Mais a\u00E7\u00F5es (sets, PDF, WhatsApp\u2026)</summary>';
+// controles de jogo. No modo quadra com jogo rolando, NAO renderiza aqui \u2014
+// vao pro menu "\u22EF Mais" da linha de controles da quadra (courtRenderPanel).
+var _skipArenaCtrls = gm.courtMode && gm.st!=="pending" && !locked;
+if(!_skipArenaCtrls){
 h+='<div class="sc-ctrls">';
 if(!locked){
   if(gm.st==="pending")h+='<button class="sc-cbtn sc-cbtn-start" onclick="startG()">\u25B6 INICIAR PARTIDA</button>';
@@ -4196,7 +4196,7 @@ if(!locked){
   if(isCoord)h+='<button class="sc-cbtn sc-cbtn-set" onclick="exAllAthIndividualPDFs(\''+gm.id+'\')">\u{1F4DD} PDFs Individuais</button>';
 }
 h+='</div>';
-if(_ctrlsCollapse) h+='</details>';
+}
 // dica do ponto automatico \u2014 usa o nome do time atual (PG, RS, etc) em vez de hardcode
 if(gm.st==="live"&&!locked){
   var __hintTeam = (te && te.n) ? esc(nmRS) : "nosso time";
@@ -6024,12 +6024,31 @@ function courtRenderPanel(gm,gp,te){
     }
   }
   h+='<div class="court-ctrls">';
-  h+='<button onclick="courtSub()">🔄 Substituir</button>';
+  h+='<button onclick="courtSub()">🔄 Subst</button>';
   h+='<button onclick="courtManualRotate(1)">↻ Rodar</button>';
   h+='<button onclick="courtManualRotate(-1)">↺ Voltar</button>';
+  h+='<button onclick="courtMoreMenu(\''+gm.id+'\')">⋯ Mais</button>';
   h+='</div>';
   return h;
 }
+// Menu "Mais": controles de jogo (set, exports, finalizar) recolhidos no modo quadra
+function courtMoreMenu(gid){
+  var gm=gF(gid); if(!gm)return;
+  var m='<div class="tnj-modal" onclick="closeCourtMore()"><div class="tnj-box" onclick="event.stopPropagation()" style="max-width:330px">';
+  m+='<div class="tnj-title">⋯ MAIS AÇÕES</div>';
+  m+='<div class="court-more-grid">';
+  m+='<button onclick="closeCourtMore();nxS()">⏭ Próximo Set</button>';
+  m+='<button onclick="closeCourtMore();exG(\''+gid+'\')">📤 WhatsApp</button>';
+  if(gm.act&&gm.act.length)m+='<button onclick="closeCourtMore();exGamePDF(\''+gid+'\')">📄 PDF Partida</button>';
+  m+='<button onclick="closeCourtMore();resetG()">🔄 Zerar Set</button>';
+  m+='<button class="court-more-fin" onclick="closeCourtMore();enG()">🏁 Finalizar Jogo</button>';
+  m+='</div>';
+  m+='<div class="tnj-actions"><button class="tnj-cancel" onclick="closeCourtMore()">Fechar</button></div>';
+  m+='</div></div>';
+  var d=document.getElementById("courtMoreModal");if(d)d.remove();
+  d=document.createElement("div");d.id="courtMoreModal";d.innerHTML=m;document.body.appendChild(d);
+}
+function closeCourtMore(){var d=document.getElementById("courtMoreModal");if(d)d.remove();}
 // === Q3: Substituicao na quadra ===
 // Troca um jogador da quadra por um do banco (lineup nao-escalado), mantendo a posicao.
 var _courtSubOut=null; // aid selecionado pra sair

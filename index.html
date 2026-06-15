@@ -701,6 +701,13 @@ body.rs-shell .app-content .sc-arena-court .sc-board{top:104px}
 .sc-arena-court .sc-vs{font-size:14px;margin-top:22px}
 .sc-arena-court .sc-hint{display:none}
 .sc-arena-court .sc-sets{margin-top:6px}
+/* Banner de fim de set (25/tie 15 com 2 de vantagem) */
+.set-end-banner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;padding:12px 16px;border-radius:14px;margin-bottom:12px;box-shadow:0 8px 22px rgba(22,163,74,.4)}
+.set-end-info{flex:1;font-weight:800;font-size:13px;letter-spacing:.5px;min-width:150px}
+.set-end-info b{font-size:18px}
+.set-end-btn{background:#fff;color:#15803d;border:none;border-radius:10px;padding:11px 18px;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.set-end-btn.fin{background:#fbbf24;color:#7c2d12}
+.set-end-btn:active{transform:scale(.97)}
 /* Menu "Mais acoes" (modal) — controles de jogo recolhidos no modo quadra */
 .court-more-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
 .court-more-grid button{padding:13px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e8eef9;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;text-align:center;-webkit-tap-highlight-color:transparent}
@@ -1017,7 +1024,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-12f · quadra enxuta";
+var APP_BUILD="2026-06-12g · fim de set";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -4115,6 +4122,17 @@ if(locked){
   if(isCoord)h+='<button class="bt bg bsm" onclick="toggleLockGame(\''+gm.id+'\')" style="background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.3);color:#fff;font-size:10px">\uD83D\uDD13 Destravar</button>';
   h+='</div>';
 }
+// ===== BANNER FIM DE SET (25/tie 15 com 2 de vantagem) =====
+if(gm.st==="live" && !locked && setIsOver(gm,S.cs)){
+  var _se=gm.ss[S.cs-1];
+  var _decided = gameIsDecided(gm) || S.cs>=gameMaxSets(gm);
+  var _tie = setTarget(gm,S.cs)===15;
+  h+='<div class="set-end-banner">';
+  h+='<div class="set-end-info">🏁 SET '+S.cs+(_tie?' (TIE)':'')+' ENCERRADO · <b>'+_se.u+'-'+_se.t+'</b></div>';
+  if(_decided)h+='<button class="set-end-btn fin" onclick="enG()">🏁 Finalizar jogo</button>';
+  else h+='<button class="set-end-btn" onclick="nxS()">▶ Iniciar Set '+(S.cs+1)+'</button>';
+  h+='</div>';
+}
 // ===== ARENA — painel escuro de transmissao =====
 var oppLg=(typeof oppLogoSvg==="function")?null:null; // logo do adversario
 var nmRS=(te.n||"").replace(/RS-?VOLEIBOL\s*/i,"RS \u00b7 ").trim();if(nmRS.length>22)nmRS=nmRS.substring(0,22)+"\u2026";
@@ -5544,7 +5562,12 @@ function openGameEditor(gameId,defaultTorId){
   m+='<div class="rw" style="margin-bottom:10px"><div style="flex:1"><span class="lb">Data</span><input id="g-dt" type="date" value="'+(g.dt||"")+'"></div>';
   m+='<div style="flex:1"><span class="lb">Hor\u00e1rio</span><input id="g-tm" type="time" value="'+(g.tm?g.tm.substring(0,5):"")+'"></div></div>';
   m+='<div class="rw" style="margin-bottom:14px"><div style="flex:1"><span class="lb">Local</span><input id="g-loc" value="'+esc(g.loc||"")+'" placeholder="Gin\u00e1sio / clube"></div>';
-  m+='<div style="flex:1"><span class="lb">Formato</span><select id="g-fmt"><option value="3"'+((g.maxSets===5?5:3)===3?" selected":"")+'>Melhor de 3</option><option value="5"'+(g.maxSets===5?" selected":"")+'>Melhor de 5</option></select></div></div>';
+  var _gf=gameFmt(g);
+  m+='<div style="flex:1"><span class="lb">Formato</span><select id="g-fmt">';
+  m+='<option value="bo3"'+(_gf==="bo3"?" selected":"")+'>Melhor de 3 (3º = tie 15)</option>';
+  m+='<option value="bo5"'+(_gf==="bo5"?" selected":"")+'>Melhor de 5 (5º = tie 15)</option>';
+  m+='<option value="fixed3"'+(_gf==="fixed3"?" selected":"")+'>3 sets fixos (todos 25)</option>';
+  m+='</select></div></div>';
   m+='<div style="border-top:1px solid var(--brd);padding-top:14px;margin-top:8px"><div style="font-size:12px;font-weight:700;color:var(--gray);letter-spacing:1px;margin-bottom:8px">RESULTADO</div>';
   m+='<div class="rw" style="margin-bottom:10px"><div style="flex:1"><span class="lb">Tipo</span><select id="g-rtype">';
   var TYPES=[["","\u2014 N\u00e3o jogado \u2014"],["win","\u2705 Vit\u00f3ria"],["loss","\u274C Derrota"],["wo_win","\uD83C\uDFC6 W.O. a favor"],["wo_loss","\u274C W.O. contra"]];
@@ -5571,7 +5594,7 @@ function saveGameEditor(gameId){
   var rtype=document.getElementById("g-rtype").value;
   var rsets=document.getElementById("g-rsets").value.trim();
   var rtitle=document.getElementById("g-rtitle").value.trim();
-  var fmtEl=document.getElementById("g-fmt"); var maxSets=(fmtEl&&fmtEl.value==="5")?5:3; // formato 3 ou 5 sets
+  var fmtEl=document.getElementById("g-fmt"); var fmtVal=(fmtEl&&fmtEl.value)||"bo3"; if(["bo3","bo5","fixed3"].indexOf(fmtVal)<0)fmtVal="bo3"; var maxSets=(fmtVal==="bo5")?5:3;
   if(!opp){toast("Informe o advers\u00e1rio","error");return;}
   if(!tid){toast("Selecione a equipe","error");return;}
   // Construir result
@@ -5588,14 +5611,14 @@ function saveGameEditor(gameId){
     // Não sobrescrever st="live" se já está em scout ao vivo
     if(g.st!=="live")g.st=st;
     g.tid=tid;g.torId=torId||null;g.cat=cat;g.phase=phase;g.opp=opp;g.dt=dt;g.tm=tm;g.loc=loc;
-    g.maxSets=maxSets;
+    g.maxSets=maxSets; g.format=fmtVal;
     g.result=result;
     // Sync campo legado tor
     var t=tFnd(torId);g.tor=t?t.n:"";
     toast("Jogo atualizado","ok");
   }else{
     var t=tFnd(torId);
-    D.games.push({id:uid("g_"),tid:tid,torId:torId||null,tor:t?t.n:"",cat:cat,phase:phase,opp:opp,dt:dt,tm:tm,loc:loc,maxSets:maxSets,pl:[],act:[],ss:[],st:st,result:result});
+    D.games.push({id:uid("g_"),tid:tid,torId:torId||null,tor:t?t.n:"",cat:cat,phase:phase,opp:opp,dt:dt,tm:tm,loc:loc,maxSets:maxSets,format:fmtVal,pl:[],act:[],ss:[],st:st,result:result});
     toast("Jogo criado","ok");
   }
   closeGameEditor();
@@ -6011,10 +6034,10 @@ function courtRenderPanel(gm,gp,te){
     h+='</button>';
   }
   h+='</div></div>';
-  // Atalho do libero: SO aparece quando um atleta da quadra (nao-libero) esta
-  // selecionado, ha libero no banco E ainda NAO ha libero em quadra (so cabe 1).
-  // Assim, com o libero ja em quadra, o botao some (nao polui o resto do jogo).
-  if(S.sp){
+  // Atalho do libero: aparece ao selecionar um atleta (sem fundamento escolhido
+  // ainda) se ha libero no banco e NENHUM em quadra. Ao tocar num fundamento
+  // (S.sa setado), a faixa some — nao atrapalha quem so quer marcar a acao.
+  if(S.sp && !S.sa){
     var selP=_gpFind(gp,S.sp);
     var inCourtL={}; cs.pos.forEach(function(a){if(a)inCourtL[a]=1;});
     var hasLibBench=gp.some(function(p){return !inCourtL[p.id]&&_isLibero(p);});
@@ -6154,13 +6177,50 @@ if(l.sc&&l.a&&gm.ss){var si=(l.a.set||S.cs)-1;if(gm.ss[si]){if(l.sc==="u"&&gm.ss
 // Q2: reverte a rotacao da quadra (restaura o snapshot guardado no momento do ponto)
 if(l.court&&gm.courtMode&&gm.court){gm.court[String(l.a.set||S.cs)]=l.court;}
 save();render();}
+// ===== FORMATO DA PARTIDA + FIM DE SET (regras do volei) =====
+// g.format: "bo3" (melhor de 3, set 3 = tie 15) | "bo5" (melhor de 5, set 5 = tie 15)
+//         | "fixed3" (3 sets obrigatorios, todos a 25, sem tie).
+// Compat: jogos antigos sem format -> derivam de maxSets (5 => bo5, senao bo3).
+function gameFmt(g){
+  if(g&&g.format)return g.format;
+  return (g&&g.maxSets===5)?"bo5":"bo3";
+}
+function gameMaxSets(g){ return gameFmt(g)==="bo5"?5:3; }
+// Pontos-alvo do set: 25 normal, 15 no tie break (ultimo set de bo3/bo5).
+function setTarget(g,setNum){
+  var f=gameFmt(g);
+  if(f==="bo3"&&setNum===3)return 15;
+  if(f==="bo5"&&setNum===5)return 15;
+  return 25;
+}
+// O set (1-based) ja terminou? alvo atingido com 2+ de vantagem.
+function setIsOver(g,setNum){
+  if(!g||!g.ss||!g.ss[setNum-1])return false;
+  var s=g.ss[setNum-1]; var tg=setTarget(g,setNum);
+  var hi=Math.max(s.u,s.t);
+  return hi>=tg && Math.abs(s.u-s.t)>=2;
+}
+function setsWon(g){
+  var w={u:0,t:0};
+  if(g&&g.ss)for(var i=0;i<g.ss.length;i++){ if(setIsOver(g,i+1)){ if(g.ss[i].u>g.ss[i].t)w.u++; else w.t++; } }
+  return w;
+}
+// Jogo decidido? bo3=2 sets, bo5=3 sets. fixed3 nunca decide cedo (joga os 3).
+function gameIsDecided(g){
+  var f=gameFmt(g); if(f==="fixed3")return false;
+  var w=setsWon(g); var need=(f==="bo5")?3:2;
+  return w.u>=need || w.t>=need;
+}
+
 function nxS(){var gm=gF(S.aid);if(!gm)return;
-  var lim=(gm.maxSets===5)?5:3; // formato do jogo: melhor de 3 (padrao) ou de 5
+  var lim=gameMaxSets(gm);
   if(gm.ss&&gm.ss.length>=lim){
     if(typeof toast==="function")toast("Limite de "+lim+" sets atingido","error");
     return;
   }
-  gm.ss.push({u:0,t:0});S.cs++;S.tm=0;save();render();}
+  gm.ss.push({u:0,t:0});S.cs++;S.tm=0;
+  if(gm.courtMode){ S.sp=null;S.sa=null; } // novo set: limpa selecao (posicionamento refeito)
+  save();render();}
 function enG(){
   var gm=gF(S.aid);if(!gm)return;
   var te=tF(gm.tid);

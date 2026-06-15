@@ -689,6 +689,12 @@ body.rs-shell .app-content .court-ctrls button,.usa-scout-wrap .court-ctrls butt
 .court-lib-row{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .court-lib-shortcut{padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#1a1410;font-weight:800;font-size:14px;letter-spacing:.3px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(245,158,11,.4)}
 .court-lib-shortcut:active{transform:scale(.97)}
+/* Atalho "trocar pelo libero" (aparece ao selecionar atleta na quadra) */
+.court-lib-swap{width:100%;margin:8px 0 0;padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#1a1410;font-weight:800;font-size:14px;letter-spacing:.3px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(245,158,11,.4)}
+.court-lib-swap:active{transform:scale(.98)}
+/* Libero na quadra: borda ambar */
+.court-cell.lib{box-shadow:0 0 0 2px #f59e0b inset}
+.court-cell.live.lib.server{box-shadow:0 0 0 3px #fbbf24,0 4px 14px rgba(251,191,36,.5)}
 
 /* ===== SCOUT NO CELULAR — versao compacta ===== */
 @media(max-width:480px){
@@ -5799,12 +5805,25 @@ function rotateCourtBack(pos){
 function courtApplyPoint(cs,scoredSide){
   if(!cs||!cs.pos)return cs;
   var next={pos:cs.pos.slice(),serving:cs.serving};
+  if(cs.libPair)next.libPair={lib:cs.libPair.lib,out:cs.libPair.out}; // preserva par do libero
   if(scoredSide==="us"){
-    if(cs.serving!=="us"){ next.pos=rotateCourt(cs.pos); next.serving="us"; }
+    if(cs.serving!=="us"){ next.pos=rotateCourt(cs.pos); next.serving="us"; next=courtLiberoExit(next); }
   }else if(scoredSide==="them"){
     if(cs.serving!=="them"){ next.serving="them"; }
   }
   return next;
+}
+// Libero auto-saida: se o libero (de uma entrada amarrada via libPair) caiu numa
+// posicao de FRENTE (P2/P3/P4 = idx 1,2,3), ele sai e o par (quem ele substituiu)
+// volta naquela posicao. Par e dinamico — limpo apos a saida. Funcao pura.
+function courtLiberoExit(cs){
+  if(!cs||!cs.libPair||!cs.pos)return cs;
+  var li=cs.pos.indexOf(cs.libPair.lib);
+  if(li===1||li===2||li===3){ // frente
+    var pos=cs.pos.slice(); pos[li]=cs.libPair.out;
+    return {pos:pos,serving:cs.serving,libPair:null};
+  }
+  return cs;
 }
 // Estado da quadra do set atual (ou null se nao for modo quadra)
 function courtCur(gm){ if(!gm||!gm.courtMode||!gm.court)return null; return gm.court[String(S.cs)]||null; }
@@ -5866,8 +5885,27 @@ function courtManualRotate(dir){
   var gm=gF(S.aid); if(!gm||!gm.court)return;
   var k=String(S.cs); var cs=gm.court[k]; if(!cs||!cs.pos)return;
   cs.pos = dir>0 ? rotateCourt(cs.pos) : rotateCourtBack(cs.pos);
+  var fixed=courtLiberoExit(cs); cs.pos=fixed.pos; cs.libPair=fixed.libPair; // libero sai se foi pra frente
   if(typeof save==='function')save();
   render();
+}
+// Trocar atleta (em quadra) pelo libero do banco, em 1 toque. Amarra o par desta entrada.
+function courtLiberoSwap(aid){
+  var gm=gF(S.aid); if(!gm||!gm.court)return;
+  var cs=gm.court[String(S.cs)]; if(!cs||!cs.pos)return;
+  var gp=_courtGp(gm);
+  var inCourt={}; cs.pos.forEach(function(a){if(a)inCourt[a]=1;});
+  var libero=gp.filter(function(p){return !inCourt[p.id]&&_isLibero(p);})[0];
+  if(!libero){ if(typeof toast==='function')toast("Nenhum líbero no banco","error"); return; }
+  var idx=cs.pos.indexOf(aid);
+  if(idx<0){ if(typeof toast==='function')toast("Atleta não está em quadra","error"); return; }
+  cs.pos[idx]=libero.id;
+  cs.libPair={lib:libero.id,out:aid}; // par desta entrada (dinamico)
+  S.sp=null;
+  if(typeof save==='function')save();
+  render();
+  var saiu=_gpFind(gp,aid);
+  if(typeof toast==='function')toast("🦺 Líbero entrou no lugar de #"+(saiu?saiu.nu:"?"),"ok");
 }
 
 // Ordem visual das posicoes (rede em cima): frente P4 P3 P2 / fundo P5 P6 P1.
@@ -5916,13 +5954,23 @@ function courtRenderPanel(gm,gp,te){
     var idx=_COURT_ORDER[o]; var aid=cs.pos[idx]; var p=aid?_gpFind(gp,aid):null;
     var isServer=(idx===0&&cs.serving==="us");
     var on=(S.sp===aid&&aid);
-    h+='<button class="court-cell live'+(on?' sel':'')+(isServer?' server':'')+'"'+(aid?' onclick="slP(\''+aid+'\')"':'')+(on?' style="background:linear-gradient(150deg,'+te.c+','+te.c+'cc)"':'')+'>';
-    h+='<span class="court-pos">P'+_COURT_POSLBL[idx]+(isServer?' 🏐':'')+'</span>';
+    var isLib=(p&&_isLibero(p));
+    h+='<button class="court-cell live'+(on?' sel':'')+(isServer?' server':'')+(isLib?' lib':'')+'"'+(aid?' onclick="slP(\''+aid+'\')"':'')+(on?' style="background:linear-gradient(150deg,'+te.c+','+te.c+'cc)"':'')+'>';
+    h+='<span class="court-pos">P'+_COURT_POSLBL[idx]+(isServer?' 🏐':'')+(isLib?' 🦺':'')+'</span>';
     if(p){h+='<div class="court-num">'+p.nu+'</div><div class="court-nm">'+esc(p.nm.split(" ")[0])+'</div>';}
     else{h+='<div class="court-empty-txt">—</div>';}
     h+='</button>';
   }
   h+='</div></div>';
+  // Atalho do libero: aparece quando um atleta da quadra (nao-libero) esta selecionado e ha libero no banco
+  if(S.sp){
+    var selP=_gpFind(gp,S.sp);
+    var inCourtL={}; cs.pos.forEach(function(a){if(a)inCourtL[a]=1;});
+    var hasLibBench=gp.some(function(p){return !inCourtL[p.id]&&_isLibero(p);});
+    if(selP && !_isLibero(selP) && hasLibBench && cs.pos.indexOf(S.sp)>=0){
+      h+='<button class="court-lib-swap" onclick="courtLiberoSwap(\''+S.sp+'\')">🦺 Trocar #'+selP.nu+' '+esc(selP.nm.split(" ")[0])+' pelo Líbero</button>';
+    }
+  }
   h+='<div class="court-ctrls">';
   h+='<button onclick="courtSub()">🔄 Substituir</button>';
   h+='<button onclick="courtManualRotate(1)">↻ Rodar</button>';

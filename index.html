@@ -5829,14 +5829,24 @@ function courtLiberoExit(cs){
 function courtCur(gm){ if(!gm||!gm.courtMode||!gm.court)return null; return gm.court[String(S.cs)]||null; }
 // Hook chamado APOS um ponto. side="u"(nosso)|"t"(deles). No-op fora do modo quadra.
 // Retorna o snapshot ANTERIOR (pra o undo restaurar) ou null.
+var _courtPreServe=null; // sacador a pre-selecionar apos uma rotacao (Frente C)
 function courtRegisterPoint(side){
   var gm=gF(S.aid);
   if(!gm||!gm.courtMode||!gm.court)return null;
   var k=String(S.cs); var cs=gm.court[k];
   if(!cs||!cs.pos)return null;
-  var snap={pos:cs.pos.slice(),serving:cs.serving};
-  gm.court[k]=courtApplyPoint(cs, side==="u"?"us":"them");
+  // snapshot completo (inclui libPair) pra o undo restaurar tudo
+  var snap={pos:cs.pos.slice(),serving:cs.serving,libPair:cs.libPair?{lib:cs.libPair.lib,out:cs.libPair.out}:null};
+  var next=courtApplyPoint(cs, side==="u"?"us":"them");
+  gm.court[k]=next;
+  // Frente C: se rotacionamos (recuperamos o saque), a proxima jogada e nosso saque do P1.
+  _courtPreServe=(next.serving==="us" && next.pos.join(",")!==snap.pos.join(",")) ? next.pos[0] : null;
   return snap;
+}
+// Pre-seleciona o sacador (P1) + fundamento "saque". So sugestao: NAO bloqueia trocar
+// de atleta nem fazer substituicao. Chamado no fim de rcO/scUp.
+function courtApplyPreserve(){
+  if(_courtPreServe){ S.sp=_courtPreServe; S.sa="saque"; _courtPreServe=null; }
 }
 
 // === Q1: UI da quadra (toggle + posicionamento + render clicavel) ===
@@ -6036,7 +6046,9 @@ function courtSubDoIn(inAid){
   var idx=cs.pos.indexOf(_courtSubOut);
   if(idx<0){closeCourtSub();return;}
   cs.pos[idx]=inAid;                 // entra mantendo a posicao
-  if(S.sp===_courtSubOut)S.sp=null;  // se o que saiu estava selecionado, limpa
+  // Frente C: trocou o sacador (P1) com nosso saque? o novo ja fica pronto pra sacar
+  if(idx===0 && cs.serving==="us"){ S.sp=inAid; S.sa="saque"; }
+  else if(S.sp===_courtSubOut){ S.sp=null; } // se o que saiu estava selecionado, limpa
   _courtSubOut=null;
   if(typeof save==='function')save();
   closeCourtSub();
@@ -6052,6 +6064,7 @@ if(scSide&&gm.ss&&gm.ss[S.cs-1]){if(scSide==="u")gm.ss[S.cs-1].u++;else gm.ss[S.
 // Q2: rotacao automatica (no-op fora do modo quadra). Guarda snapshot pra o undo reverter.
 var _courtSnap=scSide?courtRegisterPoint(scSide):null;
 S.us.push({a:a,sc:scSide,court:_courtSnap});if(!gm.act)gm.act=[];gm.act.push(a);S.sa=null;
+courtApplyPreserve(); // Frente C: pre-seleciona sacador+saque se rotacionou
 if(navigator.vibrate)navigator.vibrate(40);
 var isGood=(oc==="Ace"||oc==="Ponto"||oc==="A");var isBad=(oc==="Erro");
 try{var actx=new(window.AudioContext||window.webkitAudioContext)();var osc=actx.createOscillator();var gain=actx.createGain();osc.connect(gain);gain.connect(actx.destination);osc.frequency.value=isGood?880:isBad?330:660;gain.gain.value=0.08;osc.start();osc.stop(actx.currentTime+0.08);}catch(e){}
@@ -6072,7 +6085,7 @@ function showFlash(color){
     setTimeout(function(){if(f)f.style.opacity="0";},140);
   }catch(e){}
 }
-function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;courtRegisterPoint(who);if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");save();render();}
+function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;courtRegisterPoint(who);courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");save();render();}
 function scDn(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u"&&gm.ss[S.cs-1].u>0)gm.ss[S.cs-1].u--;else if(who==="t"&&gm.ss[S.cs-1].t>0)gm.ss[S.cs-1].t--;save();render();}
 function undo(){if(!S.us.length)return;var l=S.us.pop();var gm=gF(S.aid);if(!gm)return;if(l.a&&gm.act){gm.act=gm.act.filter(function(a){return a.id!==l.a.id;});}
 // Reverter ponto automatico, se houve — no set em que a acao foi marcada

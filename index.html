@@ -694,12 +694,19 @@ body.rs-shell .app-content .court-ctrls button,.usa-scout-wrap .court-ctrls butt
 .sc-arena-court .sc-board{position:sticky;z-index:26;background:linear-gradient(165deg,#0c1322,#141d33);padding:7px 12px 9px;border-radius:0 0 14px 14px;box-shadow:0 8px 18px rgba(0,0,0,.45)}
 body.rs-shell .app-content .sc-arena-court .sc-board{top:104px}
 .usa-scout-wrap .sc-arena-court .sc-board{top:0}
-.sc-arena-court .sc-crest{display:none}
-.sc-arena-court .sc-pts{font-size:38px}
+.sc-arena-court .sc-crest{width:26px;height:26px;border-radius:6px;margin:0 auto 2px}
+.sc-arena-court .sc-crest img{padding:1px}
+.sc-arena-court .sc-pts{font-size:36px}
 .sc-arena-court .sc-tname{font-size:10px;min-height:0;margin:2px 0 0}
-.sc-arena-court .sc-vs{font-size:14px;margin-top:16px}
+.sc-arena-court .sc-vs{font-size:14px;margin-top:22px}
 .sc-arena-court .sc-hint{display:none}
 .sc-arena-court .sc-sets{margin-top:6px}
+/* Menu "Mais acoes" recolhido (sets/PDF/WhatsApp/finalizar) no modo quadra */
+.court-more{margin-top:8px}
+.court-more-sum{list-style:none;cursor:pointer;text-align:center;font-size:12px;font-weight:700;color:var(--rs-fg-mute,#94a3b8);background:rgba(255,255,255,.05);border:1px solid var(--rs-line,rgba(255,255,255,.1));border-radius:10px;padding:9px;letter-spacing:.3px;-webkit-tap-highlight-color:transparent}
+.court-more-sum::-webkit-details-marker{display:none}
+.court-more[open] .court-more-sum{border-bottom-left-radius:0;border-bottom-right-radius:0;color:var(--rs-fg,#e8eef9)}
+.court-more .sc-ctrls{margin-top:0}
 /* quadra um pouco mais compacta no modo fixo, pra caber tudo */
 .sc-arena-court ~ .sc-panel .court-cell{min-height:54px;padding:9px 4px 7px}
 .sc-arena-court ~ .sc-panel .court-cell .court-num{font-size:24px}
@@ -4167,7 +4174,9 @@ if(gm.ss&&gm.ss.length>1){
   for(var j=0;j<gm.ss.length;j++)h+='<span class="chip'+(j+1===S.cs?' cur':'')+'">'+gm.ss[j].u+'-'+gm.ss[j].t+'</span>';
   h+='</div>';
 }
-// controles
+// controles \u2014 no modo quadra (jogo rolando), recolhe num "Mais acoes" pra liberar a tela
+var _ctrlsCollapse = gm.courtMode && gm.st!=="pending" && !locked;
+if(_ctrlsCollapse) h+='<details class="court-more"><summary class="court-more-sum">\u22EF Mais a\u00E7\u00F5es (sets, PDF, WhatsApp\u2026)</summary>';
 h+='<div class="sc-ctrls">';
 if(!locked){
   if(gm.st==="pending")h+='<button class="sc-cbtn sc-cbtn-start" onclick="startG()">\u25B6 INICIAR PARTIDA</button>';
@@ -4187,6 +4196,7 @@ if(!locked){
   if(isCoord)h+='<button class="sc-cbtn sc-cbtn-set" onclick="exAllAthIndividualPDFs(\''+gm.id+'\')">\u{1F4DD} PDFs Individuais</button>';
 }
 h+='</div>';
+if(_ctrlsCollapse) h+='</details>';
 // dica do ponto automatico \u2014 usa o nome do time atual (PG, RS, etc) em vez de hardcode
 if(gm.st==="live"&&!locked){
   var __hintTeam = (te && te.n) ? esc(nmRS) : "nosso time";
@@ -6001,12 +6011,15 @@ function courtRenderPanel(gm,gp,te){
     h+='</button>';
   }
   h+='</div></div>';
-  // Atalho do libero: aparece quando um atleta da quadra (nao-libero) esta selecionado e ha libero no banco
+  // Atalho do libero: SO aparece quando um atleta da quadra (nao-libero) esta
+  // selecionado, ha libero no banco E ainda NAO ha libero em quadra (so cabe 1).
+  // Assim, com o libero ja em quadra, o botao some (nao polui o resto do jogo).
   if(S.sp){
     var selP=_gpFind(gp,S.sp);
     var inCourtL={}; cs.pos.forEach(function(a){if(a)inCourtL[a]=1;});
     var hasLibBench=gp.some(function(p){return !inCourtL[p.id]&&_isLibero(p);});
-    if(selP && !_isLibero(selP) && hasLibBench && cs.pos.indexOf(S.sp)>=0){
+    var liberoEmQuadra=cs.pos.some(function(a){var p=a?_gpFind(gp,a):null;return p&&_isLibero(p);});
+    if(selP && !_isLibero(selP) && hasLibBench && !liberoEmQuadra && cs.pos.indexOf(S.sp)>=0){
       h+='<button class="court-lib-swap" onclick="courtLiberoSwap(\''+S.sp+'\')">🦺 Trocar #'+selP.nu+' '+esc(selP.nm.split(" ")[0])+' pelo Líbero</button>';
     }
   }

@@ -1024,7 +1024,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-12g · fim de set";
+var APP_BUILD="2026-06-17a · brand categoria";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -2947,6 +2947,7 @@ function openBrandEditor(){
   var curTitle=(tor&&tor.n) || brand.title || '';
   var curSub=(tor&&tor.brandSub) || brand.sub || '';
   var curLogo=(tor&&tor.brandLogoData) || brand.logo;
+  var curCat=(brand.cat||'').replace(/<br\s*\/?>/gi,' ').replace(/\s+/g,' ').trim();
 
   var m='<div class="tnj-modal" onclick="cancelTorneioModal()"><div class="tnj-box" onclick="event.stopPropagation()">';
   m+='<div class="tnj-title">🖼 EDITAR BRAND</div>';
@@ -2960,6 +2961,7 @@ function openBrandEditor(){
   m+='</div>';
   m+='<div class="tnj-field"><span class="tnj-lb">Nome do torneio</span><input id="brand-title" placeholder="Ex: Jogos Regionais 2026" autocomplete="off" value="'+esc(curTitle)+'"></div>';
   m+='<div class="tnj-field"><span class="tnj-lb">Subtítulo</span><input id="brand-sub" placeholder="Ex: PRAIA GRANDE" autocomplete="off" value="'+esc(curSub)+'"></div>';
+  m+='<div class="tnj-field"><span class="tnj-lb">Categoria (no card GAME DAY)</span><input id="brand-cat" placeholder="Ex: SUB 19 FEMININO" autocomplete="off" value="'+esc(curCat)+'"></div>';
   m+='<div class="tnj-err" id="brand-err"></div>';
   m+='<div class="tnj-actions"><button class="tnj-cancel" onclick="cancelTorneioModal()">Cancelar</button>';
   m+='<button class="tnj-save" onclick="saveBrandEditor()">✓ Salvar</button></div>';
@@ -3007,6 +3009,9 @@ function saveBrandEditor(){
   newTitle=newTitle.trim(); newSub=newSub.trim();
   if(newTitle) tor.n=newTitle;
   if(newSub) tor.brandSub=newSub; else delete tor.brandSub;
+  var newCat=(document.getElementById("brand-cat")||{}).value||"";
+  newCat=newCat.trim();
+  if(newCat) tor.brandCat=newCat; else delete tor.brandCat;
   if(_brandLogoData) tor.brandLogoData=_brandLogoData;
   if(typeof save==='function') save();
   _brandLogoData=null;

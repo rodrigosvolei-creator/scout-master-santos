@@ -1024,7 +1024,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-17a · brand categoria";
+var APP_BUILD="2026-06-18a · escalacao numero opcional";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -4241,9 +4241,10 @@ if(gm.st==="live"&&!locked){
     h+=courtRenderPanel(gm,gp,te);
   }else{
     h+='<div class="sc-seclabel">\uD83D\uDC55 Atleta</div><div class="sc-players">';
-    gp.sort(function(a,b){return a.nu-b.nu;});
+    gp.sort(function(a,b){var an=(a.nu==null||a.nu==="")?999:a.nu;var bn=(b.nu==null||b.nu==="")?999:b.nu;return an-bn;});
     for(var i=0;i<gp.length;i++){var p=gp[i];var on=S.sp===p.id;
-      h+='<button class="sc-pcard'+(on?' on':'')+'" style="'+(on?'background:linear-gradient(150deg,'+te.c+','+te.c+'cc)':'')+'" onclick="slP(\''+p.id+'\')"><div class="num">'+p.nu+'</div><div class="nm">'+esc(p.nm.split(" ")[0])+'</div></button>';
+      var _pnu=(p.nu==null||p.nu==="")?"—":p.nu;
+      h+='<button class="sc-pcard'+(on?' on':'')+'" style="'+(on?'background:linear-gradient(150deg,'+te.c+','+te.c+'cc)':'')+'" onclick="slP(\''+p.id+'\')"><div class="num">'+_pnu+'</div><div class="nm">'+esc(p.nm.split(" ")[0])+'</div></button>';
     }
     h+='</div>';
   }
@@ -5695,7 +5696,7 @@ function openLineup(gameId){
     m+='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">'+esc(it.nm)+(it.adhoc?' <span style="font-size:9px;color:#fbbf24;font-weight:800;letter-spacing:.5px;background:rgba(251,191,36,.12);padding:2px 6px;border-radius:4px;margin-left:4px">NOVO</span>':'')+'</div>';
     if(it.po)m+='<div style="font-size:10px;color:var(--gray)">'+esc(it.po)+'</div>';
     m+='</div>';
-    m+='<input type="number" class="lu-nu" data-aid="'+it.aid+'" value="'+(it.nu===""?"":it.nu)+'" min="0" max="99" placeholder="\u2014" onclick="event.stopPropagation()" style="width:58px;text-align:center;font-weight:800;font-size:16px;padding:8px 4px">';
+    m+='<input type="number" class="lu-nu" data-aid="'+it.aid+'" value="'+(it.nu===""||it.nu==null?"":it.nu)+'" min="0" max="99" placeholder="\u2014" onclick="event.stopPropagation()" style="width:58px;text-align:center;font-weight:800;font-size:16px;padding:8px 4px">';
     m+=rowExtra;
     m+='</div>';
   }
@@ -5706,8 +5707,8 @@ function openLineup(gameId){
   m+='<div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:10px;margin-top:12px">';
   m+='<div style="font-size:11px;font-weight:800;color:var(--blue);letter-spacing:.5px;margin-bottom:8px">\u2795 ADICIONAR ATLETA (so neste jogo)</div>';
   m+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
-  m+='<input id="lu-new-nu" type="number" min="0" max="99" placeholder="N\u00ba" style="width:60px;padding:8px;text-align:center;font-weight:800;font-size:14px">';
-  m+='<input id="lu-new-nm" type="text" placeholder="Nome" maxlength="30" style="flex:2;min-width:120px;padding:8px;font-size:13px">';
+  m+='<input id="lu-new-nu" type="number" min="0" max="99" placeholder="N\u00ba opc" style="width:60px;padding:8px;text-align:center;font-weight:800;font-size:14px">';
+  m+='<input id="lu-new-nm" type="text" placeholder="Nome (n\u00famero depois)" maxlength="30" style="flex:2;min-width:120px;padding:8px;font-size:13px">';
   m+='<input id="lu-new-po" type="text" placeholder="Posi\u00e7\u00e3o" maxlength="20" style="flex:1.4;min-width:90px;padding:8px;font-size:12px">';
   m+='<button class="bt bp bsm" onclick="addAdhocAthlete(\''+gameId+'\')" style="flex-shrink:0">\u2795 Adicionar</button>';
   m+='</div></div>';
@@ -5742,13 +5743,17 @@ function saveLineup(gameId){
     var aid=row.getAttribute("data-aid");
     if(row.getAttribute("data-on")!=="1")continue;
     var nuInp=row.querySelector(".lu-nu");
-    var nuStr=nuInp?nuInp.value:"";
+    var nuStr=(nuInp?nuInp.value:"").trim();
     var labelNm=(function(){var el=row.querySelector('div[style*="font-weight:700"]');return el?(el.textContent||"").replace(/NOVO\s*$/,"").trim():"";})();
-    if(nuStr===""||nuStr==null){toast("Defina o n\u00famero de "+labelNm,"error");return;}
-    var nuV=parseInt(nuStr,10);
-    if(isNaN(nuV)||nuV<0||nuV>99){toast("N\u00famero inv\u00e1lido para "+labelNm+" (0-99)","error");return;}
-    if(seen[nuV]){toast("N\u00famero "+nuV+" repetido na escala\u00e7\u00e3o","error");return;}
-    seen[nuV]=true;
+    // Numero OPCIONAL: pode salvar a escalacao so com os nomes e ajustar os
+    // numeros depois (vira null ate ser preenchido). Conflito so entre os preenchidos.
+    var nuV=null;
+    if(nuStr!==""){
+      nuV=parseInt(nuStr,10);
+      if(isNaN(nuV)||nuV<0||nuV>99){toast("N\u00famero inv\u00e1lido para "+labelNm+" (0-99)","error");return;}
+      if(seen[nuV]){toast("N\u00famero "+nuV+" repetido na escala\u00e7\u00e3o","error");return;}
+      seen[nuV]=true;
+    }
     var isAdhoc = row.classList && row.classList.contains("lu-adhoc");
     var entry={aid:aid,nu:nuV};
     if(isAdhoc){
@@ -5765,7 +5770,7 @@ function saveLineup(gameId){
   if(t){
     for(var i=0;i<newLineup.length;i++){
       var ath=aFind(newLineup[i].aid);
-      if(ath){
+      if(ath && newLineup[i].nu!=null){
         if(!ath.last_nu_by_team)ath.last_nu_by_team={};
         ath.last_nu_by_team[t.id]=newLineup[i].nu;
       }
@@ -5784,18 +5789,22 @@ function addAdhocAthlete(gameId){
   var nmEl=document.getElementById("lu-new-nm");
   var poEl=document.getElementById("lu-new-po");
   if(!nuEl||!nmEl)return;
-  var nu=parseInt((nuEl.value||"").trim(),10);
+  var nuRaw=(nuEl.value||"").trim();
+  var nu=nuRaw===""?"":parseInt(nuRaw,10);
   var nm=(nmEl.value||"").trim();
   var po=(poEl?poEl.value:"").trim();
   if(!nm){toast("Informe o nome da atleta","error");return;}
-  if(isNaN(nu)||nu<0||nu>99){toast("N\u00famero inv\u00e1lido (0-99)","error");return;}
-  // Verifica conflito de numero entre as rows marcadas
-  var allRows=document.querySelectorAll(".lu-row");
-  for(var i=0;i<allRows.length;i++){
-    if(allRows[i].getAttribute("data-on")!=="1")continue;
-    var rNu=allRows[i].querySelector(".lu-nu");
-    if(rNu&&parseInt(rNu.value,10)===nu){
-      toast("N\u00famero "+nu+" ja em uso. Escolha outro.","error");return;
+  // Numero e OPCIONAL (pode entrar so o nome agora e ajustar o numero depois).
+  if(nuRaw!==""&&(isNaN(nu)||nu<0||nu>99)){toast("N\u00famero inv\u00e1lido (0-99)","error");return;}
+  // Conflito de numero so quando um numero foi informado
+  if(nuRaw!==""){
+    var allRows=document.querySelectorAll(".lu-row");
+    for(var i=0;i<allRows.length;i++){
+      if(allRows[i].getAttribute("data-on")!=="1")continue;
+      var rNu=allRows[i].querySelector(".lu-nu");
+      if(rNu&&rNu.value!==""&&parseInt(rNu.value,10)===nu){
+        toast("N\u00famero "+nu+" ja em uso. Escolha outro.","error");return;
+      }
     }
   }
   var aid="adhoc_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);

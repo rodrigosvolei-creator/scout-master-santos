@@ -1045,7 +1045,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19n · corrigir atleta";
+var APP_BUILD="2026-06-19o · corrigir atleta v2";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6144,29 +6144,59 @@ function setScoutSide(side){S.side=(side==="B")?"B":"A";S.sp=null;S.sa=null;rend
 // estatistica/premiacao por atleta acerta. O site/telao recalculam sozinhos.
 function reassignActions(gid, fromAid, toAid){
   var g=gF(gid); if(!g||!g.act||!fromAid||!toAid||fromAid===toAid) return 0;
-  var toSide=null;
-  if(g.tidB) toSide=(g.lineupB&&g.lineupB.some(function(l){return l.aid===toAid;}))?"B":"A";
   var n=0;
-  for(var i=0;i<g.act.length;i++){ if(g.act[i].pid===fromAid){ g.act[i].pid=toAid; if(toSide)g.act[i].side=toSide; n++; } }
+  // Mantem a.side: a equipe/lado estava certo (o emprestado jogou por aquela equipe),
+  // so a PESSOA estava errada. Reatribui so o pid.
+  for(var i=0;i<g.act.length;i++){ if(g.act[i].pid===fromAid){ g.act[i].pid=toAid; n++; } }
   if(n){ if(typeof saveGame==="function") saveGame(g).catch(function(){}); else save(); }
   return n;
 }
+// Cria um atleta novo numa equipe minis (pro caso do emprestado / atleta faltante).
+function createMinisAthlete(teamId, nome){
+  var t=tF(teamId); if(!t || !nome) return null;
+  if(!t.roster) t.roster=[];
+  if(!D.athletes) D.athletes=[];
+  var aid=teamId+"_x"+Date.now().toString(36);
+  D.athletes.push({aid:aid, nm:nome, po:""});
+  t.roster.push({aid:aid});
+  if(typeof saveTeam==="function") saveTeam(t).catch(function(){});
+  if(typeof saveAthlete==="function") saveAthlete(aFind(aid)).catch(function(){});
+  return aid;
+}
+function _reTeamNm(aid){ var mm=/^(t_minis_[a-z]+)/.exec(aid||""); var t=mm?tF(mm[1]):null; return t?(t.n||"").replace(/^RS\s+/i,""):""; }
 function openReassignModal(gid){
   var g=gF(gid); if(!g){ if(typeof toast==="function")toast("Jogo nao encontrado","error"); return; }
   var acts=g.act||[]; var counts={};
   for(var i=0;i<acts.length;i++){ counts[acts[i].pid]=(counts[acts[i].pid]||0)+1; }
   var lus=[].concat(g.lineup||[], g.lineupB||[]);
   function nm(aid){ var le=null; for(var k=0;k<lus.length;k++)if(lus[k].aid===aid){le=lus[k];break;} var ath=(typeof aFind==="function")?aFind(aid):null; return (le&&le.nm)||(ath&&ath.nm)||aid; }
+  // De: so quem tem acoes
   var deOpts=""; var wa=Object.keys(counts);
   for(var i=0;i<wa.length;i++) deOpts+='<option value="'+wa[i]+'">'+esc(nm(wa[i]))+' ('+counts[wa[i]]+' ações)</option>';
   if(!wa.length) deOpts='<option value="">— sem ações —</option>';
-  var paraOpts=""; var seen={};
-  for(var i=0;i<lus.length;i++){ var aid=lus[i].aid; if(seen[aid])continue; seen[aid]=true; paraOpts+='<option value="'+aid+'">'+esc(nm(aid))+'</option>'; }
+  // Para: TODOS os atletas das equipes minis (pra reatribuir a um emprestado de outra
+  // equipe) + os da escalacao deste jogo. Dedup por aid.
+  var pool=[]; var seen={};
+  function add(aid){ if(!aid||seen[aid])return; seen[aid]=true; pool.push(aid); }
+  for(var i=0;i<lus.length;i++) add(lus[i].aid);
+  var allAth=(D&&D.athletes)?D.athletes:[];
+  for(var i=0;i<allAth.length;i++){ if(allAth[i].aid && allAth[i].aid.indexOf("t_minis_")===0) add(allAth[i].aid); }
+  pool.sort(function(a,b){ return (_reTeamNm(a)+nm(a)).localeCompare(_reTeamNm(b)+nm(b)); });
+  var paraOpts="";
+  for(var i=0;i<pool.length;i++){ var tn=_reTeamNm(pool[i]); paraOpts+='<option value="'+pool[i]+'">'+esc(nm(pool[i]))+(tn?' · '+esc(tn):'')+'</option>'; }
+  // equipes pra criar atleta novo (as do jogo primeiro, depois as outras minis)
+  var teamOpts=""; var ts={};
+  function addT(id){ if(!id||ts[id])return; var t=tF(id); if(!t)return; ts[id]=1; teamOpts+='<option value="'+id+'">'+esc(t.n||id)+'</option>'; }
+  addT(g.tid); addT(g.tidB);
+  if(D&&D.teams)for(var i=0;i<D.teams.length;i++){ if(D.teams[i].id.indexOf("t_minis_")===0) addT(D.teams[i].id); }
   var m='<div class="tnj-modal" onclick="cancelTorneioModal()"><div class="tnj-box" onclick="event.stopPropagation()">';
-  m+='<div class="tnj-title">↔ REATRIBUIR AÇÕES</div>';
-  m+='<div class="tnj-sub">Move TODAS as ações de um atleta pra outro neste jogo. O placar não muda.</div>';
+  m+='<div class="tnj-title">↔ CORRIGIR ATLETA</div>';
+  m+='<div class="tnj-sub">Move TODAS as ações de um atleta pra outro neste jogo. O placar não muda (é por equipe).</div>';
   m+='<div class="tnj-field"><span class="tnj-lb">De (atleta errado)</span><select id="re-de">'+deOpts+'</select></div>';
-  m+='<div class="tnj-field"><span class="tnj-lb">Para (atleta certo)</span><select id="re-para">'+paraOpts+'</select></div>';
+  m+='<div class="tnj-field"><span class="tnj-lb">Para (atleta certo — qualquer equipe)</span><select id="re-para">'+paraOpts+'</select></div>';
+  m+='<div style="text-align:center;font-size:11px;color:#94a3b8;margin:6px 0">— ou cadastrar um atleta novo —</div>';
+  m+='<div class="tnj-row"><div class="tnj-field"><span class="tnj-lb">Nome novo</span><input id="re-novo-nm" placeholder="(opcional)" autocomplete="off"></div>';
+  m+='<div class="tnj-field"><span class="tnj-lb">Equipe</span><select id="re-novo-time">'+teamOpts+'</select></div></div>';
   m+='<div class="tnj-err" id="re-err"></div>';
   m+='<div class="tnj-actions"><button class="tnj-cancel" onclick="cancelTorneioModal()">Cancelar</button>';
   m+='<button class="tnj-save" onclick="doReassign(\''+gid+'\')">✓ Reatribuir</button></div>';
@@ -6174,11 +6204,21 @@ function openReassignModal(gid){
   var d=document.createElement("div");d.id="tnjModal";d.innerHTML=m;document.body.appendChild(d);
 }
 function doReassign(gid){
-  var de=(document.getElementById("re-de")||{}).value, para=(document.getElementById("re-para")||{}).value;
+  var de=(document.getElementById("re-de")||{}).value;
+  var para=(document.getElementById("re-para")||{}).value;
+  var novoNm=((document.getElementById("re-novo-nm")||{}).value||"").trim();
+  var novoTime=(document.getElementById("re-novo-time")||{}).value;
   var err=document.getElementById("re-err");
-  if(!de||!para){ if(err)err.textContent="Escolha os dois atletas."; return; }
-  if(de===para){ if(err)err.textContent="Escolha atletas diferentes."; return; }
-  var n=reassignActions(gid, de, para);
+  if(!de){ if(err)err.textContent="Escolha o atleta errado (De)."; return; }
+  var target=para;
+  if(novoNm){ // cadastra o atleta novo na equipe escolhida e reatribui pra ele
+    if(!novoTime){ if(err)err.textContent="Escolha a equipe do atleta novo."; return; }
+    target=createMinisAthlete(novoTime, novoNm);
+    if(!target){ if(err)err.textContent="Nao consegui cadastrar o atleta."; return; }
+  }
+  if(!target){ if(err)err.textContent="Escolha o atleta certo (Para) ou cadastre um novo."; return; }
+  if(de===target){ if(err)err.textContent="O atleta de origem e destino são o mesmo."; return; }
+  var n=reassignActions(gid, de, target);
   closeTorneioModal();
   if(typeof toast==="function") toast(n+" ações reatribuídas","ok");
   render();

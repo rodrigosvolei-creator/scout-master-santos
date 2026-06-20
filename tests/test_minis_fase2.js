@@ -180,6 +180,21 @@ setTimeout(()=>{
     chk(gg.act.filter(function(x){return x.pid===toA;}).length>=moved,'reassign: atleta certo recebe as acoes');
     chk(JSON.stringify(gg.ss)===ssBefore,'reassign: placar NAO muda (e por equipe)');
 
+    // 16. Reatribuir pra atleta de OUTRA equipe (emprestado) — mantem o lado
+    var aPor=gg.lineupB[0].aid; // DUDA (Portugal, lado B) tem acoes
+    var actPor=gg.act.filter(function(x){return x.pid===aPor;});
+    var sideBefore=actPor.length?actPor[0].side:null;
+    var holAid='t_minis_hol_a0'; // atleta de outra equipe (Holanda)
+    var nm2=w.reassignActions(g.id, aPor, holAid);
+    chk(nm2>0,'reassign cross-team: moveu acoes do emprestado pra atleta de outra equipe');
+    var mAct=gg.act.filter(function(x){return x.pid===holAid;})[0];
+    chk(mAct && mAct.side===sideBefore,'reassign cross-team: MANTEM o lado (so a pessoa muda)');
+
+    // 17. Criar atleta novo numa equipe e reatribuir pra ele
+    var newId=w.createMinisAthlete('t_minis_col','NOVATO');
+    chk(!!newId && !!w.aFind(newId) && w.aFind(newId).nm==='NOVATO','createMinisAthlete: cria atleta na equipe');
+    chk(w.tF('t_minis_col').roster.some(function(r){return r.aid===newId;}),'createMinisAthlete: entra no roster da equipe');
+
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK MINIS FASE 2 APROVADA':'FAIL MINIS FASE 2 REPROVADA');
     process.exit(ko===0?0:1);

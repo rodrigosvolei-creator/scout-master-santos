@@ -1024,7 +1024,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19a · minis fase 1 (5 equipes)";
+var APP_BUILD="2026-06-19b · minis criar jogo (2 equipes)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -2698,8 +2698,12 @@ function renderGameDayCard(g,isNext){
   // Fase
   h+='<div class="gd-phase">'+esc(g.phase||"FASE DE CLASSIFICA\u00c7\u00c3O").toUpperCase()+'</div>';
   // Confronto
+  // Mandante: padrao = brand do torneio (USA/PG). No minis o mandante e a
+  // propria equipe da casa (g.tid) — usa logo/nome dela.
+  var homeLogo=brand.logo, homeName=brand.team, homeCls=brand.teamLogoCls;
+  if(cardBrandToken==='minis'){ var _ht=(typeof tF==='function')?tF(g.tid):null; if(_ht){ if(_ht.brandLogoData)homeLogo=_ht.brandLogoData; homeName=_ht.n||homeName; homeCls='usa-pg-logo'; } }
   h+='<div class="gd-match">';
-  h+='<div class="gd-team"><div class="'+brand.teamLogoCls+'"><img src="'+brand.logo+'" alt="logo"></div><div class="gd-team-name">'+brand.team+'</div></div>';
+  h+='<div class="gd-team"><div class="'+homeCls+'"><img src="'+homeLogo+'" alt="logo"></div><div class="gd-team-name">'+esc(homeName)+'</div></div>';
   h+='<div class="gd-x">X</div>';
   h+='<div class="gd-team">'+oppLogoSvg(g.oppLogo,g.opp,g.oppLogoData)+'<div class="gd-team-name">'+esc(g.opp||"").toUpperCase()+'</div></div>';
   h+='</div>';
@@ -2871,6 +2875,8 @@ function openTorneioEditarJogo(gid){
 }
 
 function openTorneioNovoJogo(){
+  // Minis: form proprio (2 equipes + formato/pontos editaveis).
+  if(torneioToken==='minis'){ openMinisNovoJogo(_tnjEditId); return; }
   // Gate de admin: senha no modo isolado, papel (admin/coord) no fluxo unificado.
   if(!canManageTorneio()){
     openTorneioAdminGate();
@@ -2994,6 +3000,98 @@ function handleTnjLogo(input){
 
 function closeTorneioModal(){
   var d=document.getElementById("tnjModal");if(d)d.remove();
+}
+
+// ===== TORNEIO MINIS: criar/editar jogo entre 2 das 5 equipes =====
+// Form proprio: escolhe equipe A (casa) e B (adversaria), formato e pontos
+// editaveis. Escalacao automatica das duas + logos no card. (Scout 2 lados = Fase 2.)
+function minisTeams(){
+  var out=[];
+  if(typeof MINIS_TEAMS!=="undefined"){
+    for(var i=0;i<MINIS_TEAMS.length;i++){ var t=tF(MINIS_TEAMS[i].id); if(t)out.push(t); }
+  }
+  return out;
+}
+// Mostra/esconde "pontos do set decisivo" (so bo3/bo5 tem decisivo).
+function minisFmtChange(){
+  var f=(document.getElementById("mn-fmt")||{}).value;
+  var w=document.getElementById("mn-tie-wrap");
+  if(w)w.style.display=(f==="bo3"||f==="bo5")?"":"none";
+}
+function openMinisNovoJogo(editId){
+  if(!canManageTorneio()){ return; }
+  var editG=editId?gF(editId):null;
+  var isEdit=!!editG;
+  var teams=minisTeams();
+  var defFmt=editG?gameFmt(editG):"single";
+  var defSet=(editG&&editG.setPoints)||21;
+  var defTie=(editG&&editG.tiePoints)||15;
+  function opts(sel){ var s=""; for(var i=0;i<teams.length;i++){ s+='<option value="'+teams[i].id+'"'+(sel===teams[i].id?" selected":"")+'>'+esc(teams[i].n)+'</option>'; } return s; }
+  var m='<div class="tnj-modal" onclick="cancelTorneioModal()"><div class="tnj-box" onclick="event.stopPropagation()">';
+  m+='<div class="tnj-title">'+(isEdit?"EDITAR JOGO":"NOVO JOGO")+'</div>';
+  m+='<div class="tnj-sub">Minis · escolha as 2 equipes</div>';
+  m+='<div class="tnj-row">';
+  m+='<div class="tnj-field"><span class="tnj-lb">Equipe (casa)</span><select id="mn-a">'+opts(editG?editG.tid:(teams[0]?teams[0].id:""))+'</select></div>';
+  m+='<div class="tnj-field"><span class="tnj-lb">Adversária</span><select id="mn-b">'+opts(editG?editG.tidB:(teams[1]?teams[1].id:""))+'</select></div>';
+  m+='</div>';
+  m+='<div class="tnj-row"><div class="tnj-field"><span class="tnj-lb">Data *</span><input id="mn-dt" type="date" value="'+(editG?editG.dt||"":"")+'"></div>';
+  m+='<div class="tnj-field"><span class="tnj-lb">Horário</span><input id="mn-tm" type="time" value="'+(editG&&editG.tm?editG.tm.substring(0,5):"")+'"></div></div>';
+  m+='<div class="tnj-field"><span class="tnj-lb">Formato</span><select id="mn-fmt" onchange="minisFmtChange()">';
+  m+='<option value="single"'+(defFmt==="single"?" selected":"")+'>1 set</option>';
+  m+='<option value="bo3"'+(defFmt==="bo3"?" selected":"")+'>Melhor de 3 (3º decisivo)</option>';
+  m+='<option value="bo5"'+(defFmt==="bo5"?" selected":"")+'>Melhor de 5 (5º decisivo)</option>';
+  m+='<option value="fixed3"'+(defFmt==="fixed3"?" selected":"")+'>3 sets obrigatórios</option>';
+  m+='</select></div>';
+  m+='<div class="tnj-row"><div class="tnj-field"><span class="tnj-lb">Pontos por set</span><input id="mn-pts" type="number" min="1" max="99" value="'+defSet+'"></div>';
+  m+='<div class="tnj-field" id="mn-tie-wrap"><span class="tnj-lb">Pontos set decisivo</span><input id="mn-tie" type="number" min="1" max="99" value="'+defTie+'"></div></div>';
+  m+='<div class="tnj-err" id="mn-err"></div>';
+  m+='<div class="tnj-actions"><button class="tnj-cancel" onclick="cancelTorneioModal()">Cancelar</button>';
+  m+='<button class="tnj-save" onclick="salvarMinisJogo(\''+(editId||"")+'\')">'+(isEdit?"✓ Salvar":"✓ Criar Jogo")+'</button></div>';
+  m+='</div></div>';
+  var d=document.createElement("div");d.id="tnjModal";d.innerHTML=m;document.body.appendChild(d);
+  minisFmtChange();
+}
+function salvarMinisJogo(editId){
+  var err=document.getElementById("mn-err");
+  var aId=(document.getElementById("mn-a")||{}).value;
+  var bId=(document.getElementById("mn-b")||{}).value;
+  var dt=(document.getElementById("mn-dt")||{}).value;
+  var tm=(document.getElementById("mn-tm")||{}).value;
+  var fmt=(document.getElementById("mn-fmt")||{}).value;
+  if(["single","bo3","bo5","fixed3"].indexOf(fmt)<0)fmt="single";
+  var pts=parseInt((document.getElementById("mn-pts")||{}).value,10);
+  var tie=parseInt((document.getElementById("mn-tie")||{}).value,10);
+  if(isNaN(pts)||pts<1)pts=21;
+  if(isNaN(tie)||tie<1)tie=15;
+  if(!aId||!bId){ if(err)err.textContent="Escolha as duas equipes."; return; }
+  if(aId===bId){ if(err)err.textContent="As duas equipes precisam ser diferentes."; return; }
+  if(!dt){ if(err)err.textContent="Informe a data."; return; }
+  var tA=tF(aId), tB=tF(bId);
+  if(!tA||!tB){ if(err)err.textContent="Equipe nao encontrada."; return; }
+  var maxSets=(fmt==="single")?1:((fmt==="bo5")?5:3);
+  function lineupOf(t){ var L=[]; if(t.roster)for(var i=0;i<t.roster.length;i++){ L.push({aid:t.roster[i].aid,nu:null}); } return L; }
+  if(editId){
+    var g=gF(editId); if(!g){ if(err)err.textContent="Jogo nao encontrado."; return; }
+    if(g.st==="done"){ if(err)err.textContent="Jogo finalizado nao pode ser editado."; return; }
+    g.tid=aId; g.tidB=bId; g.opp=tB.n; g.oppLogoData=tB.brandLogoData||null;
+    g.dt=dt; g.tm=tm||""; g.format=fmt; g.maxSets=maxSets; g.setPoints=pts; g.tiePoints=tie;
+    g.tor=tFnd(g.torId)?tFnd(g.torId).n:""; g.cat="MINIS";
+    if(g.st!=="live"){ g.lineup=lineupOf(tA); g.lineupB=lineupOf(tB); }
+    if(typeof toast==="function")toast("Jogo atualizado!","ok");
+  }else{
+    var torId=torneioMode?torneioId:"t_minis_open";
+    var ng={ id:uid("g_"), tid:aId, tidB:bId, torId:torId, tor:(tFnd(torId)?tFnd(torId).n:""),
+      cat:"MINIS", phase:"", opp:tB.n, oppLogoData:tB.brandLogoData||null,
+      dt:dt, tm:tm||"", format:fmt, maxSets:maxSets, setPoints:pts, tiePoints:tie,
+      lineup:lineupOf(tA), lineupB:lineupOf(tB), pl:[], act:[], ss:[], st:"pending" };
+    if(!D.games)D.games=[];
+    D.games.push(ng);
+    if(typeof toast==="function")toast("Jogo criado!","ok");
+  }
+  _tnjEditId=null;
+  closeTorneioModal();
+  save();
+  render();
 }
 
 // === Fase PG: editor de brand (logo + nome + subtitulo) ===
@@ -6263,13 +6361,13 @@ function gameFmt(g){
   if(g&&g.format)return g.format;
   return (g&&g.maxSets===5)?"bo5":"bo3";
 }
-function gameMaxSets(g){ return gameFmt(g)==="bo5"?5:3; }
-// Pontos-alvo do set: 25 normal, 15 no tie break (ultimo set de bo3/bo5).
+function gameMaxSets(g){ var f=gameFmt(g); return f==="single"?1:(f==="bo5"?5:3); }
+// Set decisivo (tie)? bo3=set3, bo5=set5. single/fixed3 nunca tem decisivo separado.
+function _isTieSet(g,setNum){ var f=gameFmt(g); return (f==="bo3"&&setNum===3)||(f==="bo5"&&setNum===5); }
+// Pontos-alvo do set: g.setPoints (default 25) normal; g.tiePoints (default 15) no decisivo.
 function setTarget(g,setNum){
-  var f=gameFmt(g);
-  if(f==="bo3"&&setNum===3)return 15;
-  if(f==="bo5"&&setNum===5)return 15;
-  return 25;
+  if(_isTieSet(g,setNum)) return (g&&g.tiePoints)||15;
+  return (g&&g.setPoints)||25;
 }
 // O set (1-based) ja terminou? alvo atingido com 2+ de vantagem.
 function setIsOver(g,setNum){
@@ -6285,7 +6383,9 @@ function setsWon(g){
 }
 // Jogo decidido? bo3=2 sets, bo5=3 sets. fixed3 nunca decide cedo (joga os 3).
 function gameIsDecided(g){
-  var f=gameFmt(g); if(f==="fixed3")return false;
+  var f=gameFmt(g);
+  if(f==="single") return setIsOver(g,1);
+  if(f==="fixed3") return setIsOver(g,1)&&setIsOver(g,2)&&setIsOver(g,3);
   var w=setsWon(g); var need=(f==="bo5")?3:2;
   return w.u>=need || w.t>=need;
 }

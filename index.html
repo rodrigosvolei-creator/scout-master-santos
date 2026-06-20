@@ -639,6 +639,26 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .sc-outs{display:grid;gap:8px}
 .sc-out{padding:18px 4px;border-radius:14px;border:none;color:#fff;cursor:pointer;font-size:16px;font-weight:900;font-family:inherit;letter-spacing:.5px;text-transform:uppercase;transition:transform .1s;box-shadow:0 6px 16px rgba(0,0,0,.18)}
 .sc-out:active{transform:scale(.93)}
+/* Minis 2 lados: modo compacto — cabe mais na tela, menos rolagem (alvos de toque mantidos). */
+.sc-compact .sc-board{padding:6px 14px 10px}
+.sc-compact .sc-crest{width:46px;height:46px;border-radius:11px}
+.sc-compact .sc-pts{font-size:56px}
+.sc-compact .sc-vs{margin-top:42px}
+.sc-compact .sc-tname{min-height:18px;font-size:10px;gap:4px}
+.sc-compact .sc-side{gap:5px}
+.sc-compact .sc-sb{width:40px;height:34px;font-size:18px}
+.sc-compact .sc-seclabel{margin:8px 0 5px;font-size:13px}
+.sc-compact .sc-players{gap:6px}
+.sc-compact .sc-pcard{padding:6px 3px 5px}
+.sc-compact .sc-pcard .num{font-size:22px}
+.sc-compact .sc-funds{gap:6px}
+.sc-compact .sc-fund{padding:8px 4px}
+.sc-compact .sc-fund .fi{font-size:17px}
+.sc-compact .sc-outs{gap:6px}
+.sc-compact .sc-out{padding:11px 4px;font-size:14px}
+.sc-compact .sc-panel{margin-top:8px}
+.sc-compact .sc-ctrls{padding:8px 10px}
+.sc-compact .sc-cbtn{padding:7px 11px}
 .sc-feed{margin-top:6px;display:flex;flex-direction:column;gap:4px}
 .sc-fitem{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--card2);border-radius:10px;font-size:12px;border-left:3px solid var(--brd)}
 .sc-fitem .fnum{font-family:'Bebas Neue',sans-serif;font-size:17px;min-width:24px}
@@ -1025,7 +1045,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19e · minis nome+escudo placar";
+var APP_BUILD="2026-06-19f · minis scout compacto";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -3387,7 +3407,7 @@ function renderTorneioScout(gid){
   var _homeNm=(torneioToken==='minis'&&g.tid&&tF(g.tid))?tF(g.tid).n:__brand.team;
   h+='<div class="usa-scout-title">'+esc(_homeNm)+' vs '+esc(g.opp||"")+'</div>';
   h+='</div>';
-  h+='<div class="usa-scout-body" id="usa-scout-body">';
+  h+='<div class="usa-scout-body'+(g.tidB?' sc-compact':'')+'" id="usa-scout-body">';
   // Reusa o motor de scout do app — força isScouter pra liberar controles
   var _sv=isScouter;isScouter=true;
   h+=rSct();

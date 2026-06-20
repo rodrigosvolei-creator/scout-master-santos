@@ -1045,7 +1045,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19k · pdf logo casa";
+var APP_BUILD="2026-06-19l · telao ao vivo";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -1318,6 +1318,9 @@ var torneioId=null;         // id do torneio (ex: t_usa_open)
 var torneioToken=null;      // token da URL
 var torneioUnlocked=false;  // true após digitar a senha correta
 var torneioPwdError="";     // erro de senha
+// === Modo TELÃO: ?telao=<token> — tela cheia, read-only, que sempre segue o
+// jogo AO VIVO daquele torneio (troca sozinho quando muda de jogo). Sem senha.
+var telaoMode=false, telaoToken=null, telaoTorId=null, _telaoTimer=null;
 var torneioGameOpen=null;   // id do jogo aberto no scout (null = lista de cards)
 
 var appStarted=true;
@@ -1668,6 +1671,13 @@ function getBrand(token){
         tab="torneios";
         showLanding=false;
       }
+    }
+    // Modo TELÃO: ?telao=<token> — tela cheia que segue o jogo ao vivo do torneio.
+    var telao=url.searchParams.get("telao");
+    if(telao){
+      telaoMode=true; telaoToken=telao; showLanding=false;
+      var __t=TOURNEY_ACCESS[telao];
+      if(__t && __t.torId) telaoTorId=__t.torId;
     }
     // Permite pular landing com ?app=1
     if(url.searchParams.get("app")==="1"){
@@ -3587,10 +3597,67 @@ function renderLoginModal(){
   return h;
 }
 
+// ===== TELÃO: tela cheia que sempre mostra o jogo AO VIVO do torneio (read-only).
+// Abre uma vez (?telao=minis) e segue sozinho: troca de jogo quando muda o live,
+// atualiza o placar em tempo real (Firebase). Sem senha, sem controles.
+function _telaoSide(s, pts){
+  var h='<div style="display:flex;flex-direction:column;align-items:center;gap:1.5vh;flex:1;min-width:0">';
+  if(s.logo) h+='<div style="width:clamp(70px,11vw,150px);height:clamp(70px,11vw,150px);border-radius:18px;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.5)"><img src="'+s.logo+'" style="width:100%;height:100%;object-fit:contain"></div>';
+  h+='<div style="font-weight:800;text-transform:uppercase;letter-spacing:1px;font-size:clamp(15px,2.2vw,34px);color:'+s.c+';line-height:1.1;max-width:14ch">'+esc(s.nm)+'</div>';
+  h+='<div style="font-family:Bebas Neue,sans-serif;font-size:clamp(80px,18vw,230px);line-height:.85;color:#fff;text-shadow:0 6px 30px rgba(0,0,0,.5)">'+pts+'</div>';
+  return h+'</div>';
+}
+function _telaoMini(s){
+  var h='<div style="display:flex;flex-direction:column;align-items:center;gap:8px">';
+  if(s.logo) h+='<div style="width:clamp(48px,7vw,90px);height:clamp(48px,7vw,90px);border-radius:12px;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center"><img src="'+s.logo+'" style="width:100%;height:100%;object-fit:contain"></div>';
+  h+='<div style="font-weight:800;text-transform:uppercase;font-size:clamp(13px,1.6vw,22px);color:'+s.c+'">'+esc(s.nm)+'</div>';
+  return h+'</div>';
+}
+function renderTelao(){
+  var brand=getBrand(telaoToken);
+  var games=(D&&D.games)?D.games:[];
+  var inScope=function(g){ return !telaoTorId || g.torId===telaoTorId; };
+  function side(tid, fbNome, fbLogo, cor){
+    var t=tid?tF(tid):null;
+    return { nm:(t&&t.n)||fbNome||"", logo:(t&&t.brandLogoData)||fbLogo||"", c:(t&&t.c)||cor||"#94a3b8" };
+  }
+  var live=null;
+  for(var i=0;i<games.length;i++){ if(inScope(games[i]) && games[i].st==="live"){ live=games[i]; break; } }
+  var h='<div style="position:fixed;inset:0;z-index:9999;overflow:auto;background:radial-gradient(ellipse at 50% 0%,#13203b,#0a0e1a 60%,#070b14);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:3vh 3vw;box-sizing:border-box">';
+  h+='<div style="font-family:Bebas Neue,sans-serif;letter-spacing:3px;font-size:clamp(20px,3.4vw,46px);color:#e2e8f0">'+esc(brand.title||"AO VIVO")+'</div>';
+  if(live){
+    var A=side(live.tid,"Casa",null,"#3b82f6");
+    var B=side(live.tidB,live.opp,live.oppLogoData,"#94a3b8");
+    var ss=live.ss||[]; var cur=ss[ss.length-1]||{u:0,t:0}; var setN=ss.length||1;
+    var par=[]; for(var k=0;k<ss.length-1;k++) par.push(ss[k].u+"-"+ss[k].t);
+    h+='<div style="margin:1.6vh 0;display:inline-flex;align-items:center;gap:10px;background:rgba(220,38,38,.18);border:1px solid rgba(220,38,38,.45);color:#fca5a5;padding:6px 16px;border-radius:30px;font-weight:800;letter-spacing:2px;font-size:clamp(12px,1.4vw,18px)"><span style="width:11px;height:11px;border-radius:50%;background:#ef4444;animation:livePulse 1.4s infinite"></span>AO VIVO · SET '+setN+'</div>';
+    h+='<div style="display:flex;align-items:center;justify-content:center;gap:clamp(16px,4vw,70px);width:100%;max-width:1500px;margin-top:1vh">';
+    h+=_telaoSide(A,cur.u)+'<div style="font-family:Bebas Neue,sans-serif;font-size:clamp(40px,8vw,120px);color:#475569;line-height:1">×</div>'+_telaoSide(B,cur.t);
+    h+='</div>';
+    if(par.length) h+='<div style="margin-top:2.5vh;font-size:clamp(13px,1.6vw,22px);color:#94a3b8;letter-spacing:1px">Parciais: '+par.join(" &nbsp;|&nbsp; ")+'</div>';
+  }else{
+    h+='<div style="margin-top:4vh;font-size:clamp(22px,3.2vw,44px);color:#cbd5e1">⏳ Aguardando o próximo jogo…</div>';
+    var pend=games.filter(function(g){ return inScope(g) && g.st==="pending"; }).sort(function(a,b){ var x=(a.dt||"")+(a.tm||""),y=(b.dt||"")+(b.tm||""); return x<y?-1:x>y?1:0; });
+    if(pend.length){
+      var p=pend[0]; var PA=side(p.tid,"Casa",null,"#3b82f6"), PB=side(p.tidB,p.opp,p.oppLogoData,"#94a3b8");
+      h+='<div style="margin-top:3vh;display:flex;align-items:center;justify-content:center;gap:clamp(14px,3vw,40px);opacity:.85">'+_telaoMini(PA)+'<span style="font-size:clamp(16px,2vw,28px);color:#64748b">×</span>'+_telaoMini(PB)+'</div>';
+      if(p.dt||p.tm) h+='<div style="margin-top:1.6vh;color:#94a3b8;font-size:clamp(13px,1.5vw,20px)">'+(p.dt&&typeof fD==="function"?fD(p.dt):"")+(p.tm?" · "+p.tm.substring(0,5):"")+'</div>';
+    }
+  }
+  h+='<div style="position:fixed;bottom:2vh;left:0;right:0;text-align:center;font-size:11px;color:#475569;letter-spacing:1px">RS-SCOUT · telão</div>';
+  return h+'</div>';
+}
 function render(){if(!D)return;var a=document.getElementById("mainApp");
 // Fase A1: marca shell mode no <body>. So o shell recebe a marca d'agua
 // global e as tabs escuras. USA/signup/landing tem cosmetica propria.
-try{document.body.classList.toggle('rs-shell',!torneioMode&&!signupMode&&!showLanding);}catch(e){}
+try{document.body.classList.toggle('rs-shell',!torneioMode&&!signupMode&&!showLanding&&!telaoMode);}catch(e){}
+
+// === Modo TELÃO: tela cheia que segue o jogo ao vivo (read-only) ===
+if(telaoMode){
+  a.innerHTML=renderTelao();
+  if(!_telaoTimer){ _telaoTimer=setInterval(function(){ if(telaoMode)render(); },5000); }
+  return;
+}
 
 // === Modo torneio isolado (tela do torneio USA) ===
 if(torneioMode){

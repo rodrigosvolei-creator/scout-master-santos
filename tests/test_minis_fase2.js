@@ -156,6 +156,19 @@ setTimeout(()=>{
     // 13. pdfTeamLogo usa o escudo da equipe da casa (brandLogoData), nao o generico
     chk(w.pdfTeamLogo(w.gF(g.id))===w.tF('t_minis_col').brandLogoData,'PDF: logo da casa = escudo da equipe (brandLogoData), nao o generico');
 
+    // 14. Telao: segue o jogo AO VIVO do torneio (read-only, troca sozinho)
+    w.telaoMode=true; w.telaoToken='minis'; w.telaoTorId='t_minis_open';
+    w.gF(g.id).st='live'; w.gF(g.id).ss=[{u:15,t:9}];
+    var tela=w.renderTelao();
+    chk(tela.indexOf('AO VIVO')>=0,'telao: badge AO VIVO');
+    chk(tela.indexOf('RS COLOMBIA')>=0 && tela.indexOf('RS PORTUGAL')>=0,'telao: as 2 equipes do jogo ao vivo');
+    chk(tela.indexOf('>15<')>=0 && tela.indexOf('>9<')>=0,'telao: placar do set atual (15 x 9)');
+    chk(tela.indexOf('TORNEIO MINIS RS')>=0,'telao: titulo do torneio');
+    // sem jogo ao vivo -> aguardando proximo
+    w.D.games.forEach(function(x){ if(x.torId==='t_minis_open' && x.st==='live') x.st='done'; });
+    chk(w.renderTelao().indexOf('Aguardando')>=0,'telao: sem ao vivo -> aguardando proximo jogo');
+    w.telaoMode=false;
+
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK MINIS FASE 2 APROVADA':'FAIL MINIS FASE 2 REPROVADA');
     process.exit(ko===0?0:1);

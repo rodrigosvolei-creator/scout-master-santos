@@ -595,6 +595,7 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .sc-crest img{width:100%;height:100%;object-fit:contain;padding:6px}
 .sc-crest.rs img{padding:3px}
 .sc-crest.opp img{padding:11px}
+.sc-crest.minis img{padding:0}
 .sc-crest.ph{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#1e293b;background:linear-gradient(135deg,#e2e8f0,#cbd5e1)}
 .sc-tname{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;line-height:1.2;min-height:26px;display:flex;align-items:center;text-align:center}
 .sc-pts{font-family:'Bebas Neue',sans-serif;font-size:88px;line-height:.82;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.5);font-feature-settings:"tnum"}
@@ -1024,7 +1025,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19d · minis ajuste visual";
+var APP_BUILD="2026-06-19e · minis nome+escudo placar";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -3383,7 +3384,8 @@ function renderTorneioScout(gid){
   var h='<div class="usa-scout-wrap" style="--rs-watermark:url(\''+__brand.logo+'\')">';
   h+='<div class="usa-scout-bar">';
   h+='<button class="usa-scout-back" onclick="backToTorneioCards()">\u2190 Voltar aos jogos</button>';
-  h+='<div class="usa-scout-title">'+esc(__brand.team)+' vs '+esc(g.opp||"")+'</div>';
+  var _homeNm=(torneioToken==='minis'&&g.tid&&tF(g.tid))?tF(g.tid).n:__brand.team;
+  h+='<div class="usa-scout-title">'+esc(_homeNm)+' vs '+esc(g.opp||"")+'</div>';
   h+='</div>';
   h+='<div class="usa-scout-body" id="usa-scout-body">';
   // Reusa o motor de scout do app — força isScouter pra liberar controles
@@ -4338,10 +4340,10 @@ h+='</div></div>';
 h+='<div class="sc-board">';
 // lado do nosso time (PG, RS etc — usa logo do time se uploaded, senao brand do torneio, senao LR)
 var __nossoLogo = LR;
-if(te && te.logoData) __nossoLogo = te.logoData;
+if(te && (te.brandLogoData||te.logoData)) __nossoLogo = te.brandLogoData||te.logoData;
 else if(torneioMode){ var __b = getBrand(torneioToken); if(__b && __b.logo) __nossoLogo = __b.logo; }
 h+='<div class="sc-side">';
-h+='<div class="sc-crest rs"><img src="'+__nossoLogo+'" alt="time"></div>';
+h+='<div class="sc-crest rs'+(twoSided?' minis':'')+'"><img src="'+__nossoLogo+'" alt="time"></div>';
 h+='<div class="sc-tname" style="color:'+te.c+'">'+esc(nmRS)+'</div>';
 h+='<div class="sc-pts">'+cur.u+'</div>';
 if(!locked)h+='<div class="sc-scorebtns"><button class="sc-sb sc-sb-minus" onclick="scDn(\'u\')">\u2212</button><button class="sc-sb sc-sb-plus" onclick="scUp(\'u\')">+</button></div>';
@@ -4353,7 +4355,7 @@ h+='<div class="sc-side">';
 var advLogoHtml='';
 var advKey=(typeof resolveOppLogo==="function")?resolveOppLogo(gm.oppLogo,gm.opp):gm.oppLogo;
 if(gm.oppLogoData){
-  advLogoHtml='<div class="sc-crest opp"><img src="'+gm.oppLogoData+'" alt=""></div>';
+  advLogoHtml='<div class="sc-crest opp'+(twoSided?' minis':'')+'"><img src="'+gm.oppLogoData+'" alt=""></div>';
 }else if(advKey&&typeof OPP_LOGOS!=="undefined"&&OPP_LOGOS[advKey]){
   advLogoHtml='<div class="sc-crest opp"><img src="'+OPP_LOGOS[advKey]+'" alt=""></div>';
 }else{

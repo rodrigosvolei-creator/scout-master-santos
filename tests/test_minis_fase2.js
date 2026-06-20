@@ -114,6 +114,13 @@ setTimeout(()=>{
     var hn=w.rSct();
     chk(hn.indexOf("setScoutSide(")<0,'jogo normal: SEM seletor de equipe');
 
+    // 9. Isolamento: seleçao de scout no torneioMode NAO vaza jogo do app principal
+    var fut=new Date(); fut.setDate(fut.getDate()+2); var fds=fut.toISOString().slice(0,10);
+    w.D.games.push({id:'g_rs_fut',torId:'tRS',tid:'trs',opp:'TimeRSxyz',st:'pending',dt:fds,tm:'10:00',ss:[{u:0,t:0}],act:[],lineup:[]});
+    w.torneioMode=true; w.torneioId='t_minis_open'; w.scoutPeriod=30;
+    var sel=w.renderScoutSelection();
+    chk(sel.indexOf('TimeRSxyz')<0,'torneioMode: seleçao de scout NAO mostra jogo do app principal (RS)');
+
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK MINIS FASE 2 APROVADA':'FAIL MINIS FASE 2 REPROVADA');
     process.exit(ko===0?0:1);

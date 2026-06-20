@@ -1045,7 +1045,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19f · minis scout compacto";
+var APP_BUILD="2026-06-19g · minis isolar voltar/zerar";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -1443,6 +1443,9 @@ function scoutWhenBadge(diff){
 // --- Tela de selecao de jogo do scout (cards GAME DAY no tema escuro) ---
 function renderScoutSelection(){
   var pub=getPublicGames();
+  // Em torneioMode (USA/PG/minis) a selecao so mostra jogos do torneio ativo —
+  // evita vazar jogos do app principal na pagina isolada.
+  if(torneioMode && torneioId) pub=pub.filter(function(g){return g.torId===torneioId;});
   var liveGames=pub.filter(function(g){return g.st==="live";});
   var N=scoutPeriod;
   var upcoming=pub.filter(function(g){
@@ -6054,7 +6057,7 @@ function resetG(){
     body:"Placar e status voltam ao estado inicial.<br><span style=\"color:var(--gray);font-size:12px\">As a\u00e7\u00f5es j\u00e1 registradas <b>n\u00e3o</b> ser\u00e3o apagadas.</span>",
     confirmLabel:"\u{1F504} Zerar",
     confirmStyle:"bd",
-    onConfirm:function(){gm.st="pending";gm.ss=[{u:0,t:0}];if(S.ti)clearInterval(S.ti);S={aid:null,sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};toast("Partida zerada","ok");save();}
+    onConfirm:function(){gm.st="pending";gm.ss=[{u:0,t:0}];if(S.ti)clearInterval(S.ti);S={aid:null,sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};if(torneioMode)torneioGameOpen=null;toast("Partida zerada","ok");save();render();}
   });
 }
 function exS(){if(S.ti)clearInterval(S.ti);S={aid:null,sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};render();}

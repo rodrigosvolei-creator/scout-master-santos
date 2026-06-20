@@ -1045,7 +1045,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19l · telao ao vivo";
+var APP_BUILD="2026-06-19m · scout rapido (saveGame)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6457,7 +6457,7 @@ if(navigator.vibrate)navigator.vibrate(40);
 var isGood=(oc==="Ace"||oc==="Ponto"||oc==="A");var isBad=(oc==="Erro");
 try{var actx=new(window.AudioContext||window.webkitAudioContext)();var osc=actx.createOscillator();var gain=actx.createGain();osc.connect(gain);gain.connect(actx.destination);osc.frequency.value=isGood?880:isBad?330:660;gain.gain.value=0.08;osc.start();osc.stop(actx.currentTime+0.08);}catch(e){}
 showFlash(isGood?"#059669":isBad?"#dc2626":"#2563eb");
-save();render();}
+saveGame(gm).catch(function(){});render();}
 // showFlash: efeito visual de flash de cor (definicao estava faltando — causava travamento de scUp e rcO)
 function showFlash(color){
   try{
@@ -6473,8 +6473,8 @@ function showFlash(color){
     setTimeout(function(){if(f)f.style.opacity="0";},140);
   }catch(e){}
 }
-function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;courtRegisterPoint(who);courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");save();render();}
-function scDn(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u"&&gm.ss[S.cs-1].u>0)gm.ss[S.cs-1].u--;else if(who==="t"&&gm.ss[S.cs-1].t>0)gm.ss[S.cs-1].t--;save();render();}
+function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;courtRegisterPoint(who);courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");saveGame(gm).catch(function(){});render();}
+function scDn(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u"&&gm.ss[S.cs-1].u>0)gm.ss[S.cs-1].u--;else if(who==="t"&&gm.ss[S.cs-1].t>0)gm.ss[S.cs-1].t--;saveGame(gm).catch(function(){});render();}
 function undo(){if(!S.us.length)return;var l=S.us.pop();var gm=gF(S.aid);if(!gm)return;if(l.a&&gm.act){gm.act=gm.act.filter(function(a){return a.id!==l.a.id;});}
 // Reverter ponto automatico, se houve — no set em que a acao foi marcada
 if(l.sc&&l.a&&gm.ss){var si=(l.a.set||S.cs)-1;if(gm.ss[si]){if(l.sc==="u"&&gm.ss[si].u>0)gm.ss[si].u--;else if(l.sc==="t"&&gm.ss[si].t>0)gm.ss[si].t--;}}

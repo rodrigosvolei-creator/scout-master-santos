@@ -1045,7 +1045,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19j · minis nomes JAQUES/IGOR";
+var APP_BUILD="2026-06-19k · pdf logo casa";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6668,7 +6668,7 @@ function exGamePDF(gid){
 // (USA/PG via getBrand) > LR (fallback RS). Usado pelos 3 PDFs.
 function pdfTeamLogo(g){
   var te = (g && g.tid && typeof tF==='function') ? tF(g.tid) : null;
-  if(te && te.logoData) return te.logoData;
+  if(te && (te.brandLogoData||te.logoData)) return te.brandLogoData||te.logoData;
   if(g && g.torId && typeof TOURNEY_ACCESS!=='undefined'){
     var tok=null;
     for(var k in TOURNEY_ACCESS){ if(TOURNEY_ACCESS[k] && TOURNEY_ACCESS[k].torId===g.torId){ tok=k; break; } }

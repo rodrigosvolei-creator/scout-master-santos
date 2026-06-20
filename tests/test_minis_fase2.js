@@ -153,6 +153,9 @@ setTimeout(()=>{
     chk(/SET 1[^<]*RS COLOMBIA/.test(_pdf2) && /SET 1[^<]*RS PORTUGAL/.test(_pdf2),'PDF: SET 1 separado por equipe (Colombia + Portugal)');
     chk(/SET 2[^<]*RS PORTUGAL/.test(_pdf2),'PDF: SET 2 com a equipe certa (Portugal)');
 
+    // 13. pdfTeamLogo usa o escudo da equipe da casa (brandLogoData), nao o generico
+    chk(w.pdfTeamLogo(w.gF(g.id))===w.tF('t_minis_col').brandLogoData,'PDF: logo da casa = escudo da equipe (brandLogoData), nao o generico');
+
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK MINIS FASE 2 APROVADA':'FAIL MINIS FASE 2 REPROVADA');
     process.exit(ko===0?0:1);

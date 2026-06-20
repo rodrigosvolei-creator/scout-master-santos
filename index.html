@@ -1045,7 +1045,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19m · scout rapido (saveGame)";
+var APP_BUILD="2026-06-19n · corrigir atleta";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -4478,6 +4478,7 @@ if(!locked){
     h+='<button class="sc-cbtn sc-cbtn-set" onclick="nxS()">\u23ED Pr\u00f3x Set</button>';
     h+='<button class="sc-cbtn sc-cbtn-fin" onclick="enG()">\uD83C\uDFC1 Finalizar</button>';
     h+='<button class="sc-cbtn sc-cbtn-zerar" onclick="resetG()">\u{1F504} Zerar</button>';
+    h+='<button class="sc-cbtn sc-cbtn-set" onclick="openReassignModal(\''+gm.id+'\')">↔ Corrigir atleta</button>';
     h+='<button class="sc-cbtn sc-cbtn-wpp" onclick="exG(\''+gm.id+'\')">\u{1F4E4} WhatsApp</button>';
     if(gm.act&&gm.act.length)h+='<button class="sc-cbtn sc-cbtn-set" onclick="exGamePDF(\''+gm.id+'\')">\u{1F4C4} PDF Partida</button>';
     if(torneioMode&&gm.act&&gm.act.length)h+='<button class="sc-cbtn sc-cbtn-start" onclick="openLivePanel(\''+gm.id+'\')">\u{1F4CA} AO VIVO</button>';
@@ -6138,6 +6139,50 @@ function scoutBack(){
 function slP(pid){var gm=gF(S.aid);if(gm&&gm.st!=="live")return;S.sp=pid;S.sa=null;render();}
 // Minis 2 lados: alterna qual equipe esta sendo marcada (limpa selecao atual).
 function setScoutSide(side){S.side=(side==="B")?"B":"A";S.sp=null;S.sa=null;render();}
+// ===== CORRIGIR: reatribuir TODAS as acoes de um atleta pra outro neste jogo =====
+// (marcaram o jogo todo na pessoa errada). Placar NAO muda (e por equipe); so a
+// estatistica/premiacao por atleta acerta. O site/telao recalculam sozinhos.
+function reassignActions(gid, fromAid, toAid){
+  var g=gF(gid); if(!g||!g.act||!fromAid||!toAid||fromAid===toAid) return 0;
+  var toSide=null;
+  if(g.tidB) toSide=(g.lineupB&&g.lineupB.some(function(l){return l.aid===toAid;}))?"B":"A";
+  var n=0;
+  for(var i=0;i<g.act.length;i++){ if(g.act[i].pid===fromAid){ g.act[i].pid=toAid; if(toSide)g.act[i].side=toSide; n++; } }
+  if(n){ if(typeof saveGame==="function") saveGame(g).catch(function(){}); else save(); }
+  return n;
+}
+function openReassignModal(gid){
+  var g=gF(gid); if(!g){ if(typeof toast==="function")toast("Jogo nao encontrado","error"); return; }
+  var acts=g.act||[]; var counts={};
+  for(var i=0;i<acts.length;i++){ counts[acts[i].pid]=(counts[acts[i].pid]||0)+1; }
+  var lus=[].concat(g.lineup||[], g.lineupB||[]);
+  function nm(aid){ var le=null; for(var k=0;k<lus.length;k++)if(lus[k].aid===aid){le=lus[k];break;} var ath=(typeof aFind==="function")?aFind(aid):null; return (le&&le.nm)||(ath&&ath.nm)||aid; }
+  var deOpts=""; var wa=Object.keys(counts);
+  for(var i=0;i<wa.length;i++) deOpts+='<option value="'+wa[i]+'">'+esc(nm(wa[i]))+' ('+counts[wa[i]]+' ações)</option>';
+  if(!wa.length) deOpts='<option value="">— sem ações —</option>';
+  var paraOpts=""; var seen={};
+  for(var i=0;i<lus.length;i++){ var aid=lus[i].aid; if(seen[aid])continue; seen[aid]=true; paraOpts+='<option value="'+aid+'">'+esc(nm(aid))+'</option>'; }
+  var m='<div class="tnj-modal" onclick="cancelTorneioModal()"><div class="tnj-box" onclick="event.stopPropagation()">';
+  m+='<div class="tnj-title">↔ REATRIBUIR AÇÕES</div>';
+  m+='<div class="tnj-sub">Move TODAS as ações de um atleta pra outro neste jogo. O placar não muda.</div>';
+  m+='<div class="tnj-field"><span class="tnj-lb">De (atleta errado)</span><select id="re-de">'+deOpts+'</select></div>';
+  m+='<div class="tnj-field"><span class="tnj-lb">Para (atleta certo)</span><select id="re-para">'+paraOpts+'</select></div>';
+  m+='<div class="tnj-err" id="re-err"></div>';
+  m+='<div class="tnj-actions"><button class="tnj-cancel" onclick="cancelTorneioModal()">Cancelar</button>';
+  m+='<button class="tnj-save" onclick="doReassign(\''+gid+'\')">✓ Reatribuir</button></div>';
+  m+='</div></div>';
+  var d=document.createElement("div");d.id="tnjModal";d.innerHTML=m;document.body.appendChild(d);
+}
+function doReassign(gid){
+  var de=(document.getElementById("re-de")||{}).value, para=(document.getElementById("re-para")||{}).value;
+  var err=document.getElementById("re-err");
+  if(!de||!para){ if(err)err.textContent="Escolha os dois atletas."; return; }
+  if(de===para){ if(err)err.textContent="Escolha atletas diferentes."; return; }
+  var n=reassignActions(gid, de, para);
+  closeTorneioModal();
+  if(typeof toast==="function") toast(n+" ações reatribuídas","ok");
+  render();
+}
 function slA(ak){var gm=gF(S.aid);if(gm&&gm.st!=="live")return;S.sa=ak;render();}
 function tgTm(){if(S.rn){clearInterval(S.ti);S.rn=false;}else{S.ti=setInterval(function(){S.tm++;render();},1000);S.rn=true;}render();}
 // Ponto automatico parcial: Ace/Ataque-Ponto/Bloqueio-Ponto => RS marca ponto;

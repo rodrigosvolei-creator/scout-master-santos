@@ -169,6 +169,17 @@ setTimeout(()=>{
     chk(w.renderTelao().indexOf('Aguardando')>=0,'telao: sem ao vivo -> aguardando proximo jogo');
     w.telaoMode=false;
 
+    // 15. Reatribuir acoes (corrigir atleta errado): move tudo de X pra Y; placar nao muda
+    var gg=w.gF(g.id);
+    var ssBefore=JSON.stringify(gg.ss);
+    var fromA=aA, toA=gg.lineup[1].aid; // RAICA -> MARCOS (mesma equipe Colombia)
+    var nBefore=gg.act.filter(function(x){return x.pid===fromA;}).length;
+    var moved=w.reassignActions(g.id, fromA, toA);
+    chk(nBefore>0 && moved===nBefore,'reassign: moveu todas as acoes do atleta errado ('+moved+')');
+    chk(gg.act.filter(function(x){return x.pid===fromA;}).length===0,'reassign: atleta errado fica sem acoes');
+    chk(gg.act.filter(function(x){return x.pid===toA;}).length>=moved,'reassign: atleta certo recebe as acoes');
+    chk(JSON.stringify(gg.ss)===ssBefore,'reassign: placar NAO muda (e por equipe)');
+
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK MINIS FASE 2 APROVADA':'FAIL MINIS FASE 2 REPROVADA');
     process.exit(ko===0?0:1);

@@ -129,6 +129,30 @@ setTimeout(()=>{
     chk(_pdf.indexOf('RAICA')>=0 && _pdf.indexOf('DUDA')>=0,'PDF: atletas de cada equipe aparecem (RAICA / DUDA)');
     chk(_pdf.indexOf('>null<')<0 && _pdf.indexOf('#null')<0,'PDF: nao mostra "null" no numero (minis sem numero)');
 
+    // 11. WhatsApp (exG) 2 lados: uma secao por equipe
+    var _wa=''; var _oo=w.open; w.open=function(url){_wa=decodeURIComponent(url||'');};
+    w.exG(g.id);
+    w.open=_oo;
+    chk(_wa.indexOf('RS COLOMBIA')>=0 && _wa.indexOf('RS PORTUGAL')>=0,'WhatsApp: secoes das 2 equipes');
+    chk(_wa.indexOf('RAICA')>=0 && _wa.indexOf('DUDA')>=0,'WhatsApp: atletas de cada equipe (RAICA / DUDA)');
+    chk(_wa.indexOf('#null')<0,'WhatsApp: sem "#null" no numero');
+
+    // 12. PDF detalhamento por set separado por equipe (jogo bo3)
+    w.D.games.push({id:'g_set',torId:'t_minis_open',tid:'t_minis_col',tidB:'t_minis_por',opp:'RS PORTUGAL',oppLogoData:'data:image/x;base64,Zg==',st:'live',format:'bo3',maxSets:3,setPoints:21,tiePoints:15,
+      lineup:[{aid:'t_minis_col_a0',nu:null},{aid:'t_minis_col_a1',nu:null}],
+      lineupB:[{aid:'t_minis_por_a0',nu:null},{aid:'t_minis_por_a1',nu:null}],
+      ss:[{u:21,t:10},{u:15,t:21}],
+      act:[{id:'x1',pid:'t_minis_col_a0',ak:'ataque',oc:'Ponto',set:1,side:'A'},
+           {id:'x2',pid:'t_minis_por_a0',ak:'ataque',oc:'Ponto',set:1,side:'B'},
+           {id:'x3',pid:'t_minis_col_a1',ak:'saque',oc:'Erro',set:2,side:'A'},
+           {id:'x4',pid:'t_minis_por_a1',ak:'ataque',oc:'Ponto',set:2,side:'B'}]});
+    var _pdf2=''; var _o2=w.openPdfOverlay; w.openPdfOverlay=function(html){_pdf2=html||'';};
+    w.exGamePDF('g_set');
+    w.openPdfOverlay=_o2;
+    chk(_pdf2.indexOf('Detalhamento por set')>=0,'PDF: secao detalhamento por set (bo3)');
+    chk(/SET 1[^<]*RS COLOMBIA/.test(_pdf2) && /SET 1[^<]*RS PORTUGAL/.test(_pdf2),'PDF: SET 1 separado por equipe (Colombia + Portugal)');
+    chk(/SET 2[^<]*RS PORTUGAL/.test(_pdf2),'PDF: SET 2 com a equipe certa (Portugal)');
+
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK MINIS FASE 2 APROVADA':'FAIL MINIS FASE 2 REPROVADA');
     process.exit(ko===0?0:1);

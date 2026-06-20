@@ -1045,7 +1045,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19g · minis isolar voltar/zerar";
+var APP_BUILD="2026-06-19h · minis PDF por equipe";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6534,7 +6534,7 @@ function exGamePDF(gid){
   var pidsG=Object.keys(psGeral);
   for(var pi=0;pi<pidsG.length;pi++){
     var pf=pFind(pidsG[pi],g.id);
-    if(pf&&psGeral[pidsG[pi]].pts>destaquePts){destaquePts=psGeral[pidsG[pi]].pts;destaqueNome="#"+pf.nu+" "+pf.nm;}
+    if(pf&&psGeral[pidsG[pi]].pts>destaquePts){destaquePts=psGeral[pidsG[pi]].pts;destaqueNome=(pf.nu!=null&&pf.nu!==""?"#"+pf.nu+" ":"")+pf.nm;}
   }
   // Cores dos outcomes
   var ocColor={Ace:"#059669",Ponto:"#059669",A:"#059669",B:"#d97706",C:"#ea580c",Cont:"#64748b",Bloq:"#ea580c",Erro:"#dc2626"};
@@ -6561,7 +6561,7 @@ function exGamePDF(gid){
         }
         det+="<div class=fundrow><span class=fundname>"+fund+" <small>("+d.n+")</small></span>"+chips+"</div>";
       }
-      t+="<tr><td class=num>"+pf.nu+"</td><td class=nome>"+esc(pf.nm)+"</td><td class=c>"+s.n+"</td><td class=\"c pts\">"+s.pts+"</td><td class=\"c err\">"+s.err+"</td><td>"+det+"</td></tr>";
+      t+="<tr><td class=num>"+(pf.nu!=null&&pf.nu!==""?pf.nu:"")+"</td><td class=nome>"+esc(pf.nm)+"</td><td class=c>"+s.n+"</td><td class=\"c pts\">"+s.pts+"</td><td class=\"c err\">"+s.err+"</td><td>"+det+"</td></tr>";
     }
     t+="</tbody></table>";
     return t;
@@ -6621,7 +6621,16 @@ function exGamePDF(gid){
   ph+="</div>";
   // tabela geral
   ph+="<h2>Resumo da partida \u2014 por atleta</h2>";
-  ph+=tabelaAtletas(psGeral,"");
+  if(g.tidB){
+    // Minis 2 lados: uma tabela por equipe (separa pelas acoes etiquetadas a.side).
+    var _tA=tF(g.tid), _tB=tF(g.tidB);
+    var _aA=g.act.filter(function(a){return a.side!=="B";});
+    var _aB=g.act.filter(function(a){return a.side==="B";});
+    ph+=tabelaAtletas(agrega(_aA), (_tA?_tA.n:"Equipe A"));
+    ph+=tabelaAtletas(agrega(_aB), (_tB?_tB.n:"Equipe B"));
+  }else{
+    ph+=tabelaAtletas(psGeral,"");
+  }
   // por set
   if(maxSet>1){
     ph+="<h2>Detalhamento por set</h2>";

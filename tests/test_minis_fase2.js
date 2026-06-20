@@ -121,6 +121,14 @@ setTimeout(()=>{
     var sel=w.renderScoutSelection();
     chk(sel.indexOf('TimeRSxyz')<0,'torneioMode: seleçao de scout NAO mostra jogo do app principal (RS)');
 
+    // 10. PDF da partida 2 lados: uma tabela por equipe (Colombia + Portugal)
+    var _pdf=''; var _orig=w.openPdfOverlay; w.openPdfOverlay=function(html){_pdf=html||'';};
+    w.exGamePDF(g.id);
+    w.openPdfOverlay=_orig;
+    chk(_pdf.indexOf('RS COLOMBIA')>=0 && _pdf.indexOf('RS PORTUGAL')>=0,'PDF: secoes das 2 equipes (Colombia + Portugal)');
+    chk(_pdf.indexOf('RAICA')>=0 && _pdf.indexOf('DUDA')>=0,'PDF: atletas de cada equipe aparecem (RAICA / DUDA)');
+    chk(_pdf.indexOf('>null<')<0 && _pdf.indexOf('#null')<0,'PDF: nao mostra "null" no numero (minis sem numero)');
+
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK MINIS FASE 2 APROVADA':'FAIL MINIS FASE 2 REPROVADA');
     process.exit(ko===0?0:1);

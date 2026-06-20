@@ -406,7 +406,7 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 /* Scout dentro do torneio */
 .usa-scout-wrap{min-height:100vh;background:linear-gradient(160deg,#0a0e1a 0%,#111a2e 45%,#0f172a 100%);position:relative;overflow:hidden;color:#e8eef9}
 .usa-scout-wrap::before{content:"";position:fixed;right:1%;top:52%;transform:translateY(-50%);width:min(360px,48vw);height:min(360px,48vw);background-image:var(--rs-watermark);background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.07;pointer-events:none;z-index:0;filter:grayscale(.1)}
-.usa-scout-body{padding:16px;max-width:900px;margin:0 auto;position:relative;z-index:1}
+.usa-scout-body{padding:16px;max-width:520px;margin:0 auto;position:relative;z-index:1}
 .usa-scout-bar{background:linear-gradient(135deg,#0d5c2c,#13803d);padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
 .usa-scout-back{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:12px;font-weight:700;padding:7px 14px;border-radius:8px;cursor:pointer}
 .usa-scout-back:hover{background:rgba(255,255,255,.3)}
@@ -1024,7 +1024,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19c · minis scout 2 lados";
+var APP_BUILD="2026-06-19d · minis ajuste visual";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -2705,7 +2705,17 @@ function renderGameDayCard(g,isNext){
   h+='<div class="gd-match">';
   h+='<div class="gd-team"><div class="'+homeCls+'"><img src="'+homeLogo+'" alt="logo"></div><div class="gd-team-name">'+esc(homeName)+'</div></div>';
   h+='<div class="gd-x">X</div>';
-  h+='<div class="gd-team">'+oppLogoSvg(g.oppLogo,g.opp,g.oppLogoData)+'<div class="gd-team-name">'+esc(g.opp||"").toUpperCase()+'</div></div>';
+  // Adversaria: padrao oppLogoSvg (USA/PG). No minis usa o MESMO estilo do mandante
+  // (usa-pg-logo, sem moldura branca) com o logo da equipe B.
+  var awayHtml;
+  if(cardBrandToken==='minis'){
+    var _bt=(typeof tF==='function')?tF(g.tidB):null;
+    var _bl=(_bt&&_bt.brandLogoData)?_bt.brandLogoData:g.oppLogoData;
+    awayHtml=_bl?('<div class="usa-pg-logo"><img src="'+_bl+'" alt="logo"></div>'):oppLogoSvg(g.oppLogo,g.opp,g.oppLogoData);
+  }else{
+    awayHtml=oppLogoSvg(g.oppLogo,g.opp,g.oppLogoData);
+  }
+  h+='<div class="gd-team">'+awayHtml+'<div class="gd-team-name">'+esc(g.opp||"").toUpperCase()+'</div></div>';
   h+='</div>';
   // Data e hora
   h+='<div class="gd-date">'+dtLabel+'</div>';

@@ -1024,7 +1024,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19b · minis criar jogo (2 equipes)";
+var APP_BUILD="2026-06-19c · minis scout 2 lados";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -4256,10 +4256,15 @@ var gm=gF(S.aid);var te=gm?tF(gm.tid):null;
 // Construir gp a partir de gm.lineup (escalação do jogo).
 // Atletas ad-hoc (entry.nm preenchido) viajam dentro da propria lineup sem
 // depender de D.athletes — usado pelo fluxo PG isolado.
+// Minis 2 lados: jogo com gm.tidB tem duas escalacoes. S.side ('A'/'B', default A)
+// define qual aparece. Fora do minis, twoSided=false e tudo segue 1 lado (gm.lineup).
+var twoSided=!!(gm&&gm.tidB);
+var scSideAB=(S.side==="B")?"B":"A";
+var activeLineup=(twoSided&&scSideAB==="B")?(gm.lineupB||[]):(gm&&gm.lineup);
 var gp=[];
-if(gm&&gm.lineup){
-  for(var i=0;i<gm.lineup.length;i++){
-    var le=gm.lineup[i];
+if(activeLineup){
+  for(var i=0;i<activeLineup.length;i++){
+    var le=activeLineup[i];
     var ath=aFind(le.aid);
     var nm=(le.nm)||(ath&&ath.nm)||"";
     var po=(le.po)||(ath&&ath.po)||"";
@@ -4313,7 +4318,7 @@ h+='<span class="sc-set">SET <b>'+S.cs+'</b> \u00b7 '+ts2+'</span></div>';
 h+='<div style="display:flex;gap:5px">';
 if(!locked){
   h+='<button class="sc-icobtn" onclick="openLineup(\''+gm.id+'\')" title="Escala\u00e7\u00e3o">\u{1F4CB}</button>';
-  h+='<button class="sc-icobtn'+(gm.courtMode?' on':'')+'" onclick="toggleCourtMode()" title="Scout com quadra (rota\u00e7\u00e3o)">\u{1F3D0}</button>';
+  if(!gm.tidB)h+='<button class="sc-icobtn'+(gm.courtMode?' on':'')+'" onclick="toggleCourtMode()" title="Scout com quadra (rota\u00e7\u00e3o)">\u{1F3D0}</button>';
   h+='<button class="sc-icobtn" onclick="tgTm()" title="Cron\u00f4metro">'+(S.rn?"\u23F8":"\u25B6")+'</button>';
   h+='<button class="sc-icobtn" onclick="undo()" title="Desfazer">\u21A9</button>';
   if(isCoord)h+='<button class="sc-icobtn warn" onclick="toggleLockGame(\''+gm.id+'\')" title="Travar">\uD83D\uDD12</button>';
@@ -4385,7 +4390,8 @@ h+='</div>';
 // dica do ponto automatico \u2014 usa o nome do time atual (PG, RS, etc) em vez de hardcode
 if(gm.st==="live"&&!locked){
   var __hintTeam = (te && te.n) ? esc(nmRS) : "nosso time";
-  h+='<div class="sc-hint">\u26A1 <b>Ace / Ponto</b> sobem o placar do '+__hintTeam+' \u00b7 <b>Erro</b> sobe o do advers\u00e1rio \u00b7 use +/\u2212 para ajustes</div>';
+  if(gm.tidB)h+='<div class="sc-hint">\u26A1 Toque na equipe pra alternar \u00b7 <b>Ace / Ponto</b> credita a equipe marcada \u00b7 <b>Erro</b> credita a advers\u00e1ria \u00b7 use +/\u2212 para ajustes</div>';
+  else h+='<div class="sc-hint">\u26A1 <b>Ace / Ponto</b> sobem o placar do '+__hintTeam+' \u00b7 <b>Erro</b> sobe o do advers\u00e1rio \u00b7 use +/\u2212 para ajustes</div>';
 }
 h+='</div>'; // fecha .sc-arena
 // ===== PAINEL DE SCOUT — atleta / fundamento / resultado =====
@@ -4402,6 +4408,16 @@ if(gm.st==="live"&&!locked){
     }
     h+=courtRenderPanel(gm,gp,te);
   }else{
+    var actTeam=(twoSided&&scSideAB==="B")?(tF(gm.tidB)||te):te;
+    if(twoSided){
+      var _tB=tF(gm.tidB); var _cB=_tB?_tB.c:"#64748b";
+      var _nA=esc((te.n||"").replace(/^RS\s+/i,"")); var _nB=esc((_tB?_tB.n:"").replace(/^RS\s+/i,""));
+      h+='<div class="sc-seclabel">\uD83C\uDFD0 Marcando a\u00E7\u00E3o de</div>';
+      h+='<div style="display:flex;gap:8px;margin-bottom:12px">';
+      h+='<button onclick="setScoutSide(\'A\')" style="flex:1;padding:11px;border-radius:10px;font-weight:800;font-size:13px;border:2px solid '+te.c+';background:'+(scSideAB==="A"?te.c:"transparent")+';color:'+(scSideAB==="A"?"#fff":"#cbd5e1")+'">'+_nA+'</button>';
+      h+='<button onclick="setScoutSide(\'B\')" style="flex:1;padding:11px;border-radius:10px;font-weight:800;font-size:13px;border:2px solid '+_cB+';background:'+(scSideAB==="B"?_cB:"transparent")+';color:'+(scSideAB==="B"?"#fff":"#cbd5e1")+'">'+_nB+'</button>';
+      h+='</div>';
+    }
     h+='<div class="sc-seclabel">\uD83D\uDC55 Atleta</div><div class="sc-players">';
     gp.sort(function(a,b){var an=(a.nu==null||a.nu==="")?999:a.nu;var bn=(b.nu==null||b.nu==="")?999:b.nu;return an-bn;});
     for(var i=0;i<gp.length;i++){var p=gp[i];var on=S.sp===p.id;
@@ -4433,9 +4449,13 @@ if(gm.st==="live"&&!locked){
   if(gm.act&&gm.act.length){
     h+='<div class="sc-seclabel">\uD83D\uDCDC \u00daltimas A\u00e7\u00f5es</div><div class="sc-feed">';
     var ls=gm.act.slice(-6).reverse();
-    for(var i=0;i<ls.length;i++){var a3=ls[i];var pf=pFind(a3.pid,gm.id);var ocol=OC[a3.oc]||"#64748b";
+    for(var i=0;i<ls.length;i++){var a3=ls[i];
+      var _aTid=(gm.tidB&&a3.side==="B")?gm.tidB:gm.tid;
+      var pf=pFind(a3.pid,gm.id,gm.tidB?_aTid:undefined);var ocol=OC[a3.oc]||"#64748b";
+      var _fc=gm.tidB?((tF(_aTid)||te).c):te.c;
+      var _flbl=(pf&&pf.nu!=null&&pf.nu!=="")?("#"+pf.nu):(pf?esc((pf.nm||"").split(" ")[0]):"?");
       h+='<div class="sc-fitem" style="border-left-color:'+ocol+'">';
-      h+='<span class="fnum" style="color:'+te.c+'">#'+(pf?pf.nu:"?")+'</span>';
+      h+='<span class="fnum" style="color:'+_fc+'">'+_flbl+'</span>';
       h+='<span>'+(ACT[a3.ak]?ACT[a3.ak].i:"")+'</span>';
       h+='<span class="ffund">'+(ACT[a3.ak]?ACT[a3.ak].l:"")+'</span>';
       h+='<span class="foc" style="background:'+ocol+'">'+a3.oc+'</span>';
@@ -6012,6 +6032,8 @@ function scoutBack(){
   exS();
 }
 function slP(pid){var gm=gF(S.aid);if(gm&&gm.st!=="live")return;S.sp=pid;S.sa=null;render();}
+// Minis 2 lados: alterna qual equipe esta sendo marcada (limpa selecao atual).
+function setScoutSide(side){S.side=(side==="B")?"B":"A";S.sp=null;S.sa=null;render();}
 function slA(ak){var gm=gF(S.aid);if(gm&&gm.st!=="live")return;S.sa=ak;render();}
 function tgTm(){if(S.rn){clearInterval(S.ti);S.rn=false;}else{S.ti=setInterval(function(){S.tm++;render();},1000);S.rn=true;}render();}
 // Ponto automatico parcial: Ace/Ataque-Ponto/Bloqueio-Ponto => RS marca ponto;
@@ -6318,8 +6340,10 @@ function courtSubDoIn(inAid){
 function closeCourtSub(){_courtSubOut=null;var d=document.getElementById("courtSubModal");if(d)d.remove();}
 
 function rcO(oc){if(!S.sp||!S.sa)return;var gm=gF(S.aid);if(!gm||gm.st!=="live")return;var a={id:"a"+Date.now(),pid:S.sp,ak:S.sa,oc:oc,set:S.cs,ts:S.tm};
+if(gm.tidB) a.side=(S.side==="B")?"B":"A"; // minis 2 lados: de qual equipe foi a acao
 // Ponto automatico — registra qual lado subiu, pra o undo reverter junto
 var scSide=autoScoreSide(S.sa,oc);
+if(gm.tidB && a.side==="B" && scSide) scSide=(scSide==="u")?"t":"u"; // lado B: ss.u=casa, ss.t=B
 if(scSide&&gm.ss&&gm.ss[S.cs-1]){if(scSide==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;}
 // Q2: rotacao automatica (no-op fora do modo quadra). Guarda snapshot pra o undo reverter.
 var _courtSnap=scSide?courtRegisterPoint(scSide):null;

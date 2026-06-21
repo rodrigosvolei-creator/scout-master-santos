@@ -1045,7 +1045,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19o · corrigir atleta v2";
+var APP_BUILD="2026-06-19p · taca sp masculino";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -1343,6 +1343,16 @@ var TOURNEY_ACCESS={
     brandTeam:"RS MINIS",
     brandColor:"#7c3aed"
   },
+  "taca":{
+    token:"taca", standalone:true, openAccess:true,
+    torId:"t_taca_open", teamId:"t_taca_rs", rosterVar:"TACA_ROSTER",
+    brandFlag:"🏐 TAÇA SP",
+    brandSub:"RS-VOLEIBOL · ADULTO MASCULINO",
+    brandTitle:"TAÇA SP 2026",
+    brandCat:"ADULTO<br>MASCULINO",
+    brandTeam:"RS ADULTO MASCULINO",
+    brandColor:"#1d4ed8"
+  },
   "pg":{
     token:"pg", pwd:"PG2026", adminPwd:"pgadmin2026",
     torId:"t_pg_open", teamId:"t_pg_main",
@@ -1572,6 +1582,27 @@ function buildUsaLineup(rosterOverride){
   return lineup;
 }
 
+// === Taça SP: elenco RS Adulto Masculino (final vs Carú Fenerbouas) ===
+// "Extra" distintos (1/2/16) pra nao colapsarem no dedup por nome do buildUsaLineup.
+var TACA_ROSTER=[
+  {nu:1,  nm:"Extra 1"},
+  {nu:2,  nm:"Extra 2"},
+  {nu:2,  nm:"Vinny"},
+  {nu:3,  nm:"Satoshi"},
+  {nu:4,  nm:"Yuri"},
+  {nu:5,  nm:"João N"},
+  {nu:7,  nm:"Fuba"},
+  {nu:8,  nm:"Marcos"},
+  {nu:9,  nm:"Kauan"},
+  {nu:10, nm:"Wash"},
+  {nu:11, nm:"Toy"},
+  {nu:12, nm:"Mika"},
+  {nu:13, nm:"Peneres"},
+  {nu:14, nm:"Eddie"},
+  {nu:15, nm:"Thalisson"},
+  {nu:16, nm:"Extra 16"},
+  {nu:17, nm:"Everton"}
+];
 // === Fase PG: roster do time Praia Grande Sub 17 Feminino ===
 var PG_ROSTER=[
   {nu:2,  nm:"Paixão",    po:"Oposta",            gender:"F"},

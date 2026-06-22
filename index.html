@@ -1045,7 +1045,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19p · taca sp masculino";
+var APP_BUILD="2026-06-19q · corrigir atleta por set";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6173,12 +6173,12 @@ function setScoutSide(side){S.side=(side==="B")?"B":"A";S.sp=null;S.sa=null;rend
 // ===== CORRIGIR: reatribuir TODAS as acoes de um atleta pra outro neste jogo =====
 // (marcaram o jogo todo na pessoa errada). Placar NAO muda (e por equipe); so a
 // estatistica/premiacao por atleta acerta. O site/telao recalculam sozinhos.
-function reassignActions(gid, fromAid, toAid){
+function reassignActions(gid, fromAid, toAid, setNum){
   var g=gF(gid); if(!g||!g.act||!fromAid||!toAid||fromAid===toAid) return 0;
   var n=0;
-  // Mantem a.side: a equipe/lado estava certo (o emprestado jogou por aquela equipe),
-  // so a PESSOA estava errada. Reatribui so o pid.
-  for(var i=0;i<g.act.length;i++){ if(g.act[i].pid===fromAid){ g.act[i].pid=toAid; n++; } }
+  // setNum (opcional): so reatribui as acoes daquele set. Sem set = todos.
+  // Mantem a.side: a equipe/lado estava certo, so a PESSOA. Reatribui so o pid.
+  for(var i=0;i<g.act.length;i++){ var a=g.act[i]; if(a.pid===fromAid && (!setNum || a.set===setNum)){ a.pid=toAid; n++; } }
   if(n){ if(typeof saveGame==="function") saveGame(g).catch(function(){}); else save(); }
   return n;
 }
@@ -6201,9 +6201,16 @@ function openReassignModal(gid){
   for(var i=0;i<acts.length;i++){ counts[acts[i].pid]=(counts[acts[i].pid]||0)+1; }
   var lus=[].concat(g.lineup||[], g.lineupB||[]);
   function nm(aid){ var le=null; for(var k=0;k<lus.length;k++)if(lus[k].aid===aid){le=lus[k];break;} var ath=(typeof aFind==="function")?aFind(aid):null; return (le&&le.nm)||(ath&&ath.nm)||aid; }
+  function nuOf(aid){ var le=null; for(var k=0;k<lus.length;k++)if(lus[k].aid===aid){le=lus[k];break;} return (le&&le.nu!=null&&le.nu!=="")?le.nu:null; }
+  function lbl(aid){ var u=nuOf(aid); return (u!=null?"#"+u+" ":"")+nm(aid); }
+  // Sets presentes nas acoes (pra reatribuir so de um set)
+  var setsH={}; for(var i=0;i<acts.length;i++){ if(acts[i].set) setsH[acts[i].set]=1; }
+  var setNums=Object.keys(setsH).map(Number).sort(function(a,b){return a-b;});
+  var setOpts='<option value="">Todos os sets</option>';
+  for(var i=0;i<setNums.length;i++) setOpts+='<option value="'+setNums[i]+'">Set '+setNums[i]+'</option>';
   // De: so quem tem acoes
   var deOpts=""; var wa=Object.keys(counts);
-  for(var i=0;i<wa.length;i++) deOpts+='<option value="'+wa[i]+'">'+esc(nm(wa[i]))+' ('+counts[wa[i]]+' ações)</option>';
+  for(var i=0;i<wa.length;i++) deOpts+='<option value="'+wa[i]+'">'+esc(lbl(wa[i]))+' ('+counts[wa[i]]+' ações)</option>';
   if(!wa.length) deOpts='<option value="">— sem ações —</option>';
   // Para: TODOS os atletas das equipes minis (pra reatribuir a um emprestado de outra
   // equipe) + os da escalacao deste jogo. Dedup por aid.
@@ -6214,7 +6221,7 @@ function openReassignModal(gid){
   for(var i=0;i<allAth.length;i++){ if(allAth[i].aid && allAth[i].aid.indexOf("t_minis_")===0) add(allAth[i].aid); }
   pool.sort(function(a,b){ return (_reTeamNm(a)+nm(a)).localeCompare(_reTeamNm(b)+nm(b)); });
   var paraOpts="";
-  for(var i=0;i<pool.length;i++){ var tn=_reTeamNm(pool[i]); paraOpts+='<option value="'+pool[i]+'">'+esc(nm(pool[i]))+(tn?' · '+esc(tn):'')+'</option>'; }
+  for(var i=0;i<pool.length;i++){ var tn=_reTeamNm(pool[i]); paraOpts+='<option value="'+pool[i]+'">'+esc(lbl(pool[i]))+(tn?' · '+esc(tn):'')+'</option>'; }
   // equipes pra criar atleta novo (as do jogo primeiro, depois as outras minis)
   var teamOpts=""; var ts={};
   function addT(id){ if(!id||ts[id])return; var t=tF(id); if(!t)return; ts[id]=1; teamOpts+='<option value="'+id+'">'+esc(t.n||id)+'</option>'; }
@@ -6222,8 +6229,9 @@ function openReassignModal(gid){
   if(D&&D.teams)for(var i=0;i<D.teams.length;i++){ if(D.teams[i].id.indexOf("t_minis_")===0) addT(D.teams[i].id); }
   var m='<div class="tnj-modal" onclick="cancelTorneioModal()"><div class="tnj-box" onclick="event.stopPropagation()">';
   m+='<div class="tnj-title">↔ CORRIGIR ATLETA</div>';
-  m+='<div class="tnj-sub">Move TODAS as ações de um atleta pra outro neste jogo. O placar não muda (é por equipe).</div>';
+  m+='<div class="tnj-sub">Move as ações de um atleta pra outro (jogo todo ou só um set). O placar não muda (é por equipe).</div>';
   m+='<div class="tnj-field"><span class="tnj-lb">De (atleta errado)</span><select id="re-de">'+deOpts+'</select></div>';
+  m+='<div class="tnj-field"><span class="tnj-lb">Em qual set</span><select id="re-set">'+setOpts+'</select></div>';
   m+='<div class="tnj-field"><span class="tnj-lb">Para (atleta certo — qualquer equipe)</span><select id="re-para">'+paraOpts+'</select></div>';
   m+='<div style="text-align:center;font-size:11px;color:#94a3b8;margin:6px 0">— ou cadastrar um atleta novo —</div>';
   m+='<div class="tnj-row"><div class="tnj-field"><span class="tnj-lb">Nome novo</span><input id="re-novo-nm" placeholder="(opcional)" autocomplete="off"></div>';
@@ -6249,9 +6257,10 @@ function doReassign(gid){
   }
   if(!target){ if(err)err.textContent="Escolha o atleta certo (Para) ou cadastre um novo."; return; }
   if(de===target){ if(err)err.textContent="O atleta de origem e destino são o mesmo."; return; }
-  var n=reassignActions(gid, de, target);
+  var setN=parseInt((document.getElementById("re-set")||{}).value,10);
+  var n=reassignActions(gid, de, target, isNaN(setN)?null:setN);
   closeTorneioModal();
-  if(typeof toast==="function") toast(n+" ações reatribuídas","ok");
+  if(typeof toast==="function") toast(n+" ações reatribuídas"+(isNaN(setN)?"":" (set "+setN+")"),"ok");
   render();
 }
 function slA(ak){var gm=gF(S.aid);if(gm&&gm.st!=="live")return;S.sa=ak;render();}

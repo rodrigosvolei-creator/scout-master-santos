@@ -195,6 +195,24 @@ setTimeout(()=>{
     chk(!!newId && !!w.aFind(newId) && w.aFind(newId).nm==='NOVATO','createMinisAthlete: cria atleta na equipe');
     chk(w.tF('t_minis_col').roster.some(function(r){return r.aid===newId;}),'createMinisAthlete: entra no roster da equipe');
 
+    // 18. Reatribuir POR SET (cenario real: set1 14->12, set5 14->5)
+    w.D.games.push({id:'g_set2',torId:'t_minis_open',tid:'t_minis_col',tidB:'t_minis_por',opp:'RS PORTUGAL',st:'done',format:'bo5',maxSets:5,
+      lineup:[{aid:'t_minis_col_a0',nu:14},{aid:'t_minis_col_a1',nu:12},{aid:'t_minis_col_a2',nu:5}],
+      lineupB:[{aid:'t_minis_por_a0',nu:1}],
+      ss:[{u:0,t:0},{u:0,t:0},{u:0,t:0},{u:0,t:0},{u:0,t:0}],
+      act:[{id:'s1a',pid:'t_minis_col_a0',ak:'ataque',oc:'Ponto',set:1,side:'A'},
+           {id:'s1b',pid:'t_minis_col_a0',ak:'ataque',oc:'Ponto',set:1,side:'A'},
+           {id:'s5a',pid:'t_minis_col_a0',ak:'ataque',oc:'Ponto',set:5,side:'A'}]});
+    var gset=w.gF('g_set2');
+    chk(w.reassignActions('g_set2','t_minis_col_a0','t_minis_col_a1',99)===0,'por set: set inexistente nao move nada');
+    var mv1=w.reassignActions('g_set2','t_minis_col_a0','t_minis_col_a1',1); // set1: 14->12
+    chk(mv1===2,'por set: set 1 moveu as 2 acoes (14->12)');
+    chk(gset.act.filter(function(x){return x.pid==='t_minis_col_a1'&&x.set===1;}).length===2,'set 1 agora no #12');
+    chk(gset.act.filter(function(x){return x.pid==='t_minis_col_a0'&&x.set===5;}).length===1,'set 5 do #14 intacto');
+    var mv5=w.reassignActions('g_set2','t_minis_col_a0','t_minis_col_a2',5); // set5: 14->5
+    chk(mv5===1,'por set: set 5 moveu 1 acao (14->5)');
+    chk(gset.act.filter(function(x){return x.pid==='t_minis_col_a0';}).length===0,'#14 sem acoes apos os 2 sets corrigidos');
+
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK MINIS FASE 2 APROVADA':'FAIL MINIS FASE 2 REPROVADA');
     process.exit(ko===0?0:1);

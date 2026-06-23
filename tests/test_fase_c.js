@@ -110,8 +110,8 @@ setTimeout(()=>{
     var m2 = w.document.getElementById('mainApp').innerHTML;
     chk(m2.indexOf('rs-tor-detail-archived-badge')<0,'rTorDetail Liga (ativa): SEM badge encerrado');
     chk(m2.indexOf('📦 Encerrar')>=0 || m2.indexOf('Encerrar')>=0,'rTorDetail Liga: mostra botao Encerrar (admin)');
-    // Liga eh default layout (sem gameday): nao testa gd-edit aqui, mas o Novo Jogo direto via rTorDetail estaria visivel via openGameEditor
-    chk(m2.indexOf('Novo Jogo neste Torneio')>=0,'rTorDetail Liga ativa: botao Novo Jogo (default layout)');
+    // Liga agora usa gameday (padrao unificado): o botao Novo Jogo abre o modal escuro (openTorneioNovoJogo)
+    chk(m2.indexOf('openTorneioNovoJogo')>=0,'rTorDetail Liga ativa: botao Novo Jogo (gameday, modal escuro)');
 
     // 7. Funcoes admin recusam em torneio arquivado (defense-in-depth)
     w.selectTor('t_arch_test'); // contexto = USA arquivado

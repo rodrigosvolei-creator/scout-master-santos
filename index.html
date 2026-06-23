@@ -1053,7 +1053,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-23d - galeria de torneios pos-login";
+var APP_BUILD="2026-06-23e - gameday padrao em todo torneio";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -2870,7 +2870,7 @@ function tnyLayout(tor){
   if(!tor) return 'default';
   if(tor.layout==='gameday') return 'gameday';
   if(tor.id==='t_usa_open') return 'gameday';
-  return 'default';
+  return 'gameday'; // PADRAO: todo torneio usa o estilo GAME DAY (cards USA/PG/Taca) + modal escuro de novo jogo
 }
 
 // openGameDayCard(gid): dispatcher unificado do click no GAME DAY card.

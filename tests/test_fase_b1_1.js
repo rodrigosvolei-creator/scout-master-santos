@@ -72,7 +72,7 @@ setTimeout(()=>{
     const torUsa = w.tFnd('t_usa_open');
     const torNormal = w.tFnd('t_normal');
     chk(w.tnyLayout(torUsa)==='gameday','tnyLayout: USA (fallback por id) = gameday');
-    chk(w.tnyLayout(torNormal)==='default','tnyLayout: torneio sem flag = default');
+    chk(w.tnyLayout(torNormal)==='gameday','tnyLayout: torneio sem flag = gameday (novo padrao unificado)');
     chk(w.tnyLayout({id:'x',layout:'gameday'})==='gameday','tnyLayout: flag explicita layout=gameday respeitada');
     chk(w.tnyLayout(null)==='default','tnyLayout(null) = default (defensivo)');
 
@@ -107,12 +107,12 @@ setTimeout(()=>{
     chk(w.tab==='scout','tab navega pra "scout" apos abrir GAME DAY card');
     chk(w.torneioMode===false,'tab mode NAO ativa torneioMode (continua unificado)');
 
-    // 8. Voltar pra Torneios e selecionar o torneio NORMAL: deve usar team hub, NAO gameday
+    // 8. Selecionar o torneio NORMAL: AGORA tambem usa GAME DAY (padrao unificado, decisao Rodrigo)
     w.tab='torneios'; w.selectTor('t_normal');
     const m2 = w.document.getElementById('mainApp').innerHTML;
-    chk(m2.indexOf('rs-tor-detail')>=0,'rTorDetail wrapper presente no torneio default');
-    chk(m2.indexOf('gd-card')<0,'torneio default NAO emite gd-card (usa team-hub/chrono)');
-    chk(m2.indexOf('th-card')>=0 || m2.indexOf('renderGameCard')>=0 || m2.indexOf('Por Equipe')>=0,'torneio default usa team-hub ou toggle de view');
+    chk(m2.indexOf('rs-tor-detail')>=0,'rTorDetail wrapper presente no torneio sem flag');
+    chk(m2.indexOf('gd-card')>=0,'torneio sem flag AGORA emite gd-card (gameday eh o padrao)');
+    chk(m2.indexOf('Por Equipe')<0 && m2.indexOf('th-card')<0,'torneio sem flag NAO usa mais team-hub (agora eh gameday)');
 
     // 9. Voltar pra listagem nao quebra
     w.selectTor(null);

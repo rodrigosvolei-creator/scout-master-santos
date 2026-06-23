@@ -7,7 +7,7 @@ const fakeDB = {};
 const listeners = {};
 function getAt(p){const a=p.split('/');let c=fakeDB;for(const k of a){if(c==null)return null;c=c[k];}return c===undefined?null:c;}
 function makeRef(p){return{on:(e,cb)=>{listeners[p]=cb;},once:()=>Promise.resolve({val:()=>getAt(p)}),set:()=>Promise.resolve(),update:()=>Promise.resolve()};}
-global.firebaseMock={initializeApp:()=>{},database:()=>({ref:makeRef}),auth:()=>({onAuthStateChanged:cb=>setTimeout(()=>cb(null),0),signInWithPopup:()=>Promise.resolve(),signOut:()=>Promise.resolve()})};
+global.firebaseMock={initializeApp:()=>{},database:()=>({ref:makeRef}),auth:()=>({onAuthStateChanged:cb=>setTimeout(()=>cb({uid:'tester',email:'rodrigosvolei@gmail.com',displayName:'Tester'}),0),signInWithPopup:()=>Promise.resolve(),signOut:()=>Promise.resolve()})};
 
 fakeDB['torneio-master-santos']={
   teams:[{id:'t',n:'RS',c:'#db2777',roster:[{aid:'a1'}]}],

@@ -31,7 +31,7 @@ global.firebaseMock = {
   initializeApp: ()=>{},
   database: ()=>({ ref: makeRef }),
   auth: ()=>({
-    onAuthStateChanged: function(cb){ setTimeout(()=>cb(null),0); },
+    onAuthStateChanged: function(cb){ setTimeout(()=>cb({uid:'tester',email:'rodrigosvolei@gmail.com',displayName:'Tester'}),0); },
     signInWithPopup: ()=>Promise.resolve(),
     signOut: ()=>Promise.resolve(),
   }),

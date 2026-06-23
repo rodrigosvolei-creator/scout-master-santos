@@ -1045,7 +1045,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-19q · corrigir atleta por set";
+var APP_BUILD="2026-06-23a - login na entrada (seg F1)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -1776,6 +1776,7 @@ setTimeout(function(){if(appStarted)render();}, 100);
 // Caso contrário, podemos sobrescrever o banco com versão incompleta.
 function save(){
   if(!D) return;
+  if(!currentUser)return false;
   // GUARD: não escrever se algum dos filhos ainda não foi carregado
   if(!_dataLoaded.teams || !_dataLoaded.games || !_dataLoaded.tournaments || !_dataLoaded.athletes){
     console.error("[save] BLOQUEADO: dados ainda nao terminaram de carregar. teams="+_dataLoaded.teams+" games="+_dataLoaded.games+" tournaments="+_dataLoaded.tournaments+" athletes="+_dataLoaded.athletes);
@@ -1795,6 +1796,7 @@ function save(){
 }
 // Salvar apenas UM jogo (uso recomendado em vez de sobrescrever array todo)
 function saveGame(g){
+  if(!currentUser)return Promise.reject(new Error("login_necessario"));
   if(!g||!g.id||!D.games)return Promise.reject(new Error("Jogo invalido"));
   var idx=-1;for(var i=0;i<D.games.length;i++)if(D.games[i].id===g.id){idx=i;break;}
   if(idx<0)return Promise.reject(new Error("Jogo nao existe no estado local"));
@@ -1802,6 +1804,7 @@ function saveGame(g){
 }
 // Salvar apenas UMA equipe
 function saveTeam(t){
+  if(!currentUser)return Promise.reject(new Error("login_necessario"));
   if(!t||!t.id||!D.teams)return Promise.reject(new Error("Equipe invalida"));
   var idx=-1;for(var i=0;i<D.teams.length;i++)if(D.teams[i].id===t.id){idx=i;break;}
   if(idx<0)return Promise.reject(new Error("Equipe nao existe no estado local"));
@@ -1809,6 +1812,7 @@ function saveTeam(t){
 }
 // Salvar apenas UMA atleta
 function saveAthlete(a){
+  if(!currentUser)return Promise.reject(new Error("login_necessario"));
   if(!a||!a.aid||!D.athletes)return Promise.reject(new Error("Atleta invalida"));
   var idx=-1;for(var i=0;i<D.athletes.length;i++)if(D.athletes[i].aid===a.aid){idx=i;break;}
   if(idx<0)return Promise.reject(new Error("Atleta nao existe no estado local"));
@@ -1816,6 +1820,7 @@ function saveAthlete(a){
 }
 // Salvar uma chave inteira (uso restrito, evitar)
 function saveChild(key, value){
+  if(!currentUser)return Promise.reject(new Error("login_necessario"));
   if(!_dataLoaded.teams || !_dataLoaded.games || !_dataLoaded.tournaments || !_dataLoaded.athletes){
     console.error("[saveChild] BLOQUEADO: estado parcial");
     return Promise.reject(new Error("Estado parcial"));
@@ -3610,6 +3615,15 @@ function renderSignup(){
 }
 
 // Helper pra renderizar o modal de login (usado em landing também)
+function renderLoginGate(){
+  var h='<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;background:#0b1220;color:#fff;font-family:system-ui,-apple-system,sans-serif">';
+  h+='<img src="'+LR+'" alt="RS" style="width:88px;height:88px;border-radius:18px;object-fit:contain;margin-bottom:18px">';
+  h+='<div style="font-family:Bebas Neue,system-ui,sans-serif;font-size:36px;letter-spacing:3px;line-height:1">RS-SCOUT</div>';
+  h+='<div style="font-size:14px;color:#93a4c0;margin:10px 0 24px;max-width:300px;line-height:1.5">🔒 Área restrita. Entre com sua conta para acessar e marcar.</div>';
+  h+='<button onclick="openLoginModal()" style="background:#1d4ed8;color:#fff;border:none;border-radius:10px;padding:13px 30px;font-size:15px;font-weight:700;cursor:pointer">Entrar</button>';
+  h+='</div>';
+  return h;
+}
 function renderLoginModal(){
   var h='<div class="admin-modal" onclick="closeLoginModal()"><div class="admin-box" onclick="event.stopPropagation()" style="max-width:380px;text-align:left">';
   h+='<div style="text-align:center;margin-bottom:16px"><div style="font-size:48px;margin-bottom:8px">\u{1F510}</div><div style="font-family:Bebas Neue,sans-serif;font-size:22px;letter-spacing:2px;color:var(--navy);line-height:1.1">ACESSAR RS-SCOUT</div><div style="font-size:12px;color:var(--gray);margin-top:4px">Entre na sua conta</div></div>';
@@ -3687,6 +3701,13 @@ try{document.body.classList.toggle('rs-shell',!torneioMode&&!signupMode&&!showLa
 if(telaoMode){
   a.innerHTML=renderTelao();
   if(!_telaoTimer){ _telaoTimer=setInterval(function(){ if(telaoMode)render(); },5000); }
+  return;
+}
+
+// === GATE DE ACESSO: o scout e area restrita, exige login pra entrar. ===
+// Excecoes (sem login): telao (publico, ja tratado acima) e cadastro de atleta (?cadastro=, tem login proprio).
+if(!currentUser && !signupMode){
+  a.innerHTML=renderLoginGate()+(showLoginModal?renderLoginModal():'');
   return;
 }
 

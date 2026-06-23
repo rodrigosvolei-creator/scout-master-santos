@@ -171,6 +171,11 @@ body.rs-shell .app-content{position:relative;z-index:1}
 .rs-tor-group-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--rs-gold);margin:6px 2px 14px;display:flex;align-items:center;gap:10px}
 .rs-tor-group-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(251,191,36,.45),transparent)}
 .rs-tor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.rs-tor-wm{position:fixed;top:54%;left:50%;transform:translate(-50%,-50%);width:min(72vw,580px);opacity:.045;pointer-events:none;z-index:0}
+.rs-tor-card-top{padding:14px 16px;color:#fff;position:relative}
+.rs-tor-card-flag{display:inline-block;font-size:11px;font-weight:800;background:rgba(0,0,0,.22);padding:3px 10px;border-radius:20px;margin-bottom:8px;letter-spacing:.4px}
+.rs-tor-card-logo{position:absolute;top:12px;right:14px;width:44px;height:44px;border-radius:10px;object-fit:cover;border:2px solid rgba(255,255,255,.55)}
+.rs-tor-card-cat2{font-size:11px;opacity:.92;margin-top:3px;font-weight:600}
 .rs-tor-card{position:relative;background:linear-gradient(155deg,#101a30 0%,#16223d 55%,#0d1525 100%);border:1px solid var(--rs-line);border-radius:18px;overflow:hidden;cursor:pointer;box-shadow:0 14px 36px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .18s,box-shadow .18s}
 .rs-tor-card:hover{transform:translateY(-3px);box-shadow:0 20px 48px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08)}
 .rs-tor-card::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--tcol,#2563eb);box-shadow:0 0 18px var(--tcol,#2563eb)}
@@ -1048,7 +1053,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-23c - inverter senhas";
+var APP_BUILD="2026-06-23d - galeria de torneios pos-login";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -3741,7 +3746,7 @@ if(signupMode){
 }
 
 // === Landing page ===
-if(showLanding){
+if(showLanding && !currentUser){
   a.innerHTML=renderLanding();
   return;
 }
@@ -4736,7 +4741,7 @@ function rTor(){
   // Fase A2: aba Torneios reformulada no tema escuro de transmissao. Cards
   // sao a porta de entrada do app pos-login. CSS namespaced em .rs-tor-*.
   var tournaments=getPublicTournaments();
-  var h='<div class="rs-tor-page">';
+  var h='<div class="rs-tor-page"><img class="rs-tor-wm" src="'+LR+'" alt="">';
   if(isCoord){
     h+='<div class="rs-tor-actions"><button class="rs-tor-newbtn" onclick="openTorEditor(null)">\u2795 Novo Torneio</button></div>';
   }
@@ -4769,20 +4774,18 @@ function rTor(){
       var pct=t.tot?Math.min(100,Math.round(nDone/t.tot*100)):0;
       // Fase C: cards arquivados ganham classe is-archived (cinza) + selo.
       var archCls = isArchivedTor(t) ? ' is-archived' : '';
-      hh+='<div class="rs-tor-card'+archCls+'" style="--tcol:'+color+'" onclick="selectTor(\''+t.id+'\')">';
+      var flag2='';for(var __tk in TOURNEY_ACCESS){if(TOURNEY_ACCESS[__tk]&&TOURNEY_ACCESS[__tk].torId===t.id){flag2=TOURNEY_ACCESS[__tk].brandFlag||'';break;}}
+      hh+='<div class="rs-tor-card'+archCls+'" onclick="selectTor(\''+t.id+'\')">';
       if(isArchivedTor(t)) hh+='<div class="rs-tor-archived-badge">\uD83D\uDCE6 ENCERRADO</div>';
+      hh+='<div class="rs-tor-card-top" style="background:linear-gradient(135deg,'+color+','+color+'cc)">';
+      if(t.brandLogoData) hh+='<img class="rs-tor-card-logo" src="'+t.brandLogoData+'">';
+      if(flag2) hh+='<div class="rs-tor-card-flag">'+flag2+'</div>';
+      hh+='<div class="rs-tor-card-title" style="color:#fff;font-size:18px;font-weight:800">'+esc(t.n)+'</div>';
+      if(t.cat) hh+='<div class="rs-tor-card-cat2">'+esc((t.cat||"").replace(/<br>/g," "))+'</div>';
+      hh+='</div>';
       hh+='<div class="rs-tor-card-body">';
-      hh+='<div class="rs-tor-card-head">';
-      hh+='<div class="rs-tor-card-title">'+esc(t.n)+'</div>';
-      if(t.title)hh+='<div class="rs-tor-card-trophy" title="'+esc(t.title)+'">\uD83C\uDFC6</div>';
-      hh+='</div>';
-      hh+='<div class="rs-tor-card-chips">';
-      if(t.cat)hh+='<span class="rs-tor-card-chip rs-tor-card-chip--cat">'+esc(t.cat)+'</span>';
-      if(t.season)hh+='<span class="rs-tor-card-chip rs-tor-card-chip--season">'+esc(t.season)+'</span>';
-      hh+='</div>';
-      if(t.title){hh+='<div class="rs-tor-card-medal" style="color:'+color+'">\uD83E\uDD47 '+esc(t.title)+'</div>';}
-      hh+='<div class="rs-tor-progress-row"><span>Progresso</span><span><b>'+nDone+'</b> de '+(t.tot||nGames)+' jogos</span></div>';
-      hh+='<div class="rs-tor-progress-track"><div class="rs-tor-progress-fill" style="width:'+pct+'%"></div></div>';
+      hh+='<div class="rs-tor-progress-row"><span>'+esc(t.season||"")+'</span><span><b>'+nDone+'</b> de '+(t.tot||nGames)+' jogos</span></div>';
+      hh+='<div class="rs-tor-progress-track"><div class="rs-tor-progress-fill" style="width:'+pct+'%;background:'+color+'"></div></div>';
       hh+='</div></div>';
     }
     hh+='</div></div>';

@@ -81,16 +81,16 @@ setTimeout(()=>{
     const groupCount = (main.match(/rs-tor-group-title/g)||[]).length;
     chk(groupCount===3,'rTor mostra 3 grupos (live/programados/concluidos): '+groupCount);
 
-    // 7. Cada torneio vira um rs-tor-card com sua --tcol setada
-    const cardMatches = main.match(/rs-tor-card"[^>]+--tcol/g)||[];
-    chk(cardMatches.length===3,'rTor renderiza 3 rs-tor-cards com --tcol custom: '+cardMatches.length);
+    // 7. Cada torneio vira um card com topo colorido (cor do torneio no gradiente)
+    const cardMatches = main.match(/rs-tor-card-top" style="background/g)||[];
+    chk(cardMatches.length===3,'rTor renderiza 3 cards de torneio com topo colorido: '+cardMatches.length);
 
     // 8. NAO deve ter mais o estilo antigo "color:var(--navy)" nos grupos do rTor
     //    (ainda pode existir em outras areas — checagem mira so o bloco dos cards)
     chk(main.indexOf('color:var(--navy);margin:18px 0 10px')<0,'group-title antigo (color:var(--navy)) removido do rTor');
 
-    // 9. Chip de categoria sai com class rs-tor-card-chip--cat
-    chk(main.indexOf('rs-tor-card-chip--cat')>=0,'chip de categoria com classe rs-tor-card-chip--cat');
+    // 9. Categoria do torneio aparece no card (rs-tor-card-cat2)
+    chk(main.indexOf('rs-tor-card-cat2')>=0,'categoria no card (rs-tor-card-cat2)');
 
     // 10. Selecionar um torneio deve mudar selTor e renderizar o detalhe
     w.selectTor('t_live'); // funcao chama render() internamente

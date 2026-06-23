@@ -1032,7 +1032,7 @@ var auth=firebase.auth();
 // Email do admin definitivo (gravado em código por segurança)
 var ADMIN_EMAIL="rodrigosvolei@gmail.com";
 var MESA_EMAIL="mesa@rsvoleibol.com.br"; // conta de servico: a senha de acesso da aba (nivel 1) loga nesta conta
-var SCOUT_ADMIN_PWD="rsadmin2026"; // nivel 2: senha pra criar torneio (aplicada no builder/passo 2)
+var SCOUT_ADMIN_PWD=""; // nivel 2 (criar torneio): NAO guardar senha no codigo (o JS e publico). No builder/passo 2 vira uma conta Firebase admin — a senha (ro961245) fica no Auth, nunca no codigo.
 // Pre-autorizacao por email: ao logar com Google, estes emails ja recebem o
 // papel definido automaticamente (sem o admin precisar atribuir manual). Chave
 // em minusculas. Aplicado no 1o acesso E garantido em acessos seguintes.
@@ -1048,7 +1048,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-23b - login por senha (conta-mesa)";
+var APP_BUILD="2026-06-23c - inverter senhas";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)

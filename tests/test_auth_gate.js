@@ -51,6 +51,9 @@ setTimeout(async ()=>{
     var h1=w.document.getElementById('mainApp').innerHTML;
     chk(h1.indexOf('rea restrita')>=0, 'sem login: render mostra o login-gate (area restrita)');
     chk(h1.indexOf('app-header')<0, 'sem login: NAO renderiza o app (sem header/tabs)');
+    chk(h1.indexOf('gate-pw')>=0, 'sem login: gate pede SENHA (campo gate-pw)');
+    chk(h1.indexOf('loginWithGoogle')<0, 'sem login: gate NAO oferece login Google (so senha)');
+    chk(typeof w.gateEnter==='function' && typeof w.MESA_EMAIL==='string', 'gateEnter + MESA_EMAIL existem (senha -> conta-mesa)');
 
     // 2. Guards de escrita SEM login
     chk(w.save()===false, 'sem login: save() retorna false (nao grava os nos)');

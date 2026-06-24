@@ -1094,6 +1094,31 @@ body.pdf-overlay-open{overflow:hidden}
   .sct-card-body{padding-right:34px}
 }
 
+/* ===== Landing / gate de acesso (tela de senha) — redesenho ===== */
+.rsgate{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden;color:#fff;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  background:radial-gradient(1100px 560px at 50% -12%,rgba(216,27,121,.20),transparent 60%),radial-gradient(820px 480px at 108% 112%,rgba(139,47,160,.22),transparent 55%),radial-gradient(700px 420px at -8% 90%,rgba(37,99,235,.12),transparent 60%),linear-gradient(160deg,#0b1020,#0e1430 55%,#080c18)}
+.rsgate-wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0}
+.rsgate-wm img{width:min(125vw,860px);max-width:none;opacity:.07;filter:saturate(1.25) drop-shadow(0 0 60px rgba(216,27,121,.25));transform:translateY(-3%)}
+.rsgate-card{position:relative;z-index:1;width:100%;max-width:384px;text-align:center;padding:40px 32px 34px;border-radius:26px;
+  background:rgba(15,22,40,.6);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);
+  border:1px solid rgba(255,255,255,.10);box-shadow:0 28px 80px rgba(0,0,0,.6),0 0 0 1px rgba(216,27,121,.10),inset 0 1px 0 rgba(255,255,255,.07);
+  animation:rsgateIn .6s cubic-bezier(.2,.9,.2,1.12) both}
+@keyframes rsgateIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+.rsgate-logo{width:104px;height:104px;object-fit:contain;border-radius:24px;margin-bottom:12px;filter:drop-shadow(0 10px 30px rgba(216,27,121,.5));animation:rsgateFloat 5.5s ease-in-out infinite}
+@keyframes rsgateFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.rsgate-title{font-family:'Bebas Neue',system-ui,sans-serif;font-size:48px;letter-spacing:5px;line-height:1;margin:0;
+  background:linear-gradient(95deg,#ff5fa8,#d81b79 48%,#9b35b3);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#ff4d9d}
+.rsgate-sub{font-size:13.5px;color:#9fb0cc;margin:9px auto 24px;max-width:282px;line-height:1.55}
+.rsgate-input{display:block;width:100%;background:rgba(7,11,20,.72);border:1px solid rgba(255,255,255,.13);border-radius:13px;color:#fff;padding:14px 16px;font-size:15px;text-align:center;font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:12px}
+.rsgate-input::placeholder{color:#6b7a93}
+.rsgate-input:focus{border-color:#d81b79;box-shadow:0 0 0 3px rgba(216,27,121,.24)}
+.rsgate-btn{display:block;width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:800;letter-spacing:.5px;cursor:pointer;color:#fff;font-family:inherit;background:linear-gradient(95deg,#d81b79,#8b2fa0);box-shadow:0 12px 30px rgba(216,27,121,.4);transition:transform .12s,box-shadow .2s,filter .2s}
+.rsgate-btn:hover{transform:translateY(-1px);box-shadow:0 16px 38px rgba(216,27,121,.52);filter:brightness(1.06)}
+.rsgate-btn:active{transform:translateY(0)}
+.rsgate-err{color:#fca5a5;font-size:13px;margin-top:14px}
+.rsgate-foot{position:absolute;bottom:18px;left:0;right:0;text-align:center;font-size:11px;color:#516074;z-index:1;letter-spacing:1.5px;text-transform:uppercase}
+@media(max-width:480px){.rsgate-title{font-size:42px}.rsgate-card{padding:34px 24px 28px}.rsgate-logo{width:92px;height:92px}}
+
 </style>
 </head>
 <body>
@@ -1144,7 +1169,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24g - pente fino L1: bloq/set-fim/undo+-/orfao/XSS/crash/mobile";
+var APP_BUILD="2026-06-24h - landing/gate redesenhada (logo de fundo + glassmorphism)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -3798,13 +3823,17 @@ function renderSignup(){
 
 // Helper pra renderizar o modal de login (usado em landing também)
 function renderLoginGate(){
-  var h='<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;background:#0b1220;color:#fff;font-family:system-ui,-apple-system,sans-serif">';
-  h+='<img src="'+LR+'" alt="RS" style="width:88px;height:88px;border-radius:18px;object-fit:contain;margin-bottom:18px">';
-  h+='<div style="font-family:Bebas Neue,system-ui,sans-serif;font-size:36px;letter-spacing:3px;line-height:1">RS-SCOUT</div>';
-  h+='<div style="font-size:14px;color:#93a4c0;margin:10px 0 24px;max-width:300px;line-height:1.5">🔒 Área restrita. Digite a senha de acesso pra entrar.</div>';
-  h+='<input id="gate-pw" type="password" placeholder="senha de acesso" onkeydown="if(event.key===\'Enter\')gateEnter()" style="background:#0f1830;border:1px solid #243049;border-radius:10px;color:#fff;padding:12px 14px;font-size:15px;width:240px;text-align:center;margin-bottom:10px;font-family:inherit">';
-  h+='<button onclick="gateEnter()" style="background:#1d4ed8;color:#fff;border:none;border-radius:10px;padding:13px 30px;font-size:15px;font-weight:700;cursor:pointer">'+(loginLoading?'entrando...':'Entrar')+'</button>';
-  if(loginError)h+='<div style="color:#fca5a5;font-size:13px;margin-top:12px">'+esc(loginError)+'</div>';
+  var h='<div class="rsgate">';
+  h+='<div class="rsgate-wm"><img src="'+LR+'" alt=""></div>';
+  h+='<div class="rsgate-card">';
+  h+='<img class="rsgate-logo" src="'+LR+'" alt="RS Voleibol">';
+  h+='<h1 class="rsgate-title">RS-SCOUT</h1>';
+  h+='<div class="rsgate-sub">🔒 Área restrita — digite a senha de acesso pra entrar.</div>';
+  h+='<input id="gate-pw" class="rsgate-input" type="password" placeholder="senha de acesso" onkeydown="if(event.key===\'Enter\')gateEnter()" autocomplete="current-password" autofocus>';
+  h+='<button class="rsgate-btn" onclick="gateEnter()">'+(loginLoading?'entrando…':'Entrar')+'</button>';
+  if(loginError)h+='<div class="rsgate-err">'+esc(loginError)+'</div>';
+  h+='</div>';
+  h+='<div class="rsgate-foot">RS Voleibol · São Paulo</div>';
   h+='</div>';
   return h;
 }

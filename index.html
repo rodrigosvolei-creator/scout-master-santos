@@ -33,12 +33,12 @@ body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;min-he
 .app-header-admin:hover{background:rgba(255,255,255,.1);color:#fff}
 .app-header-admin.on{border-color:rgba(96,165,250,.5);background:rgba(37,99,235,.15);color:#60a5fa}
 
-.app-tabs{background:#fff;border-bottom:1px solid var(--brd);position:sticky;top:60px;z-index:39}
-.app-tabs-inner{max-width:1200px;margin:0 auto;display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.app-tabs{background:linear-gradient(180deg,#141d33,#0c1322);border-bottom:1px solid var(--brd);position:sticky;top:60px;z-index:39}
+.app-tabs-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:center;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .app-tabs-inner::-webkit-scrollbar{display:none}
-.app-tabs button{flex:1;min-width:90px;padding:14px 16px;border:none;background:transparent;color:var(--gray);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap}
-.app-tabs button:hover{color:var(--ink);background:rgba(0,0,0,.02)}
-.app-tabs button.on{color:var(--blue);border-bottom-color:var(--blue);background:rgba(37,99,235,.04)}
+.app-tabs button{flex:0 1 auto;min-width:120px;padding:14px 22px;border:none;background:transparent;color:#94a3b8;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap}
+.app-tabs button:hover{color:#e2e8f0;background:rgba(255,255,255,.04)}
+.app-tabs button.on{color:#fbbf24;border-bottom-color:#fbbf24;background:rgba(251,191,36,.06)}
 .app-tabs .tabi{font-size:18px}
 
 .app-content{max-width:1200px;margin:0 auto;padding:24px 20px;min-height:calc(100vh - 60px - 50px)}
@@ -1109,6 +1109,14 @@ function getNu(aid,gameId,teamId){
   // 3. Sem número conhecido
   return 0;
 }
+// Numero da camisa pra escalacao: o que veio na lineup; senao o ultimo cadastrado
+// pra equipe (last_nu_by_team); senao null. Evita o "UNDEFINED" na quadra e
+// "assume o numero definido" do atleta quando a lineup nasceu so com {aid}.
+function _lineupNu(le, ath, tid){
+  if(le && le.nu!=null && le.nu!=='') return le.nu;
+  if(ath && ath.last_nu_by_team && tid && ath.last_nu_by_team[tid]!=null) return ath.last_nu_by_team[tid];
+  return null;
+}
 
 // Compat: pFind retorna a "visão" de um atleta dentro de um contexto (jogo + equipe)
 // Aceita: pFind(pid), pFind(pid, gameId), pFind(pid, gameId, preferTid)
@@ -1447,6 +1455,12 @@ function getPublicTeams(){
   if(torneioMode) return arr.slice();
   return arr.filter(function(t){return !isSpecialTeam(t.id);});
 }
+// Equipes "proprias" pra UI de gestao/criacao: ativas (nao arquivadas) E nao-legadas
+// (fora de TOURNEY_ACCESS). Esconde PRAIA GRANDE, RS COLOMBIA/PORTUGAL/HOLANDA/etc,
+// RS ADULTO MASCULINO — guarda os dados, so nao exibe. Em torneioMode nao filtra.
+function getOwnTeams(){
+  return getActiveTeams().filter(function(t){return torneioMode || !isSpecialTeam(t.id);});
+}
 
 // --- Helpers de data pra janela da agenda do Scout ---
 function scoutDaysUntil(dtStr){
@@ -1588,6 +1602,24 @@ function buildUsaLineup(rosterOverride){
     lineup.push({aid:ath.aid,nu:r.nu});
   }
   return lineup;
+}
+// Escala a partir do roster da EQUIPE (tid). Substitui o buildUsaLineup() no
+// fluxo gameday dos torneios comuns — nunca mais o USA_ROSTER masculino.
+// Sem roster na equipe, retorna [] e o scout mostra "Escalar antes de iniciar".
+function lineupFromTeam(tid){
+  var t=(typeof tF==='function')?tF(tid):null;
+  var L=[];
+  if(t&&t.roster)for(var i=0;i<t.roster.length;i++){
+    var e=t.roster[i];
+    if(!e||!e.aid)continue;
+    // Assume os dados JA definidos do atleta: numero da camisa salvo pra esta
+    // equipe (last_nu_by_team[tid]); cai pro nu do roster ou null se nao houver.
+    var ath=(typeof aFind==='function')?aFind(e.aid):null;
+    var nu=(e.nu!=null)?e.nu
+          :((ath&&ath.last_nu_by_team&&ath.last_nu_by_team[tid]!==undefined)?ath.last_nu_by_team[tid]:null);
+    L.push({aid:e.aid,nu:nu});
+  }
+  return L;
 }
 
 // === Taça SP: elenco RS Adulto Masculino (final vs Carú Fenerbouas) ===
@@ -2767,7 +2799,24 @@ function renderGameDayCard(g,isNext){
       if(TOURNEY_ACCESS[__tk].torId===g.torId){cardBrandToken=__tk;break;}
     }
   }
-  var brand=getBrand(cardBrandToken);
+  var brand;
+  if(cardBrandToken){
+    brand=getBrand(cardBrandToken); // torneios legados (USA/PG/Taca/minis)
+  }else{
+    // Torneio comum: a brand vem do PROPRIO torneio + da equipe mandante do jogo
+    // (g.tid). Nada de defaults USA ("ADULTO MASCULINO / ADULT OPEN CHAMPIONSHIP").
+    var _ct=(typeof tFnd==='function')?tFnd(g.torId):null;
+    var _cteam=(typeof tF==='function')?tF(g.tid):null;
+    brand={
+      logo:(_cteam&&_cteam.brandLogoData)||LR,
+      flag:'', sub:'',
+      title:(_ct&&_ct.n)||'',
+      cat:(_ct&&_ct.cat)||'',
+      team:(_cteam&&_cteam.n)||'',
+      color:(_ct&&_ct.color)||'#2563eb',
+      teamLogoCls:'usa-pg-logo'
+    };
+  }
   var h='<div class="gd-card'+(isNext?" gd-next":"")+'"'+(gdTarja?' data-tarja="'+gdTarja+'"':'')+' onclick="openGameDayCard(\''+g.id+'\')">';
   if(isNext)h+='<div class="gd-next-tag">\u25B6 PR\u00d3XIMO JOGO</div>';
   // Faixa lateral
@@ -2883,9 +2932,11 @@ function openGameDayCard(gid){
   if(!g.ss||!g.ss.length) g.ss=[{u:0,t:0}];
   if(!g.act) g.act=[];
   var tor = (typeof tFnd==='function') ? tFnd(g.torId) : null;
-  if((!g.lineup||!g.lineup.length) && tor && tnyLayout(tor)==='gameday' && typeof buildUsaLineup==='function'){
-    g.lineup=buildUsaLineup();
-    if(typeof save==='function') save();
+  if((!g.lineup||!g.lineup.length) && tor && tnyLayout(tor)==='gameday'){
+    // Escala a EQUIPE do jogo (g.tid) — nunca mais o USA_ROSTER hardcoded.
+    // Sem roster, fica vazio e o scout pede "Escalar antes de iniciar".
+    var _lu=(typeof lineupFromTeam==='function')?lineupFromTeam(g.tid):[];
+    if(_lu.length){ g.lineup=_lu; if(typeof save==='function') save(); }
   }
   S={aid:gid,sp:null,sa:null,cs:g.ss.length,us:[],tm:0,rn:false,ti:null};
   tab='scout';
@@ -2984,8 +3035,18 @@ function openTorneioNovoJogo(){
   var isEdit=!!editG;
   var m='<div class="tnj-modal" onclick="cancelTorneioModal()"><div class="tnj-box" onclick="event.stopPropagation()">';
   m+='<div class="tnj-title">'+(isEdit?"EDITAR JOGO":"NOVO JOGO")+'</div>';
-  m+='<div class="tnj-sub">'+(isEdit?"Torneio USA \u00b7 ajuste os dados da partida":"Torneio USA \u00b7 preencha os dados da partida")+'</div>';
-  m+='<div class="tnj-inherit">\u2139\uFE0F Equipe <b>RS-Voleibol</b> e o torneio j\u00e1 v\u00eam preenchidos. Voc\u00ea s\u00f3 informa o advers\u00e1rio e a data.</div>';
+  // Textos refletem o torneio/equipe REAIS (nao mais "Torneio USA / RS-Voleibol" fixo).
+  var _njTor=(torneioMode?tFnd(torneioId):(selTor?tFnd(selTor):null));
+  var _njTorN=(_njTor&&_njTor.n)||"Torneio";
+  // Multi-equipe: um torneio pode ter VARIAS equipes RS jogando. A equipe e
+  // escolhida POR JOGO (default = equipe do jogo em edicao, senao a do torneio).
+  var _njTeams=(typeof getOwnTeams==='function')?getOwnTeams():[];
+  var _njDefTid=(isEdit&&editG&&editG.tid)||(_njTor&&_njTor.tid)||(_njTeams[0]&&_njTeams[0].id)||"";
+  m+='<div class="tnj-sub">'+esc(_njTorN)+(isEdit?" \u00b7 ajuste os dados da partida":" \u00b7 preencha os dados da partida")+'</div>';
+  m+='<div class="tnj-inherit">\u2139\uFE0F Escolha a <b>equipe</b> que vai jogar e informe o advers\u00e1rio. Um torneio pode ter v\u00e1rias equipes.</div>';
+  m+='<div class="tnj-field"><span class="tnj-lb">Equipe (RS) *</span><select id="tnj-team">';
+  for(var _ti=0;_ti<_njTeams.length;_ti++){ m+='<option value="'+_njTeams[_ti].id+'"'+(_njTeams[_ti].id===_njDefTid?' selected':'')+'>'+esc(_njTeams[_ti].n)+'</option>'; }
+  m+='</select></div>';
   m+='<div class="tnj-field"><span class="tnj-lb">Advers\u00e1rio *</span><input id="tnj-opp" placeholder="Ex: VBA Highline" autocomplete="off"></div>';
   m+='<div class="tnj-row"><div class="tnj-field"><span class="tnj-lb">Data *</span><input id="tnj-dt" type="date"></div>';
   m+='<div class="tnj-field"><span class="tnj-lb">Hor\u00e1rio</span><input id="tnj-tm" type="time"></div></div>';
@@ -3369,9 +3430,17 @@ function salvarTorneioJogo(){
       });
     }
   }
-  // Herdar a equipe: prioridade pra teamId standalone, depois 1o jogo do torneio, depois fallback
+  // Herdar a equipe: teamId standalone > equipe do PROPRIO torneio (tor.tid) >
+  // 1o jogo do torneio > fallback. Antes pulava tor.tid e caia no D.teams[0],
+  // herdando equipe errada nos torneios comuns.
   var tid="";
+  var _atTor = activeTorId ? tFnd(activeTorId) : null;
+  // Standalone legado (PG/taca) tem equipe fixa e manda primeiro. No fluxo
+  // unificado, a equipe escolhida no modal vale (multi-equipe: torneio com varias).
+  var _selTeam=(document.getElementById("tnj-team")||{}).value||"";
   if(__access && __access.standalone && __access.teamId) tid=__access.teamId;
+  if(!tid && _selTeam && tF(_selTeam)) tid=_selTeam;
+  if(!tid && _atTor && _atTor.tid && tF(_atTor.tid)) tid=_atTor.tid;
   if(!tid && D.games)for(var i=0;i<D.games.length;i++){if(D.games[i].torId===activeTorId){tid=D.games[i].tid;break;}}
   if(!tid&&D.teams&&D.teams.length)tid=D.teams[0].id;
   if(!tid){if(errEl)errEl.textContent="Nenhuma equipe encontrada para o torneio.";return;}
@@ -3389,6 +3458,8 @@ function salvarTorneioJogo(){
       return;
     }
     eg.opp=opp;eg.dt=dt;eg.tm=tm||"";
+    // Multi-equipe: trocou a equipe na edicao -> atualiza e re-escala pela nova.
+    if(tid && tid!==eg.tid){ eg.tid=tid; if(typeof lineupFromTeam==='function') eg.lineup=lineupFromTeam(tid); }
     eg.phase=phase||"Fase de Classifica\u00e7\u00e3o";
     eg.maxSets=fmt;
     if(_tnjLogoData)eg.oppLogoData=_tnjLogoData;
@@ -3404,7 +3475,7 @@ function salvarTorneioJogo(){
   // ---- MODO CRIAR ----
   var novoJogo={
     id:uid("g_"),tid:tid,torId:activeTorId,tor:(t?t.n:""),
-    cat:"Adulto",phase:phase||"Fase de Classifica\u00e7\u00e3o",
+    cat:(_atTor&&_atTor.cat)||"",phase:phase||"Fase de Classifica\u00e7\u00e3o",
     maxSets:fmt,
     opp:opp,dt:dt,tm:tm||"",loc:"",
     pl:[],act:[],ss:[],st:"pending",result:null,
@@ -3416,7 +3487,7 @@ function salvarTorneioJogo(){
         if(customRoster && customRoster.length) return buildUsaLineup(customRoster);
         return []; // roster ainda vazio (cliente vai enviar)
       }
-      return buildUsaLineup();
+      return (typeof lineupFromTeam==='function')?lineupFromTeam(tid):[];
     })()
   };
   // Logo: se enviou imagem, guarda no proprio jogo (base64)
@@ -3797,6 +3868,11 @@ if(isAtleta||isScouter||isAdmin)nv.push(["stats","\uD83D\uDCCA","Stats"]);
 if(isAtleta&&userProfile&&userProfile.athleteId)nv.push(["perfil","\u{1F464}","Eu"]);
 // Config: só admin/coord
 if(isCoord)nv.push(["config","\u2699\uFE0F","Config"]);
+// Galeria-first: a navbar pos-login fica so com Torneios (galeria de cards) +
+// Eu/Config conforme papel. As abas antigas (Scout/Agenda/Stats) ficam ocultas
+// da navegacao — o scout segue acessivel pelo fluxo Torneios -> jogo -> scout.
+// Filtro aplicado sobre o nv montado acima (roteamento e funcoes preservados).
+nv=nv.filter(function(n){return n[0]==="torneios"||n[0]==="perfil"||n[0]==="config";});
 h+='<div class="app-tabs"><div class="app-tabs-inner">';
 for(var i=0;i<nv.length;i++){var n=nv[i];h+='<button class="'+(tab===n[0]?"on":"")+'" onclick="setTab(\''+n[0]+'\')"><span class="tabi">'+n[1]+'</span><span class="tabl">'+n[2]+'</span></button>';}
 h+='</div></div>';
@@ -4337,7 +4413,7 @@ function saveNewTeam(){
 function closeNewTeam(){var m=document.getElementById("newTeamModal");if(m)m.remove();}
 
 function rTms(){var h='<div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="bt bp" onclick="newTeam()">\u2795 Nova Equipe</button></div>';
-var tArr=getActiveTeams();
+var tArr=getOwnTeams();
 if(!tArr.length)return h+'<div class="cd" style="padding:30px;text-align:center;color:var(--gray)">Nenhuma equipe ativa.<br><span style="font-size:12px">Clique em "Nova Equipe" para come\u00e7ar.</span></div>';
 for(var i=0;i<tArr.length;i++){var t=tArr[i];var gc=0;if(D.games)for(var j=0;j<D.games.length;j++){if(D.games[j].tid===t.id)gc++;}var pc=t.roster?t.roster.length:0;
 h+='<div class="cd" style="border-left:4px solid '+t.c+';padding:0;overflow:hidden"><div onclick="togT(\''+t.id+'\')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer">'+tLs(t)+'<div style="flex:1"><b style="font-size:16px">'+esc(t.n)+'</b><div style="margin-top:3px"><span class="badge" style="background:'+t.c+'15;color:'+t.c+'">'+pc+' atletas</span> <span class="badge" style="background:var(--card2);color:var(--gray)">'+gc+' jogos</span></div></div><span style="color:var(--gray);font-size:20px">\u25BC</span></div>';
@@ -4374,7 +4450,7 @@ else{
 h+='</div></div>';}return h;}
 
 function rGms(){var h='<div class="rw" style="margin-bottom:14px"><div style="flex:1 1 140px"><span class="lb">Filtrar</span><select id="gf" onchange="render()"><option value="all">Todas</option>';
-var atvs=getActiveTeams();for(var i=0;i<atvs.length;i++)h+='<option value="'+atvs[i].id+'">'+esc(atvs[i].n)+'</option>';
+var atvs=getOwnTeams();for(var i=0;i<atvs.length;i++)h+='<option value="'+atvs[i].id+'">'+esc(atvs[i].n)+'</option>';
 h+='</select></div><button class="bt bp bsm" onclick="togNG()">+ Novo Jogo</button> <button class="bt bg bsm" onclick="createTestGames()">\u{1F9EA} Jogos Teste</button> <button class="bt bg bsm" onclick="removeTestGames()">\u{1F5D1} Remover Teste</button></div>';
 h+='<div id="ng" class="hd"><div class="cd" style="border:2px solid var(--blue)"><b style="font-size:15px">\u{1F4C5} Novo Jogo</b><div style="display:flex;flex-direction:column;gap:10px;margin-top:12px"><div class="rw"><div style="flex:1 1 120px"><span class="lb">Data</span><input type="date" id="nd"></div><div style="flex:1 1 90px"><span class="lb">Hora</span><input type="time" id="nt"></div><div style="flex:1 1 120px"><span class="lb">Equipe</span><select id="nti">';
 for(var i=0;i<atvs.length;i++)h+='<option value="'+atvs[i].id+'">'+esc(atvs[i].n)+'</option>';
@@ -4446,7 +4522,7 @@ if(activeLineup){
     var ath=aFind(le.aid);
     var nm=(le.nm)||(ath&&ath.nm)||"";
     var po=(le.po)||(ath&&ath.po)||"";
-    if(nm) gp.push({id:le.aid,nm:nm,nu:le.nu,po:po});
+    if(nm) gp.push({id:le.aid,nm:nm,nu:_lineupNu(le,ath,(twoSided&&scSideAB==="B")?gm.tidB:gm.tid),po:po});
   }
 }
 if(!S.aid||!gm){return renderScoutSelection();}
@@ -4746,6 +4822,12 @@ function rTor(){
     h+='<div class="rs-tor-actions"><button class="rs-tor-newbtn" onclick="openTorEditor(null)">\u2795 Novo Torneio</button></div>';
   }
   if(!tournaments.length){
+    // Boot/pos-login: enquanto os dados nao chegaram, mostra "carregando" em vez
+    // de "nenhum torneio" (evita o flash que parece perda de dados).
+    if(typeof _dataLoaded!=='undefined' && !_dataLoaded.tournaments){
+      h+='<div class="rs-tor-empty"><div class="rs-tor-empty-icon">\u23F3</div><div class="rs-tor-empty-title">Carregando torneios\u2026</div></div></div>';
+      return h;
+    }
     h+='<div class="rs-tor-empty"><div class="rs-tor-empty-icon">\uD83C\uDFC6</div><div class="rs-tor-empty-title">Nenhum torneio cadastrado</div>'+(isCoord?'<div class="rs-tor-empty-sub">Clique em "Novo Torneio" para come\u00e7ar.</div>':'')+'</div></div>';
     return h;
   }
@@ -5801,7 +5883,7 @@ function openTorEditor(torId){
   for(var i=0;i<CATS.length;i++)m+='<option value="'+CATS[i]+'"'+(t.cat===CATS[i]?" selected":"")+'>'+CATS[i]+'</option>';
   m+='</select></div>';
   m+='<div style="flex:1"><span class="lb">Equipe</span><select id="tor-tid">';
-  var atvT=getActiveTeams();
+  var atvT=getOwnTeams();
   for(var i=0;i<atvT.length;i++)m+='<option value="'+atvT[i].id+'"'+(t.tid===atvT[i].id?" selected":"")+'>'+esc(atvT[i].n)+'</option>';
   m+='</select></div></div>';
   m+='<div class="rw" style="margin-bottom:10px"><div style="flex:1"><span class="lb">Temporada</span><input id="tor-season" value="'+esc(t.season||"")+'" placeholder="2026.1"></div>';
@@ -5909,7 +5991,7 @@ function openGameEditor(gameId,defaultTorId){
   m+='<div style="font-family:Bebas Neue,sans-serif;font-size:22px;letter-spacing:2px;color:var(--navy);margin-bottom:14px;text-align:center">'+(isNew?"NOVO JOGO":"EDITAR JOGO")+'</div>';
   m+='<div class="rw" style="margin-bottom:10px"><div style="flex:1"><span class="lb">Equipe</span><select id="g-tid">';
   // Mostra equipes ativas + (se editando) a equipe atual mesmo arquivada
-  var atvG=getActiveTeams().slice();
+  var atvG=getOwnTeams().slice();
   if(g.tid&&!atvG.some(function(x){return x.id===g.tid;})){var arch=tF(g.tid);if(arch)atvG.push(arch);}
   for(var i=0;i<atvG.length;i++)m+='<option value="'+atvG[i].id+'"'+(g.tid===atvG[i].id?" selected":"")+'>'+esc(atvG[i].n)+(atvG[i].archived?" [arquivada]":"")+'</option>';
   m+='</select></div>';
@@ -6206,6 +6288,10 @@ function exS(){if(S.ti)clearInterval(S.ti);S={aid:null,sp:null,sa:null,cs:1,us:[
 // Voltar da tela de scout — respeita o modo torneio (volta pros cards do torneio, nao pro app geral)
 function scoutBack(){
   if(torneioMode){backToTorneioCards();return;}
+  // Galeria-first: sem aba Scout na navbar, o "Voltar" do scout fecha o ciclo
+  // de volta no detalhe do torneio (selTor preservado) em vez de cair na lista
+  // Scout, que nao tem mais porta de entrada.
+  tab='torneios';
   exS();
 }
 function slP(pid){var gm=gF(S.aid);if(gm&&gm.st!=="live")return;S.sp=pid;S.sa=null;render();}
@@ -6462,7 +6548,7 @@ function courtRenderSetup(gm,gp){
     var isServer=(idx===0);
     h+='<div class="court-cell'+(p?' filled':' empty')+(isServer?' server':'')+'"'+(p?' onclick="courtDraftRemove('+idx+')"':'')+'>';
     h+='<span class="court-pos">P'+_COURT_POSLBL[idx]+(isServer?' 🏐':'')+'</span>';
-    if(p){h+='<div class="court-num">'+p.nu+'</div><div class="court-nm">'+esc(p.nm.split(" ")[0])+'</div>';}
+    if(p){h+='<div class="court-num">'+(p.nu!=null&&p.nu!==''?p.nu:'–')+'</div><div class="court-nm">'+esc(p.nm.split(" ")[0])+'</div>';}
     else{h+='<div class="court-empty-txt">vazio</div>';}
     h+='</div>';
   }
@@ -6472,7 +6558,7 @@ function courtRenderSetup(gm,gp){
   h+='<div class="sc-seclabel" style="margin-top:10px">Banco — toque pra posicionar</div><div class="court-bench">';
   if(!bench.length)h+='<span style="color:var(--rs-fg-mute,#94a3b8);font-size:12px">Todas posicionadas ✓</span>';
   for(var b=0;b<bench.length;b++){var bp=bench[b];
-    h+='<button class="court-bench-card" onclick="courtDraftPlace(\''+bp.id+'\')"><span class="court-bench-num">'+bp.nu+'</span><span class="court-bench-nm">'+esc(bp.nm.split(" ")[0])+'</span></button>';
+    h+='<button class="court-bench-card" onclick="courtDraftPlace(\''+bp.id+'\')"><span class="court-bench-num">'+(bp.nu!=null&&bp.nu!==''?bp.nu:'–')+'</span><span class="court-bench-nm">'+esc(bp.nm.split(" ")[0])+'</span></button>';
   }
   h+='</div>';
   h+='<div class="sc-seclabel" style="margin-top:10px">Quem saca primeiro</div><div class="court-serve-toggle">';
@@ -6497,7 +6583,7 @@ function courtRenderPanel(gm,gp,te){
     var isLib=(p&&_isLibero(p));
     h+='<button class="court-cell live'+(on?' sel':'')+(isServer?' server':'')+(isLib?' lib':'')+'"'+(aid?' onclick="slP(\''+aid+'\')"':'')+(on?' style="background:linear-gradient(150deg,'+te.c+','+te.c+'cc)"':'')+'>';
     h+='<span class="court-pos">P'+_COURT_POSLBL[idx]+(isServer?' 🏐':'')+(isLib?' 🦺':'')+'</span>';
-    if(p){h+='<div class="court-num">'+p.nu+'</div><div class="court-nm">'+esc(p.nm.split(" ")[0])+'</div>';}
+    if(p){h+='<div class="court-num">'+(p.nu!=null&&p.nu!==''?p.nu:'–')+'</div><div class="court-nm">'+esc(p.nm.split(" ")[0])+'</div>';}
     else{h+='<div class="court-empty-txt">—</div>';}
     h+='</button>';
   }
@@ -6549,7 +6635,7 @@ function _courtGp(gm){
   if(gm&&gm.lineup)for(var i=0;i<gm.lineup.length;i++){
     var le=gm.lineup[i]; var ath=(typeof aFind==='function')?aFind(le.aid):null;
     var nm=(le.nm)||(ath&&ath.nm)||""; var po=(le.po)||(ath&&ath.po)||"";
-    if(nm)gp.push({id:le.aid,nm:nm,nu:le.nu,po:po});
+    if(nm)gp.push({id:le.aid,nm:nm,nu:_lineupNu(le,ath,gm.tid),po:po});
   }
   return gp;
 }

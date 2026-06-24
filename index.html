@@ -1144,7 +1144,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24f - quadra vazia (escala obrigatoria) + erro recep/defesa";
+var APP_BUILD="2026-06-24g - pente fino L1: bloq/set-fim/undo+-/orfao/XSS/crash/mobile";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -1230,7 +1230,10 @@ function pFind(pid,gameId,preferTid){
       }
     }
   }
-  if(!a)return null;
+  // Orfao (pid sem atleta cadastrado, ex: atleta removido do banco): NUNCA descarta —
+  // devolve um stub rotulado pra a acao aparecer no relatorio (total bate) e o operador
+  // poder corrigir via "Corrigir atleta". Antes retornava null e a acao sumia silenciosa.
+  if(!a)return {id:pid,aid:pid,nm:"#"+pid+" (sem cadastro)",nu:null,po:"",tid:null,tn:"?",tc:"#94a3b8",orphan:true};
   // Determinar equipe
   var team=null;
   // Se gameId, usa o tid do jogo
@@ -1867,18 +1870,25 @@ function _initD(){
   if(!D.users) D.users={};
   if(!D.invites) D.invites={};
 }
+// Seguranca XSS: o RTDB e ABERTO p/ escrita — um "logo" malicioso (ex: x" onerror=...)
+// gravado por REST cairia cru dentro de src="..." e executaria JS no telao/cards/mesa.
+// Sanitiza na ENTRADA: so aceita data:image (sem svg, que pode conter script).
+var _OK_LOGO=/^data:image\/(png|jpe?g|webp|gif);base64,/i;
+function clnLogo(s){ return (typeof s==="string" && _OK_LOGO.test(s)) ? s : null; }
 _initD();
 
 // Listener por filho — todos públicos para leitura
 db.ref("torneio-master-santos/teams").on("value", function(snap){
   var v = snap.val();
   D.teams = Array.isArray(v) ? v : (v ? Object.values(v) : []);
+  D.teams.forEach(function(t){ if(t){ if(t.brandLogoData)t.brandLogoData=clnLogo(t.brandLogoData); if(t.logoData)t.logoData=clnLogo(t.logoData); } });
   _dataLoaded.teams = true;
   if(appStarted) render();
 });
 db.ref("torneio-master-santos/games").on("value", function(snap){
   var v = snap.val();
   D.games = Array.isArray(v) ? v : (v ? Object.values(v) : []);
+  D.games.forEach(function(g){ if(g&&g.oppLogoData)g.oppLogoData=clnLogo(g.oppLogoData); });
   _dataLoaded.games = true;
   if(appStarted) render();
 });
@@ -2384,7 +2394,7 @@ function exAllAthIndividualPDFs(gid){
 
 function exAllAthPDF(gid){
 var games=[];var label="Todos os Jogos";
-if(gid&&gid!=="all"){var sg=gF(gid);if(sg){games=[sg];label="vs "+sg.opp+(sg.dt?" - "+fD(sg.dt):"");}}
+if(gid&&gid!=="all"){var sg=gF(gid);if(sg){games=[sg];label="vs "+esc(sg.opp)+(sg.dt?" - "+fD(sg.dt):"");}}
 else{if(D.games)for(var i=0;i<D.games.length;i++){if(!torneioMode&&isSpecialGame(D.games[i]))continue;if(D.games[i].act&&D.games[i].act.length&&(D.games[i].st==="live"||D.games[i].st==="done"))games.push(D.games[i]);}}
 if(!games.length){alert("Sem dados");return;}
 var byP={};for(var gi=0;gi<games.length;gi++){var g=games[gi];if(!g.act)continue;for(var ai=0;ai<g.act.length;ai++){var a=g.act[ai];if(!byP[a.pid])byP[a.pid]={acts:[],byF:{},bySets:{}};byP[a.pid].acts.push(a);if(!byP[a.pid].byF[a.ak])byP[a.pid].byF[a.ak]={};if(!byP[a.pid].byF[a.ak][a.oc])byP[a.pid].byF[a.ak][a.oc]=0;byP[a.pid].byF[a.ak][a.oc]++;var sk=a.set||1;if(!byP[a.pid].bySets[sk])byP[a.pid].bySets[sk]={n:0,byF:{}};byP[a.pid].bySets[sk].n++;if(!byP[a.pid].bySets[sk].byF[a.ak])byP[a.pid].bySets[sk].byF[a.ak]={};if(!byP[a.pid].bySets[sk].byF[a.ak][a.oc])byP[a.pid].bySets[sk].byF[a.ak][a.oc]=0;byP[a.pid].bySets[sk].byF[a.ak][a.oc]++;}}
@@ -2396,7 +2406,7 @@ ph+="<p style=\"text-align:center;font-size:12px;color:#64748b;margin-bottom:20p
 for(var pi=0;pi<pids.length;pi++){var pid=pids[pi];var pf=pFind(pid);if(!pf)continue;var d=byP[pid];
 var pts=0,errs=0,aces=0;for(var i2=0;i2<d.acts.length;i2++){if(d.acts[i2].oc==="Ace"){pts++;aces++;}if(d.acts[i2].oc==="Ponto")pts++;if(d.acts[i2].oc==="Erro")errs++;}
 if(pi>0)ph+="<div class=page-break><\/div>";
-ph+="<div class=athlete><div class=ath-header><div class=ath-num style=\"background:"+pf.tc+"20;color:"+pf.tc+"\">"+pf.nu+"<\/div><div><div class=ath-name>"+esc(pf.nm)+"<\/div><div class=ath-pos>"+pf.po+" \u2014 "+pf.tn+"<\/div><\/div><\/div>";
+ph+="<div class=athlete><div class=ath-header><div class=ath-num style=\"background:"+pf.tc+"20;color:"+pf.tc+"\">"+(pf.nu!=null?pf.nu:"")+"<\/div><div><div class=ath-name>"+esc(pf.nm)+"<\/div><div class=ath-pos>"+esc(pf.po)+" \u2014 "+esc(pf.tn)+"<\/div><\/div><\/div>";
 ph+="<div class=ath-stats><div class=ath-stat><b style=color:#2563eb>"+d.acts.length+"<\/b><small>A\u00e7\u00f5es<\/small><\/div><div class=ath-stat><b style=color:#059669>"+pts+"<\/b><small>Pontos<\/small><\/div><div class=ath-stat><b style=color:#dc2626>"+errs+"<\/b><small>Erros<\/small><\/div><div class=ath-stat><b style=color:#d97706>"+aces+"<\/b><small>Aces<\/small><\/div><\/div>";
 ph+="<table><tr><th>Fundamento<\/th><th>Total<\/th><th>Detalhes<\/th><\/tr>";
 var fks=Object.keys(d.byF);for(var fi=0;fi<fks.length;fi++){var ak=fks[fi];var oks=Object.keys(d.byF[ak]);var ttl=0;for(var oi=0;oi<oks.length;oi++)ttl+=d.byF[ak][oks[oi]];var det2="";for(var oi2=0;oi2<oks.length;oi2++){det2+=oks[oi2]+": "+d.byF[ak][oks[oi2]];if(oi2<oks.length-1)det2+=", ";}ph+="<tr><td><b>"+(ACT[ak]?ACT[ak].l:ak)+"<\/b><\/td><td>"+ttl+"<\/td><td>"+det2+"<\/td><\/tr>";}
@@ -2889,7 +2899,7 @@ function renderGameDayCard(g,isNext){
   if(!cardBrandToken){
     // No fluxo unificado, descobre o token via torId \u2014 varre TOURNEY_ACCESS.
     for(var __tk in TOURNEY_ACCESS){
-      if(TOURNEY_ACCESS[__tk].torId===g.torId){cardBrandToken=__tk;break;}
+      if(TOURNEY_ACCESS[__tk]&&TOURNEY_ACCESS[__tk].torId===g.torId){cardBrandToken=__tk;break;}
     }
   }
   var brand;
@@ -3999,7 +4009,17 @@ try{
 // Modo tablet: mantem a ladder rolada ate o ultimo ponto.
 try{var _lad=document.querySelector('.sct-ladder');if(_lad)_lad.scrollLeft=_lad.scrollWidth;}catch(e){}
 }
-window.addEventListener("resize",function(){render();});
+// resize com debounce: o teclado virtual do celular dispara resize; re-renderizar na hora
+// faz blur do campo e apaga o texto ainda nao confirmado. Adia e nao re-renderiza digitando.
+var _rzT;
+window.addEventListener("resize",function(){
+  clearTimeout(_rzT);
+  _rzT=setTimeout(function(){
+    var ae=document.activeElement;
+    if(ae&&(ae.tagName==="INPUT"||ae.tagName==="TEXTAREA"||ae.tagName==="SELECT"))return;
+    render();
+  },250);
+});
 document.addEventListener("keydown",_sctKeydown); // atalhos do modo tablet (no-op fora dele)
 
 function rCfg(){var h='<div class="stb"><button class="'+(subTab==="teams"?"on":"")+'" onclick="setSubTab(\'teams\')">\u{1F465} Equipes</button><button class="'+(subTab==="athletes"?"on":"")+'" onclick="setSubTab(\'athletes\')">\u{1F46B} Atletas</button><button class="'+(subTab==="games"?"on":"")+'" onclick="setSubTab(\'games\')">\u{1F4C5} Jogos</button><button class="'+(subTab==="users"?"on":"")+'" onclick="setSubTab(\'users\')">\u{1F510} Usu\u00e1rios</button><button class="'+(subTab==="archive"?"on":"")+'" onclick="setSubTab(\'archive\')">\u{1F4E6} Arquivo</button></div>';return h+(subTab==="teams"?rTms():subTab==="athletes"?rAthletesBank():subTab==="archive"?rArchive():subTab==="users"?rUsers():rGms());}
@@ -4635,6 +4655,13 @@ if(gm.st==="pending"&&noLineup){
   hL+='</div>';
   return hL;
 }
+// Guard anti-crash: se a equipe do jogo nao resolve (tF null — equipe removida ou de
+// outro contexto), o render estouraria em te.n/te.c adiante e deixaria a tela em BRANCO
+// sem botao de voltar. Mostra um aviso com Voltar em vez de travar.
+if(!te){
+  return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><button class="bt bg bsm" onclick="scoutBack()">← Jogos</button><span style="font-size:12px;color:var(--gray);font-weight:700">JOGO</span><span></span></div>'+
+    '<div class="cd" style="padding:30px;text-align:center;color:var(--gray)">Equipe deste jogo não encontrada no banco.<br><span style="font-size:12px">O jogo referencia uma equipe removida ou de outro contexto.</span></div>';
+}
 // MODO TABLET (preferencia de dispositivo via localStorage): tela landscape de 1
 // toque. So com jogo AO VIVO, nao travado e fora do minis (2 lados). Substitui a tela.
 if(gm.st==="live"&&!gm.locked&&!gm.tidB&&isTabletMode()){return rSctTablet(gm,gp,te);}
@@ -5000,7 +5027,7 @@ function rTorDetail(torId){
   // Fase A2: detalhe escopado em .rs-tor-detail pra receber overrides de tema.
   // Fase C: classe is-archived aplica visual de historico no detalhe.
   var torArchived = isArchivedTor(t);
-  h='<div class="rs-tor-detail'+(torArchived?' is-archived':'')+'">';
+  var h='<div class="rs-tor-detail'+(torArchived?' is-archived':'')+'">';
   h+='<div style="margin-bottom:14px"><button class="bt bg" onclick="selectTor(null)">\u2190 Torneios</button></div>';
   h+='<div style="background:linear-gradient(135deg,'+color+'ee,'+color+'aa);border-radius:18px;padding:22px;color:white;margin-bottom:16px;box-shadow:0 8px 24px '+color+'40;position:relative">';
   // Fase C: selo ENCERRADO no canto sup. direito do banner quando torneio arquivado
@@ -6523,6 +6550,7 @@ function autoScoreSide(ak,oc){
   if((ak==="ataque"||ak==="bloqueio")&&oc==="Ponto")return"u";
   if((ak==="saque"||ak==="ataque"||ak==="bloqueio")&&oc==="Erro")return"t";
   if((ak==="recepcao"||ak==="defesa")&&oc==="Erro")return"t"; // erro nosso na recepcao/defesa = ponto do adversario
+  if(ak==="ataque"&&oc==="Bloq")return"t"; // nosso ataque bloqueado (bola morta) = ponto do adversario
   return null;
 }
 // ==========================================================
@@ -6837,7 +6865,7 @@ function courtSubDoIn(inAid){
 }
 function closeCourtSub(){_courtSubOut=null;var d=document.getElementById("courtSubModal");if(d)d.remove();}
 
-function rcO(oc){if(!S.sp||!S.sa)return;var gm=gF(S.aid);if(!gm||gm.st!=="live")return;var a={id:"a"+Date.now(),pid:S.sp,ak:S.sa,oc:oc,set:S.cs,ts:S.tm};
+function rcO(oc){if(!S.sp||!S.sa)return;var gm=gF(S.aid);if(!gm||gm.st!=="live")return;if(setIsOver(gm,S.cs)){if(typeof toast==="function")toast("Set encerrado — inicie o próximo set","error");showFlash("#dc2626");return;}var a={id:"a"+Date.now(),pid:S.sp,ak:S.sa,oc:oc,set:S.cs,ts:S.tm};
 if(gm.tidB) a.side=(S.side==="B")?"B":"A"; // minis 2 lados: de qual equipe foi a acao
 // Ponto automatico — registra qual lado subiu, pra o undo reverter junto
 var scSide=autoScoreSide(S.sa,oc);
@@ -7099,14 +7127,16 @@ function rSctTablet(gm,gp,te){
   h+='</div>';
   return h;
 }
-function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;_sqPush(gm,who);courtRegisterPoint(who);courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");saveGame(gm).catch(function(){});render();}
+function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(setIsOver(gm,S.cs)){if(typeof toast==="function")toast("Set encerrado — inicie o próximo set","error");return;}if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;_sqPush(gm,who);var _snap=courtRegisterPoint(who);S.us.push({manual:true,sc:who,set:S.cs,court:_snap});courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");saveGame(gm).catch(function(){});render();}
 function scDn(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u"&&gm.ss[S.cs-1].u>0){gm.ss[S.cs-1].u--;_sqPopSide(gm,S.cs-1,"u");}else if(who==="t"&&gm.ss[S.cs-1].t>0){gm.ss[S.cs-1].t--;_sqPopSide(gm,S.cs-1,"t");}saveGame(gm).catch(function(){});render();}
-function undo(){if(!S.us.length)return;var l=S.us.pop();var gm=gF(S.aid);if(!gm)return;if(l.a&&gm.act){gm.act=gm.act.filter(function(a){return a.id!==l.a.id;});}
-// Reverter ponto automatico, se houve — no set em que a acao foi marcada
-if(l.sc&&l.a&&gm.ss){var si=(l.a.set||S.cs)-1;if(gm.ss[si]){if(l.sc==="u"&&gm.ss[si].u>0)gm.ss[si].u--;else if(l.sc==="t"&&gm.ss[si].t>0)gm.ss[si].t--;_sqPopSide(gm,si,l.sc);}}
+function undo(){if(!S.us.length)return;var l=S.us.pop();var gm=gF(S.aid);if(!gm)return;
+var setN=(l.a&&l.a.set)||l.set||S.cs; // acao (rcO) tem l.a.set; ponto manual (+/- scUp) tem l.set
+if(l.a&&gm.act){gm.act=gm.act.filter(function(a){return a.id!==l.a.id;});}
+// Reverter o ponto (de rcO OU de +/- manual) no set em que aconteceu
+if(l.sc&&gm.ss){var si=setN-1;if(gm.ss[si]){if(l.sc==="u"&&gm.ss[si].u>0)gm.ss[si].u--;else if(l.sc==="t"&&gm.ss[si].t>0)gm.ss[si].t--;_sqPopSide(gm,si,l.sc);}}
 // Q2: reverte a rotacao da quadra (restaura o snapshot guardado no momento do ponto)
-if(l.court&&gm.courtMode&&gm.court){gm.court[String(l.a.set||S.cs)]=l.court;}
-save();render();}
+if(l.court&&gm.courtMode&&gm.court){gm.court[String(setN)]=l.court;}
+saveGame(gm).catch(function(){});render();}
 // ===== FORMATO DA PARTIDA + FIM DE SET (regras do volei) =====
 // g.format: "bo3" (melhor de 3, set 3 = tie 15) | "bo5" (melhor de 5, set 5 = tie 15)
 //         | "fixed3" (3 sets obrigatorios, todos a 25, sem tie).
@@ -7152,7 +7182,7 @@ function nxS(){var gm=gF(S.aid);if(!gm)return;
   }
   gm.ss.push({u:0,t:0});S.cs++;S.tm=0;
   if(gm.courtMode){ S.sp=null;S.sa=null; } // novo set: limpa selecao (posicionamento refeito)
-  save();render();}
+  saveGame(gm).catch(function(){});render();}
 function enG(){
   var gm=gF(S.aid);if(!gm)return;
   var te=tF(gm.tid);
@@ -7166,7 +7196,7 @@ function enG(){
       gm.st="done";
       if(S.ti)clearInterval(S.ti);
       var gid=S.aid;
-      save();
+      saveGame(gm).catch(function(){});
       // Volta para a lista correta (cards do torneio se em modo torneio)
       S={aid:null,sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};
       if(torneioMode){torneioGameOpen=null;}

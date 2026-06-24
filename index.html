@@ -1140,7 +1140,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24c - modo tablet (1 toque)";
+var APP_BUILD="2026-06-24d - zerar nao ejeta do jogo";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6379,7 +6379,9 @@ function resetG(){
     body:"Placar e status voltam ao estado inicial.<br><span style=\"color:var(--gray);font-size:12px\">As a\u00e7\u00f5es j\u00e1 registradas <b>n\u00e3o</b> ser\u00e3o apagadas.</span>",
     confirmLabel:"\u{1F504} Zerar",
     confirmStyle:"bd",
-    onConfirm:function(){gm.st="pending";gm.ss=[{u:0,t:0}];if(S.ti)clearInterval(S.ti);S={aid:null,sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};if(torneioMode)torneioGameOpen=null;toast("Partida zerada","ok");save();render();}
+    // MANTEM no jogo (S.aid preservado) — zerar nao pode ejetar pra a tela de selecao
+    // do scout (orfa na galeria-first). Volta o jogo pra pending; o usuario ve o pre-jogo.
+    onConfirm:function(){gm.st="pending";gm.ss=[{u:0,t:0}];if(S.ti)clearInterval(S.ti);S={aid:S.aid,sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};toast("Partida zerada","ok");save();render();}
   });
 }
 function exS(){if(S.ti)clearInterval(S.ti);S={aid:null,sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};render();}
@@ -6715,7 +6717,7 @@ function courtMoreMenu(gid){
   m+='<button onclick="closeCourtMore();nxS()">⏭ Próximo Set</button>';
   m+='<button onclick="closeCourtMore();exG(\''+gid+'\')">📤 WhatsApp</button>';
   if(gm.act&&gm.act.length)m+='<button onclick="closeCourtMore();exGamePDF(\''+gid+'\')">📄 PDF Partida</button>';
-  m+='<button onclick="closeCourtMore();resetG()">🔄 Zerar Set</button>';
+  m+='<button onclick="closeCourtMore();resetG()">🔄 Zerar Partida</button>';
   m+='<button class="court-more-fin" onclick="closeCourtMore();enG()">🏁 Finalizar Jogo</button>';
   m+='</div>';
   m+='<div class="tnj-actions"><button class="tnj-cancel" onclick="closeCourtMore()">Fechar</button></div>';

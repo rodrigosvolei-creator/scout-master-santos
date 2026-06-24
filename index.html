@@ -4049,7 +4049,7 @@ function rUsers(){
 }
 
 function copyInviteLink(){
-  var link="https://master.associacaoscoladevoleibol.com.br/?cadastro=rs2026";
+  var link=location.origin+"/?cadastro=rs2026"; // dinamico: segue o dominio em uso (master.* ou rsvoleibol.*)
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(link).then(function(){
       toast("Link copiado! Cole no WhatsApp das equipes","ok");

@@ -72,7 +72,7 @@ setTimeout(()=>{
     w._courtDraft=null;
     var d=w.courtDraftEnsure(gm,gp);
     chk(d.pos.filter(Boolean).length===6,'courtDraftEnsure pre-preenche 6 posicoes');
-    chk(d.serving==='us','draft default: nós sacamos');
+    chk(d.serving===null,'draft default: saque INDEFINIDO (usuario escolhe antes de iniciar)');
 
     // 3. courtRenderSetup emite quadra + start
     var setupHtml=w.courtRenderSetup(gm,gp);
@@ -86,10 +86,13 @@ setTimeout(()=>{
     var sobra=d.pos.indexOf('a5')<0?'a5':null;
     chk(sobra==='a5','draft deixou a #12 (Dud) no banco (maior numero)');
     var lenAntes=d.pos.filter(Boolean).length;
-    w.courtDraftRemove(0); // tira o sacador
+    w.courtDraftRemove(0); // tira o sacador (P1) -> slot 0 vazio
     chk(w._courtDraft.pos.filter(Boolean).length===lenAntes-1,'courtDraftRemove tira do slot');
-    w.courtDraftPlace('a5'); // poe a Dud no slot vazio
-    chk(w._courtDraft.pos.indexOf('a5')>=0,'courtDraftPlace coloca no slot vazio');
+    // novo fluxo direcionado: courtDraftPlace ARMA o atleta (pick); courtDraftCell coloca na posicao tocada
+    w.courtDraftPlace('a5');
+    chk(w._courtDraft.pick==='a5','courtDraftPlace ARMA o atleta (pick)');
+    w.courtDraftCell(0); // coloca a5 na P1 (slot 0)
+    chk(w._courtDraft.pos[0]==='a5' && w._courtDraft.pick===null,'courtDraftCell coloca o pick na posicao e limpa o pick');
 
     // 5. courtConfirmSetup grava g.court[set]
     // garante 6 preenchidos

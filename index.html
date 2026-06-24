@@ -688,6 +688,7 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .court-cell .court-empty-txt{font-size:10px;color:rgba(255,255,255,.6);font-weight:700}
 .court-bench{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:6px}
 .court-bench-card{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px;border:2px solid var(--brd);background:#fff;border-radius:10px;cursor:pointer;font-family:inherit}
+.court-bench-card.picked{box-shadow:0 0 0 3px #1d4ed8;border-color:#1d4ed8}
 .court-bench-num{font-family:'Bebas Neue',sans-serif;font-size:19px;color:#0f172a;line-height:1}
 .court-bench-nm{font-size:8.5px;font-weight:700;color:#475569;text-transform:uppercase}
 .court-serve-toggle{display:flex;gap:8px}
@@ -780,7 +781,8 @@ body.rs-shell .app-content .sc-arena-court .sc-board{top:104px}
 .sct-ctl{background:#16213c;border:1px solid #243049;border-radius:9px;color:#cbd5e1;padding:11px 10px;font-size:13px;cursor:pointer;text-align:left;width:100%;font-family:inherit}
 .sct-ctl:active{transform:scale(.98)}
 .sct-feedbox{margin-top:9px;background:#0f1830;border-radius:9px;padding:8px}
-.sct-feed-item{border-left:3px solid #64748b;border-radius:0 5px 5px 0;padding:4px 8px;font-size:12px;margin-bottom:4px;background:#16213c}
+.sct-feed-item{border-left:3px solid #64748b;border-radius:0 5px 5px 0;padding:4px 8px;font-size:12px;margin-bottom:4px;background:#16213c;color:#e2e8f0}
+.sct .sc-seclabel{color:#cbd5e1}
 .sct-feed-item .fn{color:#93c5fd;font-weight:800}
 .sct-ladder-wrap{margin-top:10px;background:#0f1830;border-radius:10px;padding:8px 10px}
 .sct-ladder{display:flex;gap:3px;overflow-x:auto;padding-bottom:3px}
@@ -830,6 +832,8 @@ body.rs-tablet .app-content{padding:6px;max-width:none}
 .sct-libin{width:100%;background:#0f1830;border:1px solid #f59e0b;border-radius:9px;padding:8px 10px;font-size:12px;color:#fcd34d;cursor:pointer;text-align:left;font-family:inherit}
 /* destaque de fundo quando o libero esta armado (quadra) */
 .court-cell.canexit{box-shadow:0 0 0 3px #f59e0b}
+.court-cell.badlib{box-shadow:0 0 0 3px #dc2626}
+.court-cell.pickable{box-shadow:0 0 0 2px rgba(96,165,250,.6)}
 /* atalhos de teclado */
 .sct-kb{margin-top:10px;background:#111a2e;border:1px solid #243049;border-radius:12px;padding:12px}
 .sct-kb-title{font-size:13px;font-weight:600;margin-bottom:6px;color:#e2e8f0}
@@ -1140,7 +1144,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24d - zerar nao ejeta do jogo";
+var APP_BUILD="2026-06-24e - setup: libero/saque/posicionar + zerar set + feed";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -4725,7 +4729,8 @@ if(!locked){
   else{
     h+='<button class="sc-cbtn sc-cbtn-set" onclick="nxS()">\u23ED Pr\u00f3x Set</button>';
     h+='<button class="sc-cbtn sc-cbtn-fin" onclick="enG()">\uD83C\uDFC1 Finalizar</button>';
-    h+='<button class="sc-cbtn sc-cbtn-zerar" onclick="resetG()">\u{1F504} Zerar</button>';
+    h+='<button class="sc-cbtn sc-cbtn-zerar" onclick="resetSet()">\u{1F504} Zerar Set</button>';
+    h+='<button class="sc-cbtn sc-cbtn-zerar" onclick="resetG()">\u{1F504} Zerar Partida</button>';
     h+='<button class="sc-cbtn sc-cbtn-set" onclick="openReassignModal(\''+gm.id+'\')">↔ Corrigir atleta</button>';
     h+='<button class="sc-cbtn sc-cbtn-wpp" onclick="exG(\''+gm.id+'\')">\u{1F4E4} WhatsApp</button>';
     if(gm.act&&gm.act.length)h+='<button class="sc-cbtn sc-cbtn-set" onclick="exGamePDF(\''+gm.id+'\')">\u{1F4C4} PDF Partida</button>';
@@ -6384,6 +6389,25 @@ function resetG(){
     onConfirm:function(){gm.st="pending";gm.ss=[{u:0,t:0}];if(S.ti)clearInterval(S.ti);S={aid:S.aid,sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};toast("Partida zerada","ok");save();render();}
   });
 }
+// Zera SO o placar do set atual (mantem os outros sets e o jogo AO VIVO). No modo
+// quadra, reabre o posicionamento do set (delete gm.court[set]) pra reposicionar/sacar.
+function resetSet(){
+  var gm=gF(S.aid);if(!gm||!gm.ss||!gm.ss[S.cs-1])return;
+  confirmModal({
+    title:"ZERAR SET "+S.cs,
+    body:"Zera o placar <b>só do set "+S.cs+"</b>.<br><span style=\"color:var(--gray);font-size:12px\">Os outros sets e o jogo ao vivo são mantidos. As ações registradas <b>não</b> são apagadas.</span>",
+    confirmLabel:"\u{1F504} Zerar set",
+    confirmStyle:"bd",
+    onConfirm:function(){
+      var s=gm.ss[S.cs-1];s.u=0;s.t=0;s.sq=[];
+      if(gm.courtMode&&gm.court)delete gm.court[String(S.cs)];
+      S.sp=null;S.sa=null;
+      toast("Set "+S.cs+" zerado","ok");
+      if(typeof saveGame==="function")saveGame(gm).catch(function(){});else save();
+      render();
+    }
+  });
+}
 function exS(){if(S.ti)clearInterval(S.ti);S={aid:null,sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};render();}
 // Voltar da tela de scout — respeita o modo torneio (volta pros cards do torneio, nao pro app geral)
 function scoutBack(){
@@ -6578,21 +6602,43 @@ function toggleCourtMode(){
   render();
 }
 
-// Garante o rascunho de posicionamento do set atual (pre-preenche com os 6 de menor numero)
+// Garante o rascunho de posicionamento do set atual. Pre-preenche os 6 priorizando
+// NAO-liberos (libero so se faltar gente) e garante que nenhum libero comece na frente
+// (P2/P3/P4). Saque comeca INDEFINIDO — o usuario escolhe antes de iniciar.
 function courtDraftEnsure(gm,gp){
   var k=String(S.cs);
   if(_courtDraft&&_courtDraft.gid===gm.id&&_courtDraft.set===k)return _courtDraft;
   var ordered=gp.slice().sort(function(a,b){return a.nu-b.nu;});
+  var naoLib=ordered.filter(function(p){return !_isLibero(p);});
+  var libs=ordered.filter(function(p){return _isLibero(p);});
+  var six=naoLib.slice(0,6);
+  for(var li=0;six.length<6&&li<libs.length;li++)six.push(libs[li]); // completa se faltar
   var pos=[null,null,null,null,null,null];
-  for(var i=0;i<6&&i<ordered.length;i++)pos[i]=ordered[i].id;
-  _courtDraft={gid:gm.id,set:k,pos:pos,serving:"us"};
+  for(var i=0;i<6&&i<six.length;i++)pos[i]=six[i].id;
+  // libero NUNCA comeca na frente (idx 1/2/3): troca com um nao-libero do fundo
+  for(var f=0;f<_COURT_FRONT.length;f++){
+    var fi=_COURT_FRONT[f],aid=pos[fi],p=aid?_gpFind(gp,aid):null;
+    if(p&&_isLibero(p)){
+      for(var b=0;b<_COURT_BACK.length;b++){
+        var bi=_COURT_BACK[b],baid=pos[bi],bp=baid?_gpFind(gp,baid):null;
+        if(bp&&!_isLibero(bp)){pos[fi]=baid;pos[bi]=aid;break;}
+      }
+    }
+  }
+  _courtDraft={gid:gm.id,set:k,pos:pos,serving:null,pick:null};
   return _courtDraft;
 }
-function courtDraftPlace(aid){
+// Toque no banco = ARMA/desarma o atleta (pick). Depois toca a posicao na quadra.
+function courtDraftPlace(aid){ if(!_courtDraft)return; _courtDraft.pick=(_courtDraft.pick===aid?null:aid); render(); }
+// Toque numa celula da quadra: com pick armado, coloca ali (troca com o ocupante);
+// sem pick, toca celula cheia = tira do time (volta pro banco).
+function courtDraftCell(idx){
   if(!_courtDraft)return;
-  var at=_courtDraft.pos.indexOf(aid);
-  if(at>=0){_courtDraft.pos[at]=null;render();return;}
-  for(var i=0;i<6;i++){if(!_courtDraft.pos[i]){_courtDraft.pos[i]=aid;break;}}
+  if(_courtDraft.pick){
+    var prev=_courtDraft.pos[idx];
+    var at=_courtDraft.pos.indexOf(_courtDraft.pick); if(at>=0)_courtDraft.pos[at]=prev||null; // swap
+    _courtDraft.pos[idx]=_courtDraft.pick; _courtDraft.pick=null;
+  }else if(_courtDraft.pos[idx]){ _courtDraft.pos[idx]=null; }
   render();
 }
 function courtDraftRemove(idx){ if(_courtDraft){_courtDraft.pos[idx]=null;render();} }
@@ -6600,8 +6646,12 @@ function courtDraftServer(side){ if(_courtDraft){_courtDraft.serving=side;render
 function courtConfirmSetup(){
   var gm=gF(S.aid); if(!gm||!_courtDraft)return;
   if(_courtDraft.pos.filter(Boolean).length<6){if(typeof toast==='function')toast("Posicione as 6 atletas","error");return;}
+  if(_courtDraft.serving!=="us"&&_courtDraft.serving!=="them"){if(typeof toast==='function')toast("Escolha quem saca primeiro","error");return;}
+  // Trava de regra: libero nao pode iniciar na frente (P2/P3/P4)
+  var _gp=(typeof _courtGp==='function')?_courtGp(gm):[];
+  if(_COURT_FRONT.some(function(i){var a=_courtDraft.pos[i];var p=a?_gpFind(_gp,a):null;return p&&_isLibero(p);})){if(typeof toast==='function')toast("Líbero não pode iniciar na frente (P2/P3/P4)","error");return;}
   if(!gm.court)gm.court={};
-  gm.court[_courtDraft.set]={pos:_courtDraft.pos.slice(),serving:_courtDraft.serving};
+  gm.court[_courtDraft.set]={pos:_courtDraft.pos.slice(),serving:_courtDraft.serving,libPair:null};
   _courtDraft=null;
   if(typeof save==='function')save();
   render();
@@ -6637,35 +6687,41 @@ function courtLiberoSwap(aid){
 // Ordem visual das posicoes (rede em cima): frente P4 P3 P2 / fundo P5 P6 P1.
 var _COURT_ORDER=[3,2,1,4,5,0];
 var _COURT_POSLBL=["1","2","3","4","5","6"];
+var _COURT_FRONT=[1,2,3]; // P2/P3/P4 (rede) — libero proibido na frente
+var _COURT_BACK=[0,4,5];  // P1/P5/P6 (fundo) — onde o libero pode jogar
 
 // Tela de posicionamento inicial do set
 function courtRenderSetup(gm,gp){
   var d=courtDraftEnsure(gm,gp);
+  var pickNm=''; if(d.pick){var pk=_gpFind(gp,d.pick); if(pk)pickNm='#'+(pk.nu!=null&&pk.nu!==''?pk.nu:'–')+' '+esc(pk.nm.split(" ")[0]);}
   var h='<div class="sc-seclabel">🏐 Posicionar o time — Set '+S.cs+'</div>';
+  h+='<div style="font-size:12px;color:#93a4c0;margin:-4px 0 8px">'+(d.pick?('Toque a posição na quadra pra colocar <b style="color:#cbd5e1">'+pickNm+'</b>'):'Toque um atleta (banco) e depois a posição. Tocar uma posição ocupada tira do time.')+'</div>';
   h+='<div class="court-wrap"><div class="court-net">REDE</div><div class="court-grid">';
   for(var o=0;o<_COURT_ORDER.length;o++){
     var idx=_COURT_ORDER[o]; var aid=d.pos[idx]; var p=aid?_gpFind(gp,aid):null;
-    var isServer=(idx===0);
-    h+='<div class="court-cell'+(p?' filled':' empty')+(isServer?' server':'')+'"'+(p?' onclick="courtDraftRemove('+idx+')"':'')+'>';
-    h+='<span class="court-pos">P'+_COURT_POSLBL[idx]+(isServer?' 🏐':'')+'</span>';
+    var isServer=(idx===0); var isLib=(p&&_isLibero(p)); var badLib=(isLib&&_COURT_FRONT.indexOf(idx)>=0);
+    h+='<div class="court-cell'+(p?' filled':' empty')+(isServer?' server':'')+(isLib?' lib':'')+(badLib?' badlib':'')+(d.pick?' pickable':'')+'" onclick="courtDraftCell('+idx+')">';
+    h+='<span class="court-pos">P'+_COURT_POSLBL[idx]+(isServer?' 🏐':'')+(isLib?' 🦺':'')+'</span>';
     if(p){h+='<div class="court-num">'+(p.nu!=null&&p.nu!==''?p.nu:'–')+'</div><div class="court-nm">'+esc(p.nm.split(" ")[0])+'</div>';}
-    else{h+='<div class="court-empty-txt">vazio</div>';}
+    else{h+='<div class="court-empty-txt">'+(d.pick?'colocar aqui':'vazio')+'</div>';}
     h+='</div>';
   }
   h+='</div></div>';
   var used={}; d.pos.forEach(function(a){if(a)used[a]=1;});
   var bench=gp.filter(function(p){return !used[p.id];});
-  h+='<div class="sc-seclabel" style="margin-top:10px">Banco — toque pra posicionar</div><div class="court-bench">';
+  h+='<div class="sc-seclabel" style="margin-top:10px">Banco — toque pra escolher</div><div class="court-bench">';
   if(!bench.length)h+='<span style="color:var(--rs-fg-mute,#94a3b8);font-size:12px">Todas posicionadas ✓</span>';
-  for(var b=0;b<bench.length;b++){var bp=bench[b];
-    h+='<button class="court-bench-card" onclick="courtDraftPlace(\''+bp.id+'\')"><span class="court-bench-num">'+(bp.nu!=null&&bp.nu!==''?bp.nu:'–')+'</span><span class="court-bench-nm">'+esc(bp.nm.split(" ")[0])+'</span></button>';
+  for(var b=0;b<bench.length;b++){var bp=bench[b];var blib=_isLibero(bp);
+    h+='<button class="court-bench-card'+(d.pick===bp.id?' picked':'')+'" onclick="courtDraftPlace(\''+bp.id+'\')"><span class="court-bench-num">'+(bp.nu!=null&&bp.nu!==''?bp.nu:'–')+'</span><span class="court-bench-nm">'+(blib?'🦺 ':'')+esc(bp.nm.split(" ")[0])+'</span></button>';
   }
   h+='</div>';
-  h+='<div class="sc-seclabel" style="margin-top:10px">Quem saca primeiro</div><div class="court-serve-toggle">';
+  h+='<div class="sc-seclabel" style="margin-top:10px">Quem saca primeiro</div>';
+  if(!d.serving)h+='<div style="font-size:11px;color:#fca5a5;margin:0 0 6px">⚠ escolha quem saca antes de iniciar</div>';
+  h+='<div class="court-serve-toggle">';
   h+='<button class="'+(d.serving==="us"?"on":"")+'" onclick="courtDraftServer(\'us\')">🏐 Nós sacamos</button>';
   h+='<button class="'+(d.serving==="them"?"on":"")+'" onclick="courtDraftServer(\'them\')">Adversário</button>';
   h+='</div>';
-  var ready=d.pos.filter(Boolean).length===6;
+  var ready=d.pos.filter(Boolean).length===6 && (d.serving==="us"||d.serving==="them");
   h+='<button class="court-start"'+(ready?'':' disabled')+' onclick="courtConfirmSetup()">✓ Iniciar set</button>';
   return h;
 }
@@ -6717,6 +6773,7 @@ function courtMoreMenu(gid){
   m+='<button onclick="closeCourtMore();nxS()">⏭ Próximo Set</button>';
   m+='<button onclick="closeCourtMore();exG(\''+gid+'\')">📤 WhatsApp</button>';
   if(gm.act&&gm.act.length)m+='<button onclick="closeCourtMore();exGamePDF(\''+gid+'\')">📄 PDF Partida</button>';
+  m+='<button onclick="closeCourtMore();resetSet()">🔄 Zerar Set '+S.cs+'</button>';
   m+='<button onclick="closeCourtMore();resetG()">🔄 Zerar Partida</button>';
   m+='<button class="court-more-fin" onclick="closeCourtMore();enG()">🏁 Finalizar Jogo</button>';
   m+='</div>';

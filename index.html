@@ -750,6 +750,93 @@ body.rs-shell .app-content .sc-arena-court .sc-board{top:104px}
 .court-cell.lib{box-shadow:0 0 0 2px #f59e0b inset}
 .court-cell.live.lib.server{box-shadow:0 0 0 3px #fbbf24,0 4px 14px rgba(251,191,36,.5)}
 
+/* ===== MODO TABLET (landscape, 1 toque grava) — reproduz preview/scout-tablet-mockup.html ===== */
+.sct{background:linear-gradient(165deg,#0c1322,#141d33 55%,#0a0f1c);border-radius:16px;padding:12px;box-shadow:0 12px 40px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04)}
+.sct-top{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#111a2e;border:1px solid #243049;border-radius:14px;padding:9px 14px;margin-bottom:10px}
+.sct-side{display:flex;align-items:center;gap:8px}
+.sct-logo{width:30px;height:30px;border-radius:7px;object-fit:contain;background:#0b1220;flex:none}
+.sct-tn{font-size:11px;color:#93a4c0;font-weight:700;max-width:120px;line-height:1.15}
+.sct-score{font-family:'Bebas Neue',sans-serif;font-size:40px;color:#fff;min-width:40px;text-align:center;line-height:1}
+.sct-sb{background:#1e293b;color:#e2e8f0;border:none;border-radius:8px;width:32px;height:32px;font-size:18px;cursor:pointer;font-family:inherit;flex:none}
+.sct-sb:active{transform:scale(.94)}
+.sct-mid{text-align:center;flex:1;min-width:0}
+.sct-sets{font-size:11px;color:#fbbf24;font-weight:700;letter-spacing:.4px}
+.sct-serve{font-size:11px;font-weight:700;margin-top:1px}
+.sct-mark{font-size:13px;color:#cbd5e1;margin-top:2px;min-height:16px}
+.sct-to{font-size:10px;color:#fbbf24;font-weight:600;margin-top:2px}
+.sct-exit{background:#16213c;border:1px solid #243049;border-radius:8px;color:#cbd5e1;padding:7px 9px;font-size:12px;cursor:pointer;font-family:inherit;flex:none}
+.sct-exit.on{background:#1d4ed8;border-color:#60a5fa;color:#fff}
+.sct-body{display:grid;grid-template-columns:minmax(196px,232px) 1fr minmax(150px,182px);gap:10px;align-items:start}
+.sct-lbl{font-size:11px;color:#93a4c0;margin:0 0 6px;font-weight:600}
+.sct-col-c .sct-lbl span{color:#64d39a}
+.sct-groups{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sct-grp{background:#0f1830;border-radius:10px;padding:8px;border-top:3px solid #555}
+.sct-grp h4{margin:0 0 7px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:4px}
+.sct-grp h4 .hint{font-size:9px;color:#64d39a;font-weight:500;margin-left:auto}
+.sct-orow{display:grid;gap:5px}
+.sct-ob{border:none;border-radius:7px;padding:13px 4px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;line-height:1.1;font-family:inherit}
+.sct-ob:active{transform:scale(.95)}
+.sct-ctrls{display:flex;flex-direction:column;gap:7px}
+.sct-ctl{background:#16213c;border:1px solid #243049;border-radius:9px;color:#cbd5e1;padding:11px 10px;font-size:13px;cursor:pointer;text-align:left;width:100%;font-family:inherit}
+.sct-ctl:active{transform:scale(.98)}
+.sct-feedbox{margin-top:9px;background:#0f1830;border-radius:9px;padding:8px}
+.sct-feed-item{border-left:3px solid #64748b;border-radius:0 5px 5px 0;padding:4px 8px;font-size:12px;margin-bottom:4px;background:#16213c}
+.sct-feed-item .fn{color:#93c5fd;font-weight:800}
+.sct-ladder-wrap{margin-top:10px;background:#0f1830;border-radius:10px;padding:8px 10px}
+.sct-ladder{display:flex;gap:3px;overflow-x:auto;padding-bottom:3px}
+.sct-lcol{display:flex;flex-direction:column;gap:3px;flex:none}
+.sct-lc{width:20px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+.sct-lc.us{background:#1d4ed8;color:#fff}
+.sct-lc.th{background:#dc2626;color:#fff}
+.sct-lc.e{background:#16213c}
+/* coluna esquerda reusa .court-* mas em escala menor */
+.sct-col-l .sc-seclabel{margin-bottom:6px;font-size:12px}
+.sct-col-l .court-cell{min-height:50px;padding:9px 3px 6px}
+.sct-col-l .court-cell .court-num{font-size:22px}
+.sct-col-l .court-cell .court-nm{font-size:9px}
+.sct-col-l .court-ctrls{margin-top:8px}
+/* esconder o chrome do app quando o modo tablet esta ativo num jogo ao vivo */
+body.rs-tablet .app-header,body.rs-tablet .app-tabs{display:none}
+body.rs-tablet .app-content{padding:6px;max-width:none}
+@media(max-width:840px){
+  .sct-body{grid-template-columns:1fr}
+  .sct-col-l,.sct-col-r{max-width:560px;margin:0 auto}
+}
+/* opcoes (quadra/lista, rotulo do passe) */
+.sct-opts{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 10px}
+.sct-opt{background:#111a2e;border:1px solid #243049;border-radius:10px;padding:6px 10px;font-size:12px;display:flex;gap:8px;align-items:center}
+.sct-opt b{color:#cbd5e1;font-weight:600}
+.sct-seg{display:flex;border:1px solid #243049;border-radius:8px;overflow:hidden}
+.sct-seg button{background:#0f1830;color:#93a4c0;border:none;padding:6px 11px;font-size:12px;cursor:pointer;font-family:inherit}
+.sct-seg button.on{background:#1d4ed8;color:#fff}
+/* coluna esquerda — modo lista */
+.sct-list{display:flex;flex-direction:column;gap:5px}
+.sct-lrow{display:flex;align-items:center;gap:8px;background:#16213c;border:1px solid #243049;border-radius:9px;padding:9px 10px;cursor:pointer;color:#e2e8f0;width:100%;text-align:left;font-family:inherit;font-size:13px}
+.sct-lrow.sel{background:#1d4ed8;border-color:#60a5fa;color:#fff}
+.sct-lrow.canexit{box-shadow:0 0 0 2px #f59e0b}
+.sct-lrow.lib{background:#fde68a;color:#78350f}
+.sct-lrow b{min-width:22px;text-align:center;font-size:15px;font-family:'Bebas Neue',sans-serif}
+.sct-lrow-pos{margin-left:auto;font-size:10px;color:#94a3b8}
+.sct-lrow.lib .sct-lrow-pos{color:#92400e}
+/* substituir/rodar */
+.sct-courtbtns{display:flex;gap:6px;margin-top:8px}
+.sct-courtbtns button{flex:1;background:#16213c;border:1px solid #243049;border-radius:8px;color:#cbd5e1;padding:9px 2px;font-size:11px;cursor:pointer;font-family:inherit}
+.sct-courtbtns button:active{transform:scale(.97)}
+/* liberos (cards prontos pra selecionar) */
+.sct-libslot{margin-top:8px}
+.sct-libhint{font-size:11px;color:#93a4c0;margin:2px 0 4px}
+.sct-libcard{width:100%;background:#fde68a;color:#78350f;border:1px solid #f59e0b;border-radius:9px;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer;text-align:left;margin-bottom:5px;font-family:inherit}
+.sct-libcard.armed{box-shadow:0 0 0 3px #f59e0b}
+.sct-libin{width:100%;background:#0f1830;border:1px solid #f59e0b;border-radius:9px;padding:8px 10px;font-size:12px;color:#fcd34d;cursor:pointer;text-align:left;font-family:inherit}
+/* destaque de fundo quando o libero esta armado (quadra) */
+.court-cell.canexit{box-shadow:0 0 0 3px #f59e0b}
+/* atalhos de teclado */
+.sct-kb{margin-top:10px;background:#111a2e;border:1px solid #243049;border-radius:12px;padding:12px}
+.sct-kb-title{font-size:13px;font-weight:600;margin-bottom:6px;color:#e2e8f0}
+.sct-kb-buf{font-size:12px;color:#64748b;margin-bottom:9px}
+.sct-kb-cols{display:flex;flex-wrap:wrap;gap:20px;font-size:12px;color:#cbd5e1;line-height:1.7}
+.sct-kb-cols b{color:#93a4c0}
+
 /* ===== SCOUT NO CELULAR — versao compacta ===== */
 @media(max-width:480px){
   /* placar menor */
@@ -1053,13 +1140,15 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24b - finalizar jogo volta pro torneio";
+var APP_BUILD="2026-06-24c - modo tablet (1 toque)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
 var POS=["Levantador(a)","Oposto(a)","Ponteiro(a)","Central","L\u00edbero"];
 var ACT={saque:{l:"Saque",i:"\u{1F3D0}",o:["Ace","Erro","Cont"]},recepcao:{l:"Recep\u00e7\u00e3o",i:"\u{1F932}",o:["A","B","C","Erro"]},levantamento:{l:"Levant.",i:"\u{1F446}",o:["A","B","C","Erro"]},ataque:{l:"Ataque",i:"\u{1F4A5}",o:["Ponto","Bloq","Erro","Cont"]},bloqueio:{l:"Bloqueio",i:"\u{1F9F1}",o:["Ponto","Erro","Cont"]},defesa:{l:"Defesa",i:"\u{1F6E1}\uFE0F",o:["A","B","C","Erro"]}};
 var OC={Ace:"#059669",Ponto:"#059669",A:"#059669",B:"#d97706",Cont:"#64748b",C:"#ea580c",Bloq:"#ea580c",Erro:"#dc2626"};
+// Cor por fundamento (cabecalho dos grupos no modo tablet). Igual ao mockup.
+var FCOL={saque:"#2563eb",recepcao:"#059669",levantamento:"#7c3aed",ataque:"#dc2626",bloqueio:"#ea580c",defesa:"#0891b2"};
 var IT=[{id:"tf",n:"FEM RS-VOLEIBOL 30+",c:"#db2777",p:[],logo:"rs"},{id:"tm",n:"MASC 1\u00baMAIO/RS 35+",c:"#2563eb",p:[],logo:"rs"}];
 function getD(){return{teams:JSON.parse(JSON.stringify(IT)),games:[],tournaments:[],athletes:[]};}
 function fD(d){if(!d)return"A Definir";try{return new Date(d+"T12:00:00").toLocaleDateString("pt-BR")}catch(e){return d;}}
@@ -3789,6 +3878,8 @@ function render(){if(!D)return;var a=document.getElementById("mainApp");
 // Fase A1: marca shell mode no <body>. So o shell recebe a marca d'agua
 // global e as tabs escuras. USA/signup/landing tem cosmetica propria.
 try{document.body.classList.toggle('rs-shell',!torneioMode&&!signupMode&&!showLanding&&!telaoMode);}catch(e){}
+// Modo tablet ativo num jogo ao vivo: esconde header/tabs pra tela limpa (landscape).
+try{document.body.classList.toggle('rs-tablet',!torneioMode&&!signupMode&&!showLanding&&!telaoMode&&tab==='scout'&&!!S.aid&&isTabletMode()&&(function(){var g=gF(S.aid);return !!(g&&g.st==='live'&&!g.locked&&!g.tidB);})());}catch(e){}
 
 // === Modo TELÃO: tela cheia que segue o jogo ao vivo (read-only) ===
 if(telaoMode){
@@ -3901,8 +3992,11 @@ try{
     _cb.style.top=(_hh+_th)+'px';
   }
 }catch(e){}
+// Modo tablet: mantem a ladder rolada ate o ultimo ponto.
+try{var _lad=document.querySelector('.sct-ladder');if(_lad)_lad.scrollLeft=_lad.scrollWidth;}catch(e){}
 }
 window.addEventListener("resize",function(){render();});
+document.addEventListener("keydown",_sctKeydown); // atalhos do modo tablet (no-op fora dele)
 
 function rCfg(){var h='<div class="stb"><button class="'+(subTab==="teams"?"on":"")+'" onclick="setSubTab(\'teams\')">\u{1F465} Equipes</button><button class="'+(subTab==="athletes"?"on":"")+'" onclick="setSubTab(\'athletes\')">\u{1F46B} Atletas</button><button class="'+(subTab==="games"?"on":"")+'" onclick="setSubTab(\'games\')">\u{1F4C5} Jogos</button><button class="'+(subTab==="users"?"on":"")+'" onclick="setSubTab(\'users\')">\u{1F510} Usu\u00e1rios</button><button class="'+(subTab==="archive"?"on":"")+'" onclick="setSubTab(\'archive\')">\u{1F4E6} Arquivo</button></div>';return h+(subTab==="teams"?rTms():subTab==="athletes"?rAthletesBank():subTab==="archive"?rArchive():subTab==="users"?rUsers():rGms());}
 
@@ -4537,6 +4631,9 @@ if(gm.st==="pending"&&noLineup){
   hL+='</div>';
   return hL;
 }
+// MODO TABLET (preferencia de dispositivo via localStorage): tela landscape de 1
+// toque. So com jogo AO VIVO, nao travado e fora do minis (2 lados). Substitui a tela.
+if(gm.st==="live"&&!gm.locked&&!gm.tidB&&isTabletMode()){return rSctTablet(gm,gp,te);}
 var cur=(gm.ss&&gm.ss[S.cs-1])?gm.ss[S.cs-1]:{u:0,t:0};var mm=Math.floor(S.tm/60),ss=S.tm%60;var ts2=(mm<10?"0":"")+mm+":"+(ss<10?"0":"")+ss;
 var locked=!!gm.locked; // jogo travado = somente leitura, exceto exports
 var h='';
@@ -4573,6 +4670,7 @@ h+='<div style="display:flex;gap:5px">';
 if(!locked){
   h+='<button class="sc-icobtn" onclick="openLineup(\''+gm.id+'\')" title="Escala\u00e7\u00e3o">\u{1F4CB}</button>';
   if(!gm.tidB)h+='<button class="sc-icobtn'+(gm.courtMode?' on':'')+'" onclick="toggleCourtMode()" title="Scout com quadra (rota\u00e7\u00e3o)">\u{1F3D0}</button>';
+  if(!gm.tidB)h+='<button class="sc-icobtn" onclick="toggleTabletMode()" title="Modo Tablet (landscape, 1 toque)">\u{1F4BB}</button>';
   h+='<button class="sc-icobtn" onclick="tgTm()" title="Cron\u00f4metro">'+(S.rn?"\u23F8":"\u25B6")+'</button>';
   h+='<button class="sc-icobtn" onclick="undo()" title="Desfazer">\u21A9</button>';
   if(isCoord)h+='<button class="sc-icobtn warn" onclick="toggleLockGame(\''+gm.id+'\')" title="Travar">\uD83D\uDD12</button>';
@@ -6700,7 +6798,7 @@ if(gm.tidB) a.side=(S.side==="B")?"B":"A"; // minis 2 lados: de qual equipe foi 
 // Ponto automatico — registra qual lado subiu, pra o undo reverter junto
 var scSide=autoScoreSide(S.sa,oc);
 if(gm.tidB && a.side==="B" && scSide) scSide=(scSide==="u")?"t":"u"; // lado B: ss.u=casa, ss.t=B
-if(scSide&&gm.ss&&gm.ss[S.cs-1]){if(scSide==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;}
+if(scSide&&gm.ss&&gm.ss[S.cs-1]){if(scSide==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;_sqPush(gm,scSide);}
 // Q2: rotacao automatica (no-op fora do modo quadra). Guarda snapshot pra o undo reverter.
 var _courtSnap=scSide?courtRegisterPoint(scSide):null;
 S.us.push({a:a,sc:scSide,court:_courtSnap});if(!gm.act)gm.act=[];gm.act.push(a);S.sa=null;
@@ -6725,11 +6823,243 @@ function showFlash(color){
     setTimeout(function(){if(f)f.style.opacity="0";},140);
   }catch(e){}
 }
-function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;courtRegisterPoint(who);courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");saveGame(gm).catch(function(){});render();}
-function scDn(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u"&&gm.ss[S.cs-1].u>0)gm.ss[S.cs-1].u--;else if(who==="t"&&gm.ss[S.cs-1].t>0)gm.ss[S.cs-1].t--;saveGame(gm).catch(function(){});render();}
+// ===== MODO TABLET (landscape, marca em 1 toque) =====
+// Preferencia de DISPOSITIVO em localStorage (NUNCA por largura de tela: o Rodrigo
+// testa a janela pela metade e o modo nao pode sumir). Reproduz a tela do mockup
+// preview/scout-tablet-mockup.html: 3 colunas (quadra | botoes combinados
+// fundamento+resultado | controles+feed) + ladder (sequencia de pontos) no rodape.
+// Reusa o motor do courtMode (posicoes/rotacao/libero) e o rcO (gravacao).
+function isTabletMode(){try{return localStorage.getItem("rs_scout_tablet")==="1";}catch(e){return false;}}
+function toggleTabletMode(){try{localStorage.setItem("rs_scout_tablet",isTabletMode()?"0":"1");}catch(e){}S.sa=null;render();}
+// Sequencia de pontos do set, leve, p/ a ladder: gm.ss[i].sq=["u"|"t",...].
+function _sqPush(gm,side){if(!gm||!gm.ss)return;var s=gm.ss[S.cs-1];if(!s)return;if(!s.sq)s.sq=[];s.sq.push(side==="u"?"u":"t");}
+function _sqPopSide(gm,setIdx,side){if(!gm||!gm.ss||!gm.ss[setIdx]||!gm.ss[setIdx].sq)return;var q=gm.ss[setIdx].sq;for(var i=q.length-1;i>=0;i--){if(q[i]===side){q.splice(i,1);return;}}}
+// Reconstroi as colunas da ladder do set. Usa sq; completa p/ bater com o placar
+// (jogos antigos sem sq mostram o que da pra reconstruir + completam no fim).
+function _buildLadder(gm,setIdx){
+  var s=(gm&&gm.ss&&gm.ss[setIdx])||{u:0,t:0};
+  var q=(s.sq&&s.sq.slice())||[];var cu=0,ct=0,i;
+  for(i=0;i<q.length;i++){if(q[i]==="u")cu++;else ct++;}
+  while(cu<(s.u||0)){q.push("u");cu++;}while(ct<(s.t||0)){q.push("t");ct++;}
+  var u=0,t=0,cols=[];
+  for(i=0;i<q.length;i++){if(q[i]==="u"){u++;cols.push({s:"u",n:u});}else{t++;cols.push({s:"t",n:t});}}
+  return cols;
+}
+// scTap(ak,oc): grava em 1 toque (fundamento+resultado juntos) = slA(ak)+rcO(oc).
+// Reusa rcO inteiro -> mesmo {pid,ak,oc,set} do scout classico (telao/PDF/stats
+// intactos). Auto-sacador: no saque com nosso serve sem atleta selecionado, vai no P1.
+function scTap(ak,oc){
+  var gm=gF(S.aid);if(!gm||gm.st!=="live")return;
+  if(!S.sp&&ak==="saque"){var cs=gm.court&&gm.court[String(S.cs)];if(cs&&cs.serving==="us"&&cs.pos&&cs.pos[0])S.sp=cs.pos[0];}
+  if(!S.sp){if(typeof toast==="function")toast("Toque um atleta primeiro","error");showFlash("#dc2626");return;}
+  S.sa=ak;rcO(oc);
+}
+// --- Toggles (preferencia de dispositivo, localStorage) ---
+function sctLeftMode(){try{return localStorage.getItem("rs_tablet_left")==="list"?"list":"court";}catch(e){return "court";}}
+function sctSetLeft(m){try{localStorage.setItem("rs_tablet_left",m==="list"?"list":"court");}catch(e){}render();}
+function sctLabelMode(){try{return localStorage.getItem("rs_tablet_label")==="VERB"?"VERB":"ABC";}catch(e){return "ABC";}}
+function sctSetLabel(m){try{localStorage.setItem("rs_tablet_label",m==="VERB"?"VERB":"ABC");}catch(e){}render();}
+var SCT_VERB={A:"Perfeita",B:"Bom",C:"Ruim"};
+function sctLblOf(oc){return (sctLabelMode()==="VERB"&&SCT_VERB[oc])?SCT_VERB[oc]:oc;} // so o LABEL muda; grava A/B/C
+function _sctIsFundo(idx){return idx===0||idx===4||idx===5;} // P1/P5/P6 = fundo (onde libero entra)
+// --- Libero no tablet (fluxo do mockup): toca o card do libero -> arma -> toca quem SAI (fundo) ---
+var _sctLibArmed=null;
+function sctLibArm(aid){_sctLibArmed=(_sctLibArmed===aid)?null:aid;render();}
+function sctLibIn(idx){
+  var gm=gF(S.aid);if(!gm||!gm.court)return;var cs=gm.court[String(S.cs)];if(!cs||!cs.pos||!_sctLibArmed)return;
+  if(!_sctIsFundo(idx)){if(typeof toast==="function")toast("Líbero só entra no fundo (P1/P5/P6)","error");return;}
+  cs.libPair={lib:_sctLibArmed,out:cs.pos[idx]};cs.pos[idx]=_sctLibArmed;S.sp=cs.pos[idx];_sctLibArmed=null;
+  if(typeof save==="function")save();render();
+}
+function sctLibOut(){
+  var gm=gF(S.aid);if(!gm||!gm.court)return;var cs=gm.court[String(S.cs)];if(!cs||!cs.libPair)return;
+  var li=cs.pos.indexOf(cs.libPair.lib);if(li>=0)cs.pos[li]=cs.libPair.out;
+  if(S.sp===cs.libPair.lib)S.sp=null;cs.libPair=null;
+  if(typeof save==="function")save();render();
+}
+function sctTapAthlete(aid,idx){if(_sctLibArmed){sctLibIn(idx);return;}slP(aid);}
+function sctRenderLiberos(gm,gp,cs){
+  var h='<div class="sct-libslot">';
+  if(cs.libPair){
+    var li=cs.pos.indexOf(cs.libPair.lib);var lp=_gpFind(gp,cs.libPair.lib);
+    h+='<button class="sct-libin" onclick="sctLibOut()">🦺 #'+(lp&&lp.nu!=null&&lp.nu!==""?lp.nu:"?")+' '+(lp?esc(lp.nm.split(" ")[0]):"")+' em quadra (P'+_COURT_POSLBL[li>=0?li:0]+') — toque pra tirar</button>';
+  }else{
+    var inC={};cs.pos.forEach(function(a){if(a)inC[a]=1;});
+    var libs=gp.filter(function(p){return !inC[p.id]&&_isLibero(p);});
+    if(libs.length){
+      h+='<div class="sct-libhint">Líbero(s) — toque e escolha quem sai (só no fundo)</div>';
+      for(var i=0;i<libs.length;i++){var l=libs[i];
+        h+='<button class="sct-libcard'+(_sctLibArmed===l.id?" armed":"")+'" onclick="sctLibArm(\''+l.id+'\')">🦺 #'+(l.nu!=null&&l.nu!==""?l.nu:"–")+' '+esc(l.nm.split(" ")[0])+'</button>';
+      }
+    }
+  }
+  return h+'</div>';
+}
+// Coluna esquerda: QUADRA (desenho) ou LISTA (linhas) + Substituir/Rodar + liberos.
+function sctRenderLeft(gm,gp,te,cs){
+  var lm=sctLeftMode();
+  var h='<div class="sct-lbl">'+(lm==="court"?"Em quadra (6) · toque pra marcar":"Em jogo (6) · banco no Substituir")+'</div>';
+  if(lm==="court"){
+    h+='<div class="court-wrap"><div class="court-net">REDE</div><div class="court-grid live">';
+    for(var o=0;o<_COURT_ORDER.length;o++){
+      var idx=_COURT_ORDER[o];var aid=cs.pos[idx];var p=aid?_gpFind(gp,aid):null;
+      var isServer=(idx===0&&cs.serving==="us");var on=(S.sp===aid&&aid);var isLib=(p&&_isLibero(p));var canexit=(_sctLibArmed&&_sctIsFundo(idx));
+      h+='<button class="court-cell live'+(on?" sel":"")+(isServer?" server":"")+(isLib?" lib":"")+(canexit?" canexit":"")+'"'+(aid?' onclick="sctTapAthlete(\''+aid+'\','+idx+')"':"")+(on?' style="background:linear-gradient(150deg,'+te.c+','+te.c+'cc)"':"")+'>';
+      h+='<span class="court-pos">P'+_COURT_POSLBL[idx]+(isServer?" 🏐":"")+(isLib?" 🦺":"")+'</span>';
+      if(p){h+='<div class="court-num">'+(p.nu!=null&&p.nu!==""?p.nu:"–")+'</div><div class="court-nm">'+esc(p.nm.split(" ")[0])+'</div>';}
+      else h+='<div class="court-empty-txt">—</div>';
+      h+='</button>';
+    }
+    h+='</div></div>';
+  }else{
+    h+='<div class="sct-list">';
+    var idxs=[3,2,1,4,5,0];
+    for(var j=0;j<idxs.length;j++){
+      var ix=idxs[j];var ai=cs.pos[ix];var pp=ai?_gpFind(gp,ai):null;
+      var on2=(S.sp===ai&&ai);var lib2=(pp&&_isLibero(pp));var ce2=(_sctLibArmed&&_sctIsFundo(ix));var srv=(ix===0&&cs.serving==="us");
+      h+='<button class="sct-lrow'+(on2?" sel":"")+(lib2?" lib":"")+(ce2?" canexit":"")+'"'+(ai?' onclick="sctTapAthlete(\''+ai+'\','+ix+')"':"")+'>';
+      h+='<b>'+(pp?(pp.nu!=null&&pp.nu!==""?pp.nu:"–"):"–")+'</b> '+(pp?esc(pp.nm.split(" ")[0]):"")+'<span class="sct-lrow-pos">P'+_COURT_POSLBL[ix]+(srv?" 🏐":"")+(lib2?" 🦺":"")+'</span>';
+      h+='</button>';
+    }
+    h+='</div>';
+  }
+  h+='<div class="sct-courtbtns"><button onclick="courtSub()">🔄 Substituir</button><button onclick="courtManualRotate(1)">↻ Rodar</button></div>';
+  h+=sctRenderLiberos(gm,gp,cs);
+  return h;
+}
+// Pedido de tempo: REGISTRA quantos cada lado pediu no set (gm.ss[i].toU/toT). Nao bloqueia.
+function sctTimeout(){
+  var gm=gF(S.aid);if(!gm)return;var te=tF(gm.tid);
+  var s=(gm.ss&&gm.ss[S.cs-1])||{};var nU=s.toU||0,nT=s.toT||0;
+  var nm=te?esc((te.n||"").replace(/^RS\s+/i,"")):"RS";
+  var m='<div class="tnj-modal" onclick="closeSctTimeout()"><div class="tnj-box" onclick="event.stopPropagation()" style="max-width:330px">';
+  m+='<div class="tnj-title">⏱ PEDIDO DE TEMPO</div><div class="tnj-sub">Quem pediu o tempo? (set '+S.cs+')</div>';
+  m+='<div style="display:flex;gap:8px;margin:8px 0 2px">';
+  m+='<button class="tnj-save" style="flex:1;font-size:13px" onclick="sctTimeoutAdd(\'u\')">'+nm+'<br><b style="font-size:22px">'+nU+'</b></button>';
+  m+='<button class="tnj-save" style="flex:1;background:#475569;font-size:13px" onclick="sctTimeoutAdd(\'t\')">Adversário<br><b style="font-size:22px">'+nT+'</b></button>';
+  m+='</div>';
+  m+='<div class="tnj-actions"><button class="tnj-cancel" onclick="closeSctTimeout()">Fechar</button></div></div></div>';
+  var d=document.getElementById("sctTimeoutModal");if(d)d.remove();
+  d=document.createElement("div");d.id="sctTimeoutModal";d.innerHTML=m;document.body.appendChild(d);
+}
+function closeSctTimeout(){var d=document.getElementById("sctTimeoutModal");if(d)d.remove();}
+function sctTimeoutAdd(side){
+  var gm=gF(S.aid);if(!gm||!gm.ss||!gm.ss[S.cs-1])return;var s=gm.ss[S.cs-1];
+  if(side==="u")s.toU=(s.toU||0)+1;else s.toT=(s.toT||0)+1;
+  if(typeof saveGame==="function")saveGame(gm).catch(function(){});
+  if(typeof toast==="function")toast("Tempo registrado","ok");
+  sctTimeout();render();
+}
+// Atalhos de teclado (notebook): atleta selecionado + fundamento (S/R/L/A/B/D) + qualidade (3/2/1/0).
+var _sctKbFund=null;
+var SCT_FUNDKEY={s:"saque",r:"recepcao",l:"levantamento",a:"ataque",b:"bloqueio",d:"defesa"};
+var SCT_QMAP={saque:{"3":"Ace","2":"Cont","0":"Erro"},recepcao:{"3":"A","2":"B","1":"C","0":"Erro"},levantamento:{"3":"A","2":"B","1":"C","0":"Erro"},ataque:{"3":"Ponto","2":"Cont","1":"Bloq","0":"Erro"},bloqueio:{"3":"Ponto","2":"Cont","0":"Erro"},defesa:{"3":"A","2":"B","1":"C","0":"Erro"}};
+function _sctKbActive(){if(!isTabletMode()||!S.aid)return false;var g=gF(S.aid);return !!(g&&g.st==="live"&&!g.locked&&!g.tidB);}
+function _sctKbBuf(){var el=document.getElementById("sctKbBuf");if(!el)return;if(_sctKbFund){el.innerHTML='⌨ <b style="color:'+(FCOL[_sctKbFund]||"#fcd34d")+'">'+_sctKbFund.toUpperCase()+'</b> — tecle a qualidade 3 / 2 / 1 / 0';el.style.color="#fcd34d";}else{el.innerHTML="pronto — clique o atleta e tecle o fundamento (S R L A B D)";el.style.color="#64748b";}}
+function _sctKeydown(e){
+  if(!_sctKbActive())return;
+  var tg=e.target&&e.target.tagName;if(tg==="INPUT"||tg==="SELECT"||tg==="TEXTAREA")return;
+  var k=(e.key||"").toLowerCase();
+  if(k==="escape"){_sctKbFund=null;_sctKbBuf();return;}
+  if(SCT_FUNDKEY[k]){
+    e.preventDefault();
+    var gm=gF(S.aid);var cs=gm&&gm.court&&gm.court[String(S.cs)];var serving=cs?cs.serving:null;
+    if(!S.sp&&!(k==="s"&&serving==="us")){if(typeof toast==="function")toast("Selecione o atleta (clique)","error");return;}
+    _sctKbFund=SCT_FUNDKEY[k];_sctKbBuf();return;
+  }
+  if(_sctKbFund&&/^[0-3]$/.test(k)){e.preventDefault();var oc=SCT_QMAP[_sctKbFund][k];if(oc)scTap(_sctKbFund,oc);_sctKbFund=null;_sctKbBuf();}
+}
+// Monta a tela inteira do modo tablet (substitui arena+painel do scout no celular). Fiel a preview/scout-tablet-mockup.html.
+function rSctTablet(gm,gp,te){
+  if(!gm.courtMode){gm.courtMode=true;if(typeof save==="function")save();}
+  var nmRS=(te.n||"").replace(/RS-?VOLEIBOL\s*/i,"RS · ").trim();if(nmRS.length>20)nmRS=nmRS.substring(0,20)+"…";
+  var nmAdv=(gm.opp||"Adversário");if(nmAdv.length>18)nmAdv=nmAdv.substring(0,18)+"…";
+  var cur=(gm.ss&&gm.ss[S.cs-1])?gm.ss[S.cs-1]:{u:0,t:0};
+  var logo=LR;
+  if(te&&(te.brandLogoData||te.logoData))logo=te.brandLogoData||te.logoData;
+  else if(torneioMode){var __b=getBrand(torneioToken);if(__b&&__b.logo)logo=__b.logo;}
+  var cs=gm.court&&gm.court[String(S.cs)];
+  var needSetup=!cs||!cs.pos||cs.pos.filter(Boolean).length<6;
+  var h='<div class="sct">';
+  // OPCOES (acima do placar, como no mockup): coluna esquerda (quadra/lista) + rotulo do passe. So apos posicionar.
+  if(!needSetup){
+    h+='<div class="sct-opts">';
+    h+='<div class="sct-opt"><b>Coluna esquerda</b><div class="sct-seg"><button class="'+(sctLeftMode()==="court"?"on":"")+'" onclick="sctSetLeft(\'court\')">Quadra</button><button class="'+(sctLeftMode()==="list"?"on":"")+'" onclick="sctSetLeft(\'list\')">Lista</button></div></div>';
+    h+='<div class="sct-opt"><b>Rótulo do passe</b><div class="sct-seg"><button class="'+(sctLabelMode()==="ABC"?"on":"")+'" onclick="sctSetLabel(\'ABC\')">A / B / C</button><button class="'+(sctLabelMode()==="VERB"?"on":"")+'" onclick="sctSetLabel(\'VERB\')">Perfeita / Bom / Ruim</button></div></div>';
+    h+='</div>';
+  }
+  // TOP — placar integrado
+  h+='<div class="sct-top"><div class="sct-side">';
+  h+='<button class="sct-exit on" onclick="toggleTabletMode()" title="Sair do modo tablet">📱</button>';
+  h+='<img class="sct-logo" src="'+logo+'" alt=""><div class="sct-tn">'+esc(nmRS)+'</div>';
+  h+='<button class="sct-sb" onclick="scDn(\'u\')">−</button><span class="sct-score">'+cur.u+'</span><button class="sct-sb" onclick="scUp(\'u\')">+</button>';
+  h+='</div>';
+  var sw=setsWon(gm);
+  var setsTxt='SETS '+sw.u+' × '+sw.t+' · SET '+S.cs;
+  var serveTxt=cs?(cs.serving==="us"?'🏐 nosso saque':'↩ saque adversário'):'';
+  var serveCol=(cs&&cs.serving==="us")?'#64d39a':'#93a4c0';
+  var markTxt;
+  if(_sctLibArmed){var la=_gpFind(gp,_sctLibArmed);markTxt='🦺 líbero #'+(la&&la.nu!=null&&la.nu!==""?la.nu:"?")+' — toque <b>quem SAI</b> (fundo)';}
+  else if(S.sp){var selP=_gpFind(gp,S.sp);markTxt='marcando <b>'+(selP?('#'+(selP.nu!=null&&selP.nu!==""?selP.nu:'–')+' '+esc(selP.nm.split(" ")[0])):'?')+'</b>';}
+  else markTxt='toque um atleta';
+  var _sTo=(gm.ss&&gm.ss[S.cs-1])||{};
+  var toTxt=(_sTo.toU||_sTo.toT)?'<div class="sct-to">⏱ tempos — '+esc(nmRS)+' '+(_sTo.toU||0)+' · adv '+(_sTo.toT||0)+'</div>':'';
+  h+='<div class="sct-mid"><div class="sct-sets">'+setsTxt+'</div><div class="sct-serve" style="color:'+serveCol+'">'+serveTxt+'</div><div class="sct-mark">'+markTxt+'</div>'+toTxt+'</div>';
+  h+='<div class="sct-side"><button class="sct-sb" onclick="scDn(\'t\')">−</button><span class="sct-score">'+cur.t+'</span><button class="sct-sb" onclick="scUp(\'t\')">+</button>';
+  h+='<div class="sct-tn" style="text-align:right">'+esc(nmAdv)+'</div>';
+  h+='<button class="sct-exit" onclick="scoutBack()" title="Voltar aos jogos">←</button></div></div>';
+  // Setup (posicionar os 6) se ainda nao posicionou este set
+  if(needSetup){h+='<div style="max-width:540px;margin:0 auto">'+courtRenderSetup(gm,gp)+'</div></div>';return h;}
+  // BODY — 3 colunas
+  h+='<div class="sct-body">';
+  h+='<div class="sct-col-l">'+sctRenderLeft(gm,gp,te,cs)+'</div>';
+  h+='<div class="sct-col-c"><div class="sct-lbl">Ação <span>— 1 toque grava</span></div><div class="sct-groups">';
+  var aks=Object.keys(ACT);
+  for(var gi=0;gi<aks.length;gi++){
+    var k=aks[gi],a2=ACT[k],fc=FCOL[k]||"#2563eb";
+    var hint=(k==="saque")?'<span class="hint">auto P1</span>':'';
+    h+='<div class="sct-grp" style="border-top-color:'+fc+'"><h4 style="color:'+fc+'">'+a2.i+' '+a2.l+hint+'</h4><div class="sct-orow" style="grid-template-columns:repeat('+a2.o.length+',1fr)">';
+    for(var oi=0;oi<a2.o.length;oi++){var o=a2.o[oi];h+='<button class="sct-ob" style="background:'+(OC[o]||"#334155")+'" onclick="scTap(\''+k+'\',\''+o+'\')">'+sctLblOf(o)+'</button>';}
+    h+='</div></div>';
+  }
+  h+='</div></div>';
+  h+='<div class="sct-col-r"><div class="sct-lbl">Controles</div><div class="sct-ctrls">';
+  h+='<button class="sct-ctl" onclick="sctTimeout()">⏱ Timeout</button>';
+  h+='<button class="sct-ctl" onclick="undo()">↩ Desfazer</button>';
+  h+='<button class="sct-ctl" onclick="nxS()">▶ Próximo set</button>';
+  h+='<button class="sct-ctl" onclick="courtMoreMenu(\''+gm.id+'\')">⋯ Mais</button>';
+  h+='</div><div class="sct-feedbox"><div class="sct-lbl" style="margin-bottom:5px">Últimas ações</div>';
+  if(gm.act&&gm.act.length){
+    var ls=gm.act.slice(-5).reverse();
+    for(var fi=0;fi<ls.length;fi++){var a3=ls[fi];var pf=pFind(a3.pid,gm.id);var ocol=OC[a3.oc]||"#64748b";
+      var flbl=(pf&&pf.nu!=null&&pf.nu!=="")?("#"+pf.nu):(pf?esc((pf.nm||"").split(" ")[0]):"?");
+      h+='<div class="sct-feed-item" style="border-left-color:'+ocol+'"><span class="fn">'+flbl+'</span> '+(ACT[a3.ak]?ACT[a3.ak].i:"")+' '+(ACT[a3.ak]?ACT[a3.ak].l:"")+' · '+sctLblOf(a3.oc)+'</div>';
+    }
+  }else h+='<div style="font-size:12px;color:#64748b">—</div>';
+  h+='</div></div></div>';
+  // LADDER — sequencia de pontos (cada coluna = 1 ponto)
+  var cols=_buildLadder(gm,S.cs-1);
+  h+='<div class="sct-ladder-wrap"><div class="sct-lbl" style="margin-bottom:6px">Sequência de pontos — <span style="color:#93c5fd">'+esc(nmRS)+'</span> / <span style="color:#fca5a5">adversário</span></div><div class="sct-ladder">';
+  for(var ci=0;ci<cols.length;ci++){var c=cols[ci];
+    var top=c.s==="u"?'<div class="sct-lc us">'+c.n+'</div>':'<div class="sct-lc e"></div>';
+    var bot=c.s==="t"?'<div class="sct-lc th">'+c.n+'</div>':'<div class="sct-lc e"></div>';
+    h+='<div class="sct-lcol">'+top+bot+'</div>';
+  }
+  if(!cols.length)h+='<div style="font-size:11px;color:#64748b">sem pontos ainda</div>';
+  h+='</div></div>';
+  // ATALHOS DE TECLADO (notebook)
+  h+='<div class="sct-kb"><div class="sct-kb-title">⌨ Atalhos de teclado (notebook) — foque a janela e teste</div>';
+  h+='<div class="sct-kb-buf" id="sctKbBuf">'+(_sctKbFund?('⌨ <b style="color:'+(FCOL[_sctKbFund]||"#fcd34d")+'">'+_sctKbFund.toUpperCase()+'</b> — tecle a qualidade 3 / 2 / 1 / 0'):'pronto — clique o atleta e tecle o fundamento (S R L A B D)')+'</div>';
+  h+='<div class="sct-kb-cols"><div><b>Fundamento</b><br>S saque · R recep · L levant.<br>A ataque · B bloqueio · D defesa</div><div><b>Qualidade</b><br>3 perfeito / ponto<br>2 bom / cont · 1 ruim / bloq · 0 erro</div><div><b>Exemplo</b><br>clique #10 → tecla A → tecla 3<br>= ataque ponto do #10</div></div>';
+  h+='</div>';
+  h+='</div>';
+  return h;
+}
+function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;_sqPush(gm,who);courtRegisterPoint(who);courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");saveGame(gm).catch(function(){});render();}
+function scDn(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u"&&gm.ss[S.cs-1].u>0){gm.ss[S.cs-1].u--;_sqPopSide(gm,S.cs-1,"u");}else if(who==="t"&&gm.ss[S.cs-1].t>0){gm.ss[S.cs-1].t--;_sqPopSide(gm,S.cs-1,"t");}saveGame(gm).catch(function(){});render();}
 function undo(){if(!S.us.length)return;var l=S.us.pop();var gm=gF(S.aid);if(!gm)return;if(l.a&&gm.act){gm.act=gm.act.filter(function(a){return a.id!==l.a.id;});}
 // Reverter ponto automatico, se houve — no set em que a acao foi marcada
-if(l.sc&&l.a&&gm.ss){var si=(l.a.set||S.cs)-1;if(gm.ss[si]){if(l.sc==="u"&&gm.ss[si].u>0)gm.ss[si].u--;else if(l.sc==="t"&&gm.ss[si].t>0)gm.ss[si].t--;}}
+if(l.sc&&l.a&&gm.ss){var si=(l.a.set||S.cs)-1;if(gm.ss[si]){if(l.sc==="u"&&gm.ss[si].u>0)gm.ss[si].u--;else if(l.sc==="t"&&gm.ss[si].t>0)gm.ss[si].t--;_sqPopSide(gm,si,l.sc);}}
 // Q2: reverte a rotacao da quadra (restaura o snapshot guardado no momento do ponto)
 if(l.court&&gm.courtMode&&gm.court){gm.court[String(l.a.set||S.cs)]=l.court;}
 save();render();}

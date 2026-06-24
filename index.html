@@ -1053,7 +1053,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24a - galeria-first + multi-equipe + escalacao por equipe";
+var APP_BUILD="2026-06-24b - finalizar jogo volta pro torneio";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6796,6 +6796,7 @@ function enG(){
       // Volta para a lista correta (cards do torneio se em modo torneio)
       S={aid:null,sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};
       if(torneioMode){torneioGameOpen=null;}
+      else{ tab='torneios'; } // galeria-first: finalizar volta pro detalhe do torneio, nao a lista Scout orfa
       render();
       // Pergunta secundária — exportar pra WhatsApp (abre aba nova, nao mexe na tela)
       confirmModal({

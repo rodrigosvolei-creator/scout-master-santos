@@ -59,13 +59,11 @@ setTimeout(()=>{
     const gp=w._courtGp(gm); // mesma lista que o setup usa
     w.S={aid:'g1',sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};
 
-    // 1. courtDraftEnsure: o libero #1 (numero baixo) NAO vai pra quadra na frente
+    // 1. courtDraftEnsure: comeca VAZIO — o usuario e obrigado a escalar os 6 (sem auto-escala).
+    // A protecao de libero-na-frente fica no courtConfirmSetup (testada em 3b).
     w._courtDraft=null;
     const d=w.courtDraftEnsure(gm,gp);
-    function libNaFrente(pos){return [1,2,3].some(function(i){var a=pos[i];var p=a?gp.filter(function(x){return x.id===a;})[0]:null;return p&&w._isLibero(p);});}
-    chk(!libNaFrente(d.pos),'courtDraftEnsure: NENHUM libero comeca na frente (P2/P3/P4)');
-    chk(d.pos.indexOf('a1')<0,'courtDraftEnsure: libero #1 ficou no banco (havia 6 nao-liberos)');
-    chk(d.pos.filter(Boolean).length===6,'courtDraftEnsure: 6 posicionados');
+    chk(d.pos.filter(Boolean).length===0,'courtDraftEnsure: quadra comeca VAZIA (obriga escalar os 6)');
 
     // 2. saque comeca INDEFINIDO (usuario escolhe)
     chk(d.serving===null,'courtDraftEnsure: saque indefinido (serving=null)');

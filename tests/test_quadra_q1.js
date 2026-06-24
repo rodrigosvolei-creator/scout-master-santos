@@ -68,10 +68,10 @@ setTimeout(()=>{
     chk(typeof w.courtRenderPanel==='function','courtRenderPanel existe');
     chk(typeof w.courtConfirmSetup==='function','courtConfirmSetup existe');
 
-    // 2. Draft pre-preenche 6 (por menor numero)
+    // 2. Draft comeca VAZIO (usuario e obrigado a escalar os 6)
     w._courtDraft=null;
     var d=w.courtDraftEnsure(gm,gp);
-    chk(d.pos.filter(Boolean).length===6,'courtDraftEnsure pre-preenche 6 posicoes');
+    chk(d.pos.filter(Boolean).length===0,'courtDraftEnsure comeca VAZIO (obriga escalar)');
     chk(d.serving===null,'draft default: saque INDEFINIDO (usuario escolhe antes de iniciar)');
 
     // 3. courtRenderSetup emite quadra + start
@@ -80,19 +80,13 @@ setTimeout(()=>{
     chk(setupHtml.indexOf('court-start')>=0,'setup: botao Iniciar set');
     chk(setupHtml.indexOf('court-bench-card')>=0,'setup: banco com atletas extras (7-6=1)');
 
-    // 4. Place/remove no draft
-    var benchAid='a7'; // 7o atleta, fora dos 6 iniciais (numeros 7,5,10,3,12,9 sao menores que... ver)
-    // os 6 de menor numero: 3,4,5,7,9,10 -> aids a4,a7,a2,a1,a6,a3. Sobra a5(12) e... 7 atletas, 6 entram, 1 sobra
-    var sobra=d.pos.indexOf('a5')<0?'a5':null;
-    chk(sobra==='a5','draft deixou a #12 (Dud) no banco (maior numero)');
-    var lenAntes=d.pos.filter(Boolean).length;
-    w.courtDraftRemove(0); // tira o sacador (P1) -> slot 0 vazio
-    chk(w._courtDraft.pos.filter(Boolean).length===lenAntes-1,'courtDraftRemove tira do slot');
-    // novo fluxo direcionado: courtDraftPlace ARMA o atleta (pick); courtDraftCell coloca na posicao tocada
+    // 4. Escala direcionada a partir do VAZIO: courtDraftPlace ARMA (pick); courtDraftCell coloca
     w.courtDraftPlace('a5');
     chk(w._courtDraft.pick==='a5','courtDraftPlace ARMA o atleta (pick)');
-    w.courtDraftCell(0); // coloca a5 na P1 (slot 0)
-    chk(w._courtDraft.pos[0]==='a5' && w._courtDraft.pick===null,'courtDraftCell coloca o pick na posicao e limpa o pick');
+    w.courtDraftCell(2); // coloca a5 na P3 (slot 2)
+    chk(w._courtDraft.pos[2]==='a5' && w._courtDraft.pick===null,'courtDraftCell coloca o pick na posicao tocada');
+    w.courtDraftCell(2); // tocar posicao ocupada SEM pick -> tira do time
+    chk(w._courtDraft.pos[2]===null,'tocar posicao ocupada (sem pick) tira do time');
 
     // 5. courtConfirmSetup grava g.court[set]
     // garante 6 preenchidos

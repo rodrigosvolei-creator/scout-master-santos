@@ -61,10 +61,15 @@ setTimeout(()=>{
   w.S.sp='a2';w.S.sa='bloqueio';w.rcO('Erro');
   check('Bloqueio Erro sobe placar adversario', ss().u===3 && ss().t===3);
 
-  // Recepcao Erro => NAO mexe placar
+  // Recepcao Erro => adversario +1 (erro nosso na recepcao = ponto do adversario)
   let antesU=ss().u,antesT=ss().t;
   w.S.sp='a1';w.S.sa='recepcao';w.rcO('Erro');
-  check('Recepcao Erro NAO mexe placar', ss().u===antesU && ss().t===antesT);
+  check('Recepcao Erro sobe placar adversario', ss().u===antesU && ss().t===antesT+1);
+
+  // Defesa Erro => adversario +1
+  antesU=ss().u;antesT=ss().t;
+  w.S.sp='a2';w.S.sa='defesa';w.rcO('Erro');
+  check('Defesa Erro sobe placar adversario', ss().u===antesU && ss().t===antesT+1);
 
   // Recepcao A (boa) => NAO mexe placar
   antesU=ss().u;antesT=ss().t;

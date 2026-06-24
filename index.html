@@ -1144,7 +1144,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24e - setup: libero/saque/posicionar + zerar set + feed";
+var APP_BUILD="2026-06-24f - quadra vazia (escala obrigatoria) + erro recep/defesa";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6522,6 +6522,7 @@ function autoScoreSide(ak,oc){
   if(oc==="Ace")return"u";
   if((ak==="ataque"||ak==="bloqueio")&&oc==="Ponto")return"u";
   if((ak==="saque"||ak==="ataque"||ak==="bloqueio")&&oc==="Erro")return"t";
+  if((ak==="recepcao"||ak==="defesa")&&oc==="Erro")return"t"; // erro nosso na recepcao/defesa = ponto do adversario
   return null;
 }
 // ==========================================================
@@ -6602,30 +6603,14 @@ function toggleCourtMode(){
   render();
 }
 
-// Garante o rascunho de posicionamento do set atual. Pre-preenche os 6 priorizando
-// NAO-liberos (libero so se faltar gente) e garante que nenhum libero comece na frente
-// (P2/P3/P4). Saque comeca INDEFINIDO — o usuario escolhe antes de iniciar.
+// Rascunho do posicionamento do set: comeca VAZIO. O usuario e OBRIGADO a escalar os 6
+// iniciais (toca atleta no banco -> toca a posicao). Sem auto-escala — decisao do Rodrigo:
+// controle total, nada de atleta/libero entrando por engano. A trava de libero-na-frente
+// e a exigencia de saque ficam no courtConfirmSetup.
 function courtDraftEnsure(gm,gp){
   var k=String(S.cs);
   if(_courtDraft&&_courtDraft.gid===gm.id&&_courtDraft.set===k)return _courtDraft;
-  var ordered=gp.slice().sort(function(a,b){return a.nu-b.nu;});
-  var naoLib=ordered.filter(function(p){return !_isLibero(p);});
-  var libs=ordered.filter(function(p){return _isLibero(p);});
-  var six=naoLib.slice(0,6);
-  for(var li=0;six.length<6&&li<libs.length;li++)six.push(libs[li]); // completa se faltar
-  var pos=[null,null,null,null,null,null];
-  for(var i=0;i<6&&i<six.length;i++)pos[i]=six[i].id;
-  // libero NUNCA comeca na frente (idx 1/2/3): troca com um nao-libero do fundo
-  for(var f=0;f<_COURT_FRONT.length;f++){
-    var fi=_COURT_FRONT[f],aid=pos[fi],p=aid?_gpFind(gp,aid):null;
-    if(p&&_isLibero(p)){
-      for(var b=0;b<_COURT_BACK.length;b++){
-        var bi=_COURT_BACK[b],baid=pos[bi],bp=baid?_gpFind(gp,baid):null;
-        if(bp&&!_isLibero(bp)){pos[fi]=baid;pos[bi]=aid;break;}
-      }
-    }
-  }
-  _courtDraft={gid:gm.id,set:k,pos:pos,serving:null,pick:null};
+  _courtDraft={gid:gm.id,set:k,pos:[null,null,null,null,null,null],serving:null,pick:null};
   return _courtDraft;
 }
 // Toque no banco = ARMA/desarma o atleta (pick). Depois toca a posicao na quadra.

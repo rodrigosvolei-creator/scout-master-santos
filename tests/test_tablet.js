@@ -171,6 +171,30 @@ setTimeout(()=>{
     chk(w._sctKbFund===null,'teclado: limpa o fundamento apos gravar');
     setS(); resetCourt("us"); w.S.sp=null; w._sctKeydown(fakeKey("a"));
     chk(w._sctKbFund===null,'teclado: fundamento sem atleta (e nao saque) nao arma');
+
+    // 14b. MODO NOTE — digitar o numero do atleta + fundamento + qualidade (100% teclado)
+    setS(); resetCourt("us"); w.S.sp=null;
+    w._sctKeydown(fakeKey("4"));
+    chk(w._sctKbNum==="4",'note: digito acumula o numero do atleta (4)');
+    w._sctKeydown(fakeKey("a"));
+    chk(w.S.sp==="a4"&&w._sctKbNum===""&&w._sctKbFund==="ataque",'note: a letra fecha o numero, seleciona o #4 e arma o fundamento');
+    var nbN=G().act.length; w._sctKeydown(fakeKey("3"));
+    var laN=G().act, lN=laN[laN.length-1];
+    chk(laN.length===nbN+1&&lN.pid==="a4"&&lN.ak==="ataque"&&lN.oc==="Ponto",'note: 4 A 3 grava ataque Ponto do #4');
+    chk(w._sctKbFund===null&&w._sctKbNum==="",'note: limpa o buffer apos gravar');
+    // numero inexistente -> nao seleciona, limpa
+    setS(); resetCourt("us"); w.S.sp=null;
+    w._sctKeydown(fakeKey("9")); w._sctKeydown(fakeKey("9")); w._sctKeydown(fakeKey("b"));
+    chk(w.S.sp===null&&w._sctKbNum===""&&w._sctKbFund===null,'note: #99 inexistente nao seleciona ninguem e limpa');
+    // letra direto (atleta JA selecionado por clique, sem digitar numero)
+    setS(); resetCourt("us"); w.S.sp="a2"; w._sctKeydown(fakeKey("r"));
+    chk(w._sctKbFund==="recepcao",'note: letra direto usa o atleta ja selecionado (a2)');
+    w._sctKeydown(fakeKey("3")); var laD=G().act, lD=laD[laD.length-1];
+    chk(lD.pid==="a2"&&lD.ak==="recepcao"&&lD.oc==="A",'note: atleta clicado + R 3 grava recepcao A do a2');
+    // backspace apaga digito do numero
+    setS(); resetCourt("us"); w.S.sp=null;
+    w._sctKeydown(fakeKey("1")); w._sctKeydown(fakeKey("2")); w._sctKeydown(fakeKey("Backspace"));
+    chk(w._sctKbNum==="1",'note: Backspace apaga o ultimo digito do numero');
     try{w.localStorage.setItem('rs_scout_tablet','0');}catch(e){}
 
     // 15. pedido de tempo: REGISTRA quantos cada lado pediu no set (nao bloqueia)

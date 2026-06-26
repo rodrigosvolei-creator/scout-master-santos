@@ -1169,7 +1169,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24i - gate: botao azul + card menor";
+var APP_BUILD="2026-06-24j - modo note (digita nº do atleta no teclado)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -7053,22 +7053,42 @@ function sctTimeoutAdd(side){
 }
 // Atalhos de teclado (notebook): atleta selecionado + fundamento (S/R/L/A/B/D) + qualidade (3/2/1/0).
 var _sctKbFund=null;
+var _sctKbNum="";  // MODO NOTE: numero da camisa sendo digitado (atleta por teclado)
 var SCT_FUNDKEY={s:"saque",r:"recepcao",l:"levantamento",a:"ataque",b:"bloqueio",d:"defesa"};
 var SCT_QMAP={saque:{"3":"Ace","2":"Cont","0":"Erro"},recepcao:{"3":"A","2":"B","1":"C","0":"Erro"},levantamento:{"3":"A","2":"B","1":"C","0":"Erro"},ataque:{"3":"Ponto","2":"Cont","1":"Bloq","0":"Erro"},bloqueio:{"3":"Ponto","2":"Cont","0":"Erro"},defesa:{"3":"A","2":"B","1":"C","0":"Erro"}};
 function _sctKbActive(){if(!isTabletMode()||!S.aid)return false;var g=gF(S.aid);return !!(g&&g.st==="live"&&!g.locked&&!g.tidB);}
-function _sctKbBuf(){var el=document.getElementById("sctKbBuf");if(!el)return;if(_sctKbFund){el.innerHTML='⌨ <b style="color:'+(FCOL[_sctKbFund]||"#fcd34d")+'">'+_sctKbFund.toUpperCase()+'</b> — tecle a qualidade 3 / 2 / 1 / 0';el.style.color="#fcd34d";}else{el.innerHTML="pronto — clique o atleta e tecle o fundamento (S R L A B D)";el.style.color="#64748b";}}
+// acha o aid do atleta ESCALADO pelo numero da camisa (modo note)
+function _sctAthByNum(gm,num){var gp=(typeof _courtGp==="function")?_courtGp(gm):[];for(var i=0;i<gp.length;i++){if(String(gp[i].nu)===String(num))return gp[i].id;}return null;}
+function _sctSelName(){if(!S.sp)return"";var gp=(typeof _courtGp==="function")?_courtGp(gF(S.aid)):[];for(var i=0;i<gp.length;i++){if(gp[i].id===S.sp)return"#"+(gp[i].nu!=null&&gp[i].nu!==""?gp[i].nu:"?")+" "+((gp[i].nm||"").split(" ")[0]);}return"";}
+function _sctKbBuf(){
+  var el=document.getElementById("sctKbBuf");if(!el)return;
+  if(_sctKbNum&&!_sctKbFund){el.innerHTML='⌨ montando atleta <b style="color:#fff">#'+_sctKbNum+'</b> — agora o fundamento (S R L A B D)';el.style.color="#fcd34d";return;}
+  if(_sctKbFund){var nm=_sctSelName();el.innerHTML='⌨ '+(nm?'<b style="color:#fff">'+esc(nm)+'</b> · ':'')+'<b style="color:'+(FCOL[_sctKbFund]||"#fcd34d")+'">'+_sctKbFund.toUpperCase()+'</b> — tecle a qualidade 3 / 2 / 1 / 0';el.style.color="#fcd34d";return;}
+  el.innerHTML="pronto — toque o atleta (ou digite o nº) e tecle o fundamento (S R L A B D)";el.style.color="#64748b";
+}
 function _sctKeydown(e){
   if(!_sctKbActive())return;
   var tg=e.target&&e.target.tagName;if(tg==="INPUT"||tg==="SELECT"||tg==="TEXTAREA")return;
   var k=(e.key||"").toLowerCase();
-  if(k==="escape"){_sctKbFund=null;_sctKbBuf();return;}
+  if(k==="escape"){_sctKbNum="";_sctKbFund=null;_sctKbBuf();return;}
+  if(k==="backspace"){e.preventDefault();if(_sctKbFund)_sctKbFund=null;else if(_sctKbNum)_sctKbNum=_sctKbNum.slice(0,-1);_sctKbBuf();return;}
+  // FUNDAMENTO (letra): se vinha digitando o numero, fecha o numero e seleciona o atleta; depois arma o fundamento
   if(SCT_FUNDKEY[k]){
     e.preventDefault();
     var gm=gF(S.aid);var cs=gm&&gm.court&&gm.court[String(S.cs)];var serving=cs?cs.serving:null;
-    if(!S.sp&&!(k==="s"&&serving==="us")){if(typeof toast==="function")toast("Selecione o atleta (clique)","error");return;}
+    if(_sctKbNum){
+      var aid=_sctAthByNum(gm,_sctKbNum);
+      if(!aid){if(typeof toast==="function")toast("Sem #"+_sctKbNum+" escalado","error");_sctKbNum="";_sctKbBuf();return;}
+      S.sp=aid;_sctKbNum="";render();
+    }
+    if(!S.sp&&!(k==="s"&&serving==="us")){if(typeof toast==="function")toast("Toque o atleta ou digite o nº","error");return;}
     _sctKbFund=SCT_FUNDKEY[k];_sctKbBuf();return;
   }
-  if(_sctKbFund&&/^[0-3]$/.test(k)){e.preventDefault();var oc=SCT_QMAP[_sctKbFund][k];if(oc)scTap(_sctKbFund,oc);_sctKbFund=null;_sctKbBuf();}
+  // DIGITO: depois do fundamento = qualidade (grava); antes = vai montando o numero do atleta
+  if(/^[0-9]$/.test(k)){
+    if(_sctKbFund){if(/^[0-3]$/.test(k)){e.preventDefault();var oc=SCT_QMAP[_sctKbFund][k];if(oc)scTap(_sctKbFund,oc);_sctKbFund=null;_sctKbNum="";_sctKbBuf();}return;}
+    e.preventDefault();_sctKbNum=(_sctKbNum+k).slice(0,3);_sctKbBuf();return;
+  }
 }
 // Monta a tela inteira do modo tablet (substitui arena+painel do scout no celular). Fiel a preview/scout-tablet-mockup.html.
 function rSctTablet(gm,gp,te){
@@ -7151,7 +7171,7 @@ function rSctTablet(gm,gp,te){
   // ATALHOS DE TECLADO (notebook)
   h+='<div class="sct-kb"><div class="sct-kb-title">⌨ Atalhos de teclado (notebook) — foque a janela e teste</div>';
   h+='<div class="sct-kb-buf" id="sctKbBuf">'+(_sctKbFund?('⌨ <b style="color:'+(FCOL[_sctKbFund]||"#fcd34d")+'">'+_sctKbFund.toUpperCase()+'</b> — tecle a qualidade 3 / 2 / 1 / 0'):'pronto — clique o atleta e tecle o fundamento (S R L A B D)')+'</div>';
-  h+='<div class="sct-kb-cols"><div><b>Fundamento</b><br>S saque · R recep · L levant.<br>A ataque · B bloqueio · D defesa</div><div><b>Qualidade</b><br>3 perfeito / ponto<br>2 bom / cont · 1 ruim / bloq · 0 erro</div><div><b>Exemplo</b><br>clique #10 → tecla A → tecla 3<br>= ataque ponto do #10</div></div>';
+  h+='<div class="sct-kb-cols"><div><b>Atleta</b><br>digite o nº da camisa<br>(ou toque na quadra)</div><div><b>Fundamento</b><br>S saque · R recep · L levant.<br>A ataque · B bloqueio · D defesa</div><div><b>Qualidade</b><br>3 perfeito/ponto · 2 bom/cont<br>1 ruim/bloq · 0 erro</div><div><b>Exemplo</b><br>10 → A → 3<br>= ataque ponto do #10</div></div>';
   h+='</div>';
   h+='</div>';
   return h;

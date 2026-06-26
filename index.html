@@ -1169,7 +1169,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24k - sequencia de pontos no PDF + visor do saque (3/2/0)";
+var APP_BUILD="2026-06-24l - sequencia no PDF em 1 linha por set + visor saque";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -7392,7 +7392,7 @@ function exGamePDF(gid){
     +".fundname{font-weight:700;font-size:10px;min-width:74px}"
     +".fundname small{color:#94a3b8;font-weight:600}"
     +".chip{display:inline-block;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px}"
-    +".seqrow{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:8px}.seqcol{display:flex;flex-direction:column;gap:2px}.seqc{width:15px;height:15px;border-radius:3px;font-size:8px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center}.seqc.u{background:#1d4ed8}.seqc.t{background:#dc2626}.seqc.e{background:#eef2f7;border:1px solid #e2e8f0}"
+    +".seqrow{display:flex;gap:1px;margin-bottom:10px}.seqcol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:1px}.seqc{height:14px;border-radius:2px;font-size:7px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center}.seqc.u{background:#1d4ed8}.seqc.t{background:#dc2626}.seqc.e{background:#eef2f7;border:1px solid #e2e8f0}"
     +".ft{margin-top:24px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between}"
     +"@media print{body{font-size:11px}.wrap{padding:0}h2{page-break-after:avoid}table.at{page-break-inside:auto}table.at tr{page-break-inside:avoid}}";
   var ph="<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>"+esc(teamName)+" vs "+esc(g.opp)+"</title><style>"+css+"</style></head><body><div class=wrap>";

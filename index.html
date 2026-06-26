@@ -1169,7 +1169,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24l - sequencia no PDF em 1 linha por set + visor saque";
+var APP_BUILD="2026-06-24m - sequencia no PDF so quando real (nao inventa ordem)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6953,6 +6953,10 @@ function _pdfLadderHTML(g){
   var setsArr=g.ss||[]; var maxSet=1; if(g.act)for(var j=0;j<g.act.length;j++){if(g.act[j].set>maxSet)maxSet=g.act[j].set;}
   var nSets=Math.max(maxSet,setsArr.length); var blocks="",any=false;
   for(var sn=1;sn<=nSets;sn++){
+    var s=setsArr[sn-1];
+    // So mostra a sequencia REAL e completa (jogo gravado com o sq). Jogo antigo sem sq
+    // (ou parcial) NAO entra — nada de inventar ordem (ex: "adv pontuando depois do set fechar").
+    if(!s||!s.sq||s.sq.length!==((s.u||0)+(s.t||0))||!s.sq.length)continue;
     var cols=_buildLadder(g,sn-1); if(!cols.length)continue; any=true;
     var parc=(setsArr[sn-1])?(setsArr[sn-1].u+"-"+setsArr[sn-1].t):"";
     var row="";

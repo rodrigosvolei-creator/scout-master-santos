@@ -211,6 +211,8 @@ setTimeout(()=>{
     chk(/Sequ.ncia de pontos/.test(seqHtml),'PDF: _pdfLadderHTML gera a secao "Sequencia de pontos"');
     chk((seqHtml.match(/seqc u/g)||[]).length===3 && (seqHtml.match(/seqc t/g)||[]).length===2,'PDF: ladder 3-2 (3 col RS + 2 adv) na ordem do sq');
     chk(w._pdfLadderHTML({tid:"trs",ss:[]})==="",'PDF: jogo sem pontos nao gera a secao (vazio)');
+    chk(w._pdfLadderHTML({tid:"trs",ss:[{u:25,t:23}]})==="",'PDF: jogo ANTIGO sem sq nao mostra a secao (nao inventa ordem)');
+    chk(w._pdfLadderHTML({tid:"trs",ss:[{u:25,t:23,sq:["u","t"]}]})==="",'PDF: sq incompleto (length != placar) nao mostra');
 
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK MODO TABLET APROVADO':'FAIL MODO TABLET REPROVADO');

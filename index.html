@@ -1169,7 +1169,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24j - modo note (digita nº do atleta no teclado)";
+var APP_BUILD="2026-06-24k - sequencia de pontos no PDF + visor do saque (3/2/0)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6946,6 +6946,22 @@ function _buildLadder(gm,setIdx){
   for(i=0;i<q.length;i++){if(q[i]==="u"){u++;cols.push({s:"u",n:u});}else{t++;cols.push({s:"t",n:t});}}
   return cols;
 }
+// HTML da sequencia de pontos (ladder) por set — usado no PDF do jogo (exGamePDF). Global p/ testar.
+function _pdfLadderHTML(g){
+  if(!g||!g.ss)return"";
+  var te=(typeof tF==="function")?tF(g.tid):null; var teamName=te?te.n:"RS";
+  var setsArr=g.ss||[]; var maxSet=1; if(g.act)for(var j=0;j<g.act.length;j++){if(g.act[j].set>maxSet)maxSet=g.act[j].set;}
+  var nSets=Math.max(maxSet,setsArr.length); var blocks="",any=false;
+  for(var sn=1;sn<=nSets;sn++){
+    var cols=_buildLadder(g,sn-1); if(!cols.length)continue; any=true;
+    var parc=(setsArr[sn-1])?(setsArr[sn-1].u+"-"+setsArr[sn-1].t):"";
+    var row="";
+    for(var c=0;c<cols.length;c++){var tp=cols[c].s==="u"?"<div class='seqc u'>"+cols[c].n+"</div>":"<div class='seqc e'></div>";var bt=cols[c].s==="t"?"<div class='seqc t'>"+cols[c].n+"</div>":"<div class='seqc e'></div>";row+="<div class=seqcol>"+tp+bt+"</div>";}
+    blocks+="<h3>SET "+sn+(parc?" · "+parc:"")+"</h3><div class=seqrow>"+row+"</div>";
+  }
+  if(!any)return"";
+  return "<h2>Sequência de pontos</h2><div style=\"font-size:9px;color:#94a3b8;margin:-4px 0 8px\">Linha de cima = "+esc(teamName)+" (azul) · linha de baixo = adversário (vermelho). Cada coluna é um ponto.</div>"+blocks;
+}
 // scTap(ak,oc): grava em 1 toque (fundamento+resultado juntos) = slA(ak)+rcO(oc).
 // Reusa rcO inteiro -> mesmo {pid,ak,oc,set} do scout classico (telao/PDF/stats
 // intactos). Auto-sacador: no saque com nosso serve sem atleta selecionado, vai no P1.
@@ -7063,7 +7079,7 @@ function _sctSelName(){if(!S.sp)return"";var gp=(typeof _courtGp==="function")?_
 function _sctKbBuf(){
   var el=document.getElementById("sctKbBuf");if(!el)return;
   if(_sctKbNum&&!_sctKbFund){el.innerHTML='⌨ montando atleta <b style="color:#fff">#'+_sctKbNum+'</b> — agora o fundamento (S R L A B D)';el.style.color="#fcd34d";return;}
-  if(_sctKbFund){var nm=_sctSelName();el.innerHTML='⌨ '+(nm?'<b style="color:#fff">'+esc(nm)+'</b> · ':'')+'<b style="color:'+(FCOL[_sctKbFund]||"#fcd34d")+'">'+_sctKbFund.toUpperCase()+'</b> — tecle a qualidade 3 / 2 / 1 / 0';el.style.color="#fcd34d";return;}
+  if(_sctKbFund){var nm=_sctSelName();var qm=SCT_QMAP[_sctKbFund]||{};var opts=Object.keys(qm).sort(function(a,b){return Number(b)-Number(a);}).map(function(d){return '<b style="color:#fff">'+d+'</b> '+qm[d];}).join(" · ");el.innerHTML='⌨ '+(nm?'<b style="color:#fff">'+esc(nm)+'</b> · ':'')+'<b style="color:'+(FCOL[_sctKbFund]||"#fcd34d")+'">'+_sctKbFund.toUpperCase()+'</b> — '+opts;el.style.color="#fcd34d";return;}
   el.innerHTML="pronto — toque o atleta (ou digite o nº) e tecle o fundamento (S R L A B D)";el.style.color="#64748b";
 }
 function _sctKeydown(e){
@@ -7376,6 +7392,7 @@ function exGamePDF(gid){
     +".fundname{font-weight:700;font-size:10px;min-width:74px}"
     +".fundname small{color:#94a3b8;font-weight:600}"
     +".chip{display:inline-block;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px}"
+    +".seqrow{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:8px}.seqcol{display:flex;flex-direction:column;gap:2px}.seqc{width:15px;height:15px;border-radius:3px;font-size:8px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center}.seqc.u{background:#1d4ed8}.seqc.t{background:#dc2626}.seqc.e{background:#eef2f7;border:1px solid #e2e8f0}"
     +".ft{margin-top:24px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between}"
     +"@media print{body{font-size:11px}.wrap{padding:0}h2{page-break-after:avoid}table.at{page-break-inside:auto}table.at tr{page-break-inside:avoid}}";
   var ph="<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>"+esc(teamName)+" vs "+esc(g.opp)+"</title><style>"+css+"</style></head><body><div class=wrap>";
@@ -7394,6 +7411,8 @@ function exGamePDF(gid){
   ph+="<div class=kpi><div class=v style=\"color:#dc2626\">"+totErr+"</div><div class=k>Erros</div></div>";
   ph+="<div class=\"kpi hl\"><div class=v>"+esc(destaqueNome)+"</div><div class=k>Destaque ("+(destaquePts>0?destaquePts:0)+" pts)</div></div>";
   ph+="</div>";
+  // sequencia de pontos (ladder)
+  ph+=_pdfLadderHTML(g);
   // tabela geral
   ph+="<h2>Resumo da partida \u2014 por atleta</h2>";
   if(g.tidB){

@@ -205,6 +205,13 @@ setTimeout(()=>{
     chk(nbTo===0,'timeout NAO vira acao/estatistica (so contador)');
     w.closeSctTimeout();
 
+    // 16. PDF do jogo: SEQUENCIA DE PONTOS (ladder via _pdfLadderHTML, chamada em exGamePDF)
+    var gseq={tid:"trs",act:[{pid:"a4",ak:"ataque",oc:"Ponto",set:1}],ss:[{u:3,t:2,sq:["u","t","u","t","u"]}]};
+    var seqHtml=w._pdfLadderHTML(gseq);
+    chk(/Sequ.ncia de pontos/.test(seqHtml),'PDF: _pdfLadderHTML gera a secao "Sequencia de pontos"');
+    chk((seqHtml.match(/seqc u/g)||[]).length===3 && (seqHtml.match(/seqc t/g)||[]).length===2,'PDF: ladder 3-2 (3 col RS + 2 adv) na ordem do sq');
+    chk(w._pdfLadderHTML({tid:"trs",ss:[]})==="",'PDF: jogo sem pontos nao gera a secao (vazio)');
+
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK MODO TABLET APROVADO':'FAIL MODO TABLET REPROVADO');
     process.exit(ko===0?0:1);

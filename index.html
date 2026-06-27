@@ -1169,7 +1169,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24n - PDF profissional: pizzas (ganhos/perdidos) + eficiencia %";
+var APP_BUILD="2026-06-24o - seguranca: gate so-comissao (visitor barrado por papel)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -3837,6 +3837,18 @@ function renderLoginGate(){
   h+='</div>';
   return h;
 }
+// Tela "sem acesso": logado, mas a conta nao tem papel de comissao (visitor/Google aleatorio).
+function renderNoAccess(){
+  var h='<div class="rsgate"><div class="rsgate-wm"><img src="'+LR+'" alt=""></div>';
+  h+='<div class="rsgate-card">';
+  h+='<img class="rsgate-logo" src="'+LR+'" alt="RS Voleibol">';
+  h+='<h1 class="rsgate-title">RS-SCOUT</h1>';
+  h+='<div class="rsgate-sub">🔒 Esta área é restrita à comissão. Sua conta não tem acesso ao scout.</div>';
+  h+='<button class="rsgate-btn" onclick="gateLogout()">Sair e entrar com a senha</button>';
+  h+='</div><div class="rsgate-foot">RS Voleibol · São Paulo</div></div>';
+  return h;
+}
+function gateLogout(){ try{ if(typeof auth!=="undefined"&&auth) auth.signOut(); }catch(e){} }
 function gateEnter(){
   var el=document.getElementById("gate-pw"); if(!el) return;
   var pw=(el.value||"").trim();
@@ -3936,6 +3948,14 @@ if(telaoMode){
 if(!currentUser && !signupMode){
   a.innerHTML=renderLoginGate();
   return;
+}
+// GATE 2: logado mas SEM papel de comissao (visitor / Google aleatorio sem a senha) -> sem acesso.
+// So bloqueia DEPOIS do perfil carregar (userProfile) — nunca tranca na janela de carregamento.
+// Salvaguarda: a conta-mesa e o admin passam por EMAIL (sincrono), mesmo se o papel falhar.
+if(currentUser && !signupMode && userProfile){
+  var _em=(currentUser.email||"").toLowerCase();
+  var _ok=isScouter||isAtleta||_em===MESA_EMAIL.toLowerCase()||_em===ADMIN_EMAIL.toLowerCase();
+  if(!_ok){ a.innerHTML=renderNoAccess(); return; }
 }
 
 // === Modo torneio isolado (tela do torneio USA) ===

@@ -79,6 +79,24 @@ setTimeout(async ()=>{
     chk(h3.indexOf('rea restrita')<0, 'telao sem login: NAO bloqueia (sem gate)');
     w.telaoMode=false;
 
+    // 6. GATE 2 — logado mas SEM papel de comissao (visitor / Google aleatorio) -> sem acesso
+    w.signupMode=false; w.showLanding=false;
+    w.currentUser={uid:'v',email:'random@gmail.com'}; w.userProfile={uid:'v',email:'random@gmail.com',roles:['visitor']}; w.updateRoleFlags(); w.render();
+    var h4=w.document.getElementById('mainApp').innerHTML;
+    chk(h4.indexOf('restrita')>=0 && h4.indexOf('app-header')<0, 'gate2: visitor logado -> tela SEM ACESSO (nao entra no app)');
+
+    // 7. atleta (tem papel) PASSA o gate 2
+    w.currentUser={uid:'a',email:'atleta@x.com'}; w.userProfile={uid:'a',email:'atleta@x.com',roles:['atleta'],athleteId:'r1'}; w.updateRoleFlags(); w.render();
+    chk(w.document.getElementById('mainApp').innerHTML.indexOf('app-header')>=0, 'gate2: atleta (com papel) ENTRA no app');
+
+    // 8. SALVAGUARDA: conta-mesa entra por EMAIL mesmo com papel vazio (NUNCA tranca a mesa ao vivo)
+    w.currentUser={uid:'m',email:w.MESA_EMAIL}; w.userProfile={uid:'m',email:w.MESA_EMAIL,roles:[]}; w.updateRoleFlags(); w.render();
+    chk(w.document.getElementById('mainApp').innerHTML.indexOf('app-header')>=0, 'gate2: conta-mesa entra por EMAIL mesmo sem papel (anti-trava)');
+
+    // 9. coordenador entra por papel
+    w.currentUser={uid:'c',email:'coord@x.com'}; w.userProfile={uid:'c',email:'coord@x.com',roles:['coordenador']}; w.updateRoleFlags(); w.render();
+    chk(w.document.getElementById('mainApp').innerHTML.indexOf('app-header')>=0, 'gate2: coordenador ENTRA');
+
     console.log('\n=== test_auth_gate: '+ok+' OK, '+ko+' FAIL ===');
     process.exit(ko>0?1:0);
   } catch(e){ console.log('FAIL exception: '+e.message); console.log((e.stack||'').split('\n').slice(0,4).join('\n')); process.exit(1); }

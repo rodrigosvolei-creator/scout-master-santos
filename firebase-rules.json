@@ -1,0 +1,15 @@
+{
+  "_comment": "Regras do Realtime Database scola-volei (RS-SCOUT). LEITURA publica (telao/cards/minis-app); ESCRITA so autenticada (fecha o REST anonimo). Aplicar no console: Firebase > scola-volei > Realtime Database > Regras. Backup das regras atuais ANTES de publicar; testar marcando 1 ponto; rollback = colar as antigas. Fazer fora de dia de jogo. Pre-requisito: todos os save* do app ja exigem currentUser (Fase 1, no ar).",
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "torneio-master-santos": {
+      "teams":       { ".read": true, ".write": "auth != null" },
+      "games":       { ".read": true, ".write": "auth != null" },
+      "athletes":    { ".read": true, ".write": "auth != null" },
+      "tournaments": { ".read": true, ".write": "auth != null" },
+      "invites":     { ".read": "auth != null", ".write": "auth != null" },
+      "users":       { ".read": "auth != null", ".write": "auth != null" }
+    }
+  }
+}

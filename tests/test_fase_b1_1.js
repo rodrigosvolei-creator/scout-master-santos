@@ -28,7 +28,10 @@ const seed = {
       {id:'g_usa_2',torId:'t_usa_open',tid:'trs',opp:'The Tall Ones',dt:'2026-06-11',tm:'11:00',st:'pending',lineup:[{aid:'a1',nu:1}]},
       {id:'g_normal_1',torId:'t_normal',tid:'trs',opp:'Time A',dt:'2026-06-12',tm:'18:00',st:'pending',lineup:[{aid:'a1',nu:1}]}
     ],
-    invites:{}
+    invites:{},
+    // atleta (nao-admin) que PASSA o gate de acesso — testa ausencia de botoes admin
+    // sem ser bloqueado pelo gate 2 (que barra visitor/sem-papel).
+    users:{visit:{uid:'visit',email:'visitante@rs.com',roles:['atleta'],athleteId:'a1'}}
   }
 };
 Object.assign(fakeDB, JSON.parse(JSON.stringify(seed)));

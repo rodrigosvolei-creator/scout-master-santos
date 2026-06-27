@@ -1,5 +1,5 @@
 {
-  "_comment": "Regras do Realtime Database scola-volei (RS-SCOUT). LEITURA publica (telao/cards/minis-app); ESCRITA so autenticada (fecha o REST anonimo). Aplicar no console: Firebase > scola-volei > Realtime Database > Regras. Backup das regras atuais ANTES de publicar; testar marcando 1 ponto; rollback = colar as antigas. Fazer fora de dia de jogo. Pre-requisito: todos os save* do app ja exigem currentUser (Fase 1, no ar).",
+  "_comment": "Regras do Realtime Database scola-volei (RS-SCOUT). LEITURA publica (telao/cards/minis-app); ESCRITA so autenticada (fecha o REST anonimo). invites e read:true porque o listener carrega ANTES do login (1932) — read:auth quebraria os convites; pra deixar privado, mover o listener pra dentro do onAuthStateChanged e so entao trocar pra auth. users e read:auth (so lido apos login). Aplicar no console: Firebase > scola-volei > Realtime Database > Regras. Backup ANTES; testar marcando 1 ponto; rollback = colar as antigas. Fora de dia de jogo. Pre-requisito: save* ja exigem currentUser (no ar).",
   "rules": {
     ".read": false,
     ".write": false,
@@ -8,7 +8,7 @@
       "games":       { ".read": true, ".write": "auth != null" },
       "athletes":    { ".read": true, ".write": "auth != null" },
       "tournaments": { ".read": true, ".write": "auth != null" },
-      "invites":     { ".read": "auth != null", ".write": "auth != null" },
+      "invites":     { ".read": true, ".write": "auth != null" },
       "users":       { ".read": "auth != null", ".write": "auth != null" }
     }
   }

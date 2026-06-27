@@ -214,6 +214,19 @@ setTimeout(()=>{
     chk(w._pdfLadderHTML({tid:"trs",ss:[{u:25,t:23}]})==="",'PDF: jogo ANTIGO sem sq nao mostra a secao (nao inventa ordem)');
     chk(w._pdfLadderHTML({tid:"trs",ss:[{u:25,t:23,sq:["u","t"]}]})==="",'PDF: sq incompleto (length != placar) nao mostra');
 
+    // 17. PDF profissional: pizzas (pontos ganhos/perdidos) + eficiencia %
+    var gch={tid:"trs",act:[
+      {pid:"a4",ak:"ataque",oc:"Ponto",set:1},{pid:"a4",ak:"ataque",oc:"Erro",set:1},
+      {pid:"a1",ak:"saque",oc:"Ace",set:1},{pid:"a2",ak:"bloqueio",oc:"Ponto",set:1},
+      {pid:"a4",ak:"recepcao",oc:"Erro",set:1}
+    ]};
+    var ch=w.pdfChartsHTML(gch);
+    chk(/Pontos ganhos/.test(ch)&&/Pontos perdidos/.test(ch),'PDF: secao de pizzas (ganhos + perdidos)');
+    chk(/<svg/.test(ch),'PDF: pizza renderizada em SVG (imprime sempre)');
+    chk(w.pdfChartsHTML({tid:"trs",act:[]})==="",'PDF: jogo sem acoes nao gera pizzas');
+    chk(w.svgPie([{v:3,c:"#000"},{v:1,c:"#f00"}],100).indexOf("<svg")===0&&w.svgPie([],100)==="",'svgPie: gera SVG com dados, vazio sem dados');
+    chk(w._pdfGood("ataque",{Ponto:6,Erro:2})===6&&w._pdfGood("saque",{Ace:3,Erro:1})===3&&w._pdfGood("recepcao",{A:5,B:3})===5,'eficiencia %: good por fundamento (ataque=Ponto, saque=Ace, recep=A)');
+
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK MODO TABLET APROVADO':'FAIL MODO TABLET REPROVADO');
     process.exit(ko===0?0:1);

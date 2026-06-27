@@ -1169,7 +1169,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24m - sequencia no PDF so quando real (nao inventa ordem)";
+var APP_BUILD="2026-06-24n - PDF profissional: pizzas (ganhos/perdidos) + eficiencia %";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6966,6 +6966,45 @@ function _pdfLadderHTML(g){
   if(!any)return"";
   return "<h2>Sequência de pontos</h2><div style=\"font-size:9px;color:#94a3b8;margin:-4px 0 8px\">Linha de cima = "+esc(teamName)+" (azul) · linha de baixo = adversário (vermelho). Cada coluna é um ponto.</div>"+blocks;
 }
+// === PDF: graficos de pizza (SVG, imprime sempre) + eficiencia ===
+function svgPie(data,size){
+  var total=0,i;for(i=0;i<data.length;i++)total+=data[i].v;if(!total)return"";
+  var r=size/2,cx=r,cy=r,ang=-Math.PI/2,sv="";
+  for(i=0;i<data.length;i++){
+    var frac=data[i].v/total;if(frac<=0)continue;
+    if(frac>=0.999){sv+="<circle cx='"+cx+"' cy='"+cy+"' r='"+r+"' fill='"+data[i].c+"'/>";continue;}
+    var a2=ang+frac*2*Math.PI;
+    var x1=(cx+r*Math.cos(ang)).toFixed(1),y1=(cy+r*Math.sin(ang)).toFixed(1);
+    var x2=(cx+r*Math.cos(a2)).toFixed(1),y2=(cy+r*Math.sin(a2)).toFixed(1);
+    var large=frac>0.5?1:0;
+    sv+="<path d='M"+cx+" "+cy+" L"+x1+" "+y1+" A"+r+" "+r+" 0 "+large+" 1 "+x2+" "+y2+" Z' fill='"+data[i].c+"'/>";
+    ang=a2;
+  }
+  return "<svg width='"+size+"' height='"+size+"' viewBox='0 0 "+size+" "+size+"'>"+sv+"</svg>";
+}
+function _pdfPieBlock(title,data){
+  var total=0,i;for(i=0;i<data.length;i++)total+=data[i].v;
+  if(!total)return "<div class=ct>"+esc(title)+"</div><div style='color:#94a3b8;font-size:10px;padding:24px 0'>sem dados</div>";
+  var lg="";for(i=0;i<data.length;i++){var pct=Math.round(data[i].v/total*100);lg+="<div class=lgi><span class=dot style='background:"+data[i].c+"'></span>"+esc(data[i].l)+" <b>"+data[i].v+"</b> <small>("+pct+"%)</small></div>";}
+  return "<div class=ct>"+esc(title)+"</div>"+svgPie(data,118)+"<div class=lg>"+lg+"</div>";
+}
+// Pizzas: pontos ganhos por fundamento + pontos perdidos (erros nossos) por fundamento
+function pdfChartsHTML(g){
+  if(!g||!g.act||!g.act.length)return"";
+  var gMap={},pMap={},gTot=0,pTot=0,i;
+  for(i=0;i<g.act.length;i++){var a=g.act[i];
+    if(a.oc==="Ace"||((a.ak==="ataque"||a.ak==="bloqueio")&&a.oc==="Ponto")){gMap[a.ak]=(gMap[a.ak]||0)+1;gTot++;}
+    if(a.oc==="Erro"){pMap[a.ak]=(pMap[a.ak]||0)+1;pTot++;}
+  }
+  if(!gTot&&!pTot)return"";
+  function toData(m){var d=[],k;for(k in m)d.push({l:(typeof ACT!=="undefined"&&ACT[k]?ACT[k].l:k),v:m[k],c:(typeof FCOL!=="undefined"&&FCOL[k])?FCOL[k]:"#64748b"});d.sort(function(a,b){return b.v-a.v;});return d;}
+  return "<h2>Pontos ganhos e perdidos</h2><div class=charts>"
+    +"<div class=chart>"+_pdfPieBlock("Pontos ganhos · "+gTot,toData(gMap))+"</div>"
+    +"<div class=chart>"+_pdfPieBlock("Pontos perdidos · "+pTot,toData(pMap))+"</div>"
+    +"</div>";
+}
+// "bons" (otimo) do atleta no fundamento — base da eficiencia %: saque->Ace, ataque/bloqueio->Ponto, resto->A
+function _pdfGood(ak,o){o=o||{};if(ak==="saque")return o.Ace||0;if(ak==="ataque"||ak==="bloqueio")return o.Ponto||0;return o.A||0;}
 // scTap(ak,oc): grava em 1 toque (fundamento+resultado juntos) = slA(ak)+rcO(oc).
 // Reusa rcO inteiro -> mesmo {pid,ak,oc,set} do scout classico (telao/PDF/stats
 // intactos). Auto-sacador: no saque com nosso serve sem atleta selecionado, vai no P1.
@@ -7354,7 +7393,7 @@ function exGamePDF(gid){
           var oc=oks[oi];
           chips+="<span class=chip style=\"background:"+(ocColor[oc]||"#475569")+"\">"+oc+" "+d.o[oc]+"</span>";
         }
-        det+="<div class=fundrow><span class=fundname>"+fund+" <small>("+d.n+")</small></span>"+chips+"</div>";
+        det+="<div class=fundrow><span class=fundname>"+fund+" <small>("+d.n+")</small></span>"+chips+"<span class=eff title=\"aproveitamento (otimas/total)\">"+(d.n?Math.round(_pdfGood(ak,d.o)/d.n*100):0)+"%</span></div>";
       }
       t+="<tr><td class=num>"+(pf.nu!=null&&pf.nu!==""?pf.nu:"")+"</td><td class=nome>"+esc(pf.nm)+"</td><td class=c>"+s.n+"</td><td class=\"c pts\">"+s.pts+"</td><td class=\"c err\">"+s.err+"</td><td>"+det+"</td></tr>";
     }
@@ -7397,6 +7436,8 @@ function exGamePDF(gid){
     +".fundname small{color:#94a3b8;font-weight:600}"
     +".chip{display:inline-block;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px}"
     +".seqrow{display:flex;gap:1px;margin-bottom:10px}.seqcol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:1px}.seqc{height:14px;border-radius:2px;font-size:7px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center}.seqc.u{background:#1d4ed8}.seqc.t{background:#dc2626}.seqc.e{background:#eef2f7;border:1px solid #e2e8f0}"
+    +".charts{display:flex;gap:14px;margin-bottom:8px}.chart{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;text-align:center}.chart .ct{font-size:11px;font-weight:800;color:#0f172a;margin-bottom:8px}.chart svg{display:block;margin:0 auto}.chart .lg{margin-top:8px;text-align:left;font-size:9px;display:inline-block}.chart .lgi{display:flex;align-items:center;gap:5px;margin:2px 0;color:#334155}.chart .lgi small{color:#94a3b8}.chart .dot{width:9px;height:9px;border-radius:2px;flex:none}"
+    +".eff{margin-left:auto;font-weight:800;color:#1d4ed8;font-size:10px;background:#eff6ff;border-radius:5px;padding:1px 6px}"
     +".ft{margin-top:24px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between}"
     +"@media print{body{font-size:11px}.wrap{padding:0}h2{page-break-after:avoid}table.at{page-break-inside:auto}table.at tr{page-break-inside:avoid}}";
   var ph="<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>"+esc(teamName)+" vs "+esc(g.opp)+"</title><style>"+css+"</style></head><body><div class=wrap>";
@@ -7415,6 +7456,8 @@ function exGamePDF(gid){
   ph+="<div class=kpi><div class=v style=\"color:#dc2626\">"+totErr+"</div><div class=k>Erros</div></div>";
   ph+="<div class=\"kpi hl\"><div class=v>"+esc(destaqueNome)+"</div><div class=k>Destaque ("+(destaquePts>0?destaquePts:0)+" pts)</div></div>";
   ph+="</div>";
+  // graficos (pizzas) de pontos ganhos/perdidos por fundamento
+  ph+=pdfChartsHTML(g);
   // sequencia de pontos (ladder)
   ph+=_pdfLadderHTML(g);
   // tabela geral

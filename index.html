@@ -692,7 +692,10 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .court-cell.sel .court-num,.court-cell.sel .court-nm{color:#fff}
 .court-cell .court-empty-txt{font-size:10px;color:rgba(255,255,255,.6);font-weight:700}
 .court-bench{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:6px}
-.court-bench-card{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px;border:2px solid var(--brd);background:#fff;border-radius:10px;cursor:pointer;font-family:inherit}
+.court-bench-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px;border:2px solid var(--brd);background:#fff;border-radius:10px;cursor:pointer;font-family:inherit}
+/* Icone de editar a POSICAO/funcao do atleta na escalacao (canto do card, banco e quadra) */
+.court-pos-edit{position:absolute;top:-7px;right:-7px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;background:#1e293b;border:1px solid rgba(255,255,255,.3);border-radius:50%;cursor:pointer;z-index:3;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,.4);-webkit-tap-highlight-color:transparent}
+.court-pos-edit:active{transform:scale(.88)}
 .court-bench-card.picked{box-shadow:0 0 0 3px #1d4ed8;border-color:#1d4ed8}
 .court-bench-num{font-family:'Bebas Neue',sans-serif;font-size:19px;color:#0f172a;line-height:1}
 .court-bench-nm{font-size:8.5px;font-weight:700;color:#475569;text-transform:uppercase}
@@ -784,6 +787,7 @@ body.rs-shell .app-content .sc-arena-court .sc-board{top:104px}
 .sct-ob:active{transform:scale(.95)}
 .sct-ctrls{display:flex;flex-direction:column;gap:7px}
 .sct-ctl{background:#16213c;border:1px solid #243049;border-radius:9px;color:#cbd5e1;padding:11px 10px;font-size:13px;cursor:pointer;text-align:left;width:100%;font-family:inherit}
+.sct-ctl-back{border-color:#2563eb;color:#93c5fd;font-weight:700}
 .sct-ctl:active{transform:scale(.98)}
 .sct-feedbox{margin-top:9px;background:#0f1830;border-radius:9px;padding:8px}
 .sct-feed-item{border-left:3px solid #64748b;border-radius:0 5px 5px 0;padding:4px 8px;font-size:12px;margin-bottom:4px;background:#16213c;color:#e2e8f0}
@@ -1190,7 +1194,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-03c - modo tablet: esconde header/tabs no scout ao vivo (mesmo em sessao logada) + placar lado a lado no celular + RE-SYNC ao voltar do background + persistencia granular";
+var APP_BUILD="2026-07-03d - trocar posicao/funcao do atleta na escalacao (lapis no card: muda cadastro + jogo) + botao Voltar aos jogos no modo tablet + versao so na tela de login";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -3998,6 +4002,8 @@ var _naLanding = showLanding && !currentUser;
 try{document.body.classList.toggle('rs-shell',!torneioMode&&!signupMode&&!_naLanding&&!telaoMode);}catch(e){}
 // Modo tablet ativo num jogo ao vivo: esconde header/tabs pra tela limpa (landscape).
 try{document.body.classList.toggle('rs-tablet',!torneioMode&&!signupMode&&!_naLanding&&!telaoMode&&tab==='scout'&&!!S.aid&&isTabletMode()&&(function(){var g=gF(S.aid);return !!(g&&g.st==='live'&&!g.locked&&!g.tidB);})());}catch(e){}
+// Rodape da versao (#buildStamp): so na tela de LOGIN/landing (sem login logado). No app some.
+try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.style.display=currentUser?"none":"";}catch(e){}
 
 // === Modo TELÃO: tela cheia que segue o jogo ao vivo (read-only) ===
 if(telaoMode){
@@ -6767,6 +6773,38 @@ function courtDraftCell(idx){
   render();
 }
 function courtDraftRemove(idx){ if(_courtDraft){_courtDraft.pos[idx]=null;render();} }
+// Trocar a POSICAO/funcao do atleta na escalacao (ex: Ponteiro -> Libero). Decisao do Rodrigo:
+// muda no CADASTRO (athlete.po) E no JOGO (lineup[i].po — _courtGp ja da prioridade a le.po). Assim
+// o libero passa a ser tratado como tal (regra de nao ir a frente + card proprio no tablet) ja
+// neste jogo, e vira o padrao nos proximos.
+function courtEditPos(aid){
+  var gm=gF(S.aid); if(!gm)return;
+  var p=_gpFind(_courtGp(gm),aid); if(!p)return;
+  var cur=(p.po||"").toLowerCase();
+  var ex=document.getElementById("rsPosMenu"); if(ex)ex.remove();
+  var m='<div class="admin-modal" onclick="closePosMenu()"><div class="admin-box" onclick="event.stopPropagation()" style="text-align:left;max-width:320px">';
+  m+='<div style="font-family:Bebas Neue,sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--navy);margin-bottom:2px;text-align:center">Posição de #'+(p.nu!=null&&p.nu!==""?p.nu:"–")+" "+esc(p.nm.split(" ")[0])+'</div>';
+  m+='<div style="font-size:12px;color:var(--gray);text-align:center;margin-bottom:14px">muda no cadastro e neste jogo</div>';
+  m+='<div style="display:flex;flex-direction:column;gap:7px">';
+  for(var i=0;i<POS.length;i++){ var pv=POS[i]; var base=pv.replace(/\(a\)/,"").toLowerCase();
+    var on=(!!cur && cur.slice(0,4)===base.slice(0,4));
+    m+='<button class="bt '+(on?"bp":"bg")+'" onclick="courtSetPos(\''+aid+'\',\''+pv.replace(/'/g,"\\'")+'\')">'+esc(pv)+(on?" ✓":"")+'</button>';
+  }
+  m+='</div></div></div>';
+  var d=document.createElement("div"); d.id="rsPosMenu"; d.innerHTML=m; document.body.appendChild(d);
+}
+function closePosMenu(){var m=document.getElementById("rsPosMenu");if(m)m.remove();}
+function courtSetPos(aid,pos){
+  closePosMenu();
+  var gm=gF(S.aid); if(!gm)return;
+  var nm="atleta";
+  if(gm.lineup)for(var i=0;i<gm.lineup.length;i++){ if(gm.lineup[i].aid===aid){ gm.lineup[i].po=pos; break; } } // por JOGO
+  var ath=(typeof aFind==="function")?aFind(aid):null;                                                        // no CADASTRO
+  if(ath){ nm=(ath.nm||"").split(" ")[0]; ath.po=pos; if(typeof saveAthlete==="function")saveAthlete(ath).catch(function(){}); }
+  _persistGame(gm);
+  if(typeof toast==="function")toast("Posição de "+nm+" → "+pos,"ok");
+  render();
+}
 function courtDraftServer(side){ if(_courtDraft){_courtDraft.serving=side;render();} }
 function courtConfirmSetup(){
   var gm=gF(S.aid); if(!gm||!_courtDraft)return;
@@ -6827,7 +6865,7 @@ function courtRenderSetup(gm,gp){
     var isServer=(idx===0); var isLib=(p&&_isLibero(p)); var badLib=(isLib&&_COURT_FRONT.indexOf(idx)>=0);
     h+='<div class="court-cell'+(p?' filled':' empty')+(isServer?' server':'')+(isLib?' lib':'')+(badLib?' badlib':'')+(d.pick?' pickable':'')+'" onclick="courtDraftCell('+idx+')">';
     h+='<span class="court-pos">P'+_COURT_POSLBL[idx]+(isServer?' 🏐':'')+(isLib?' 🦺':'')+'</span>';
-    if(p){h+='<div class="court-num">'+(p.nu!=null&&p.nu!==''?p.nu:'–')+'</div><div class="court-nm">'+esc(p.nm.split(" ")[0])+'</div>';}
+    if(p){h+='<span class="court-pos-edit" onclick="event.stopPropagation();courtEditPos(\''+aid+'\')" title="Trocar posição">✏️</span><div class="court-num">'+(p.nu!=null&&p.nu!==''?p.nu:'–')+'</div><div class="court-nm">'+esc(p.nm.split(" ")[0])+'</div>';}
     else{h+='<div class="court-empty-txt">'+(d.pick?'colocar aqui':'vazio')+'</div>';}
     h+='</div>';
   }
@@ -6837,7 +6875,7 @@ function courtRenderSetup(gm,gp){
   h+='<div class="sc-seclabel" style="margin-top:10px">Banco — toque pra escolher</div><div class="court-bench">';
   if(!bench.length)h+='<span style="color:var(--rs-fg-mute,#94a3b8);font-size:12px">Todas posicionadas ✓</span>';
   for(var b=0;b<bench.length;b++){var bp=bench[b];var blib=_isLibero(bp);
-    h+='<button class="court-bench-card'+(d.pick===bp.id?' picked':'')+'" onclick="courtDraftPlace(\''+bp.id+'\')"><span class="court-bench-num">'+(bp.nu!=null&&bp.nu!==''?bp.nu:'–')+'</span><span class="court-bench-nm">'+(blib?'🦺 ':'')+esc(bp.nm.split(" ")[0])+'</span></button>';
+    h+='<button class="court-bench-card'+(d.pick===bp.id?' picked':'')+'" onclick="courtDraftPlace(\''+bp.id+'\')"><span class="court-pos-edit" onclick="event.stopPropagation();courtEditPos(\''+bp.id+'\')" title="Trocar posição">✏️</span><span class="court-bench-num">'+(bp.nu!=null&&bp.nu!==''?bp.nu:'–')+'</span><span class="court-bench-nm">'+(blib?'🦺 ':'')+esc(bp.nm.split(" ")[0])+'</span></button>';
   }
   h+='</div>';
   h+='<div class="sc-seclabel" style="margin-top:10px">Quem saca primeiro</div>';
@@ -7287,6 +7325,7 @@ function rSctTablet(gm,gp,te){
   }
   h+='</div></div>';
   h+='<div class="sct-col-r"><div class="sct-lbl">Controles</div><div class="sct-ctrls">';
+  h+='<button class="sct-ctl sct-ctl-back" onclick="scoutBack()">← Voltar aos jogos</button>';
   h+='<button class="sct-ctl" onclick="sctTimeout()">⏱ Timeout</button>';
   h+='<button class="sct-ctl" onclick="undo()">↩ Desfazer</button>';
   h+='<button class="sct-ctl" onclick="nxS()">▶ Próximo set</button>';

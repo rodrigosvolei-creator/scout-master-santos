@@ -809,6 +809,22 @@ body.rs-tablet .app-content{padding:6px;max-width:none}
   .sct-body{grid-template-columns:1fr}
   .sct-col-l,.sct-col-r{max-width:560px;margin:0 auto}
 }
+/* Celular RETRATO: o placar do topo (.sct-top) e feito pra landscape e nao cabe em ~375px —
+   estoura pela direita (o "tes ←" some) e os textos quebram feio. Compacta os tamanhos e
+   joga o meio (sets/saque/marcando) pra uma 2a linha, largura total. */
+@media(max-width:560px){
+  .sct{padding:8px}
+  body.rs-tablet .app-content{padding:4px}
+  .sct-top{flex-wrap:wrap;padding:8px 10px;gap:6px 8px}
+  .sct-side{gap:4px;min-width:0}
+  .sct-mid{order:3;flex-basis:100%;min-width:100%;margin-top:2px;border-top:1px solid #243049;padding-top:5px}
+  .sct-score{font-size:27px;min-width:24px}
+  .sct-sb{width:26px;height:26px;font-size:15px}
+  .sct-logo{width:22px;height:22px}
+  .sct-tn{max-width:46px;font-size:9px;line-height:1.1}
+  .sct-exit{padding:6px 7px;font-size:11px}
+  .sct-opts{gap:6px}
+}
 /* opcoes (quadra/lista, rotulo do passe) */
 .sct-opts{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 10px}
 .sct-opt{background:#111a2e;border:1px solid #243049;border-radius:10px;padding:6px 10px;font-size:12px;display:flex;gap:8px;align-items:center}
@@ -1174,7 +1190,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-03a - sync multi-device (persistencia granular do modo quadra) + mobile (marca d'agua nao fica solta no meio) + aviso de falha ao salvar";
+var APP_BUILD="2026-07-03b - RE-SYNC ao voltar do background (celular nao fica mais preso em 0x0/escalar) + placar do modo tablet cabe no celular retrato + persistencia granular + marca d'agua";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -1940,6 +1956,31 @@ db.ref("torneio-master-santos/invites").on("value", function(snap){
   _dataLoaded.invites = true;
   if(appStarted) render();
 });
+
+// === RE-SYNC ao voltar do background / reconectar ===
+// Navegadores mobile (Safari iOS em especial) SUSPENDEM a aba em background e param o
+// listener do RTDB. Cenario real: um 2o aparelho abre o jogo (0x0, sem escalar), fica em
+// background enquanto OUTRO aparelho escala e marca; ao voltar, a aba mostrava DADOS VELHOS
+// (0x0 / tela "posicionar o time") de um jogo que ja avancou. Forcamos re-leitura dos jogos
+// + re-render sempre que a aba volta ao foco / a rede reconecta.
+function _resyncGames(){
+  try{
+    if(typeof db==="undefined"||!db||!_dataLoaded.games)return;
+    db.ref("torneio-master-santos/games").once("value").then(function(snap){
+      var v=snap.val();
+      D.games = Array.isArray(v) ? v : (v ? Object.values(v) : []);
+      D.games.forEach(function(g){ if(g&&g.oppLogoData)g.oppLogoData=clnLogo(g.oppLogoData); });
+      if(appStarted) render();
+    }).catch(function(){ if(appStarted) render(); });
+  }catch(e){}
+}
+if(typeof document!=="undefined" && document.addEventListener){
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) _resyncGames(); });
+}
+if(typeof window!=="undefined" && window.addEventListener){
+  window.addEventListener("online", _resyncGames);
+  window.addEventListener("focus", _resyncGames);
+}
 
 // Render inicial imediato (antes do Firebase responder, com estado vazio)
 setTimeout(function(){if(appStarted)render();}, 100);

@@ -86,8 +86,11 @@ setTimeout(()=>{
     chk(gm.court['1'].serving==='them','courtConfirmSetup: grava o saque escolhido');
 
     // 4. resetSet: zera SO o set atual, mantem outros sets e o jogo AO VIVO
-    gm.ss=[{u:25,t:20},{u:10,t:8,sq:['u','u','t']}];
-    gm.court={'2':{pos:['a1','a2','a3','a4','a5','a6'],serving:'us'}};
+    // (re-ler o jogo: courtConfirmSetup persistiu via saveGame granular, que troca a
+    //  referencia em D.games[0] no mock — nao cachear o gm atraves de um save)
+    var g2=w.gF('g1');
+    g2.ss=[{u:25,t:20},{u:10,t:8,sq:['u','u','t']}];
+    g2.court={'2':{pos:['a1','a2','a3','a4','a5','a6'],serving:'us'}};
     w.S={aid:'g1',sp:'a2',sa:'ataque',cs:2,us:[],tm:0,rn:false,ti:null};
     w.confirmModal=function(o){ if(o&&o.onConfirm)o.onConfirm(); };
     w.resetSet();

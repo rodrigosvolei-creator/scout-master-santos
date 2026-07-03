@@ -142,6 +142,11 @@ body.rs-shell::after{
   background-image:var(--rs-watermark);background-size:contain;background-repeat:no-repeat;background-position:center;
   opacity:.07;pointer-events:none;z-index:0
 }
+/* Mobile: as marcas d'agua fixas grandes (48-72vw, top:54%) ficam "soltas no meio" da tela
+   pequena — no celular a logo semitransparente flutua sobre o conteudo. Esconder no mobile. */
+@media(max-width:640px){
+  body.rs-shell::after,.rs-tor-wm,.usa-wrap::after,.usa-scout-wrap::before,.lv-panel::after{display:none!important}
+}
 /* Tabs migradas pro tema escuro */
 body.rs-shell .app-tabs{
   background:linear-gradient(180deg,rgba(20,29,51,.92) 0%,rgba(12,19,34,.92) 100%);
@@ -1169,7 +1174,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-06-24p - PDF imprime as cores (print-color-adjust) ao salvar";
+var APP_BUILD="2026-07-03a - sync multi-device (persistencia granular do modo quadra) + mobile (marca d'agua nao fica solta no meio) + aviso de falha ao salvar";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -1969,6 +1974,19 @@ function saveGame(g){
   var idx=-1;for(var i=0;i<D.games.length;i++)if(D.games[i].id===g.id){idx=i;break;}
   if(idx<0)return Promise.reject(new Error("Jogo nao existe no estado local"));
   return db.ref("torneio-master-santos/games/"+idx).set(g);
+}
+// Persiste UM jogo (granular) com aviso de falha de REDE. Preferir a save() nos fluxos
+// de scout AO VIVO: grava so games/{idx} (nao reescreve o array inteiro -> nao apaga o
+// trabalho de outro dispositivo que edita OUTRO jogo) e nao depende do guard _dataLoaded.
+// Silencia so erro de permissao/login (papel sem acesso) — falha de rede o usuario TEM que ver.
+function _persistGame(gm){
+  if(!gm) return Promise.resolve();
+  return saveGame(gm).catch(function(e){
+    var msg=String((e&&(e.code||e.message))||"");
+    if(msg.indexOf("permission")<0 && msg.indexOf("login")<0 && typeof toast==="function"){
+      toast("⚠ Falha ao salvar — verifique a conexão e tente de novo","error");
+    }
+  });
 }
 // Salvar apenas UMA equipe
 function saveTeam(t){
@@ -6676,7 +6694,7 @@ function _isLibero(p){ return !!(p&&p.po&&/l[ií]bero|^lib/i.test(p.po)); }
 function toggleCourtMode(){
   var gm=gF(S.aid); if(!gm)return;
   gm.courtMode=!gm.courtMode; _courtDraft=null;
-  if(typeof save==='function')save();
+  _persistGame(gm);
   render();
 }
 
@@ -6715,7 +6733,7 @@ function courtConfirmSetup(){
   if(!gm.court)gm.court={};
   gm.court[_courtDraft.set]={pos:_courtDraft.pos.slice(),serving:_courtDraft.serving,libPair:null};
   _courtDraft=null;
-  if(typeof save==='function')save();
+  _persistGame(gm);
   render();
 }
 // Rotacao manual (rede de seguranca). dir>0 horario, dir<0 anti-horario.
@@ -6724,7 +6742,7 @@ function courtManualRotate(dir){
   var k=String(S.cs); var cs=gm.court[k]; if(!cs||!cs.pos)return;
   cs.pos = dir>0 ? rotateCourt(cs.pos) : rotateCourtBack(cs.pos);
   var fixed=courtLiberoExit(cs); cs.pos=fixed.pos; cs.libPair=fixed.libPair; // libero sai se foi pra frente
-  if(typeof save==='function')save();
+  _persistGame(gm);
   render();
 }
 // Trocar atleta (em quadra) pelo libero do banco, em 1 toque. Amarra o par desta entrada.
@@ -6740,7 +6758,7 @@ function courtLiberoSwap(aid){
   cs.pos[idx]=libero.id;
   cs.libPair={lib:libero.id,out:aid}; // par desta entrada (dinamico)
   S.sp=null;
-  if(typeof save==='function')save();
+  _persistGame(gm);
   render();
   var saiu=_gpFind(gp,aid);
   if(typeof toast==='function')toast("🦺 Líbero entrou no lugar de #"+(saiu?saiu.nu:"?"),"ok");
@@ -7171,7 +7189,7 @@ function _sctKeydown(e){
 }
 // Monta a tela inteira do modo tablet (substitui arena+painel do scout no celular). Fiel a preview/scout-tablet-mockup.html.
 function rSctTablet(gm,gp,te){
-  if(!gm.courtMode){gm.courtMode=true;if(typeof save==="function")save();}
+  if(!gm.courtMode){gm.courtMode=true;_persistGame(gm);}
   var nmRS=(te.n||"").replace(/RS-?VOLEIBOL\s*/i,"RS · ").trim();if(nmRS.length>20)nmRS=nmRS.substring(0,20)+"…";
   var nmAdv=(gm.opp||"Adversário");if(nmAdv.length>18)nmAdv=nmAdv.substring(0,18)+"…";
   var cur=(gm.ss&&gm.ss[S.cs-1])?gm.ss[S.cs-1]:{u:0,t:0};

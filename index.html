@@ -815,14 +815,14 @@ body.rs-tablet .app-content{padding:6px;max-width:none}
 @media(max-width:560px){
   .sct{padding:8px}
   body.rs-tablet .app-content{padding:4px}
-  .sct-top{flex-wrap:wrap;padding:8px 10px;gap:6px 8px}
-  .sct-side{gap:4px;min-width:0}
-  .sct-mid{order:3;flex-basis:100%;min-width:100%;margin-top:2px;border-top:1px solid #243049;padding-top:5px}
-  .sct-score{font-size:27px;min-width:24px}
-  .sct-sb{width:26px;height:26px;font-size:15px}
-  .sct-logo{width:22px;height:22px}
-  .sct-tn{max-width:46px;font-size:9px;line-height:1.1}
-  .sct-exit{padding:6px 7px;font-size:11px}
+  .sct-top{flex-wrap:wrap;justify-content:center;padding:8px 10px;gap:6px 12px}
+  .sct-side{gap:5px;min-width:0}
+  .sct-side .sct-tn{display:none} /* nomes escondidos no celular: o logo identifica "nos" e o header ja mostra "vs tes" — os 2 placares cabem LADO A LADO (nao empilham) */
+  .sct-mid{order:3;flex-basis:100%;min-width:100%;margin-top:3px;border-top:1px solid #243049;padding-top:5px}
+  .sct-score{font-size:32px;min-width:28px}
+  .sct-sb{width:29px;height:29px;font-size:17px}
+  .sct-logo{width:26px;height:26px}
+  .sct-exit{padding:6px 8px;font-size:12px}
   .sct-opts{gap:6px}
 }
 /* opcoes (quadra/lista, rotulo do passe) */
@@ -1190,7 +1190,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-03b - RE-SYNC ao voltar do background (celular nao fica mais preso em 0x0/escalar) + placar do modo tablet cabe no celular retrato + persistencia granular + marca d'agua";
+var APP_BUILD="2026-07-03c - modo tablet: esconde header/tabs no scout ao vivo (mesmo em sessao logada) + placar lado a lado no celular + RE-SYNC ao voltar do background + persistencia granular";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -3991,9 +3991,13 @@ function renderTelao(){
 function render(){if(!D)return;var a=document.getElementById("mainApp");
 // Fase A1: marca shell mode no <body>. So o shell recebe a marca d'agua
 // global e as tabs escuras. USA/signup/landing tem cosmetica propria.
-try{document.body.classList.toggle('rs-shell',!torneioMode&&!signupMode&&!showLanding&&!telaoMode);}catch(e){}
+// A landing so aparece quando (showLanding && !currentUser) — ver render() abaixo. Em sessao
+// JA logada (Firebase persiste o login), currentUser existe mas showLanding pode continuar true;
+// o app renderiza normal, entao rs-shell/rs-tablet DEVEM aplicar. Usar o mesmo criterio da landing.
+var _naLanding = showLanding && !currentUser;
+try{document.body.classList.toggle('rs-shell',!torneioMode&&!signupMode&&!_naLanding&&!telaoMode);}catch(e){}
 // Modo tablet ativo num jogo ao vivo: esconde header/tabs pra tela limpa (landscape).
-try{document.body.classList.toggle('rs-tablet',!torneioMode&&!signupMode&&!showLanding&&!telaoMode&&tab==='scout'&&!!S.aid&&isTabletMode()&&(function(){var g=gF(S.aid);return !!(g&&g.st==='live'&&!g.locked&&!g.tidB);})());}catch(e){}
+try{document.body.classList.toggle('rs-tablet',!torneioMode&&!signupMode&&!_naLanding&&!telaoMode&&tab==='scout'&&!!S.aid&&isTabletMode()&&(function(){var g=gF(S.aid);return !!(g&&g.st==='live'&&!g.locked&&!g.tidB);})());}catch(e){}
 
 // === Modo TELÃO: tela cheia que segue o jogo ao vivo (read-only) ===
 if(telaoMode){

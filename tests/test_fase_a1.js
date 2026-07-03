@@ -78,9 +78,13 @@ setTimeout(()=>{
     w.torneioMode = false; w.render();
     chk(w.document.body.classList.contains('rs-shell'), 'body.rs-shell religa apos sair do torneioMode');
 
-    // 8. Landing tambem nao tem rs-shell
-    w.showLanding = true; w.render();
-    chk(!w.document.body.classList.contains('rs-shell'), 'body.rs-shell removido em landing');
+    // 8. Landing REAL (showLanding + SEM login) nao tem rs-shell
+    var _cu=w.currentUser; w.currentUser=null; w.showLanding = true; w.render();
+    chk(!w.document.body.classList.contains('rs-shell'), 'body.rs-shell removido em landing (showLanding + sem login)');
+    // 8b. Sessao JA logada com showLanding ainda true (login persistido do Firebase): o app renderiza
+    //     normal -> rs-shell/rs-tablet DEVEM aplicar (senao as tabs nao somem no modo tablet).
+    w.currentUser=_cu||{uid:'u',email:'x@x.com'}; w.render();
+    chk(w.document.body.classList.contains('rs-shell'), 'body.rs-shell aplica com login mesmo se showLanding=true (sessao persistida)');
     w.showLanding = false; w.render();
 
     // 9. Signup tambem nao tem rs-shell

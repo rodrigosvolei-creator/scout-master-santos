@@ -702,6 +702,9 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .court-serve-toggle{display:flex;gap:8px}
 .court-serve-toggle button{flex:1;padding:11px 4px;border-radius:11px;border:2px solid var(--brd);background:#fff;color:#0f172a;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit}
 .court-serve-toggle button.on{background:#fef3c7;border-color:#f59e0b;color:#92400e}
+.court-rep-row{display:flex;gap:7px;margin:2px 0 10px;flex-wrap:wrap}
+.court-rep-btn{flex:1;min-width:150px;padding:10px 8px;border-radius:10px;border:1px solid var(--brd);background:#fff;color:#0f172a;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}
+.court-rep-btn:active{transform:scale(.97)}
 .court-start{width:100%;margin-top:12px;padding:15px;border-radius:13px;border:none;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-weight:800;font-size:15px;letter-spacing:.5px;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(22,163,74,.4)}
 .court-start:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 .court-ctrls{display:flex;gap:7px;margin-top:10px}
@@ -1194,7 +1197,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-03d - trocar posicao/funcao do atleta na escalacao (lapis no card: muda cadastro + jogo) + botao Voltar aos jogos no modo tablet + versao so na tela de login";
+var APP_BUILD="2026-07-03e - repetir escalacao no setup: botao 'repetir set anterior' + 'repetir de outro jogo' (traz elenco + posicoes) + trocar posicao do atleta + versao so no login";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6805,6 +6808,64 @@ function courtSetPos(aid,pos){
   if(typeof toast==="function")toast("Posição de "+nm+" → "+pos,"ok");
   render();
 }
+// === REPETIR ESCALACAO (Rodrigo: repetir a escalacao de um jogo especifico + a relacao de atletas) ===
+// pos pode vir do Firebase como array [null,...] OU objeto {"0":..} — normaliza pra array.
+function _posArr(pos){ return Array.isArray(pos)?pos:(pos?Object.keys(pos).sort(function(a,b){return a-b;}).map(function(k){return pos[k];}):[]); }
+// Jogos do MESMO time (exceto o atual) que ja tem algum set escalado com os 6 em quadra.
+function _courtRepeatSources(gm){
+  var out=[]; if(!gm||!D||!D.games)return out;
+  for(var i=0;i<D.games.length;i++){ var g=D.games[i];
+    if(!g||g.id===gm.id||g.tid!==gm.tid||!g.court)continue;
+    for(var k in g.court){ var cs=g.court[k]; if(cs&&cs.pos&&_posArr(cs.pos).filter(Boolean).length===6){ out.push(g); break; } }
+  }
+  return out;
+}
+// Aplica um pos+serving de origem no rascunho do set atual (so os atletas que estao no lineup atual).
+// Retorna quantos atletas ficaram de fora (nao estao mais no elenco).
+function _courtApplyDraft(gm,srcPos,srcServe){
+  var gp=_courtGp(gm); var valid={}; gp.forEach(function(p){valid[p.id]=1;});
+  var d=courtDraftEnsure(gm,gp);
+  var arr=_posArr(srcPos).slice(0,6).map(function(a){return (a&&valid[a])?a:null;});
+  while(arr.length<6)arr.push(null);
+  d.pos=arr; if(srcServe==="us"||srcServe==="them")d.serving=srcServe; d.pick=null;
+  return _posArr(srcPos).filter(function(a){return a&&!valid[a];}).length;
+}
+// Botao "Repetir set anterior" (mesmo jogo)
+function courtRepeatPrevSet(){
+  var gm=gF(S.aid); if(!gm||!gm.court)return;
+  var pv=gm.court[String(S.cs-1)]; if(!pv||!pv.pos){if(typeof toast==="function")toast("Set anterior sem escalação","error");return;}
+  _courtApplyDraft(gm,pv.pos,pv.serving); render();
+  if(typeof toast==="function")toast("Escalação do set "+(S.cs-1)+" repetida — confira e inicie","ok");
+}
+// Botao "Repetir de outro jogo" — menu com os jogos do time
+function courtRepeatMenu(){
+  var gm=gF(S.aid); if(!gm)return;
+  var src=_courtRepeatSources(gm);
+  if(!src.length){if(typeof toast==="function")toast("Nenhum outro jogo deste time com escalação","error");return;}
+  var ex=document.getElementById("rsRepMenu"); if(ex)ex.remove();
+  var m='<div class="admin-modal" onclick="closeRepMenu()"><div class="admin-box" onclick="event.stopPropagation()" style="text-align:left;max-width:360px">';
+  m+='<div style="font-family:Bebas Neue,sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--navy);margin-bottom:2px;text-align:center">Repetir escalação de…</div>';
+  m+='<div style="font-size:12px;color:var(--gray);text-align:center;margin-bottom:14px">traz o elenco (relação de atletas) + as posições do jogo escolhido</div>';
+  m+='<div style="display:flex;flex-direction:column;gap:7px;max-height:52vh;overflow:auto">';
+  for(var i=0;i<src.length;i++){ var g=src[i]; var dt=g.dt?(' · '+String(g.dt).split('-').reverse().join('/')):'';
+    m+='<button class="bt bg" style="text-align:left" onclick="courtRepeatFromGame(\''+g.id+'\')">vs '+esc(g.opp||'?')+dt+'</button>';
+  }
+  m+='</div></div></div>';
+  var el=document.createElement("div"); el.id="rsRepMenu"; el.innerHTML=m; document.body.appendChild(el);
+}
+function closeRepMenu(){var m=document.getElementById("rsRepMenu");if(m)m.remove();}
+// Copia a RELACAO DE ATLETAS (lineup) + a ESCALACAO (1o set escalado) do jogo de origem.
+function courtRepeatFromGame(srcId){
+  closeRepMenu();
+  var gm=gF(S.aid); if(!gm)return;
+  var src=gF(srcId); if(!src){if(typeof toast==="function")toast("Jogo não encontrado","error");return;}
+  if(src.lineup&&src.lineup.length) gm.lineup=JSON.parse(JSON.stringify(src.lineup)); // 1) elenco
+  var srcPos=null, srcServe=null; // 2) escalacao do 1o set escalado da origem
+  if(src.court){ var keys=Object.keys(src.court).sort(); for(var i=0;i<keys.length;i++){ var cs=src.court[keys[i]]; if(cs&&cs.pos&&_posArr(cs.pos).filter(Boolean).length===6){ srcPos=cs.pos; srcServe=cs.serving; break; } } }
+  var faltou=srcPos?_courtApplyDraft(gm,srcPos,srcServe):0;
+  _persistGame(gm); render();
+  if(typeof toast==="function")toast("Escalação de vs "+esc(src.opp||"?")+" aplicada"+(faltou?(" — "+faltou+" fora do elenco"):""),"ok");
+}
 function courtDraftServer(side){ if(_courtDraft){_courtDraft.serving=side;render();} }
 function courtConfirmSetup(){
   var gm=gF(S.aid); if(!gm||!_courtDraft)return;
@@ -6859,6 +6920,11 @@ function courtRenderSetup(gm,gp){
   var pickNm=''; if(d.pick){var pk=_gpFind(gp,d.pick); if(pk)pickNm='#'+(pk.nu!=null&&pk.nu!==''?pk.nu:'–')+' '+esc(pk.nm.split(" ")[0]);}
   var h='<div class="sc-seclabel">🏐 Posicionar o time — Set '+S.cs+'</div>';
   h+='<div style="font-size:12px;color:#93a4c0;margin:-4px 0 8px">'+(d.pick?('Toque a posição na quadra pra colocar <b style="color:#cbd5e1">'+pickNm+'</b>'):'Toque um atleta (banco) e depois a posição. Tocar uma posição ocupada tira do time.')+'</div>';
+  // Repetir escalacao: do set anterior (mesmo jogo) e/ou de outro jogo do mesmo time
+  var _rep='';
+  if(S.cs>1 && gm.court){ var _pv=gm.court[String(S.cs-1)]; if(_pv&&_pv.pos&&_posArr(_pv.pos).filter(Boolean).length===6) _rep+='<button class="court-rep-btn" onclick="courtRepeatPrevSet()">↩ Repetir set '+(S.cs-1)+'</button>'; }
+  if(_courtRepeatSources(gm).length) _rep+='<button class="court-rep-btn" onclick="courtRepeatMenu()">📋 Repetir de outro jogo</button>';
+  if(_rep)h+='<div class="court-rep-row">'+_rep+'</div>';
   h+='<div class="court-wrap"><div class="court-net">REDE</div><div class="court-grid">';
   for(var o=0;o<_COURT_ORDER.length;o++){
     var idx=_COURT_ORDER[o]; var aid=d.pos[idx]; var p=aid?_gpFind(gp,aid):null;

@@ -1201,8 +1201,8 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-03f - botao 'Erro adv' (ponto do time por erro do adversario, 1 toque, entra nos pontos ganhos) + repetir escalacao + trocar posicao do atleta + versao so no login";
-try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
+var APP_BUILD="2026-07-03g - rodape mostra so a versao curta (nao a descricao inteira) + botao Erro adv + repetir escalacao + trocar posicao do atleta";
+try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
 var POS=["Levantador(a)","Oposto(a)","Ponteiro(a)","Central","L\u00edbero"];

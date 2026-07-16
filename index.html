@@ -791,6 +791,10 @@ body.rs-shell .app-content .sc-arena-court .sc-board{top:104px}
 .sct-ctrls{display:flex;flex-direction:column;gap:7px}
 .sct-ctl{background:#16213c;border:1px solid #243049;border-radius:9px;color:#cbd5e1;padding:11px 10px;font-size:13px;cursor:pointer;text-align:left;width:100%;font-family:inherit}
 .sct-ctl-back{border-color:#2563eb;color:#93c5fd;font-weight:700}
+.sct-erradv{width:100%;margin-top:8px;padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(22,163,74,.35)}
+.sct-erradv:active{transform:scale(.98)}
+.sc-erradv{display:block;width:calc(100% - 20px);margin:8px auto 2px;padding:12px;border-radius:11px;border:none;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(22,163,74,.35)}
+.sc-erradv:active{transform:scale(.98)}
 .sct-ctl:active{transform:scale(.98)}
 .sct-feedbox{margin-top:9px;background:#0f1830;border-radius:9px;padding:8px}
 .sct-feed-item{border-left:3px solid #64748b;border-radius:0 5px 5px 0;padding:4px 8px;font-size:12px;margin-bottom:4px;background:#16213c;color:#e2e8f0}
@@ -1197,7 +1201,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-03e - repetir escalacao no setup: botao 'repetir set anterior' + 'repetir de outro jogo' (traz elenco + posicoes) + trocar posicao do atleta + versao so no login";
+var APP_BUILD="2026-07-03f - botao 'Erro adv' (ponto do time por erro do adversario, 1 toque, entra nos pontos ganhos) + repetir escalacao + trocar posicao do atleta + versao so no login";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -4898,6 +4902,7 @@ if(gm.st==="live"&&!locked){
   var __hintTeam = (te && te.n) ? esc(nmRS) : "nosso time";
   if(gm.tidB)h+='<div class="sc-hint">\u26A1 Toque na equipe pra alternar \u00b7 <b>Ace / Ponto</b> credita a equipe marcada \u00b7 <b>Erro</b> credita a advers\u00e1ria \u00b7 use +/\u2212 para ajustes</div>';
   else h+='<div class="sc-hint">\u26A1 <b>Ace / Ponto</b> sobem o placar do '+__hintTeam+' \u00b7 <b>Erro</b> sobe o do advers\u00e1rio \u00b7 use +/\u2212 para ajustes</div>';
+  if(!gm.tidB)h+='<button class="sc-erradv" onclick="scErrAdv()">\ud83d\uded1 Ponto \u2014 erro do advers\u00e1rio</button>';
 }
 h+='</div>'; // fecha .sc-arena
 // ===== PAINEL DE SCOUT — atleta / fundamento / resultado =====
@@ -4991,6 +4996,7 @@ if(!acts.length)return h+'<div style="text-align:center;padding:30px;color:var(-
 var agg={};
 for(var i=0;i<acts.length;i++){
   var a=acts[i];
+  if(a.ak==="erroadv")continue; // ponto do time (erro do adversario) — nao entra na estatistica por atleta
   if(!agg[a.pid])agg[a.pid]={total:0,pts:0,offTotal:0,byF:{}};
   agg[a.pid].total++;
   // Ponto = Ace (saque), Ataque com "Ponto", Bloqueio com "Ponto"
@@ -7180,11 +7186,11 @@ function pdfChartsHTML(g){
   if(!g||!g.act||!g.act.length)return"";
   var gMap={},pMap={},gTot=0,pTot=0,i;
   for(i=0;i<g.act.length;i++){var a=g.act[i];
-    if(a.oc==="Ace"||((a.ak==="ataque"||a.ak==="bloqueio")&&a.oc==="Ponto")){gMap[a.ak]=(gMap[a.ak]||0)+1;gTot++;}
+    if(a.oc==="Ace"||((a.ak==="ataque"||a.ak==="bloqueio")&&a.oc==="Ponto")||a.ak==="erroadv"){gMap[a.ak]=(gMap[a.ak]||0)+1;gTot++;}
     if(a.oc==="Erro"){pMap[a.ak]=(pMap[a.ak]||0)+1;pTot++;}
   }
   if(!gTot&&!pTot)return"";
-  function toData(m){var d=[],k;for(k in m)d.push({l:(typeof ACT!=="undefined"&&ACT[k]?ACT[k].l:k),v:m[k],c:(typeof FCOL!=="undefined"&&FCOL[k])?FCOL[k]:"#64748b"});d.sort(function(a,b){return b.v-a.v;});return d;}
+  function toData(m){var d=[],k;for(k in m)d.push({l:(k==="erroadv"?"Erro do adv":(typeof ACT!=="undefined"&&ACT[k]?ACT[k].l:k)),v:m[k],c:(k==="erroadv"?"#16a34a":((typeof FCOL!=="undefined"&&FCOL[k])?FCOL[k]:"#64748b"))});d.sort(function(a,b){return b.v-a.v;});return d;}
   return "<h2>Pontos ganhos e perdidos</h2><div class=charts>"
     +"<div class=chart>"+_pdfPieBlock("Pontos ganhos · "+gTot,toData(gMap))+"</div>"
     +"<div class=chart>"+_pdfPieBlock("Pontos perdidos · "+pTot,toData(pMap))+"</div>"
@@ -7389,7 +7395,9 @@ function rSctTablet(gm,gp,te){
     for(var oi=0;oi<a2.o.length;oi++){var o=a2.o[oi];h+='<button class="sct-ob" style="background:'+(OC[o]||"#334155")+'" onclick="scTap(\''+k+'\',\''+o+'\')">'+sctLblOf(o)+'</button>';}
     h+='</div></div>';
   }
-  h+='</div></div>';
+  h+='</div>'; // fecha .sct-groups
+  h+='<button class="sct-erradv" onclick="scErrAdv()">🛑 Ponto — erro do adversário</button>';
+  h+='</div>'; // fecha .sct-col-c
   h+='<div class="sct-col-r"><div class="sct-lbl">Controles</div><div class="sct-ctrls">';
   h+='<button class="sct-ctl sct-ctl-back" onclick="scoutBack()">← Voltar aos jogos</button>';
   h+='<button class="sct-ctl" onclick="sctTimeout()">⏱ Timeout</button>';
@@ -7399,7 +7407,9 @@ function rSctTablet(gm,gp,te){
   h+='</div><div class="sct-feedbox"><div class="sct-lbl" style="margin-bottom:5px">Últimas ações</div>';
   if(gm.act&&gm.act.length){
     var ls=gm.act.slice(-5).reverse();
-    for(var fi=0;fi<ls.length;fi++){var a3=ls[fi];var pf=pFind(a3.pid,gm.id);var ocol=OC[a3.oc]||"#64748b";
+    for(var fi=0;fi<ls.length;fi++){var a3=ls[fi];
+      if(a3.ak==="erroadv"){h+='<div class="sct-feed-item" style="border-left-color:#16a34a"><span class="fn">🛑</span> Erro do adversário · ponto</div>';continue;}
+      var pf=pFind(a3.pid,gm.id);var ocol=OC[a3.oc]||"#64748b";
       var flbl=(pf&&pf.nu!=null&&pf.nu!=="")?("#"+pf.nu):(pf?esc((pf.nm||"").split(" ")[0]):"?");
       h+='<div class="sct-feed-item" style="border-left-color:'+ocol+'"><span class="fn">'+flbl+'</span> '+(ACT[a3.ak]?ACT[a3.ak].i:"")+' '+(ACT[a3.ak]?ACT[a3.ak].l:"")+' · '+sctLblOf(a3.oc)+'</div>';
     }
@@ -7424,6 +7434,22 @@ function rSctTablet(gm,gp,te){
   return h;
 }
 function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(setIsOver(gm,S.cs)){if(typeof toast==="function")toast("Set encerrado — inicie o próximo set","error");return;}if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;_sqPush(gm,who);var _snap=courtRegisterPoint(who);S.us.push({manual:true,sc:who,set:S.cs,court:_snap});courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");saveGame(gm).catch(function(){});render();}
+// Ponto do NOSSO time por ERRO DO ADVERSARIO (saque na rede, ataque fora, etc). Independe de
+// marcar a acao da outra equipe: 1 toque sobe o placar (sem precisar do +/-), roda a quadra
+// (side-out) e registra na estatistica como {pid:null, ak:"erroadv"} -> conta nos "pontos
+// ganhos" do time, e NAO na estatistica por atleta. O undo reverte (tem l.a/l.sc/l.court).
+function scErrAdv(){
+  var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;
+  if(setIsOver(gm,S.cs)){if(typeof toast==="function")toast("Set encerrado — inicie o próximo set","error");showFlash("#dc2626");return;}
+  var a={id:"a"+Date.now(),pid:null,ak:"erroadv",oc:"Ponto",set:S.cs,ts:S.tm};
+  gm.ss[S.cs-1].u++;_sqPush(gm,"u");
+  var _snap=courtRegisterPoint("u");
+  S.us.push({a:a,sc:"u",court:_snap});
+  if(!gm.act)gm.act=[];gm.act.push(a);
+  courtApplyPreserve();
+  if(navigator.vibrate)navigator.vibrate(40);showFlash("#059669");
+  _persistGame(gm);render();
+}
 function scDn(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u"&&gm.ss[S.cs-1].u>0){gm.ss[S.cs-1].u--;_sqPopSide(gm,S.cs-1,"u");}else if(who==="t"&&gm.ss[S.cs-1].t>0){gm.ss[S.cs-1].t--;_sqPopSide(gm,S.cs-1,"t");}saveGame(gm).catch(function(){});render();}
 function undo(){if(!S.us.length)return;var l=S.us.pop();var gm=gF(S.aid);if(!gm)return;
 var setN=(l.a&&l.a.set)||l.set||S.cs; // acao (rcO) tem l.a.set; ponto manual (+/- scUp) tem l.set
@@ -7768,6 +7794,7 @@ function livePanelStats(gm,scope,curSet){
       if(a.ak==="ataque"){atk.n++;if(a.oc==="Ponto")atk.pt++;else if(a.oc==="Erro")atk.err++;}
       if(a.ak==="recepcao"){rec.n++;if(a.oc==="A"||a.oc==="B")rec.good++;}
       if(a.oc==="Erro")errAll++;
+      if(a.ak==="erroadv")continue; // ponto do time, nao conta por atleta
       if(!byP[a.pid])byP[a.pid]={pid:a.pid,n:0,f:{}};
       byP[a.pid].n++;
       if(!byP[a.pid].f[a.ak])byP[a.pid].f[a.ak]={n:0,o:{}};

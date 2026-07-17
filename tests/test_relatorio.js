@@ -71,9 +71,9 @@ setTimeout(()=>{
   chk(htm.indexOf('Tabela geral')>=0 && htm.indexOf('Top Ataque')>=0 && htm.indexOf('A régua do RS-SCOUT')>=0,'time: tabela + tops + regua');
   chk(htm.indexOf('exPlayerReport(')>=0,'time: nome do atleta clicavel -> exPlayerReport');
   chk(htm.indexOf('print-color-adjust:exact')>=0,'time: print-color-adjust:exact (salva com cor)');
-  // cards por atleta (nao tabela) com TODOS os fundamentos visiveis (sem rolar)
-  chk(htm.indexOf('class="pcard')>=0 && htm.indexOf('table class="tg"')<0,'time: cards por atleta (tabela antiga removida)');
-  chk(htm.indexOf('>Saque<')>=0 && htm.indexOf('>Defesa<')>=0 && htm.indexOf('>Levant.<')>=0,'time: cards mostram saque/defesa/levant (antes faltavam)');
+  // tabela compacta com TODOS os fundamentos (colunas)
+  chk(htm.indexOf('table class="tg"')>=0,'time: tabela geral compacta');
+  chk(htm.indexOf('>Saque<')>=0 && htm.indexOf('>Defesa<')>=0 && htm.indexOf('>Levant.<')>=0,'time: colunas de saque/defesa/levant (antes faltavam)');
   // ranking por aproveitamento (%): Mikael/Igor 86% antes de Caio 75%
   var pg=htm.indexOf('pgrid');
   chk(htm.indexOf('Mikael',pg)<htm.indexOf('Caio',pg) && htm.indexOf('Igor',pg)<htm.indexOf('Caio',pg),'time: ranking por % (86% antes de 75%)');

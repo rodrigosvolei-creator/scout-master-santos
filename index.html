@@ -1201,7 +1201,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-17b - relatorio visual: hero legivel + tabela geral vira cards por atleta (todos os fundamentos, sem rolar) + ranking por aproveitamento";
+var APP_BUILD="2026-07-17c - relatorio visual: tabela geral compacta com os 6 fundamentos (fecha com o total) + ranking por aproveitamento + hero legivel";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -7880,26 +7880,14 @@ function _repCSS(){
   /* tabela geral (time) */
   +'.tscroll{overflow-x:auto}'
   +'table.tg{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;min-width:560px}'
-  +'table.tg thead th{font-family:var(--fd);font-size:11.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:9px 8px;text-align:center;border-bottom:2px solid var(--line)}table.tg thead th.l{text-align:left;padding-left:14px}'
-  +'table.tg tbody td{padding:8px 8px;text-align:center;font-family:var(--fd);font-weight:700;font-size:15px;border-bottom:1px solid var(--line)}table.tg tbody tr:nth-child(even) td{background:var(--zebra)}table.tg tbody tr.top td{background:linear-gradient(90deg,rgba(232,178,7,.09),transparent)}table.tg td.l{text-align:left;padding-left:8px}'
+  +'table.tg thead th{font-family:var(--fd);font-size:10px;letter-spacing:.2px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:7px 4px;text-align:center;border-bottom:2px solid var(--line)}table.tg thead th.l{text-align:left;padding-left:8px}'
+  +'table.tg tbody td{padding:6px 4px;text-align:center;font-family:var(--fd);font-weight:700;font-size:13.5px;border-bottom:1px solid var(--line);white-space:nowrap}table.tg tbody tr:nth-child(even) td{background:var(--zebra)}table.tg tbody tr.top td{background:linear-gradient(90deg,rgba(232,178,7,.09),transparent)}table.tg td.l{text-align:left;padding-left:6px}'
   +'.rk{display:inline-flex;align-items:center;gap:9px}'
   +'.medal{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-family:var(--fx);font-size:12px;flex:none}.m1{background:linear-gradient(135deg,#ffd75e,var(--gold));color:#3a2c00}.m2{background:linear-gradient(135deg,#dbe2ec,var(--silver));color:#2a3444}.m3{background:linear-gradient(135deg,#e0a86a,var(--bronze));color:#fff}'
   +'.pos{width:22px;text-align:center;color:var(--faint);font-size:13px;flex:none}'
   +'.aeg{color:var(--good-d)}.aeb{color:var(--bad)}.aez{color:var(--faint);font-weight:600}.ae .s{color:var(--faint);font-weight:400;margin:0 1px}'
-  +'.tot{font-family:var(--fx);font-size:17px}'
-  +'.apv{display:flex;align-items:center;gap:8px;justify-content:center;min-width:110px}.apv .mini{width:56px;height:7px;border-radius:4px;background:var(--line);overflow:hidden;flex:none}.apv .mini i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--good),var(--good-d))}.apv .pc{font-family:var(--fd);font-weight:800;font-size:14px;min-width:38px;text-align:right}.apv.low .mini i{background:linear-gradient(90deg,#e6a52a,var(--bad))}'
-  /* cards de atleta (tabela geral) — todos os fundamentos, sem rolar */
-  +'.pgrid{display:flex;flex-direction:column;gap:8px}'
-  +'.pcard{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:9px 11px 10px}'
-  +'.pcard.top{background:linear-gradient(90deg,rgba(232,178,7,.09),var(--surface));border-color:rgba(232,178,7,.4)}'
-  +'.pc-hd{display:flex;align-items:center;gap:9px;margin-bottom:8px}'
-  +'.pc-nm{font-family:var(--fd);font-weight:700;font-size:15px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
-  +'.pc-tot{font-family:var(--fd);font-size:12px;color:var(--muted);white-space:nowrap;letter-spacing:.3px}.pc-tot b{font-family:var(--fd);font-size:15px}'
-  +'.pc-ap{display:flex;align-items:center;gap:7px;min-width:88px;justify-content:flex-end}.pc-ap .mini{width:42px;height:7px;border-radius:4px;background:var(--line);overflow:hidden;flex:none}.pc-ap .mini i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--good),var(--good-d))}.pc-ap .pc{font-family:var(--fd);font-weight:800;font-size:15px;min-width:40px;text-align:right}.pc-ap.low .mini i{background:linear-gradient(90deg,#e6a52a,var(--bad))}'
-  +'.pc-funds{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}'
-  +'.pf{background:var(--surf-2);border:1px solid var(--line);border-radius:8px;padding:5px 3px 6px;text-align:center}'
-  +'.pf .l{font-family:var(--fd);font-size:10px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);font-weight:600}'
-  +'.pf .v{font-family:var(--fd);font-weight:700;font-size:15.5px;margin-top:2px}'
+  +'.tot{font-family:var(--fd);font-weight:800;font-size:14px}'
+  +'.apv{display:flex;align-items:center;gap:5px;justify-content:center;min-width:72px}.apv .mini{width:32px;height:6px;border-radius:4px;background:var(--line);overflow:hidden;flex:none}.apv .mini i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--good),var(--good-d))}.apv .pc{font-family:var(--fd);font-weight:800;font-size:13px;min-width:34px;text-align:right}.apv.low .mini i{background:linear-gradient(90deg,#e6a52a,var(--bad))}'
   /* tops */
   +'.tops{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}'
   +'.top-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}'
@@ -7955,22 +7943,19 @@ function reportTeamHTML(g){
   h+='<div class="kpi"><div class="k-top"><span class="k-lb">Aproveitamento</span><div class="ring" style="--p:'+(T.aprov||0)+'"><b>'+(T.aprov==null?"–":T.aprov+"%")+'</b></div></div><div class="k-big">'+sgn(T.saldo)+'</div><div class="k-ft">saldo ('+T.pos+' − '+T.err+')</div></div>';
   h+='<div class="kpi"><div class="k-top"><span class="k-ic" style="background:var(--surf-2);color:var(--navy-2)">'+_ic("i-users")+'</span><span class="k-lb">Pontuaram</span></div><div class="k-big">'+T.nScored+'<span style="font-size:.5em;color:var(--muted)">/'+T.nPlayers+'</span></div><div class="k-ft">atletas com ação positiva</div></div>';
   h+='</div>';
-  // TABELA GERAL — um card por atleta, todos os fundamentos (sem rolar de lado)
-  h+='<div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-users")+'</span><h3>Tabela geral — '+esc(teamName)+'</h3><span class="tag">acertos / erros por fundamento</span></div><div class="card-bd"><div class="pgrid">';
+  // TABELA GERAL — compacta, todos os fundamentos (no celular rola so a tabela)
+  h+='<div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-users")+'</span><h3>Tabela geral — '+esc(teamName)+'</h3><span class="tag">acertos / erros por fundamento</span></div><div class="card-bd tb"><div class="tscroll"><table class="tg"><thead><tr><th class="l">Atleta</th><th>Ataque</th><th>Bloq.</th><th>Saque</th><th>Passe</th><th>Defesa</th><th>Levant.</th><th>Total</th><th>Aprov.</th></tr></thead><tbody>';
   var _fOrd=["ataque","bloqueio","saque","recepcao","defesa","levantamento"];
   for(var i=0;i<players.length;i++){
     var p=players[i], medaled=(i<3&&p.pos>0);
     var rk=medaled?('<span class="medal m'+(i+1)+'">'+(i+1)+'</span>'):('<span class="pos">'+(i+1)+'</span>');
     var apLow=(p.aprov!=null&&p.aprov<70)?" low":"";
-    h+='<div class="pcard'+(medaled?" top":"")+'">';
-    h+='<div class="pc-hd">'+rk+'<span class="pc-nm" style="cursor:pointer" onclick="exPlayerReport(\''+g.id+'\',\''+p.pid+'\')" title="Ver relatório individual">'+esc(_short(p.pid,g.id))+'</span>';
-    h+='<span class="pc-tot">Total <b class="'+(p.pos>0?"aeg":"aez")+'">'+p.pos+'</b><span class="s">/</span><b class="'+(p.err>0?"aeb":"aez")+'">'+p.err+'</b></span>';
-    h+='<span class="pc-ap'+apLow+'"><span class="mini"><i style="width:'+(p.aprov||0)+'%"></i></span><span class="pc">'+(p.aprov==null?"–":p.aprov+"%")+'</span></span></div>';
-    h+='<div class="pc-funds">';
-    for(var fo=0;fo<_fOrd.length;fo++){var fk=_fOrd[fo];h+='<div class="pf"><div class="l">'+_REP_FLBL[fk]+'</div><div class="v">'+_aeV(p.byF[fk])+'</div></div>';}
-    h+='</div></div>';
+    h+='<tr class="'+(medaled?"top":"")+'"><td class="l"><span class="rk" style="cursor:pointer" onclick="exPlayerReport(\''+g.id+'\',\''+p.pid+'\')" title="Ver relatório individual">'+rk+esc(_short(p.pid,g.id))+'</span></td>';
+    for(var fo=0;fo<_fOrd.length;fo++)h+='<td>'+_aeV(p.byF[_fOrd[fo]])+'</td>';
+    h+='<td><span class="tot"><b class="'+(p.pos>0?"aeg":"aez")+'">'+p.pos+'</b><span class="s">/</span><b class="'+(p.err>0?"aeb":"aez")+'">'+p.err+'</b></span></td>';
+    h+='<td><div class="apv'+apLow+'"><div class="mini"><i style="width:'+(p.aprov||0)+'%"></i></div><span class="pc">'+(p.aprov==null?"–":p.aprov+"%")+'</span></div></td></tr>';
   }
-  h+='</div></div></div>';
+  h+='</tbody></table></div></div></div>';
   // TOPS
   function topBy(fn){var a=[];for(var k=0;k<players.length;k++){var v=fn(players[k]);if(v>0)a.push({who:_short(players[k].pid,g.id),v:v});}a.sort(function(x,y){return y.v-x.v;});return a.slice(0,3);}
   function topCard(cls,icon,title,list){var b="";if(!list.length)b='<div class="tr"><span class="empty">Sem registro</span></div>';else for(var k=0;k<list.length;k++)b+='<div class="tr"><span class="rn'+(k===0?" g1":"")+'">'+(k+1)+'</span><span class="who">'+esc(list[k].who)+'</span><span class="v">'+list[k].v+'</span></div>';return '<div class="top-card"><div class="top-hd '+cls+'">'+_ic(icon)+'<h4>'+title+'</h4></div><div class="top-bd">'+b+'</div></div>';}

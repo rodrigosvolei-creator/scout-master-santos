@@ -73,7 +73,8 @@ setTimeout(()=>{
   // ---- HTML TIME ----
   var htm=w.reportTeamHTML(g);
   chk(htm.indexOf('class="hero"')>=0 && htm.indexOf('2</span><span class="x">')>=0,'time: hero com placar 2 sets');
-  chk(htm.indexOf('Tabela geral')>=0 && htm.indexOf('Top Ataque')>=0 && htm.indexOf('A régua do RS-SCOUT')>=0,'time: tabela + tops + regua');
+  chk(htm.indexOf('Tabela geral')>=0 && htm.indexOf('Top Ataque')>=0 && htm.indexOf('Como os números são calculados')>=0,'time: tabela + tops + metodologia');
+  chk(htm.indexOf('arte antiga')<0 && htm.indexOf('N passes = N acertos')<0,'time: sem texto de conversa/comparacao (produto profissional)');
   chk(htm.indexOf('exPlayerReport(')>=0,'time: nome do atleta clicavel -> exPlayerReport');
   chk(htm.indexOf('print-color-adjust:exact')>=0,'time: print-color-adjust:exact (salva com cor)');
   // tabela compacta com TODOS os fundamentos (colunas)
@@ -107,6 +108,7 @@ setTimeout(()=>{
   chk(hl.indexOf('acertos ·')>=0,'ind a8 libero: subtitulo em acertos (nao pts)');
   chk(hl.indexOf('qualidade do passe')>=0,'ind a8: card de recepcao aparece (recebe)');
   chk(hi.indexOf('qualidade do passe')<0,'ind a1: SEM card de recepcao (nao recebe)');
+  chk(hl.indexOf('arte antiga')<0 && hl.indexOf('N passes = N acertos')<0 && hl.indexOf('confiáveis')<0,'ind: sem texto de conversa/marketing (produto profissional)');
 
   console.log('\n=== test_relatorio: '+ok+' OK, '+ko+' FAIL ===');
   process.exit(ko>0?1:0);

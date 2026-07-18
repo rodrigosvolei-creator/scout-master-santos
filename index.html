@@ -1201,7 +1201,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-17e - relatorio: regua do saque = nao errar (colocar em jogo ja e positivo; ace e extra) — nao pune mais quem nao faz ace";
+var APP_BUILD="2026-07-17f - relatorio: textos profissionais (removido 'arte antiga' e tom de conversa/marketing) + regua do saque na metodologia";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -7992,7 +7992,7 @@ function reportTeamHTML(g){
   if(!focos.length)focos.push("<b>Seguir registrando ao vivo</b> — quanto mais ações, mais preciso o retrato do time.");
   var fl="";for(var fi=0;fi<focos.length;fi++)fl+='<li><svg class="ck" viewBox="0 0 24 24"><use href="#i-check"/></svg><span>'+focos[fi]+'</span></li>';
   h+='<div class="foot2"><div class="method"><div class="m-hd"><span style="color:#7fe3a8">'+_ic("i-check")+'</span><h3>Próximos focos</h3></div><ul>'+fl+'</ul></div>';
-  h+='<div class="method"><div class="m-hd"><span style="color:#ff7ab8">'+_ic("i-eq")+'</span><h3>A régua do RS-SCOUT</h3></div><ul><li><i></i><span><b>Passe:</b> só a recepção A é positiva — não infla o acerto.</span></li><li><i></i><span><b>Ataque:</b> positivo = ponto (kill); bloqueado e erro descontam.</span></li><li><i></i><span><b>Tudo do dado real</b> — soma do time = soma dos atletas, sempre fecha.</span></li></ul></div></div>';
+  h+='<div class="method"><div class="m-hd"><span style="color:#ff7ab8">'+_ic("i-eq")+'</span><h3>Como os números são calculados</h3></div><ul><li><i></i><span><b>Passe, defesa e levantamento:</b> positivo é só a ação A.</span></li><li><i></i><span><b>Ataque e bloqueio:</b> positivo é o ponto; bloqueado e erro descontam.</span></li><li><i></i><span><b>Saque:</b> positivo é não errar; o ace conta como ponto.</span></li><li><i></i><span><b>Total:</b> soma do time = soma dos atletas.</span></li></ul></div></div>';
   h+='<div class="fnote"><b>RS-SCOUT</b> · relatório da partida gerado do jogo, com a régua certa · '+(new Date().toLocaleDateString("pt-BR"))+'</div>';
   h+='</div></div>';
   return h;
@@ -8046,7 +8046,7 @@ function reportPlayerHTML(g,pid){
   h+='<div class="kpi"><div class="k-top"><span class="k-lb">Aproveit.</span><div class="ring" style="--p:'+(rt||0)+'"><b>'+(rt==null?"–":rt+"%")+'</b></div></div><div class="k-big">'+sgn(rSaldo)+'</div><div class="k-ft">'+rFt+'</div></div>';
   h+='</div>';
   // POR FUNDAMENTO + BARRAS
-  h+='<div class="grid2"><div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-ball")+'</span><h3>Por fundamento</h3></div><div class="card-bd"><p class="hint">Acerto lido pela régua de cada fundamento — não pelo volume.</p><table class="tif"><thead><tr><th>Fundamento</th><th>Ações</th><th>Pos.</th><th>Erro</th><th>Índice</th></tr></thead><tbody>';
+  h+='<div class="grid2"><div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-ball")+'</span><h3>Por fundamento</h3></div><div class="card-bd"><p class="hint">O acerto segue o critério de cada fundamento, não o volume de ações.</p><table class="tif"><thead><tr><th>Fundamento</th><th>Ações</th><th>Pos.</th><th>Erro</th><th>Índice</th></tr></thead><tbody>';
   var maxv=1;
   for(var r=0;r<_REP_ORD.length;r++){var fk2=_REP_ORD[r],bf=p.byF[fk2];if(!bf)continue;if(bf.pos>maxv)maxv=bf.pos;if(bf.err>maxv)maxv=bf.err;
     var fic=_REP_FIC[fk2];
@@ -8054,7 +8054,7 @@ function reportPlayerHTML(g,pid){
   }
   h+='</tbody></table></div></div>';
   // barras positivos x erros
-  h+='<div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-up")+'</span><h3>Positivos × erros</h3></div><div class="card-bd"><p class="hint">Passe conta só a recepção <b>A</b> como positiva — B e C viram qualidade, não acerto.</p><div class="bars">';
+  h+='<div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-up")+'</span><h3>Positivos × erros</h3></div><div class="card-bd"><p class="hint">Ações positivas e erros de cada fundamento.</p><div class="bars">';
   for(var b2=0;b2<_REP_ORD.length;b2++){var fk3=_REP_ORD[b2],bf3=p.byF[fk3];if(!bf3)continue;
     h+='<div class="bcol"><div class="bpair"><div class="bar p" style="height:'+Math.round(bf3.pos/maxv*100)+'%"><b>'+bf3.pos+'</b></div><div class="bar e" style="height:'+Math.round(bf3.err/maxv*100)+'%"><b>'+bf3.err+'</b></div></div><div class="bx">'+_REP_FLBL[fk3]+'</div></div>';
   }
@@ -8063,7 +8063,7 @@ function reportPlayerHTML(g,pid){
   var rec=p.byF.recepcao;
   if(rec){var A=rec.o.A||0,B=rec.o.B||0,C=rec.o.C||0,E=rec.o.Erro||0,rn=rec.n;
     function segF(cls,v,lb){return v>0?'<div class="qseg '+cls+'" style="flex:'+v+'">'+v+' '+lb+'</div>':"";}
-    h+='<div class="card"><div class="card-hd c-pass"><span class="h-ic">'+_ic("i-pass")+'</span><h3>Recepção — qualidade do passe</h3><span class="tag">o que a arte antiga não mostra</span></div><div class="card-bd"><p class="hint">Cada recepção pesa diferente. Aqui você vê a distribuição real, não "N passes = N acertos".</p>';
+    h+='<div class="card"><div class="card-hd c-pass"><span class="h-ic">'+_ic("i-pass")+'</span><h3>Recepção — qualidade do passe</h3></div><div class="card-bd"><p class="hint">Distribuição real das recepções — cada passe tem um peso diferente.</p>';
     h+='<div class="qbar">'+segF("qA",A,"A")+segF("qB",B,"B")+segF("qC",C,"C")+segF("qE",E,"E")+'</div>';
     h+='<div class="qmeta"><div class="qm"><div class="n" style="color:var(--good-d)">'+Math.round(A/rn*100)+'%</div><div class="k">Perfeitas (A)</div></div><div class="qm"><div class="n" style="color:var(--pass)">'+Math.round((A+B)/rn*100)+'%</div><div class="k">Positivas (A+B)</div></div><div class="qm"><div class="n" style="color:var(--bad)">'+Math.round(E/rn*100)+'%</div><div class="k">Erro de recepção</div></div></div></div></div>';
   }
@@ -8098,7 +8098,7 @@ function reportPlayerHTML(g,pid){
   for(var ln=0;ln<lines.length;ln++)h+='<div class="ai"><span class="t" style="background:'+lines[ln][0]+';color:'+lines[ln][1]+'">'+_ic(lines[ln][2])+'</span><div>'+lines[ln][3]+'</div></div>';
   h+='</div></div></div>';
   // REGUA
-  h+='<div class="method two"><div class="m-hd"><span style="color:#ff7ab8">'+_ic("i-eq")+'</span><h3>A régua do RS-SCOUT — por que os números são confiáveis</h3></div><ul><li><i></i><span><b>Passe:</b> só a recepção A é positiva. B e C entram na qualidade — não inflam o acerto.</span></li><li><i></i><span><b>Ataque:</b> positivo = ponto (kill). Bola bloqueada e erro descontam.</span></li><li><i></i><span><b>Aproveitamento:</b> pontos ÷ (pontos + erros). Neutros não maquiam o índice.</span></li><li><i></i><span><b>Puxado do dado real</b> registrado ao vivo — os blocos sempre fecham entre si.</span></li></ul></div>';
+  h+='<div class="method two"><div class="m-hd"><span style="color:#ff7ab8">'+_ic("i-eq")+'</span><h3>Como os números são calculados</h3></div><ul><li><i></i><span><b>Passe, defesa e levantamento:</b> positivo é só a recepção/ação A; B e C entram como qualidade.</span></li><li><i></i><span><b>Ataque e bloqueio:</b> positivo é o ponto; bola bloqueada e erro descontam.</span></li><li><i></i><span><b>Saque:</b> positivo é não errar; o ace conta como ponto.</span></li><li><i></i><span><b>Aproveitamento:</b> pontos ÷ (pontos + erros).</span></li></ul></div>';
   h+='<div class="fnote"><b>RS-SCOUT</b> · '+esc(nm)+' · '+esc(teamName)+' vs '+esc(g.opp||"—")+' · '+(new Date().toLocaleDateString("pt-BR"))+'</div>';
   h+='</div></div>';
   return h;

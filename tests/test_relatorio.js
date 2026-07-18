@@ -56,6 +56,11 @@ setTimeout(()=>{
   chk(P.a8.pos===6 && P.a8.err===1 && P.a8.pontos===0,'a8 libero: pos6 (4A+2def A? nao) — so A conta');
   chk(w._passA(P.a8)===4,'a8: passe positivo = so recepcao A (4), B nao conta');
   chk(P.a3.pos===3 && P.a3.err===1,'a3 central: pos3 err1');
+  // REGUA DO SAQUE: positivo = NAO errar (colocar em jogo ja vale); o Ace e extra, so conta em pontos
+  var sq=w.repAgg({},[{pid:'x',ak:'saque',oc:'Cont'},{pid:'x',ak:'saque',oc:'Cont'},{pid:'x',ak:'saque',oc:'Ace'},{pid:'x',ak:'saque',oc:'Erro'}]).players[0];
+  chk(sq.pos===3 && sq.err===1,'saque: positivo = nao-erro (2 Cont + 1 Ace = 3 pos), erro 1');
+  chk(Math.round(sq.byF.saque.pos/sq.byF.saque.n*100)===75,'saque indice = nao-erro/total = 3/4 = 75% (nao pune quem nao faz ace)');
+  chk(sq.pontos===1,'saque: so o Ace conta como PONTO de placar (Cont/em jogo nao)');
   // FECHA: soma dos atletas = total do time
   var sp=0,se=0;agg.players.forEach(p=>{sp+=p.pos;se+=p.err;});
   chk(sp===agg.team.pos && se===agg.team.err,'FECHA: soma atletas (pos'+sp+' err'+se+') = time (pos'+agg.team.pos+' err'+agg.team.err+')');

@@ -1201,7 +1201,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-17d - relatorio: hero limpo (numeros so nos KPIs, parciais no placar) + botao Individuais (1 PDF com 1 pagina por atleta pra mandar pros atletas)";
+var APP_BUILD="2026-07-17e - relatorio: regua do saque = nao errar (colocar em jogo ja e positivo; ace e extra) — nao pune mais quem nao faz ace";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -7725,7 +7725,7 @@ function exGamePDF(gid){
    Ponto (placar) = Ace + ataque/bloqueio Ponto. Aproveitamento = acertos/(acertos+erros).
    Puxa de QUALQUER jogo (ao vivo ou encerrado) — le g.act, que todo jogo com scout ja tem. */
 function _repPos(a){
-  if(a.ak==="saque")return a.oc==="Ace"?1:0;
+  if(a.ak==="saque")return a.oc==="Erro"?0:1; // saque: positivo = NAO errar (colocou em jogo); o Ace e extra e conta em "pontos"
   if(a.ak==="ataque"||a.ak==="bloqueio")return a.oc==="Ponto"?1:0;
   return a.oc==="A"?1:0; // recepcao / levantamento / defesa
 }

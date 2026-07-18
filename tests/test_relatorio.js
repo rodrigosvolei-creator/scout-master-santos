@@ -75,8 +75,18 @@ setTimeout(()=>{
   chk(htm.indexOf('table class="tg"')>=0,'time: tabela geral compacta');
   chk(htm.indexOf('>Saque<')>=0 && htm.indexOf('>Defesa<')>=0 && htm.indexOf('>Levant.<')>=0,'time: colunas de saque/defesa/levant (antes faltavam)');
   // ranking por aproveitamento (%): Mikael/Igor 86% antes de Caio 75%
-  var pg=htm.indexOf('pgrid');
+  var pg=htm.indexOf('table class="tg"');
   chk(htm.indexOf('Mikael',pg)<htm.indexOf('Caio',pg) && htm.indexOf('Igor',pg)<htm.indexOf('Caio',pg),'time: ranking por % (86% antes de 75%)');
+  // hero: numeros redundantes removidos (ficam so nos KPIs) + parciais no placar
+  chk(htm.indexOf('hero-strip')<0,'time: hero sem a faixa redundante de numeros');
+  chk(htm.indexOf('class="parc"')>=0,'time: parciais no placar');
+  // PDF com 1 pagina por atleta (page-break) — pra mandar pros atletas
+  chk(typeof w.exAllPlayerReports==='function','exAllPlayerReports existe');
+  w.exAllPlayerReports('g1');
+  var ov=w.document.getElementById('pdfOverlay');
+  var nBreaks=ov?(ov.innerHTML.match(/page-break-before/g)||[]).length:-1;
+  chk(nBreaks===2,'exAllPlayerReports: 3 atletas = 2 quebras de pagina (1 por atleta) (deu '+nBreaks+')');
+  if(w.closePdfOverlay)w.closePdfOverlay();
 
   // ---- HTML INDIVIDUAL (atacante) ----
   var hi=w.reportPlayerHTML(g,'a1');

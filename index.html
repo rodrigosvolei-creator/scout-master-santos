@@ -1201,7 +1201,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-17c - relatorio visual: tabela geral compacta com os 6 fundamentos (fecha com o total) + ranking por aproveitamento + hero legivel";
+var APP_BUILD="2026-07-17d - relatorio: hero limpo (numeros so nos KPIs, parciais no placar) + botao Individuais (1 PDF com 1 pagina por atleta pra mandar pros atletas)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -4886,12 +4886,14 @@ if(!locked){
     h+='<button class="sc-cbtn sc-cbtn-set" onclick="openReassignModal(\''+gm.id+'\')">↔ Corrigir atleta</button>';
     h+='<button class="sc-cbtn sc-cbtn-wpp" onclick="exG(\''+gm.id+'\')">\u{1F4E4} WhatsApp</button>';
     if(gm.act&&gm.act.length)h+='<button class="sc-cbtn sc-cbtn-start" onclick="exTeamReport(\''+gm.id+'\')">\u{1F4C8} Relatório</button>';
+    if(gm.act&&gm.act.length)h+='<button class="sc-cbtn sc-cbtn-start" onclick="exAllPlayerReports(\''+gm.id+'\')">\u{1F4C7} Individuais</button>';
     if(gm.act&&gm.act.length)h+='<button class="sc-cbtn sc-cbtn-set" onclick="exGamePDF(\''+gm.id+'\')">\u{1F4C4} PDF Partida</button>';
     if(torneioMode&&gm.act&&gm.act.length)h+='<button class="sc-cbtn sc-cbtn-start" onclick="openLivePanel(\''+gm.id+'\')">\u{1F4CA} AO VIVO</button>';
   }
 }else{
   h+='<button class="sc-cbtn sc-cbtn-wpp" onclick="exG(\''+gm.id+'\')">\u{1F4E4} WhatsApp</button>';
   if(gm.act&&gm.act.length)h+='<button class="sc-cbtn sc-cbtn-start" onclick="exTeamReport(\''+gm.id+'\')">\u{1F4C8} Relatório</button>';
+  if(gm.act&&gm.act.length)h+='<button class="sc-cbtn sc-cbtn-start" onclick="exAllPlayerReports(\''+gm.id+'\')">\u{1F4C7} Individuais</button>';
   h+='<button class="sc-cbtn sc-cbtn-set" onclick="exGamePDF(\''+gm.id+'\')">\u{1F4C4} PDF Partida</button>';
   if(torneioMode&&gm.act&&gm.act.length)h+='<button class="sc-cbtn sc-cbtn-start" onclick="openLivePanel(\''+gm.id+'\')">\u{1F4CA} AO VIVO</button>';
   if(userProfile&&userProfile.athleteId)h+='<button class="sc-cbtn sc-cbtn-start" style="width:auto;padding:9px 14px;font-size:12px" onclick="exMyAthPDFForGame(\''+gm.id+'\')">\u{1F4DD} Meu PDF</button>';
@@ -5848,6 +5850,7 @@ for(var _sk=0;_sk<setKeys.length;_sk++){var sd=setData[setKeys[_sk]];var eff2=sd
 // WhatsApp: jogo especifico => detalhado por atleta (exG). "Todos" => resumo geral (exAll).
 if(fg!=="all"){
   h+='<div style="display:flex;gap:8px;margin-top:12px"><button class="bt bp" style="flex:1;justify-content:center" onclick="exTeamReport(\''+fg+'\')">\u{1F4C8} Relatório da partida (visual)</button></div>';
+  h+='<div style="display:flex;gap:8px;margin-top:6px"><button class="bt bp" style="flex:1;justify-content:center" onclick="exAllPlayerReports(\''+fg+'\')">\u{1F4C7} Relatório de cada atleta (1 por página)</button></div>';
   h+='<div style="display:flex;gap:8px;margin-top:6px"><button class="bt bp" style="flex:1;justify-content:center" onclick="exG(\''+fg+'\')">\u{1F4E4} WhatsApp do jogo (detalhado)</button></div>';
   h+='<button class="bt bg" style="width:100%;justify-content:center;margin-top:6px" onclick="exGamePDF(\''+fg+'\')">\u{1F4C4} PDF Partida</button><button class="bt bg" style="width:100%;justify-content:center;margin-top:6px" onclick="exAllAthPDF(\''+fg+'\')">\u{1F4C4} PDF Resumo (Todas)</button><button class="bt bg" style="width:100%;justify-content:center;margin-top:6px" onclick="exAllAthIndividualPDFs(\''+fg+'\')">\u{1F4DD} PDFs Individuais</button>';
 }else{
@@ -7011,6 +7014,7 @@ function courtMoreMenu(gid){
   m+='<button onclick="closeCourtMore();nxS()">⏭ Próximo Set</button>';
   m+='<button onclick="closeCourtMore();exG(\''+gid+'\')">📤 WhatsApp</button>';
   if(gm.act&&gm.act.length)m+='<button onclick="closeCourtMore();exTeamReport(\''+gid+'\')">📈 Relatório</button>';
+  if(gm.act&&gm.act.length)m+='<button onclick="closeCourtMore();exAllPlayerReports(\''+gid+'\')">📇 Individuais</button>';
   if(gm.act&&gm.act.length)m+='<button onclick="closeCourtMore();exGamePDF(\''+gid+'\')">📄 PDF Partida</button>';
   m+='<button onclick="closeCourtMore();resetSet()">🔄 Zerar Set '+S.cs+'</button>';
   m+='<button onclick="closeCourtMore();resetG()">🔄 Zerar Partida</button>';
@@ -7765,7 +7769,7 @@ function _passA(p){return (p.byF&&p.byF.recepcao)?(p.byF.recepcao.o.A||0):0;}
 // placar em sets a partir de g.ss
 function _repSets(g){
   var ss=(g&&g.ss)||[],rs=0,adv=0,parc=[],maxSet=1;
-  for(var i=0;i<ss.length;i++){if(ss[i].u>ss[i].t)rs++;else if(ss[i].t>ss[i].u)adv++;parc.push(ss[i].u+"-"+ss[i].t);}
+  for(var i=0;i<ss.length;i++){if(ss[i].u>ss[i].t)rs++;else if(ss[i].t>ss[i].u)adv++;if(ss[i].u>0||ss[i].t>0)parc.push(ss[i].u+"-"+ss[i].t);}
   if(g&&g.act)for(var j=0;j<g.act.length;j++)if(g.act[j].set>maxSet)maxSet=g.act[j].set;
   return {rs:rs,adv:adv,parc:parc,maxSet:Math.max(maxSet,ss.length)};
 }
@@ -7823,8 +7827,7 @@ function _repCSS(){
   +'.score .sets{font-family:var(--fx);font-size:clamp(40px,8vw,60px);line-height:.82;letter-spacing:2px;display:flex;align-items:center;gap:13px}'
   +'.score .sets .x{font-size:.5em;color:#7f92b6;transform:translateY(-4px)}.score .win{color:#63e29a}.score .lose{color:#e88}'
   +'.score .lb{font-family:var(--fd);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#8298bd;margin-top:2px}'
-  +'.hero-strip{position:relative;z-index:1;display:flex;justify-content:center;gap:10px;padding:11px 14px;background:rgba(3,9,20,.5);border-top:1px solid rgba(255,255,255,.1);flex-wrap:wrap}'
-  +'.hs{display:flex;align-items:baseline;gap:8px;font-size:12.5px;color:#dbe4f5;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11);border-radius:9px;padding:5px 13px}.hs b{font-family:var(--fx);font-size:23px;letter-spacing:.5px;text-shadow:0 1px 4px rgba(0,0,0,.6)}.hs .up{color:#5fe38f}.hs .dn{color:#ff9a9a}.hs .ap{color:#fff}'
+  +'.score .parc{font-family:var(--fd);font-size:12px;letter-spacing:.6px;color:#b8c7e6;margin-top:8px;white-space:nowrap}'
   /* KPI */
   +'.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}'
   +'.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 13px;box-shadow:var(--shadow);display:flex;flex-direction:column;position:relative;overflow:hidden}'
@@ -7933,9 +7936,9 @@ function reportTeamHTML(g){
   // HERO
   h+='<div class="hero">'+_courtSVG+'<div class="glow"></div><div class="hero-in">';
   h+='<div class="side"><div class="crest" style="color:#fff">'+_ic("i-ball")+'</div><div><div class="tname">'+esc(teamName)+'</div><div class="tmeta">'+players.length+' atletas'+(g.dt?' · '+esc(fD(g.dt)):'')+'</div></div></div>';
-  h+='<div class="score"><div class="sets"><span class="'+(s.rs>s.adv?"win":s.rs<s.adv?"lose":"")+'">'+s.rs+'</span><span class="x">×</span><span class="'+(s.adv>s.rs?"win":s.adv<s.rs?"lose":"")+'">'+s.adv+'</span></div><div class="lb">Sets</div></div>';
+  h+='<div class="score"><div class="sets"><span class="'+(s.rs>s.adv?"win":s.rs<s.adv?"lose":"")+'">'+s.rs+'</span><span class="x">×</span><span class="'+(s.adv>s.rs?"win":s.adv<s.rs?"lose":"")+'">'+s.adv+'</span></div><div class="lb">Sets</div>'+(s.parc.length?'<div class="parc">'+esc(s.parc.join("   ·   "))+'</div>':'')+'</div>';
   h+='<div class="side r"><div><div class="tname opp">'+esc(g.opp||"Adversário")+'</div><div class="tmeta">Adversário</div></div><div class="crest opp" style="color:#c3cee2">'+_ic("i-shield")+'</div></div>';
-  h+='</div><div class="hero-strip"><div class="hs">Acertos <b class="up">'+T.pos+'</b></div><div class="hs">Erros <b class="dn">'+T.err+'</b></div><div class="hs">Aproveitamento <b class="ap">'+(T.aprov==null?"–":T.aprov+"%")+'</b></div>'+(s.parc.length?'<div class="hs">Parciais&nbsp; '+esc(s.parc.join("  ·  "))+'</div>':'')+'</div></div>';
+  h+='</div></div>';
   // KPIs
   h+='<div class="kpis">';
   h+='<div class="kpi"><div class="k-top"><span class="k-ic" style="background:var(--good-bg);color:var(--good-d)">'+_ic("i-check")+'</span><span class="k-lb">Acertos</span></div><div class="k-big" style="color:var(--good-d)">'+T.pos+'</div><div class="k-ft">positivos pela régua · '+nSets+' set'+(nSets>1?"s":"")+'</div></div>';
@@ -8105,6 +8108,26 @@ function exPlayerReport(gid,pid){
   if(!g||!g.act||!g.act.length){alert("Este jogo ainda não tem ações registradas.");return;}
   var pf=pFind(pid,gid);
   openPdfOverlay(reportPlayerHTML(g,pid),"Relatório — "+(pf?pf.nm:"Atleta"));
+}
+// UM documento com o relatorio individual de CADA atleta, 1 por pagina (page-break) —
+// pra salvar 1 PDF e mandar pros atletas (que nao acessam a plataforma).
+function exAllPlayerReports(gid){
+  var g=gF(gid);
+  if(!g||!g.act||!g.act.length){alert("Este jogo ainda não tem ações registradas.");return;}
+  var agg=repAgg(g);
+  if(!agg.players.length){alert("Nenhum atleta com ações registradas neste jogo.");return;}
+  var players=agg.players.slice().sort(function(a,b){
+    var qa=(a.pos+a.err)>=4?1:0,qb=(b.pos+b.err)>=4?1:0;if(qa!==qb)return qb-qa;
+    var av=(a.aprov==null?-1:a.aprov),bv=(b.aprov==null?-1:b.aprov);return bv-av||b.saldo-a.saldo||b.pos-a.pos;
+  });
+  var out="";
+  for(var i=0;i<players.length;i++){
+    var ind=reportPlayerHTML(g,players[i].pid);
+    if(i===0){out+=ind;}
+    else{out+=ind.replace(/^[\s\S]*?<div class="wrap">/,'<div class="wrap" style="page-break-before:always">').replace(/<svg width="0"[\s\S]*?<\/defs><\/svg>/,'');}
+  }
+  var te=(g.tid&&typeof tF==="function")?tF(g.tid):null;
+  openPdfOverlay(out,"Individuais ("+players.length+") — "+(te?te.n:""));
 }
 
 // === Overlay de PDF (inline, sem iframe \u2014 evita problemas de print no iOS) ===

@@ -62,8 +62,12 @@ setTimeout(()=>{
   // 5. nxS respeita o limite do formato
   var gb=w.gF('g_bo3'); gb.ss=[{u:25,t:10},{u:25,t:12},{u:15,t:13}]; w.S={aid:'g_bo3',sp:null,sa:null,cs:3,us:[],tm:0,rn:false,ti:null};
   w.nxS(); chk(w.gF('g_bo3').ss.length===3,'bo3: nxS bloqueia 4o set');
-  var gb5=w.gF('g_bo5'); gb5.ss=[{u:0,t:0}]; w.S={aid:'g_bo5',sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};
-  w.nxS(); chk(w.gF('g_bo5').ss.length===2,'bo5: nxS permite ate 5 sets');
+  // set atual precisa estar jogado (25-20) — nxS trava se ainda esta 0-0 (fix dos sets fantasma, ver test_sets.js)
+  var gb5=w.gF('g_bo5'); gb5.ss=[{u:25,t:20}]; w.S={aid:'g_bo5',sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};
+  w.nxS(); chk(w.gF('g_bo5').ss.length===2,'bo5: nxS permite ate 5 sets (set atual jogado)');
+  // e TRAVA se o set atual ainda esta 0-0 (nao empilha set fantasma)
+  var gb5b=w.gF('g_bo5'); gb5b.ss=[{u:25,t:20},{u:0,t:0}]; gb5b.act=[]; w.S={aid:'g_bo5',sp:null,sa:null,cs:2,us:[],tm:0,rn:false,ti:null};
+  w.nxS(); chk(w.gF('g_bo5').ss.length===2,'bo5: nxS TRAVA em set 0-0 (nao cria fantasma)');
 
   // 6. Banner de fim de set no rSct (jogo com set encerrado)
   var gban=w.gF('g_bo3'); gban.ss=[{u:25,t:23}]; w.S={aid:'g_bo3',sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};

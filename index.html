@@ -1201,7 +1201,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-17f - relatorio: textos profissionais (removido 'arte antiga' e tom de conversa/marketing) + regua do saque na metodologia";
+var APP_BUILD="2026-07-17g - fix sets fantasma: Prox Set trava se o set atual esta 0-0 (e confirma se a partida ja acabou) + botao Remover set vazio pra voltar";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -4880,6 +4880,7 @@ if(!locked){
   if(gm.st==="pending")h+='<button class="sc-cbtn sc-cbtn-start" onclick="startG()">\u25B6 INICIAR PARTIDA</button>';
   else{
     h+='<button class="sc-cbtn sc-cbtn-set" onclick="nxS()">\u23ED Pr\u00f3x Set</button>';
+    if(gm.ss&&gm.ss.length>1&&gm.ss[gm.ss.length-1].u===0&&gm.ss[gm.ss.length-1].t===0&&!(gm.act||[]).some(function(a){return a.set===gm.ss.length;}))h+='<button class="sc-cbtn sc-cbtn-zerar" onclick="delLastSet()">\u25C0 Remover set '+gm.ss.length+' (vazio)</button>';
     h+='<button class="sc-cbtn sc-cbtn-fin" onclick="enG()">\uD83C\uDFC1 Finalizar</button>';
     h+='<button class="sc-cbtn sc-cbtn-zerar" onclick="resetSet()">\u{1F504} Zerar Set</button>';
     h+='<button class="sc-cbtn sc-cbtn-zerar" onclick="resetG()">\u{1F504} Zerar Partida</button>';
@@ -7012,6 +7013,7 @@ function courtMoreMenu(gid){
   m+='<div class="tnj-title">⋯ MAIS AÇÕES</div>';
   m+='<div class="court-more-grid">';
   m+='<button onclick="closeCourtMore();nxS()">⏭ Próximo Set</button>';
+  if(gm.ss&&gm.ss.length>1&&gm.ss[gm.ss.length-1].u===0&&gm.ss[gm.ss.length-1].t===0&&!(gm.act||[]).some(function(a){return a.set===gm.ss.length;}))m+='<button onclick="closeCourtMore();delLastSet()">◀ Remover set '+gm.ss.length+' (vazio)</button>';
   m+='<button onclick="closeCourtMore();exG(\''+gid+'\')">📤 WhatsApp</button>';
   if(gm.act&&gm.act.length)m+='<button onclick="closeCourtMore();exTeamReport(\''+gid+'\')">📈 Relatório</button>';
   if(gm.act&&gm.act.length)m+='<button onclick="closeCourtMore();exAllPlayerReports(\''+gid+'\')">📇 Individuais</button>';
@@ -7510,9 +7512,35 @@ function nxS(){var gm=gF(S.aid);if(!gm)return;
     if(typeof toast==="function")toast("Limite de "+lim+" sets atingido","error");
     return;
   }
-  gm.ss.push({u:0,t:0});S.cs++;S.tm=0;
-  if(gm.courtMode){ S.sp=null;S.sa=null; } // novo set: limpa selecao (posicionamento refeito)
-  saveGame(gm).catch(function(){});render();}
+  // trava: nao abrir set novo se o atual ainda esta 0-0 sem acoes (evita "sets fantasma" empilhados, sobretudo com 2 operadores)
+  var cur=gm.ss[gm.ss.length-1];
+  var curHasAct=(gm.act||[]).some(function(a){return a.set===gm.ss.length;});
+  if(cur&&cur.u===0&&cur.t===0&&!curHasAct){
+    if(typeof toast==="function")toast("O set "+gm.ss.length+" ainda está 0-0 — jogue antes de abrir outro","error");
+    return;
+  }
+  var go=function(){gm.ss.push({u:0,t:0});S.cs=gm.ss.length;S.tm=0;if(gm.courtMode){S.sp=null;S.sa=null;}saveGame(gm).catch(function(){});render();};
+  // partida ja decidida (ex: 3-0 em bo5): confirma antes de abrir set extra
+  if(gameIsDecided(gm)&&typeof confirmModal==="function"){
+    var w=setsWon(gm);
+    confirmModal({title:"PARTIDA JÁ DECIDIDA",body:"O placar já está <b>"+w.u+"-"+w.t+"</b> em sets. Abrir mais um set mesmo assim?",confirmLabel:"Abrir set",confirmStyle:"bd",onConfirm:go});
+    return;
+  }
+  go();
+}
+// Remove o ultimo set SE estiver vazio (0-0, sem acoes) — desfaz "Prox Set" clicado por engano. Volta pro set anterior.
+function delLastSet(){
+  var gm=gF(S.aid);if(!gm||!gm.ss||gm.ss.length<=1)return;
+  var idx=gm.ss.length,last=gm.ss[idx-1];
+  var hasAct=(gm.act||[]).some(function(a){return a.set===idx;});
+  if(last.u!==0||last.t!==0||hasAct){
+    if(typeof toast==="function")toast("O set "+idx+" tem placar/ações — não dá pra remover","error");
+    return;
+  }
+  var apply=function(){gm.ss.pop();if(gm.courtMode&&gm.court)delete gm.court[String(idx)];S.cs=gm.ss.length;S.sp=null;S.sa=null;if(typeof toast==="function")toast("Set "+idx+" removido — voltou pro set "+gm.ss.length,"ok");saveGame(gm).catch(function(){});render();};
+  if(typeof confirmModal==="function")confirmModal({title:"REMOVER SET "+idx,body:"Remove o set <b>"+idx+"</b> (está 0-0, sem ações) e volta pro set "+(idx-1)+".<br><span style=\"color:var(--gray);font-size:12px\">Os sets jogados e as ações não são afetados.</span>",confirmLabel:"Remover set",confirmStyle:"bd",onConfirm:apply});
+  else apply();
+}
 function enG(){
   var gm=gF(S.aid);if(!gm)return;
   var te=tF(gm.tid);

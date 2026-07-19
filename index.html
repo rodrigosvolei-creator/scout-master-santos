@@ -1214,7 +1214,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-17i - escalacao: trocar a posicao/funcao do atleta (Levantador->Libero etc) + modal de escalacao repaginado (header de prancheta, maior)";
+var APP_BUILD="2026-07-17j - fix modal de set no tablet: nao fecha ao tocar fora (toque marcando ponto fechava sem querer) + reabre se tentar pontuar com set encerrado";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -1449,7 +1449,7 @@ function confirmModal(opts){
   var cancel=opts.cancelLabel||"Cancelar";
   var confirm=opts.confirmLabel||"Confirmar";
   var hideCancel=!!opts.hideCancel;
-  var m='<div class="admin-modal" onclick="closeConfirmModal()"><div class="admin-box" onclick="event.stopPropagation()" style="text-align:left;max-width:380px">';
+  var m='<div class="admin-modal"'+(opts.noBackdrop?'':' onclick="closeConfirmModal()"')+'><div class="admin-box" onclick="event.stopPropagation()" style="text-align:left;max-width:380px">';
   m+='<div style="font-family:Bebas Neue,sans-serif;font-size:22px;letter-spacing:2px;color:var(--navy);margin-bottom:14px;text-align:center">'+esc(opts.title||"Confirmar")+'</div>';
   m+='<div style="font-size:14px;line-height:1.5;color:var(--ink);margin-bottom:18px">'+(opts.body||"")+'</div>';
   m+='<div style="display:flex;gap:8px">';
@@ -7125,7 +7125,7 @@ function courtSubDoIn(inAid){
 }
 function closeCourtSub(){_courtSubOut=null;var d=document.getElementById("courtSubModal");if(d)d.remove();}
 
-function rcO(oc){if(!S.sp||!S.sa)return;var gm=gF(S.aid);if(!gm||gm.st!=="live")return;if(setIsOver(gm,S.cs)){if(typeof toast==="function")toast("Set encerrado — inicie o próximo set","error");showFlash("#dc2626");return;}var a={id:"a"+Date.now(),pid:S.sp,ak:S.sa,oc:oc,set:S.cs,ts:S.tm};
+function rcO(oc){if(!S.sp||!S.sa)return;var gm=gF(S.aid);if(!gm||gm.st!=="live")return;if(setIsOver(gm,S.cs)){_setEndBlock();return;}var a={id:"a"+Date.now(),pid:S.sp,ak:S.sa,oc:oc,set:S.cs,ts:S.tm};
 if(gm.tidB) a.side=(S.side==="B")?"B":"A"; // minis 2 lados: de qual equipe foi a acao
 // Ponto automatico — registra qual lado subiu, pra o undo reverter junto
 var scSide=autoScoreSide(S.sa,oc);
@@ -7471,14 +7471,14 @@ function rSctTablet(gm,gp,te){
   h+='</div>';
   return h;
 }
-function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(setIsOver(gm,S.cs)){if(typeof toast==="function")toast("Set encerrado — inicie o próximo set","error");return;}if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;_sqPush(gm,who);var _snap=courtRegisterPoint(who);S.us.push({manual:true,sc:who,set:S.cs,court:_snap});courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");saveGame(gm).catch(function(){});render();}
+function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(setIsOver(gm,S.cs)){_setEndBlock();return;}if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;_sqPush(gm,who);var _snap=courtRegisterPoint(who);S.us.push({manual:true,sc:who,set:S.cs,court:_snap});courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");saveGame(gm).catch(function(){});render();}
 // Ponto do NOSSO time por ERRO DO ADVERSARIO (saque na rede, ataque fora, etc). Independe de
 // marcar a acao da outra equipe: 1 toque sobe o placar (sem precisar do +/-), roda a quadra
 // (side-out) e registra na estatistica como {pid:null, ak:"erroadv"} -> conta nos "pontos
 // ganhos" do time, e NAO na estatistica por atleta. O undo reverte (tem l.a/l.sc/l.court).
 function scErrAdv(){
   var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;
-  if(setIsOver(gm,S.cs)){if(typeof toast==="function")toast("Set encerrado — inicie o próximo set","error");showFlash("#dc2626");return;}
+  if(setIsOver(gm,S.cs)){_setEndBlock();return;}
   var a={id:"a"+Date.now(),pid:null,ak:"erroadv",oc:"Ponto",set:S.cs,ts:S.tm};
   gm.ss[S.cs-1].u++;_sqPush(gm,"u");
   var _snap=courtRegisterPoint("u");
@@ -7585,14 +7585,21 @@ function _maybeSetClose(){
   var dec=gameIsDecided(gm)||S.cs>=gameMaxSets(gm), w=setsWon(gm);
   if(dec){
     var meWon=w.u>w.t, nm=meWon?((tF(gm.tid)||{}).n||"Nosso time"):(gm.opp||"Adversário");
-    confirmModal({title:"🏁 PARTIDA ENCERRADA",
+    confirmModal({title:"🏁 PARTIDA ENCERRADA",noBackdrop:true,
       body:"Set "+S.cs+(tie?" (tie-break)":"")+" fechou em <b>"+s.u+"-"+s.t+"</b> — placar final <b>"+w.u+" x "+w.t+"</b> em sets.<br><span style=\"color:var(--gray);font-size:12px\">"+esc(nm)+" venceu. Finalizar o jogo agora?</span>",
       confirmLabel:"🏁 Finalizar jogo",confirmStyle:"bp",onConfirm:function(){enG();}});
   }else{
-    confirmModal({title:"✅ SET "+S.cs+" ENCERRADO",
+    confirmModal({title:"✅ SET "+S.cs+" ENCERRADO",noBackdrop:true,
       body:"Fechou em <b>"+s.u+"-"+s.t+"</b>"+(tie?" (tie-break)":"")+". Iniciar o set "+(S.cs+1)+"?",
       confirmLabel:"▶ Iniciar set "+(S.cs+1),confirmStyle:"bp",onConfirm:function(){nxS();}});
   }
+}
+// Operador tentou marcar ponto com o set ja encerrado: reabre o modal (nao deixa "preso" no toast) + avisa.
+function _setEndBlock(){
+  _setCloseShownFor=null;
+  try{ if(typeof _maybeSetClose==="function")_maybeSetClose(); }catch(e){}
+  if(typeof toast==="function")toast("Set encerrado — inicie o próximo set","error");
+  try{ if(typeof showFlash==="function")showFlash("#dc2626"); }catch(e){}
 }
 function enG(){
   var gm=gF(S.aid);if(!gm)return;

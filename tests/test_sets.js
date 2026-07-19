@@ -91,6 +91,16 @@ setTimeout(()=>{
   w._maybeSetClose();
   chk(/PARTIDA ENCERRAD/i.test(mT||''),'auto: bo3 2-0 encerra o JOGO (nao pede proximo set)');
 
+  // REABRE: modal foi fechado (toque no fundo, no tablet) e o operador tenta marcar ponto -> reabre (nao fica so no toast)
+  chk(typeof w._setEndBlock==='function','_setEndBlock existe');
+  chk(html.indexOf('noBackdrop')>=0,'modal de set com noBackdrop (nao fecha ao tocar fora)');
+  var gr=w.gF('g1'); gr.format='bo5'; gr.st='live'; gr.courtMode=false; gr.ss=[{u:25,t:20,sq:[]}]; gr.act=[];
+  w.S={aid:'g1',sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null}; w._setCloseShownFor='g1#1'; // ja mostrou e foi fechado
+  var reopened=false; w.confirmModal=function(o){reopened=true;};
+  w.scUp('u'); // set ja encerrado -> _setEndBlock -> reabre o modal
+  chk(reopened,'set encerrado + tentar pontuar -> modal REABRE (nao fica preso no toast)');
+  chk(w.gF('g1').ss[0].u===25,'reabre: o ponto NAO entrou (placar segue 25-20)');
+
   // INTEGRACAO de verdade: pontuar via scUp fecha o set e o modal aparece SOZINHO (render -> setTimeout -> _maybeSetClose)
   var seen=null; w.confirmModal=function(o){seen=o.title;};
   var gi=w.gF('g1'); gi.format='bo5'; gi.st='live'; gi.courtMode=false; gi.ss=[{u:24,t:23,sq:[]}]; gi.act=[];

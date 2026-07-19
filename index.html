@@ -1201,7 +1201,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-17g - fix sets fantasma: Prox Set trava se o set atual esta 0-0 (e confirma se a partida ja acabou) + botao Remover set vazio pra voltar";
+var APP_BUILD="2026-07-17h - set inteligente: fecha sozinho em 25 (tie 15) com 2 de vantagem -> modal 'iniciar proximo set?' automatico (nas 2 secoes); 2-0/3-x encerra o jogo";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -4011,6 +4011,9 @@ try{document.body.classList.toggle('rs-shell',!torneioMode&&!signupMode&&!_naLan
 try{document.body.classList.toggle('rs-tablet',!torneioMode&&!signupMode&&!_naLanding&&!telaoMode&&tab==='scout'&&!!S.aid&&isTabletMode()&&(function(){var g=gF(S.aid);return !!(g&&g.st==='live'&&!g.locked&&!g.tidB);})());}catch(e){}
 // Rodape da versao (#buildStamp): so na tela de LOGIN/landing (sem login logado). No app some.
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.style.display=currentUser?"none":"";}catch(e){}
+// AUTO fim de set/jogo: apos renderizar um jogo ao vivo, checa se o set fechou -> modal automatico.
+// No render (nao so ao pontuar) pra funcionar tambem quando o placar chega por sincronizacao (2 secoes).
+try{ if(tab==='scout'&&S.aid){ var _lg=gF(S.aid); if(_lg&&_lg.st==='live'&&!_lg.locked) setTimeout(_maybeSetClose,0); } }catch(e){}
 
 // === Modo TELÃO: tela cheia que segue o jogo ao vivo (read-only) ===
 if(telaoMode){
@@ -7540,6 +7543,31 @@ function delLastSet(){
   var apply=function(){gm.ss.pop();if(gm.courtMode&&gm.court)delete gm.court[String(idx)];S.cs=gm.ss.length;S.sp=null;S.sa=null;if(typeof toast==="function")toast("Set "+idx+" removido — voltou pro set "+gm.ss.length,"ok");saveGame(gm).catch(function(){});render();};
   if(typeof confirmModal==="function")confirmModal({title:"REMOVER SET "+idx,body:"Remove o set <b>"+idx+"</b> (está 0-0, sem ações) e volta pro set "+(idx-1)+".<br><span style=\"color:var(--gray);font-size:12px\">Os sets jogados e as ações não são afetados.</span>",confirmLabel:"Remover set",confirmStyle:"bd",onConfirm:apply});
   else apply();
+}
+// AUTO fim de set/jogo: ao fechar o set (25 ou tie 15, com 2 de vantagem) mostra o modal sozinho —
+// "iniciar próximo set?" ou, se a partida foi decidida (2-0 bo3 / 3-x bo5), "finalizar jogo?".
+// Chamado no render (cobre as 2 seções: quando o placar sincroniza, o modal aparece nos dois).
+var _setCloseShownFor=null;
+function _maybeSetClose(){
+  var gm=gF(S.aid);
+  if(!gm||gm.st!=="live"||gm.locked||typeof confirmModal!=="function")return;
+  if(!gm.ss||!gm.ss[S.cs-1])return;
+  if(!setIsOver(gm,S.cs))return;
+  var key=gm.id+"#"+S.cs;
+  if(_setCloseShownFor===key)return; // ja avisou deste set (nao fica reabrindo)
+  _setCloseShownFor=key;
+  var s=gm.ss[S.cs-1], tie=setTarget(gm,S.cs)===15;
+  var dec=gameIsDecided(gm)||S.cs>=gameMaxSets(gm), w=setsWon(gm);
+  if(dec){
+    var meWon=w.u>w.t, nm=meWon?((tF(gm.tid)||{}).n||"Nosso time"):(gm.opp||"Adversário");
+    confirmModal({title:"🏁 PARTIDA ENCERRADA",
+      body:"Set "+S.cs+(tie?" (tie-break)":"")+" fechou em <b>"+s.u+"-"+s.t+"</b> — placar final <b>"+w.u+" x "+w.t+"</b> em sets.<br><span style=\"color:var(--gray);font-size:12px\">"+esc(nm)+" venceu. Finalizar o jogo agora?</span>",
+      confirmLabel:"🏁 Finalizar jogo",confirmStyle:"bp",onConfirm:function(){enG();}});
+  }else{
+    confirmModal({title:"✅ SET "+S.cs+" ENCERRADO",
+      body:"Fechou em <b>"+s.u+"-"+s.t+"</b>"+(tie?" (tie-break)":"")+". Iniciar o set "+(S.cs+1)+"?",
+      confirmLabel:"▶ Iniciar set "+(S.cs+1),confirmStyle:"bp",onConfirm:function(){nxS();}});
+  }
 }
 function enG(){
   var gm=gF(S.aid);if(!gm)return;

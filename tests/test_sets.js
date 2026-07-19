@@ -68,7 +68,40 @@ setTimeout(()=>{
   // 5) o botao aparece no scout quando ha set vazio no fim
   chk(html.indexOf('delLastSet()')>=0 && html.indexOf('Remover set')>=0,'botao "Remover set (vazio)" presente no HTML');
 
-  console.log('\n=== test_sets: '+ok+' OK, '+ko+' FAIL ===');
-  process.exit(ko>0?1:0);
+  // ===== AUTO fim de set/jogo (_maybeSetClose) =====
+  chk(typeof w._maybeSetClose==='function','_maybeSetClose existe');
+  var mT=null,mL=null; w.confirmModal=function(o){mT=o.title;mL=o.confirmLabel;}; // so captura (nao confirma)
+  var ga=w.gF('g1'); ga.format='bo5'; ga.st='live';
+  // set normal fecha 25-23 -> "SET ENCERRADO"
+  ga.ss=[{u:25,t:23}]; ga.act=[]; w.S={aid:'g1',sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null}; w._setCloseShownFor=null; mT=null;
+  w._maybeSetClose();
+  chk(/SET 1 ENCERRAD/i.test(mT||''),'auto: 25-23 dispara "SET ENCERRADO" sozinho');
+  chk(/Iniciar set 2/i.test(mL||''),'auto: label "Iniciar set 2"');
+  // nao repete o modal do mesmo set
+  mT=null; w._maybeSetClose(); chk(mT===null,'auto: nao reabre o modal do mesmo set');
+  // 25-24 NAO fecha (precisa 2 de vantagem)
+  ga.ss=[{u:25,t:24}]; w._setCloseShownFor=null; mT=null; w._maybeSetClose();
+  chk(mT===null,'auto: 25-24 NAO encerra (falta 2 de vantagem)');
+  // tie-break do bo5 (set 5) fecha em 15-13 e decide a partida
+  ga.ss=[{u:25,t:10},{u:10,t:25},{u:25,t:10},{u:10,t:25},{u:15,t:13}]; ga.act=[]; w.S.cs=5; w._setCloseShownFor=null; mT=null;
+  w._maybeSetClose();
+  chk(/PARTIDA ENCERRAD/i.test(mT||'') && /Finalizar/i.test(mL||''),'auto: tie 15-13 no set 5 -> PARTIDA ENCERRADA (finalizar)');
+  // bo3 2-0 -> partida encerrada ao fechar o 2o set
+  ga.format='bo3'; ga.ss=[{u:25,t:20},{u:25,t:22}]; ga.act=[]; w.S.cs=2; w._setCloseShownFor=null; mT=null;
+  w._maybeSetClose();
+  chk(/PARTIDA ENCERRAD/i.test(mT||''),'auto: bo3 2-0 encerra o JOGO (nao pede proximo set)');
+
+  // INTEGRACAO de verdade: pontuar via scUp fecha o set e o modal aparece SOZINHO (render -> setTimeout -> _maybeSetClose)
+  var seen=null; w.confirmModal=function(o){seen=o.title;};
+  var gi=w.gF('g1'); gi.format='bo5'; gi.st='live'; gi.courtMode=false; gi.ss=[{u:24,t:23,sq:[]}]; gi.act=[];
+  w.tab='scout'; w.S={aid:'g1',sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null}; w._setCloseShownFor=null;
+  w.scUp('u'); // 24->25, fecha 25-23; o modal vem via setTimeout(0) dentro do render
+  setTimeout(function(){
+    chk(w.gF('g1').ss[0].u===25,'integracao: scUp levou o set a 25-23');
+    chk(/SET 1 ENCERRAD/i.test(seen||''),'INTEGRACAO: scUp fecha o set e o modal aparece sozinho (via render)');
+    console.log('\n=== test_sets: '+ok+' OK, '+ko+' FAIL ===');
+    process.exit(ko>0?1:0);
+  },80);
+  return;
  }catch(e){console.log('FAIL exception:',e.message);console.log((e.stack||'').split('\n').slice(0,6).join('\n'));process.exit(1);}
 },150);

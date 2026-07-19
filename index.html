@@ -1214,7 +1214,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-17j - fix modal de set no tablet: nao fecha ao tocar fora (toque marcando ponto fechava sem querer) + reabre se tentar pontuar com set encerrado";
+var APP_BUILD="2026-07-17k - modo tablet: botao Escalacao no menu Mais (incluir atleta atrasado durante o jogo, sem sair do tablet)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -7040,6 +7040,7 @@ function courtMoreMenu(gid){
   var m='<div class="tnj-modal" onclick="closeCourtMore()"><div class="tnj-box" onclick="event.stopPropagation()" style="max-width:330px">';
   m+='<div class="tnj-title">⋯ MAIS AÇÕES</div>';
   m+='<div class="court-more-grid">';
+  m+='<button onclick="closeCourtMore();openLineup(\''+gid+'\')">📋 Escalação (incluir atleta atrasado)</button>';
   m+='<button onclick="closeCourtMore();nxS()">⏭ Próximo Set</button>';
   if(gm.ss&&gm.ss.length>1&&gm.ss[gm.ss.length-1].u===0&&gm.ss[gm.ss.length-1].t===0&&!(gm.act||[]).some(function(a){return a.set===gm.ss.length;}))m+='<button onclick="closeCourtMore();delLastSet()">◀ Remover set '+gm.ss.length+' (vazio)</button>';
   m+='<button onclick="closeCourtMore();exG(\''+gid+'\')">📤 WhatsApp</button>';

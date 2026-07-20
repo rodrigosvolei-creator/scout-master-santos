@@ -1214,7 +1214,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-17k - modo tablet: botao Escalacao no menu Mais (incluir atleta atrasado durante o jogo, sem sair do tablet)";
+var APP_BUILD="2026-07-17l - relatorio: coluna Acoes na tabela geral (volume total do atleta = acertos+erros+neutros) — nao 'some' mais o que era neutro";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -8036,7 +8036,7 @@ function reportTeamHTML(g){
   h+='<div class="kpi"><div class="k-top"><span class="k-ic" style="background:var(--surf-2);color:var(--navy-2)">'+_ic("i-users")+'</span><span class="k-lb">Pontuaram</span></div><div class="k-big">'+T.nScored+'<span style="font-size:.5em;color:var(--muted)">/'+T.nPlayers+'</span></div><div class="k-ft">atletas com ação positiva</div></div>';
   h+='</div>';
   // TABELA GERAL — compacta, todos os fundamentos (no celular rola so a tabela)
-  h+='<div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-users")+'</span><h3>Tabela geral — '+esc(teamName)+'</h3><span class="tag">acertos / erros por fundamento</span></div><div class="card-bd tb"><div class="tscroll"><table class="tg"><thead><tr><th class="l">Atleta</th><th>Ataque</th><th>Bloq.</th><th>Saque</th><th>Passe</th><th>Defesa</th><th>Levant.</th><th>Total</th><th>Aprov.</th></tr></thead><tbody>';
+  h+='<div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-users")+'</span><h3>Tabela geral — '+esc(teamName)+'</h3><span class="tag">acertos / erros por fundamento</span></div><div class="card-bd tb"><div class="tscroll"><table class="tg"><thead><tr><th class="l">Atleta</th><th>Ataque</th><th>Bloq.</th><th>Saque</th><th>Passe</th><th>Defesa</th><th>Levant.</th><th>Ações</th><th>Total</th><th>Aprov.</th></tr></thead><tbody>';
   var _fOrd=["ataque","bloqueio","saque","recepcao","defesa","levantamento"];
   for(var i=0;i<players.length;i++){
     var p=players[i], medaled=(i<3&&p.pos>0);
@@ -8044,6 +8044,7 @@ function reportTeamHTML(g){
     var apLow=(p.aprov!=null&&p.aprov<70)?" low":"";
     h+='<tr class="'+(medaled?"top":"")+'"><td class="l"><span class="rk" style="cursor:pointer" onclick="exPlayerReport(\''+g.id+'\',\''+p.pid+'\')" title="Ver relatório individual">'+rk+esc(_short(p.pid,g.id))+'</span></td>';
     for(var fo=0;fo<_fOrd.length;fo++)h+='<td>'+_aeV(p.byF[_fOrd[fo]])+'</td>';
+    h+='<td class="mut" style="font-weight:800">'+p.n+'</td>';
     h+='<td><span class="tot"><b class="'+(p.pos>0?"aeg":"aez")+'">'+p.pos+'</b><span class="s">/</span><b class="'+(p.err>0?"aeb":"aez")+'">'+p.err+'</b></span></td>';
     h+='<td><div class="apv'+apLow+'"><div class="mini"><i style="width:'+(p.aprov||0)+'%"></i></div><span class="pc">'+(p.aprov==null?"–":p.aprov+"%")+'</span></div></td></tr>';
   }

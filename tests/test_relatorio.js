@@ -80,6 +80,9 @@ setTimeout(()=>{
   // tabela compacta com TODOS os fundamentos (colunas)
   chk(htm.indexOf('table class="tg"')>=0,'time: tabela geral compacta');
   chk(htm.indexOf('>Saque<')>=0 && htm.indexOf('>Defesa<')>=0 && htm.indexOf('>Levant.<')>=0,'time: colunas de saque/defesa/levant (antes faltavam)');
+  chk(htm.indexOf('>Ações<')>=0,'time: coluna Ações (volume total — acertos+erros+neutros)');
+  // a3 central: 3 acertos + 1 erro + 0 neutros = 4 acoes (bloqueio 2P+1E, ataque 1P)
+  chk(P.a3.n===4,'a3: total de acoes = 4 (bate com pos3+err1, sem neutros aqui)');
   // ranking por aproveitamento (%): Mikael/Igor 86% antes de Caio 75%
   var pg=htm.indexOf('table class="tg"');
   chk(htm.indexOf('Mikael',pg)<htm.indexOf('Caio',pg) && htm.indexOf('Igor',pg)<htm.indexOf('Caio',pg),'time: ranking por % (86% antes de 75%)');

@@ -1214,7 +1214,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-17l - relatorio: coluna Acoes na tabela geral (volume total do atleta = acertos+erros+neutros) — nao 'some' mais o que era neutro";
+var APP_BUILD="2026-07-17m - relatorio individual: desmembramento exato por fundamento (A/B/C/Erro) na tabela + barra de qualidade do levantamento";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -7934,6 +7934,7 @@ function _repCSS(){
   +'.card-hd{display:flex;align-items:center;gap:10px;padding:11px 15px;background:linear-gradient(100deg,var(--navy),var(--navy-2));color:#fff;position:relative}'
   +'.card-hd::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--rs-a),var(--rs-b))}'
   +'.card-hd.c-pass{background:linear-gradient(100deg,#12539f,var(--pass))}'
+  +'.card-hd.c-lev{background:linear-gradient(100deg,#1e2c46,#5c6a82)}'
   +'.card-hd .h-ic{width:20px;height:20px;flex:none;margin-left:2px}.card-hd .h-ic svg{width:20px;height:20px}'
   +'.card-hd h3{margin:0;font-family:var(--fd);font-size:16px;font-weight:700;letter-spacing:.7px;text-transform:uppercase}'
   +'.card-hd .tag{margin-left:auto;font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;background:rgba(255,255,255,.16);padding:3px 9px;border-radius:20px}'
@@ -7943,6 +7944,7 @@ function _repCSS(){
   +'.tif thead th{font-family:var(--fd);font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:0 6px 8px}.tif thead th:first-child{text-align:left}'
   +'.tif tbody td{padding:9px 6px;text-align:right;font-family:var(--fd);font-weight:700;font-size:17px}.tif tbody tr:nth-child(odd) td{background:var(--zebra)}'
   +'.tif tbody td:first-child{text-align:left;display:flex;align-items:center;gap:10px;font-size:14px}'
+  +'.fnm{display:flex;flex-direction:column;gap:1px;min-width:0}.fnm em{font-style:normal;font-family:var(--fd);font-size:10.5px;font-weight:600;color:var(--muted);letter-spacing:.2px;white-space:nowrap}'
   +'.fic{width:23px;height:23px;border-radius:7px;flex:none;display:grid;place-items:center}.fic svg{width:13px;height:13px}'
   +'.g{color:var(--good-d)}.b{color:var(--bad)}.mut{color:var(--faint);font-weight:600}'
   +'.pill2{display:inline-block;min-width:50px;text-align:center;padding:3px 9px;border-radius:6px;font-family:var(--fd);font-weight:700;font-size:15px}'
@@ -8099,6 +8101,25 @@ var _REP_FLBL={ataque:"Ataque",recepcao:"Passe",bloqueio:"Bloqueio",saque:"Saque
 var _REP_FIC={ataque:["i-atk","var(--bad-bg)","var(--bad)"],recepcao:["i-pass","var(--pass-bg)","var(--pass)"],bloqueio:["i-block","var(--good-bg)","var(--good-d)"],saque:["i-serve","var(--warn-bg)","#a9760a"],defesa:["i-def","var(--purp-bg)","var(--purp)"],levantamento:["i-up","var(--surf-2)","var(--navy-2)"]};
 var _REP_FC={ataque:"#df2530",recepcao:"#2076e6",bloqueio:"#12a656",saque:"#e39c00",defesa:"#8250e0",levantamento:"#5c6a82"};
 function _idxPill(pos,n){if(!n)return '<span class="pill2" style="background:var(--surf-2);color:var(--muted)">—</span>';var v=Math.round(pos/n*100),bg,cl;if(v>=60){bg="var(--good-bg)";cl="var(--good-d)";}else if(v>=35){bg="var(--warn-bg)";cl="#a9760a";}else{bg="var(--bad-bg)";cl="var(--bad)";}return '<span class="pill2" style="background:'+bg+';color:'+cl+'">'+v+'%</span>';}
+// desmembramento exato das opcoes do fundamento (A/B/C/Erro, Ace/Cont/Erro, Ponto/Bloq/Cont/Erro...)
+function _breakdown(fk,bf){
+  if(!bf||!bf.o)return "";
+  var ops=(typeof ACT!=="undefined"&&ACT[fk]&&ACT[fk].o)||[],out=[];
+  for(var i=0;i<ops.length;i++){var v=bf.o[ops[i]]||0;if(v>0)out.push(ops[i]+" "+v);}
+  for(var k in bf.o){if(ops.indexOf(k)<0&&bf.o[k]>0)out.push(k+" "+bf.o[k]);}
+  return out.join(" · ");
+}
+// barra de qualidade A/B/C/Erro (recepcao, levantamento, defesa)
+function _qSeg(cls,v,lb){return v>0?'<div class="qseg '+cls+'" style="flex:'+v+'">'+v+' '+lb+'</div>':"";}
+function _qualCard(bf,o){
+  var A=bf.o.A||0,B=bf.o.B||0,C=bf.o.C||0,E=bf.o.Erro||0,n=bf.n;
+  var h='<div class="card"><div class="card-hd '+o.cls+'"><span class="h-ic">'+_ic(o.ic)+'</span><h3>'+o.title+'</h3></div><div class="card-bd"><p class="hint">'+o.hint+'</p>';
+  h+='<div class="qbar">'+_qSeg("qA",A,"A")+_qSeg("qB",B,"B")+_qSeg("qC",C,"C")+_qSeg("qE",E,"E")+'</div>';
+  h+='<div class="qmeta"><div class="qm"><div class="n" style="color:var(--good-d)">'+Math.round(A/n*100)+'%</div><div class="k">'+o.k1+'</div></div>'
+   +'<div class="qm"><div class="n" style="color:var(--pass)">'+Math.round((A+B)/n*100)+'%</div><div class="k">'+o.k2+'</div></div>'
+   +'<div class="qm"><div class="n" style="color:var(--bad)">'+Math.round(E/n*100)+'%</div><div class="k">'+o.k3+'</div></div></div></div></div>';
+  return h;
+}
 function reportPlayerHTML(g,pid){
   var agg=repAgg(g),p=null;
   for(var i=0;i<agg.players.length;i++)if(String(agg.players[i].pid)===String(pid)){p=agg.players[i];break;}
@@ -8136,11 +8157,12 @@ function reportPlayerHTML(g,pid){
   h+='<div class="kpi"><div class="k-top"><span class="k-lb">Aproveit.</span><div class="ring" style="--p:'+(rt||0)+'"><b>'+(rt==null?"–":rt+"%")+'</b></div></div><div class="k-big">'+sgn(rSaldo)+'</div><div class="k-ft">'+rFt+'</div></div>';
   h+='</div>';
   // POR FUNDAMENTO + BARRAS
-  h+='<div class="grid2"><div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-ball")+'</span><h3>Por fundamento</h3></div><div class="card-bd"><p class="hint">O acerto segue o critério de cada fundamento, não o volume de ações.</p><table class="tif"><thead><tr><th>Fundamento</th><th>Ações</th><th>Pos.</th><th>Erro</th><th>Índice</th></tr></thead><tbody>';
+  h+='<div class="grid2"><div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-ball")+'</span><h3>Por fundamento</h3></div><div class="card-bd"><p class="hint">Sob o nome de cada fundamento, a contagem exata de cada resultado. Índice = positivas ÷ ações.</p><table class="tif"><thead><tr><th>Fundamento</th><th>Ações</th><th>Pos.</th><th>Erro</th><th>Índice</th></tr></thead><tbody>';
   var maxv=1;
   for(var r=0;r<_REP_ORD.length;r++){var fk2=_REP_ORD[r],bf=p.byF[fk2];if(!bf)continue;if(bf.pos>maxv)maxv=bf.pos;if(bf.err>maxv)maxv=bf.err;
     var fic=_REP_FIC[fk2];
-    h+='<tr><td><span class="fic" style="background:'+fic[1]+';color:'+fic[2]+'">'+_ic(fic[0])+'</span>'+_REP_FLBL[fk2]+'</td><td class="mut">'+bf.n+'</td><td class="'+(bf.pos>0?"g":"mut")+'">'+bf.pos+'</td><td class="'+(bf.err>0?"b":"mut")+'">'+bf.err+'</td><td>'+_idxPill(bf.pos,bf.n)+'</td></tr>';
+    var bkd=_breakdown(fk2,bf);
+    h+='<tr><td><span class="fic" style="background:'+fic[1]+';color:'+fic[2]+'">'+_ic(fic[0])+'</span><span class="fnm">'+_REP_FLBL[fk2]+(bkd?'<em>'+bkd+'</em>':'')+'</span></td><td class="mut">'+bf.n+'</td><td class="'+(bf.pos>0?"g":"mut")+'">'+bf.pos+'</td><td class="'+(bf.err>0?"b":"mut")+'">'+bf.err+'</td><td>'+_idxPill(bf.pos,bf.n)+'</td></tr>';
   }
   h+='</tbody></table></div></div>';
   // barras positivos x erros
@@ -8149,14 +8171,13 @@ function reportPlayerHTML(g,pid){
     h+='<div class="bcol"><div class="bpair"><div class="bar p" style="height:'+Math.round(bf3.pos/maxv*100)+'%"><b>'+bf3.pos+'</b></div><div class="bar e" style="height:'+Math.round(bf3.err/maxv*100)+'%"><b>'+bf3.err+'</b></div></div><div class="bx">'+_REP_FLBL[fk3]+'</div></div>';
   }
   h+='</div><div class="legend"><span><i class="sq p"></i>Positivo</span><span><i class="sq e"></i>Erro</span></div></div></div></div>';
-  // RECEPCAO (so se houver)
-  var rec=p.byF.recepcao;
-  if(rec){var A=rec.o.A||0,B=rec.o.B||0,C=rec.o.C||0,E=rec.o.Erro||0,rn=rec.n;
-    function segF(cls,v,lb){return v>0?'<div class="qseg '+cls+'" style="flex:'+v+'">'+v+' '+lb+'</div>':"";}
-    h+='<div class="card"><div class="card-hd c-pass"><span class="h-ic">'+_ic("i-pass")+'</span><h3>Recepção — qualidade do passe</h3></div><div class="card-bd"><p class="hint">Distribuição real das recepções — cada passe tem um peso diferente.</p>';
-    h+='<div class="qbar">'+segF("qA",A,"A")+segF("qB",B,"B")+segF("qC",C,"C")+segF("qE",E,"E")+'</div>';
-    h+='<div class="qmeta"><div class="qm"><div class="n" style="color:var(--good-d)">'+Math.round(A/rn*100)+'%</div><div class="k">Perfeitas (A)</div></div><div class="qm"><div class="n" style="color:var(--pass)">'+Math.round((A+B)/rn*100)+'%</div><div class="k">Positivas (A+B)</div></div><div class="qm"><div class="n" style="color:var(--bad)">'+Math.round(E/rn*100)+'%</div><div class="k">Erro de recepção</div></div></div></div></div>';
-  }
+  // QUALIDADE A/B/C — recepcao e levantamento (lado a lado quando o atleta faz os dois)
+  var rec=p.byF.recepcao, lev=p.byF.levantamento, qcards=[];
+  // piso de volume: com 1 ou 2 acoes o percentual nao diz nada (o desmembramento na tabela ja mostra o exato)
+  if(rec&&rec.n>=3)qcards.push(_qualCard(rec,{cls:"c-pass",ic:"i-pass",title:"Recepção — qualidade do passe",hint:"Distribuição real das recepções — cada passe tem um peso diferente.",k1:"Perfeitas (A)",k2:"Positivas (A+B)",k3:"Erro de recepção"}));
+  if(lev&&lev.n>=3)qcards.push(_qualCard(lev,{cls:"c-lev",ic:"i-up",title:"Levantamento — qualidade da bola",hint:"A: ataque sai em condição. B e C: bola levantada, ataque dificultado. Erro: bola perdida no levantamento.",k1:"Perfeitos (A)",k2:"Positivos (A+B)",k3:"Erro de levant."}));
+  if(qcards.length>1)h+='<div class="grid2">'+qcards.join("")+'</div>';
+  else if(qcards.length)h+=qcards[0];
   // PIZZA (volume) + LEITURA
   h+='<div class="grid2"><div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-ball")+'</span><h3>De onde vieram as ações</h3></div><div class="card-bd"><p class="hint">Perfil do jogo do atleta — <b>volume</b>, não qualidade.</p><div class="pie-wrap">';
   var segs=[],cum=0,legrows=[];
@@ -8165,7 +8186,7 @@ function reportPlayerHTML(g,pid){
   h+='<div class="pie" style="background:'+grad+'"><div class="pie-c">'+p.n+'</div></div><div class="plg">';
   legrows.sort(function(x,y){return y.n-x.n;});
   for(var lr=0;lr<legrows.length;lr++)h+='<div class="row"><span class="sw" style="background:'+_REP_FC[legrows[lr].f]+'"></span>'+_REP_FLBL[legrows[lr].f]+'<span class="pc">'+legrows[lr].pct+'%</span><b>'+legrows[lr].n+'</b></div>';
-  h+='</div></div></div>';
+  h+='</div></div></div></div>'; // plg, pie-wrap, card-bd, card
   // LEITURA (analise textual gerada)
   h+='<div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-star")+'</span><h3>Leitura da partida</h3></div><div class="card-bd"><div class="an">';
   var lines=[];
@@ -8175,9 +8196,13 @@ function reportPlayerHTML(g,pid){
     else if(atkP>0)lines.push(["var(--good-bg)","var(--good-d)","i-atk","<b>Ataque presente:</b> "+atkP+" pontos em "+atkBf.n+" bolas ("+kill+"%). Dá pra elevar a conversão."]);
     else lines.push(["var(--warn-bg)","#a9760a","i-atk","<b>Ataque sem ponto:</b> "+atkBf.n+" tentativas, 0 kill. Foco em finalizar."]);
   }
-  if(rec){var pA=Math.round((rec.o.A||0)/rec.n*100),pPos=Math.round(((rec.o.A||0)+(rec.o.B||0))/rec.n*100);
+  if(rec&&rec.n>=3){var pA=Math.round((rec.o.A||0)/rec.n*100),pPos=Math.round(((rec.o.A||0)+(rec.o.B||0))/rec.n*100);
     if(pA>=60)lines.push(["var(--pass-bg)","var(--pass)","i-eq","<b>Recepção sólida:</b> "+pA+"% perfeita (A) em "+rec.n+" passes. Base pro jogo rápido."]);
     else lines.push(["var(--pass-bg)","var(--pass)","i-eq","<b>Passe dá pra afinar:</b> "+pPos+"% positivo, mas "+pA+"% perfeito. Recepção A é o próximo degrau."]);
+  }
+  if(lev&&lev.n>=5){var lA=lev.o.A||0,lBC=(lev.o.B||0)+(lev.o.C||0),lE=lev.o.Erro||0,lpA=Math.round(lA/lev.n*100);
+    if(lpA>=55)lines.push(["var(--surf-2)","var(--navy-2)","i-up","<b>Levantamento consistente:</b> "+lA+" bolas A em "+lev.n+" levantamentos ("+lpA+"%), "+lBC+" B/C e "+lE+" erro"+(lE===1?"":"s")+"."]);
+    else lines.push(["var(--surf-2)","var(--navy-2)","i-up","<b>Levantamento:</b> "+lA+" A ("+lpA+"%), "+lBC+" B/C e "+lE+" erro"+(lE===1?"":"s")+" em "+lev.n+" bolas. Elevar o percentual de A é o próximo degrau."]);
   }
   var blkBf=p.byF.bloqueio;
   if(blkBf){var be=blkBf.err;
@@ -8186,7 +8211,7 @@ function reportPlayerHTML(g,pid){
   }
   lines.push(["linear-gradient(135deg,var(--rs-a),var(--rs-b))","#fff","i-star","<b>Saldo "+sgn(p.pontos-p.err)+":</b> "+p.pontos+" pontos gerados contra "+p.err+" erros."]);
   for(var ln=0;ln<lines.length;ln++)h+='<div class="ai"><span class="t" style="background:'+lines[ln][0]+';color:'+lines[ln][1]+'">'+_ic(lines[ln][2])+'</span><div>'+lines[ln][3]+'</div></div>';
-  h+='</div></div></div>';
+  h+='</div></div></div></div>'; // an, card-bd, card, grid2
   // REGUA
   h+='<div class="method two"><div class="m-hd"><span style="color:#ff7ab8">'+_ic("i-eq")+'</span><h3>Como os números são calculados</h3></div><ul><li><i></i><span><b>Passe, defesa e levantamento:</b> positivo é só a recepção/ação A; B e C entram como qualidade.</span></li><li><i></i><span><b>Ataque e bloqueio:</b> positivo é o ponto; bola bloqueada e erro descontam.</span></li><li><i></i><span><b>Saque:</b> positivo é não errar; o ace conta como ponto.</span></li><li><i></i><span><b>Aproveitamento:</b> pontos ÷ (pontos + erros).</span></li></ul></div>';
   h+='<div class="fnote"><b>RS-SCOUT</b> · '+esc(nm)+' · '+esc(teamName)+' vs '+esc(g.opp||"—")+' · '+(new Date().toLocaleDateString("pt-BR"))+'</div>';

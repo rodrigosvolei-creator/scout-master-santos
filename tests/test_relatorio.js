@@ -10,6 +10,7 @@ function makeRef(p){return{_path:p,on:function(e,cb){listeners[p]=cb;},once:func
 global.firebaseMock={initializeApp:()=>{},database:()=>({ref:makeRef}),auth:()=>({onAuthStateChanged:function(cb){setTimeout(()=>cb({uid:'m',email:'rodrigosvolei@gmail.com',displayName:'M'}),0);},signInWithPopup:()=>Promise.resolve(),signOut:()=>Promise.resolve()})};
 
 function pushN(arr,n,pid,ak,oc,set){for(let i=0;i<n;i++)arr.push({id:pid+ak+oc+set+i,pid:pid,ak:ak,oc:oc,set:set});}
+function levA(n,oc){const a=[];for(let i=0;i<n;i++)a.push({id:'lev'+oc+i,pid:'a5',ak:'levantamento',oc:oc,set:1});return a;}
 const act=[];
 // a1 atacante: ataque 5 Ponto +1 Erro; bloqueio 1 Ponto  -> pos6 err1 pontos6
 pushN(act,5,'a1','ataque','Ponto',1);pushN(act,1,'a1','ataque','Erro',1);pushN(act,1,'a1','bloqueio','Ponto',2);
@@ -22,11 +23,16 @@ pushN(act,2,null,'erroadv','Ponto',1);
 
 const seed={'torneio-master-santos':{
   teams:[{id:'trs',n:'RS Sorocaba',c:'#0e254c',roster:[{aid:'a1'},{aid:'a8'},{aid:'a3'}]}],
-  athletes:[{aid:'a1',nm:'Mikael Souza',po:'Oposto(a)',nu:10},{aid:'a8',nm:'Igor Nunes',po:'Líbero',nu:16},{aid:'a3',nm:'Caio Reis',po:'Central',nu:4}],
+  athletes:[{aid:'a1',nm:'Mikael Souza',po:'Oposto(a)',nu:10},{aid:'a8',nm:'Igor Nunes',po:'Líbero',nu:16},{aid:'a3',nm:'Caio Reis',po:'Central',nu:4},{aid:'a5',nm:'Wash Lima',po:'Levantador(a)',nu:5}],
   tournaments:[{id:'tA',n:'Liga'}],
   games:[{id:'g1',tid:'trs',torId:'tA',opp:'Cananéia',dt:'2026-06-28',st:'fin',
     ss:[{u:25,t:19,sq:[]},{u:25,t:22,sq:[]}],act:act,
-    lineup:[{aid:'a1',nu:10,po:'Oposto(a)'},{aid:'a8',nu:16,po:'Líbero'},{aid:'a3',nu:4,po:'Central'}]}],
+    lineup:[{aid:'a1',nu:10,po:'Oposto(a)'},{aid:'a8',nu:16,po:'Líbero'},{aid:'a3',nu:4,po:'Central'}]},
+   // jogo do levantador (desmembramento A/B/C/Erro) — 11 levantamentos: 5A 3B 1C 2Erro + 3 saques
+   {id:'g2',tid:'trs',torId:'tA',opp:'Itapeva',dt:'2026-07-20',st:'fin',ss:[{u:25,t:22,sq:[]}],
+    act:[].concat(levA(5,'A'),levA(3,'B'),levA(1,'C'),levA(2,'Erro'),
+      [{id:'s1',pid:'a5',ak:'saque',oc:'Cont',set:1},{id:'s2',pid:'a5',ak:'saque',oc:'Ace',set:1},{id:'s3',pid:'a5',ak:'saque',oc:'Erro',set:1}]),
+    lineup:[{aid:'a5',nu:5,po:'Levantador(a)'}]}],
   invites:{}}};
 Object.assign(fakeDB,JSON.parse(JSON.stringify(seed)));
 
@@ -112,6 +118,27 @@ setTimeout(()=>{
   chk(hl.indexOf('qualidade do passe')>=0,'ind a8: card de recepcao aparece (recebe)');
   chk(hi.indexOf('qualidade do passe')<0,'ind a1: SEM card de recepcao (nao recebe)');
   chk(hl.indexOf('arte antiga')<0 && hl.indexOf('N passes = N acertos')<0 && hl.indexOf('confiáveis')<0,'ind: sem texto de conversa/marketing (produto profissional)');
+
+  // ---- DESMEMBRAMENTO EXATO POR FUNDAMENTO (A/B/C/Erro) — pedido do Rodrigo ----
+  var g2=w.gF('g2'), hv=w.reportPlayerHTML(g2,'a5');
+  chk(hv.indexOf('A 5 · B 3 · C 1 · Erro 2')>=0,'ind levantador: tabela mostra o desmembramento exato "A 5 · B 3 · C 1 · Erro 2"');
+  chk(hv.indexOf('Ace 1 · Erro 1 · Cont 1')>=0,'ind: saque desmembrado na ordem oficial (Ace/Erro/Cont)');
+  chk(hv.indexOf('Levantamento — qualidade da bola')>=0,'ind levantador: card de qualidade do levantamento');
+  chk(/qseg qA" style="flex:5">5 A/.test(hv) && /qseg qB" style="flex:3">3 B/.test(hv) && /qseg qC" style="flex:1">1 C/.test(hv) && /qseg qE" style="flex:2">2 E/.test(hv),'barra do levantamento: 5A 3B 1C 2E proporcionais');
+  var lvSum=(function(){var m=hv.match(/A (\d+) · B (\d+) · C (\d+) · Erro (\d+)/);return m?(+m[1]+ +m[2]+ +m[3]+ +m[4]):0;})();
+  chk(lvSum===11,'desmembramento FECHA com as acoes do fundamento (5+3+1+2=11)');
+  chk(hv.indexOf('>45%<')>=0,'card levant.: perfeitos (A) = 5/11 = 45%');
+  chk(hv.indexOf('>73%<')>=0,'card levant.: positivos (A+B) = 8/11 = 73%');
+  chk(hv.indexOf('>18%<')>=0,'card levant.: erro = 2/11 = 18%');
+  chk(/Levantamento( consistente)?:/.test(hv),'leitura da partida: linha do levantamento (>=5 acoes)');
+  chk(hi.indexOf('Levantamento — qualidade da bola')<0,'ind a1 (atacante): SEM card de levantamento');
+  chk(hv.indexOf('Indice = positivas')>=0 || hv.indexOf('Índice = positivas ÷ ações')>=0,'tabela explica: Indice = positivas / acoes');
+
+  // ---- MARKUP FECHADO: o card da pizza nao fechava e engolia "Leitura da partida" + metodo (meia pagina vazia no PDF)
+  function divBal(x){return (x.match(/<div/g)||[]).length-(x.match(/<\/div>/g)||[]).length;}
+  chk(divBal(hv)===0,'individual: divs balanceadas (deu '+divBal(hv)+')');
+  chk(divBal(hi)===0,'individual atacante: divs balanceadas (deu '+divBal(hi)+')');
+  chk(divBal(w.reportTeamHTML(g))===0,'time: divs balanceadas');
 
   console.log('\n=== test_relatorio: '+ok+' OK, '+ko+' FAIL ===');
   process.exit(ko>0?1:0);

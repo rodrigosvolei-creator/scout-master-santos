@@ -1214,7 +1214,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-17m - relatorio individual: desmembramento exato por fundamento (A/B/C/Erro) na tabela + barra de qualidade do levantamento";
+var APP_BUILD="2026-07-17n - aproveitamento individual = acertos/(acertos+erros) pra todos: levantador e libero nao vivem de ponto (hero bate com a tabela do time)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -8131,13 +8131,13 @@ function reportPlayerHTML(g,pid){
   var po=pf&&pf.po?String(pf.po).replace(/\(a\)/g,"").trim():"";
   var sgn=function(x){return (x>0?"+":"")+x;};
   var atkP=_atk(p),blkP=_blk(p),aceP=_ace(p);
-  // rating: atleta ofensivo (saca/ataca/bloqueia) = pontos/(pontos+erros); libero/passador puro = acertos/(acertos+erros)
-  var offN=(p.byF.ataque?p.byF.ataque.n:0)+(p.byF.bloqueio?p.byF.bloqueio.n:0)+(p.byF.saque?p.byF.saque.n:0);
-  var offensive=offN>0;
-  var rt=offensive?p.aprovPt:p.aprov;
-  var rSaldo=offensive?(p.pontos-p.err):(p.pos-p.err);
-  var rSub=offensive?('saldo '+sgn(rSaldo)+' · '+p.pontos+' pts · '+p.err+' erros'):(p.pos+' acertos · '+p.err+' erros · '+p.pontos+' pts');
-  var rFt=offensive?('saldo ('+p.pontos+' pontos − '+p.err+' erros)'):('acertos ÷ (acertos + erros)');
+  // Aproveitamento = acertos/(acertos+erros) para TODOS — mesma conta da tabela do time, entao o hero
+  // BATE com a linha do atleta no relatorio de time. Nao usar pontos/(pontos+erros): levantador e libero
+  // nao pontuam e apareciam com % irreal (WASH: 19 levantamentos A e "11%").
+  var rt=p.aprov;
+  var rSaldo=p.pos-p.err;
+  var rSub=p.pos+' acertos · '+p.err+' erros · '+p.pontos+' pts';
+  var rFt='acertos ÷ (acertos + erros)';
   var h=_repCSS()+'<div class="wrap">'+_repIcons()+'<div class="report">';
   // HERO player-card
   h+='<div class="hero">'+_courtSVG+'<div class="glow"></div>'+(nu!=null?'<div class="jersey">'+nu+'</div>':'');
@@ -8209,11 +8209,11 @@ function reportPlayerHTML(g,pid){
     if(blkP>0&&be>0)lines.push(["var(--warn-bg)","#a9760a","i-block","<b>Bloqueio 50/50:</b> "+blkP+" ponto"+(blkP>1?"s":"")+" e "+be+" erro"+(be>1?"s":"")+" — ajustar leitura/timing."]);
     else if(blkP>0)lines.push(["var(--good-bg)","var(--good-d)","i-block","<b>Bloqueio produtivo:</b> "+blkP+" ponto"+(blkP>1?"s":"")+" sem erro."]);
   }
-  lines.push(["linear-gradient(135deg,var(--rs-a),var(--rs-b))","#fff","i-star","<b>Saldo "+sgn(p.pontos-p.err)+":</b> "+p.pontos+" pontos gerados contra "+p.err+" erros."]);
+  lines.push(["linear-gradient(135deg,var(--rs-a),var(--rs-b))","#fff","i-star","<b>Saldo "+sgn(p.pos-p.err)+":</b> "+p.pos+" ações positivas contra "+p.err+" erros"+(p.pontos>0?" · "+p.pontos+" ponto"+(p.pontos>1?"s":"")+" de placar":"")+"."]);
   for(var ln=0;ln<lines.length;ln++)h+='<div class="ai"><span class="t" style="background:'+lines[ln][0]+';color:'+lines[ln][1]+'">'+_ic(lines[ln][2])+'</span><div>'+lines[ln][3]+'</div></div>';
   h+='</div></div></div></div>'; // an, card-bd, card, grid2
   // REGUA
-  h+='<div class="method two"><div class="m-hd"><span style="color:#ff7ab8">'+_ic("i-eq")+'</span><h3>Como os números são calculados</h3></div><ul><li><i></i><span><b>Passe, defesa e levantamento:</b> positivo é só a recepção/ação A; B e C entram como qualidade.</span></li><li><i></i><span><b>Ataque e bloqueio:</b> positivo é o ponto; bola bloqueada e erro descontam.</span></li><li><i></i><span><b>Saque:</b> positivo é não errar; o ace conta como ponto.</span></li><li><i></i><span><b>Aproveitamento:</b> pontos ÷ (pontos + erros).</span></li></ul></div>';
+  h+='<div class="method two"><div class="m-hd"><span style="color:#ff7ab8">'+_ic("i-eq")+'</span><h3>Como os números são calculados</h3></div><ul><li><i></i><span><b>Passe, defesa e levantamento:</b> positivo é só a recepção/ação A; B e C entram como qualidade.</span></li><li><i></i><span><b>Ataque e bloqueio:</b> positivo é o ponto; bola bloqueada e erro descontam.</span></li><li><i></i><span><b>Saque:</b> positivo é não errar; o ace conta como ponto.</span></li><li><i></i><span><b>Aproveitamento:</b> acertos ÷ (acertos + erros) — mesma conta da tabela do time.</span></li></ul></div>';
   h+='<div class="fnote"><b>RS-SCOUT</b> · '+esc(nm)+' · '+esc(teamName)+' vs '+esc(g.opp||"—")+' · '+(new Date().toLocaleDateString("pt-BR"))+'</div>';
   h+='</div></div>';
   return h;

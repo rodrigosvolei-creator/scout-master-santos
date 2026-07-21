@@ -107,8 +107,8 @@ setTimeout(()=>{
   var hi=w.reportPlayerHTML(g,'a1');
   chk(hi.indexOf('MIKAEL')>=0 || hi.indexOf('Mikael')>=0,'ind a1: nome no hero');
   var m1=hi.match(/rt-num">(\d+)<span class="rt-pc">/);
-  chk(m1 && m1[1]==='86','ind a1 atacante: rating = pontos/(pontos+erros) = 6/7 = 86% (deu '+(m1?m1[1]:'?')+')');
-  chk(hi.indexOf('saldo +5')>=0,'ind a1: subtitulo saldo pts (6-1=+5)');
+  chk(m1 && m1[1]==='86','ind a1 atacante: rating = acertos/(acertos+erros) = 6/7 = 86% (deu '+(m1?m1[1]:'?')+')');
+  chk(hi.indexOf('6 acertos · 1 erros')>=0,'ind a1: subtitulo em acertos (mesma base do rating)');
 
   // ---- HTML INDIVIDUAL (libero) ----
   var hl=w.reportPlayerHTML(g,'a8');
@@ -133,6 +133,20 @@ setTimeout(()=>{
   chk(/Levantamento( consistente)?:/.test(hv),'leitura da partida: linha do levantamento (>=5 acoes)');
   chk(hi.indexOf('Levantamento — qualidade da bola')<0,'ind a1 (atacante): SEM card de levantamento');
   chk(hv.indexOf('Indice = positivas')>=0 || hv.indexOf('Índice = positivas ÷ ações')>=0,'tabela explica: Indice = positivas / acoes');
+
+  // ---- APROVEITAMENTO = acertos/(acertos+erros) PRA TODOS (Rodrigo: levantador/libero nao vivem de ponto)
+  // a5 levantador: 5A+3B+1C+2Erro no levant. + saque (Cont+Ace+Erro) -> pos 7, err 3, pontos 1
+  var p5=null;w.repAgg(g2).players.forEach(function(x){if(x.pid==='a5')p5=x;});
+  chk(p5.pos===7 && p5.err===3 && p5.pontos===1,'a5 levantador: pos7 err3 pontos1');
+  var m5=hv.match(/rt-num">(\d+)<span class="rt-pc">/);
+  chk(m5 && m5[1]==='70','levantador: hero = acertos/(acertos+erros) = 7/10 = 70% — NAO 25% (pontos) (deu '+(m5?m5[1]:'?')+')');
+  chk(hv.indexOf('7 acertos · 3 erros · 1 pts')>=0,'levantador: subtitulo bate com a conta do hero');
+  // o hero TEM que bater com a coluna Aprov. do mesmo atleta na tabela do time
+  var htm=w.reportTeamHTML(g2), aprovTab=(htm.match(/class="pc">(\d+)%</g)||[]).map(function(x){return x.replace(/\D/g,'');});
+  chk(aprovTab.indexOf('70')>=0,'time: a coluna Aprov. do a5 tambem da 70% (hero = tabela) — deu ['+aprovTab.join(',')+']');
+  // libero que teve acao ofensiva sem ponto NAO pode dar 0% (bug real: Mateus, jogo ITAPEVA)
+  var lb=w.repAgg({},[{pid:'L',ak:'recepcao',oc:'A'},{pid:'L',ak:'recepcao',oc:'A'},{pid:'L',ak:'defesa',oc:'A'},{pid:'L',ak:'ataque',oc:'Cont'},{pid:'L',ak:'recepcao',oc:'Erro'}]).players[0];
+  chk(lb.aprov===75 && lb.aprovPt===0,'libero com ataque sem ponto: acertos=75% (o antigo pontos/(pontos+err) dava 0%)');
 
   // ---- MARKUP FECHADO: o card da pizza nao fechava e engolia "Leitura da partida" + metodo (meia pagina vazia no PDF)
   function divBal(x){return (x.match(/<div/g)||[]).length-(x.match(/<\/div>/g)||[]).length;}

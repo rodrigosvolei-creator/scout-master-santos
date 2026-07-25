@@ -1214,7 +1214,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-17n - aproveitamento individual = acertos/(acertos+erros) pra todos: levantador e libero nao vivem de ponto (hero bate com a tabela do time)";
+var APP_BUILD="2026-07-24a - mural: proximo jogo como 1o card + finalizados embaixo; escalacao: repetir nos demais jogos do torneio";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6433,6 +6433,11 @@ function openLineup(gameId){
   m+='<input id="lu-new-po" type="text" placeholder="Posi\u00e7\u00e3o" maxlength="20" style="flex:1.4;min-width:90px;padding:8px;font-size:12px">';
   m+='<button class="bt bp bsm" onclick="addAdhocAthlete(\''+gameId+'\')" style="flex-shrink:0">\u2795 Adicionar</button>';
   m+='</div></div>';
+  // Repetir esta escalacao nos demais jogos por jogar do torneio (so aparece se houver outros).
+  var _rep=(typeof _lineupRepeatTargets==="function")?_lineupRepeatTargets(g):[];
+  if(_rep.length){
+    m+='<button class="bt bg bsm" style="width:100%;margin-top:12px;border:1px dashed var(--brd)" onclick="repeatLineupToOthers(\''+gameId+'\')">\u{1F4CB} Repetir esta escala\u00e7\u00e3o nos outros '+_rep.length+' jogo'+(_rep.length>1?'s':'')+' do torneio</button>';
+  }
   m+='<div style="display:flex;gap:8px;margin-top:12px"><button class="bt bg" style="flex:1" onclick="closeLineup()">Cancelar</button><button class="bt bs" style="flex:2" onclick="saveLineup(\''+gameId+'\')">\u2713 Salvar Escala\u00e7\u00e3o</button></div>';
   m+='</div></div></div>';
   var d=document.createElement("div");d.id="lineupModal";d.innerHTML=m;document.body.appendChild(d);
@@ -6460,12 +6465,12 @@ function _luPoSelect(aid,po){
   var head=(po&&!has)?'<option selected>'+esc(po)+'</option>':(!po?'<option value="" selected>— posição —</option>':'');
   return '<select class="lu-po" data-aid="'+esc(String(aid))+'" onclick="event.stopPropagation()" onchange="event.stopPropagation()" style="margin-top:3px;font-size:10px;color:var(--gray);border:1px solid var(--brd);border-radius:6px;padding:3px 6px;background:var(--card);max-width:150px;font-family:inherit;font-weight:600">'+head+o+'</select>';
 }
-function saveLineup(gameId){
-  var g=gF(gameId);if(!g)return;
-  var t=tF(g.tid); // pode ser null em fluxo ad-hoc puro
+// Le as rows do modal de escalacao, valida os numeros e monta a lineup (SEM
+// persistir nem mexer no cadastro). Retorna o array de {aid,nu,[po],[nm]} ou null
+// (ja mostra o toast do erro). Reusado por saveLineup e repeatLineupToOthers.
+function _collectLineupFromModal(){
   var rows=document.querySelectorAll(".lu-row");
-  var newLineup=[];
-  var seen={};
+  var newLineup=[],seen={};
   for(var i=0;i<rows.length;i++){
     var row=rows[i];
     var aid=row.getAttribute("data-aid");
@@ -6478,8 +6483,8 @@ function saveLineup(gameId){
     var nuV=null;
     if(nuStr!==""){
       nuV=parseInt(nuStr,10);
-      if(isNaN(nuV)||nuV<0||nuV>99){toast("N\u00famero inv\u00e1lido para "+labelNm+" (0-99)","error");return;}
-      if(seen[nuV]){toast("N\u00famero "+nuV+" repetido na escala\u00e7\u00e3o","error");return;}
+      if(isNaN(nuV)||nuV<0||nuV>99){toast("N\u00famero inv\u00e1lido para "+labelNm+" (0-99)","error");return null;}
+      if(seen[nuV]){toast("N\u00famero "+nuV+" repetido na escala\u00e7\u00e3o","error");return null;}
       seen[nuV]=true;
     }
     var isAdhoc = row.classList && row.classList.contains("lu-adhoc");
@@ -6487,16 +6492,22 @@ function saveLineup(gameId){
     var poV=poSel?((poSel.value||"").trim()):"";
     var entry={aid:aid,nu:nuV};
     if(poV)entry.po=poV; // funcao escolhida vale pra ESTE jogo (le.po tem prioridade no scout — _courtGp)
-    if(isAdhoc){
-      entry.nm=labelNm; // atleta ad-hoc vive so na lineup
-    }else{
-      // atleta cadastrado: se trocou a posicao, atualiza tambem o cadastro (padrao pros proximos jogos)
-      var _ath=aFind(aid);
-      if(_ath && poV && _ath.po!==poV){ _ath.po=poV; if(currentUser&&typeof saveAthlete==="function")saveAthlete(_ath).catch(function(){}); }
-    }
+    if(isAdhoc)entry.nm=labelNm; // atleta ad-hoc vive so na lineup
     newLineup.push(entry);
   }
-  if(!newLineup.length){toast("Selecione pelo menos uma atleta","error");return;}
+  if(!newLineup.length){toast("Selecione pelo menos uma atleta","error");return null;}
+  return newLineup;
+}
+function saveLineup(gameId){
+  var g=gF(gameId);if(!g)return;
+  var t=tF(g.tid); // pode ser null em fluxo ad-hoc puro
+  var newLineup=_collectLineupFromModal();
+  if(!newLineup)return;
+  // atleta cadastrado que trocou a posicao: atualiza tambem o cadastro (padrao pros proximos jogos)
+  for(var k=0;k<newLineup.length;k++){
+    var e=newLineup[k];
+    if(!e.nm && e.po){ var _ath=aFind(e.aid); if(_ath && _ath.po!==e.po){ _ath.po=e.po; if(currentUser&&typeof saveAthlete==="function")saveAthlete(_ath).catch(function(){}); } }
+  }
   g.lineup=newLineup;
   // Atualizar last_nu_by_team so dos atletas que existem em D.athletes
   if(t){
@@ -6511,6 +6522,36 @@ function saveLineup(gameId){
   closeLineup();
   toast("Escala\u00e7\u00e3o salva ("+newLineup.length+" atletas)","ok");
   save();
+}
+// Demais jogos do MESMO torneio ainda por jogar (nem ao vivo, nem finalizado).
+function _lineupRepeatTargets(g){
+  var out=[]; if(!g||!D||!D.games)return out;
+  for(var i=0;i<D.games.length;i++){var o=D.games[i];
+    if(o&&o.id!==g.id&&o.torId===g.torId&&o.st!=="done"&&o.st!=="live")out.push(o);}
+  return out;
+}
+// Repete a escalacao DESTE jogo (a que esta na tela) nos demais jogos por jogar do
+// mesmo torneio, substituindo a lineup deles. So persiste logado (save()).
+function repeatLineupToOthers(gameId){
+  var g=gF(gameId);if(!g)return;
+  var lu=_collectLineupFromModal();
+  if(!lu)return; // erro ja avisado no coletor
+  g.lineup=lu; // fixa no jogo atual o que esta na tela
+  var alvo=_lineupRepeatTargets(g);
+  if(!alvo.length){toast("Nenhum outro jogo por jogar neste torneio","error");return;}
+  var nomes=alvo.map(function(o){return "vs "+esc(o.opp||"?")+(o.dt?(" \u00b7 "+String(o.dt).split("-").reverse().join("/")):"")+(o.tm?(" "+o.tm):"");}).join("<br>");
+  var pl=alvo.length>1;
+  confirmModal({
+    title:"Repetir escala\u00e7\u00e3o",
+    body:"Aplicar esta escala\u00e7\u00e3o (<b>"+lu.length+" atletas</b>) "+(pl?"aos":"ao")+" <b>"+alvo.length+"</b> outro"+(pl?"s":"")+" jogo"+(pl?"s":"")+" deste torneio?<br><br>"+nomes+"<br><br><span style=\"color:#b45309\">A escala\u00e7\u00e3o atual "+(pl?"desses jogos ser\u00e1 substitu\u00edda":"desse jogo ser\u00e1 substitu\u00edda")+".</span>",
+    confirmLabel:"Aplicar a "+alvo.length+" jogo"+(pl?"s":""),
+    onConfirm:function(){
+      for(var i=0;i<alvo.length;i++)alvo[i].lineup=JSON.parse(JSON.stringify(lu));
+      closeLineup();
+      toast("Escala\u00e7\u00e3o repetida em "+alvo.length+" jogo"+(pl?"s":""),"ok");
+      save();
+    }
+  });
 }
 
 // === Helpers ad-hoc (PG isolado) ===

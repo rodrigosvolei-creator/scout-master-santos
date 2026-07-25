@@ -2909,6 +2909,38 @@ function oppLogoSvg(oppLogo,opp,oppLogoData){
   return '<div class="usa-opp-logo" style="background:#1e293b">'+initials+'</div>';
 }
 
+// Ordem do mural de jogos (Rodrigo 2026-07-24): AO VIVO no topo, depois o
+// PROXIMO JOGO, depois os demais pendentes em sequencia de data/hora (crescente)
+// e os FINALIZADOS la pra baixo. Retorna {games (ordenados), nextId}.
+function orderGamesForBoard(list){
+  var games=list.slice();
+  var nowKey=(function(){
+    var d=new Date(),z=function(n){return(n<10?"0":"")+n;};
+    return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())+z(d.getHours())+":"+z(d.getMinutes());
+  })();
+  // "Proximo jogo": entre os pendentes (nao live, nao done), o de data/hora
+  // mais cedo a partir de agora. Se nenhum for futuro, o de horario mais tarde.
+  var pend=[];
+  for(var i=0;i<games.length;i++){var g=games[i];if(g.st==="live"||g.st==="done")continue;pend.push({id:g.id,key:(g.dt||"")+(g.tm||"")});}
+  pend.sort(function(a,b){return a.key.localeCompare(b.key);});
+  var nextId=null;
+  for(var j=0;j<pend.length;j++){if(pend[j].key>=nowKey){nextId=pend[j].id;break;}}
+  if(!nextId&&pend.length)nextId=pend[pend.length-1].id;
+  function rank(g){
+    if(g.st==="live")return 0;   // ao vivo: o que a mesa scouta agora
+    if(g.id===nextId)return 1;   // o proximo jogo (destacado com a tag)
+    if(g.st!=="done")return 2;   // demais pendentes, na fila
+    return 3;                    // finalizados: la pra baixo
+  }
+  games.sort(function(a,b){
+    var ra=rank(a),rb=rank(b);
+    if(ra!==rb)return ra-rb;
+    var ka=(a.dt||"")+(a.tm||""),kb=(b.dt||"")+(b.tm||"");
+    return ka.localeCompare(kb); // sequencia de data e hora (crescente)
+  });
+  return {games:games,nextId:nextId};
+}
+
 function renderTorneioCards(tor){
   var nome=tor?tor.n:"Torneio";
   // Buscar jogos do torneio
@@ -2916,29 +2948,8 @@ function renderTorneioCards(tor){
   if(D.games)for(var i=0;i<D.games.length;i++){
     if(D.games[i].torId===torneioId)games.push(D.games[i]);
   }
-  games.sort(function(a,b){
-    var da=(a.dt||"")+(a.tm||"");var db=(b.dt||"")+(b.tm||"");
-    return db.localeCompare(da);
-  });
-  // "Proximo jogo": entre os pendentes (nao live, nao done), o de data/hora
-  // mais cedo a partir de agora. Se nenhum for futuro, pega o pendente mais cedo.
-  var nextGameId=null;
-  (function(){
-    var nowKey=(function(){
-      var d=new Date(),z=function(n){return(n<10?"0":"")+n;};
-      return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())+z(d.getHours())+":"+z(d.getMinutes());
-    })();
-    var pend=[];
-    for(var i=0;i<games.length;i++){
-      var g=games[i];
-      if(g.st==="live"||g.st==="done")continue;
-      pend.push({id:g.id,key:(g.dt||"")+(g.tm||"")});
-    }
-    pend.sort(function(a,b){return a.key.localeCompare(b.key);});
-    for(var j=0;j<pend.length;j++){ if(pend[j].key>=nowKey){nextGameId=pend[j].id;break;} }
-    if(!nextGameId&&pend.length)nextGameId=pend[pend.length-1].id;
-  })();
-  
+  var _ord=orderGamesForBoard(games);games=_ord.games;var nextGameId=_ord.nextId;
+
   // Fase PG: brand parametrizado pelo torneioToken (USA=RS, PG=Praia Grande etc).
   var brand=getBrand(torneioToken);
   var h='<div class="usa-wrap" style="--rs-watermark:url(\''+brand.logo+'\')">';
@@ -5207,19 +5218,7 @@ function rTorDetail(torId){
   // estilo GAME DAY direto na aba \u2014 reusa renderGameDayCard. Botoes de admin
   // (criar/editar/excluir) voltam em Fase B2 ligados ao login geral.
   if(tnyLayout(t)==='gameday'){
-    var gdGames=games.slice().sort(function(a,b){
-      var da=(a.dt||"")+(a.tm||"");var db=(b.dt||"")+(b.tm||"");
-      return db.localeCompare(da);
-    });
-    var gdNextId=null;
-    (function(){
-      var nowKey=(function(){var d=new Date(),z=function(n){return(n<10?"0":"")+n;};return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())+z(d.getHours())+":"+z(d.getMinutes());})();
-      var pend=[];
-      for(var i=0;i<gdGames.length;i++){var g=gdGames[i];if(g.st==="live"||g.st==="done")continue;pend.push({id:g.id,key:(g.dt||"")+(g.tm||"")});}
-      pend.sort(function(a,b){return a.key.localeCompare(b.key);});
-      for(var j=0;j<pend.length;j++){if(pend[j].key>=nowKey){gdNextId=pend[j].id;break;}}
-      if(!gdNextId&&pend.length)gdNextId=pend[pend.length-1].id;
-    })();
+    var _gdOrd=orderGamesForBoard(games);var gdGames=_gdOrd.games;var gdNextId=_gdOrd.nextId;
     // Fase B2.2: botao Novo Jogo no topo do gameday \u2014 visivel pra admin/coord.
     // Fase C: oculto quando torneio arquivado (so-leitura).
     if((isCoord||isAdmin) && !torArchived){

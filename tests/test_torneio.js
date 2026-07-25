@@ -60,11 +60,12 @@ setTimeout(()=>{
   const cont2=w.document.createElement('div');cont2.innerHTML=senha;
   ck('senha parseia no DOM', cont2.querySelector('.usa-lock-card')!=null);
 
-  // ORDENACAO: mais recente em cima (g3 13:00 done > g2 11:00 live > g1 10:00 pending)
-  // o 1o card deve referenciar g3, o ultimo g1
+  // ORDENACAO (Rodrigo 2026-07-24): ao vivo no topo -> proximo jogo -> pendentes
+  // (cresc) -> finalizados la pra baixo. Aqui: g2 live > g1 pendente/proximo > g3 done.
   var cardEls=cont.querySelectorAll('.gd-card');
-  ck('ordem: 1o card e o mais recente (g3)', cardEls[0].getAttribute('onclick').indexOf('g3')>=0);
-  ck('ordem: ultimo card e o mais antigo (g1)', cardEls[cardEls.length-1].getAttribute('onclick').indexOf('g1')>=0);
+  ck('ordem: ao vivo (g2) e o 1o card', cardEls[0].getAttribute('onclick').indexOf('g2')>=0);
+  ck('ordem: proximo jogo (g1) vem logo depois do ao vivo', cardEls[1].getAttribute('onclick').indexOf('g1')>=0);
+  ck('ordem: finalizado (g3) vai la pra baixo (ultimo card)', cardEls[cardEls.length-1].getAttribute('onclick').indexOf('g3')>=0);
   // PROXIMO JOGO: g1 e o unico pendente -> deve ter o badge e a classe gd-next
   ck('proximo: badge PROXIMO JOGO presente', cards.indexOf('PR\u00d3XIMO JOGO')>=0);
   ck('proximo: exatamente 1 card marcado gd-next', cont.querySelectorAll('.gd-next').length===1);

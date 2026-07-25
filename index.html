@@ -1214,7 +1214,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-24a - mural: proximo jogo como 1o card + finalizados embaixo; escalacao: repetir nos demais jogos do torneio";
+var APP_BUILD="2026-07-24b - fix: repetir escalacao grava granular (saveGame) e re-busca por id — persistia so na memoria e o re-sync desfazia";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -6531,25 +6531,37 @@ function _lineupRepeatTargets(g){
   return out;
 }
 // Repete a escalacao DESTE jogo (a que esta na tela) nos demais jogos por jogar do
-// mesmo torneio, substituindo a lineup deles. So persiste logado (save()).
+// mesmo torneio, substituindo a lineup deles. IMPORTANTE: grava CADA jogo com
+// saveGame (games/{idx}) \u2014 nunca o array inteiro via save() \u2014 e RE-BUSCA por id na
+// hora de aplicar (gF(id)); senao o listener .on("value")/_resyncGames pode ter
+// trocado D.games e a gravacao cairia em cima de referencia velha (bug do Rodrigo:
+// modal dizia 13 atletas mas RENEGADOS/SIDE OUT continuavam com a escalacao antiga).
 function repeatLineupToOthers(gameId){
   var g=gF(gameId);if(!g)return;
   var lu=_collectLineupFromModal();
   if(!lu)return; // erro ja avisado no coletor
-  g.lineup=lu; // fixa no jogo atual o que esta na tela
   var alvo=_lineupRepeatTargets(g);
   if(!alvo.length){toast("Nenhum outro jogo por jogar neste torneio","error");return;}
+  var ids=alvo.map(function(o){return o.id;}); // guarda IDs, nao referencias
   var nomes=alvo.map(function(o){return "vs "+esc(o.opp||"?")+(o.dt?(" \u00b7 "+String(o.dt).split("-").reverse().join("/")):"")+(o.tm?(" "+o.tm):"");}).join("<br>");
-  var pl=alvo.length>1;
+  var pl=ids.length>1;
   confirmModal({
     title:"Repetir escala\u00e7\u00e3o",
-    body:"Aplicar esta escala\u00e7\u00e3o (<b>"+lu.length+" atletas</b>) "+(pl?"aos":"ao")+" <b>"+alvo.length+"</b> outro"+(pl?"s":"")+" jogo"+(pl?"s":"")+" deste torneio?<br><br>"+nomes+"<br><br><span style=\"color:#b45309\">A escala\u00e7\u00e3o atual "+(pl?"desses jogos ser\u00e1 substitu\u00edda":"desse jogo ser\u00e1 substitu\u00edda")+".</span>",
-    confirmLabel:"Aplicar a "+alvo.length+" jogo"+(pl?"s":""),
+    body:"Aplicar esta escala\u00e7\u00e3o (<b>"+lu.length+" atletas</b>) "+(pl?"aos":"ao")+" <b>"+ids.length+"</b> outro"+(pl?"s":"")+" jogo"+(pl?"s":"")+" deste torneio?<br><br>"+nomes+"<br><br><span style=\"color:#b45309\">A escala\u00e7\u00e3o atual "+(pl?"desses jogos ser\u00e1 substitu\u00edda":"desse jogo ser\u00e1 substitu\u00edda")+".</span>",
+    confirmLabel:"Aplicar a "+ids.length+" jogo"+(pl?"s":""),
     onConfirm:function(){
-      for(var i=0;i<alvo.length;i++)alvo[i].lineup=JSON.parse(JSON.stringify(lu));
+      var proms=[],n=0;
+      for(var i=0;i<ids.length;i++){
+        var o=gF(ids[i]); if(!o)continue; // referencia ATUAL em D.games
+        o.lineup=JSON.parse(JSON.stringify(lu)); n++;
+        if(typeof saveGame==="function")proms.push(saveGame(o).catch(function(){}));
+      }
+      // fixa e grava tambem o jogo modelo (o que esta na tela)
+      var mg=gF(gameId); if(mg){ mg.lineup=JSON.parse(JSON.stringify(lu)); if(typeof saveGame==="function")proms.push(saveGame(mg).catch(function(){})); }
+      if(typeof saveGame!=="function")save(); // fallback (nao deveria cair aqui)
       closeLineup();
-      toast("Escala\u00e7\u00e3o repetida em "+alvo.length+" jogo"+(pl?"s":""),"ok");
-      save();
+      toast("Escala\u00e7\u00e3o repetida em "+n+" jogo"+(n!==1?"s":""),"ok");
+      if(typeof render==="function")render();
     }
   });
 }

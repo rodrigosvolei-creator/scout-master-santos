@@ -62,20 +62,34 @@ setTimeout(function(){
   var g2Antes=lu('g2'), g3Antes=lu('g3'), doneAntes=lu('gDone'), liveAntes=lu('gLive'), outroAntes=lu('gOutro');
   chk(g2Antes==='a1:1' && g3Antes==='a1:1,a2:2','antes: g2/g3 tinham a escalacao antiga');
 
-  // 3) confirmModal mock: captura o texto e confirma
-  var modalBody=null; w.confirmModal=function(o){modalBody=o.body;o&&o.onConfirm&&o.onConfirm();};
+  // 3) captura o onConfirm SEM confirmar; conta as gravacoes GRANULARES (games/{idx})
+  var modalBody=null, pending=null;
+  w.confirmModal=function(o){modalBody=o.body;pending=o.onConfirm;};
+  var saveGameCalls=[]; var _sg=w.saveGame; w.saveGame=function(g){saveGameCalls.push(g.id);return _sg(g);};
   // (o modelo esta aberto com as 3 rows marcadas = a1,a2,a3)
   w.repeatLineupToOthers('gm');
-
   chk(/3 atletas/.test(modalBody||''),'confirmacao mostra "3 atletas"');
   chk(/RENEGADOS/.test(modalBody||'') && /SIDE OUT/.test(modalBody||''),'confirmacao lista os 2 jogos alvo pelo nome');
   chk(/substitu/i.test(modalBody||''),'confirmacao avisa que a escalacao atual sera substituida');
+  chk(typeof pending==='function','onConfirm capturado (modal aberto, ainda nao aplicou)');
 
-  // 4) EFEITO: g2 e g3 ficaram com a escalacao do modelo (3 atletas: a1:7,a2:10,a3:4)
+  // >>> BUG DO RODRIGO: entre abrir o modal e clicar "Aplicar", o listener .on("value")
+  //     / _resyncGames troca D.games por objetos NOVOS. A versao antiga guardava
+  //     REFERENCIAS dos alvos + gravava o array inteiro (save()) -> caia em cima de
+  //     objeto orfao e o RENEGADOS/SIDE OUT continuavam com a escalacao antiga.
+  w.D.games = JSON.parse(JSON.stringify(w.D.games)); // re-sync: novas identidades de objeto
+  pending(); // agora o operador clica "Aplicar a 2 jogos"
+
+  // 4) EFEITO nos objetos ATUAIS de D.games (nao nos orfaos), MESMO apos o re-sync
   var esperado='a1:7,a2:10,a3:4';
-  chk(lu('g2')===esperado,'g2 recebeu a escalacao do modelo (deu '+lu('g2')+')');
-  chk(lu('g3')===esperado,'g3 recebeu a escalacao do modelo (deu '+lu('g3')+')');
+  chk(lu('g2')===esperado,'g2 recebeu a escalacao MESMO apos re-sync (deu '+lu('g2')+')');
+  chk(lu('g3')===esperado,'g3 recebeu a escalacao MESMO apos re-sync (deu '+lu('g3')+')');
   chk(lu('gm')===esperado,'o modelo continua com a sua escalacao');
+
+  // 4b) gravou GRANULAR (saveGame games/{idx}) — nao o array inteiro
+  chk(saveGameCalls.indexOf('g2')>=0 && saveGameCalls.indexOf('g3')>=0,'gravou granular (saveGame) em g2 e g3 — deu ['+saveGameCalls.join(',')+']');
+  chk(saveGameCalls.indexOf('gm')>=0,'gravou tambem o jogo modelo (gm)');
+  chk(saveGameCalls.indexOf('gDone')<0 && saveGameCalls.indexOf('gLive')<0 && saveGameCalls.indexOf('gOutro')<0,'NAO gravou done/live/outro torneio');
 
   // 5) NAO tocou nos que nao devia
   chk(lu('gDone')===doneAntes,'jogo FINALIZADO nao foi alterado');
@@ -85,7 +99,6 @@ setTimeout(function(){
   // 6) copia PROFUNDA (mexer no alvo depois nao reflete no modelo)
   w.gF('g2').lineup[0].nu=99;
   chk(w.gF('gm').lineup[0].nu===7,'copia profunda: alterar g2 nao muda o modelo');
-  chk(saved>0,'save() foi chamado (persiste logado)');
 
   // 7) sem outros jogos por jogar -> nao mostra o botao / avisa
   //    (gOutro e o unico do torneio tB) -> alvos vazio

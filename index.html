@@ -869,6 +869,7 @@ body.rs-tablet .app-content{padding:6px;max-width:none}
 .sct-courtbtns{display:flex;gap:6px;margin-top:8px}
 .sct-courtbtns button{flex:1;background:#16213c;border:1px solid #243049;border-radius:8px;color:#cbd5e1;padding:9px 2px;font-size:11px;cursor:pointer;font-family:inherit}
 .sct-courtbtns button:active{transform:scale(.97)}
+.sct-courtbtns button.sct-rotback{background:#2a2410;border-color:#5a4a1a;color:#fbbf24}
 /* liberos (cards prontos pra selecionar) */
 .sct-libslot{margin-top:8px}
 .sct-libhint{font-size:11px;color:#93a4c0;margin:2px 0 4px}
@@ -1214,7 +1215,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-27a - relatorio CONSOLIDADO do torneio (soma todos os jogos com scout, ad-hoc de mesmo nome fundido); miolo do relatorio extraido (_reportCoreHTML)";
+var APP_BUILD="2026-07-27b - relatorio CONSOLIDADO do torneio; modo tablet: botao 'Voltar' (rodar ao contrario) pra corrigir a rotacao";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -7370,7 +7371,7 @@ function sctRenderLeft(gm,gp,te,cs){
     }
     h+='</div>';
   }
-  h+='<div class="sct-courtbtns"><button onclick="courtSub()">🔄 Substituir</button><button onclick="courtManualRotate(1)">↻ Rodar</button></div>';
+  h+='<div class="sct-courtbtns"><button onclick="courtSub()">🔄 Substituir</button><button onclick="courtManualRotate(1)">↻ Rodar</button><button class="sct-rotback" onclick="courtManualRotate(-1)" title="Rodar ao contrário — corrigir rotação (indefinição da arbitragem, ponto marcado por engano)">↺ Voltar</button></div>';
   h+=sctRenderLiberos(gm,gp,cs);
   return h;
 }

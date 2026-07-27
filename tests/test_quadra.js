@@ -124,6 +124,27 @@ setTimeout(()=>{
     chk(!!w.courtCur(w.gF('g_court')),'courtCur retorna o estado do set atual no modo quadra');
     chk(w.courtCur(w.gF('g_nocourt'))===null,'courtCur retorna null fora do modo quadra');
 
+    // 11. RODAR AO CONTRARIO (Rodrigo): botao manual pra corrigir a rotacao
+    //     (indefinicao da arbitragem / ponto marcado por engano). courtManualRotate(-1).
+    w.render=function(){}; // isola o render
+    w.S={aid:'g_court',sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};
+    // (re-le via gF apos cada acao: a persistencia troca o objeto em D.games)
+    var curPos=function(){return w.gF('g_court').court["1"].pos;};
+    w.gF('g_court').court["1"]={pos:base.slice(),serving:"us"};
+    w.courtManualRotate(1);  // roda pra frente
+    chk(eq(curPos(),["p2","p3","p4","p5","p6","p1"]),'courtManualRotate(1): roda pra frente');
+    w.courtManualRotate(-1); // roda ao contrario -> volta ao inicio
+    chk(eq(curPos(),base),'courtManualRotate(-1): RODAR AO CONTRARIO desfaz o giro (volta a formacao)');
+    w.courtManualRotate(-1); // e volta mais uma (independente de ter rodado antes)
+    chk(eq(curPos(),["p6","p1","p2","p3","p4","p5"]),'courtManualRotate(-1): roda pra tras a partir da formacao atual');
+
+    // 12. O botao "Voltar" (rodar ao contrario) aparece na COLUNA DO TABLET (sctRenderLeft)
+    var gmt=w.gF('g_court'); gmt.court["1"]={pos:base.slice(),serving:"us"};
+    var gp=w._courtGp(gmt), te=w.tF('trs'), cs=gmt.court["1"];
+    var leftHTML=w.sctRenderLeft(gmt,gp,te,cs);
+    chk(leftHTML.indexOf('courtManualRotate(-1)')>=0,'tablet: botao "Voltar" (rodar ao contrario) presente na coluna da quadra');
+    chk(leftHTML.indexOf('courtManualRotate(1)')>=0,'tablet: botao "Rodar" (pra frente) continua presente');
+
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK QUADRA Q0 APROVADA':'FAIL QUADRA Q0 REPROVADA');
     process.exit(ko===0?0:1);

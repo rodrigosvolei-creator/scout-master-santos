@@ -1214,7 +1214,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-24b - fix: repetir escalacao grava granular (saveGame) e re-busca por id — persistia so na memoria e o re-sync desfazia";
+var APP_BUILD="2026-07-27a - relatorio CONSOLIDADO do torneio (soma todos os jogos com scout, ad-hoc de mesmo nome fundido); miolo do relatorio extraido (_reportCoreHTML)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -2966,7 +2966,9 @@ function renderTorneioCards(tor){
   h+='</div>';
 
   // Botao de criar jogo
-  h+='<div style="position:relative;z-index:1;text-align:center;margin:6px 0 4px"><button class="tnj-btn" onclick="openTorneioNovoJogo()">\u2795 Novo Jogo</button></div>';
+  h+='<div style="position:relative;z-index:1;text-align:center;margin:6px 0 4px"><button class="tnj-btn" onclick="openTorneioNovoJogo()">\u2795 Novo Jogo</button>';
+  if(_tourGames(torneioId).length)h+=' <button class="tnj-btn" style="background:linear-gradient(100deg,#0b7a3d,#12a656)" onclick="exTournamentReport(\''+torneioId+'\')">\ud83d\udcca Relat\u00f3rio do torneio</button>';
+  h+='</div>';
 
   if(!games.length){
     h+='<div style="padding:40px 20px;text-align:center;color:rgba(255,255,255,.55);position:relative;z-index:1"><div style="font-size:38px;margin-bottom:10px">\uD83C\uDFD0</div>Nenhum jogo cadastrado ainda.<br>Use <b style="color:#60a5fa">\u2795 Novo Jogo</b> para criar o primeiro.</div>';
@@ -5221,8 +5223,9 @@ function rTorDetail(torId){
     var _gdOrd=orderGamesForBoard(games);var gdGames=_gdOrd.games;var gdNextId=_gdOrd.nextId;
     // Fase B2.2: botao Novo Jogo no topo do gameday \u2014 visivel pra admin/coord.
     // Fase C: oculto quando torneio arquivado (so-leitura).
-    if((isCoord||isAdmin) && !torArchived){
-      h+='<div style="display:flex;justify-content:flex-end;margin-bottom:14px;position:relative;z-index:1"><button class="tnj-btn" onclick="openTorneioNovoJogo()">\u2795 Novo Jogo</button></div>';
+    var _gdRep=_tourGames(t.id).length?'<button class="tnj-btn" style="background:linear-gradient(100deg,#0b7a3d,#12a656)" onclick="exTournamentReport(\''+t.id+'\')">\ud83d\udcca Relat\u00f3rio do torneio</button>':'';
+    if(((isCoord||isAdmin) && !torArchived) || _gdRep){
+      h+='<div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:14px;position:relative;z-index:1">'+_gdRep+(((isCoord||isAdmin) && !torArchived)?'<button class="tnj-btn" onclick="openTorneioNovoJogo()">\u2795 Novo Jogo</button>':'')+'</div>';
     }
     if(!gdGames.length){
       h+='<div style="padding:40px 20px;text-align:center;color:var(--rs-fg-mute);position:relative;z-index:1"><div style="font-size:38px;margin-bottom:10px">\ud83c\udfd0</div>Nenhum jogo cadastrado neste torneio.</div>';
@@ -8051,6 +8054,13 @@ function _repCSS(){
   +'.method ul{margin:0;padding:13px 18px;list-style:none;display:flex;flex-direction:column;gap:9px}.method.two ul{display:grid;grid-template-columns:1fr 1fr;gap:9px 26px}'
   +'.method li{font-size:13px;display:flex;gap:10px;align-items:flex-start;line-height:1.4}.method li .ck{color:#63e29a;flex:none;margin-top:1px;width:16px;height:16px}.method li i{width:6px;height:6px;border-radius:2px;background:linear-gradient(var(--rs-a),var(--rs-b));margin-top:6px;flex:none}.method b{color:#fff;font-weight:800}'
   +'.fnote{text-align:center;font-size:12px;color:var(--muted);padding:2px 0 6px}.fnote b{color:var(--ink)}'
+  /* lista de jogos do consolidado do torneio */
+  +'.gmlist{display:flex;flex-direction:column;gap:7px}'
+  +'.gm-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surf-2);border:1px solid var(--line);border-radius:10px}'
+  +'.gm-opp{flex:1;min-width:0;font-family:var(--fd);font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+  +'.gm-sc{font-family:var(--fx);font-size:19px;color:var(--navy-2);letter-spacing:.5px}'
+  +'.gm-res{font-family:var(--fd);font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:3px 9px;border-radius:20px;flex:none}'
+  +'.gm-v{background:var(--good-bg);color:var(--good-d)}.gm-d{background:var(--bad-bg);color:var(--bad)}.gm-n{background:var(--surf-2);color:var(--muted)}'
   +'@media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.tops{grid-template-columns:repeat(2,1fr)}.dest{grid-template-columns:repeat(2,1fr)}.foot2{grid-template-columns:1fr}.method.two ul{grid-template-columns:1fr}.hero-in{flex-wrap:wrap}}'
   +'@media print{.wrap{padding:0;background:#fff}.report{gap:9px}.card,.kpi,.top-card,.dcard,.method,.hero{break-inside:avoid}}'
   +'</style>';
@@ -8063,8 +8073,12 @@ function _ae(bf){var p=bf?bf.pos:0,e=bf?bf.err:0;return '<span class="ae"><span 
 // valor A/E do card (traço quando o fundamento nao teve acao)
 function _aeV(bf){if(!bf||!bf.n)return '<span class="aez">—</span>';var p=bf.pos,e=bf.err;return '<span class="'+(p>0?"aeg":"aez")+'">'+p+'</span><span class="s">/</span><span class="'+(e>0?"aeb":"aez")+'">'+e+'</span>';}
 // ===== RELATORIO DE TIME (partida) =====
-function reportTeamHTML(g){
-  var agg=repAgg(g), players=agg.players.slice(), T=agg.team;
+// Miolo do relatorio de time (KPIs + tabela geral + tops + destaques + focos + metodo),
+// reusado pelo relatorio de UM jogo (reportTeamHTML) e pelo CONSOLIDADO do torneio
+// (reportTournamentHTML). opts: {teamName, gidOf(pid)->gameId (resolve nome/ad-hoc),
+// clickable (linha do atleta abre o individual), nSets, scope ('jogo'|'torneio'), fnote}.
+function _reportCoreHTML(agg, opts){
+  var players=agg.players.slice(), T=agg.team;
   // ranking por APROVEITAMENTO (%); atletas com pouco volume (<4 acoes com resultado) nao furam o topo
   players.sort(function(a,b){
     var qa=(a.pos+a.err)>=4?1:0, qb=(b.pos+b.err)>=4?1:0;
@@ -8072,20 +8086,15 @@ function reportTeamHTML(g){
     var av=(a.aprov==null?-1:a.aprov), bv=(b.aprov==null?-1:b.aprov);
     return bv-av || b.saldo-a.saldo || b.pos-a.pos;
   });
-  var te=(g.tid&&typeof tF==="function")?tF(g.tid):null, teamName=te?te.n:"RS-Voleibol";
-  var s=_repSets(g), nSets=Math.max(1,s.rs+s.adv);
+  var gidOf=opts.gidOf, clickable=opts.clickable, teamName=opts.teamName, nSets=opts.nSets;
+  var scopeW=(opts.scope==='torneio'?'no torneio':'no jogo');
   var sgn=function(x){return (x>0?"+":"")+x;};
-  var h=_repCSS()+'<div class="wrap">'+_repIcons()+'<div class="report">';
-  // HERO
-  h+='<div class="hero">'+_courtSVG+'<div class="glow"></div><div class="hero-in">';
-  h+='<div class="side"><div class="crest" style="color:#fff">'+_ic("i-ball")+'</div><div><div class="tname">'+esc(teamName)+'</div><div class="tmeta">'+players.length+' atletas'+(g.dt?' · '+esc(fD(g.dt)):'')+'</div></div></div>';
-  h+='<div class="score"><div class="sets"><span class="'+(s.rs>s.adv?"win":s.rs<s.adv?"lose":"")+'">'+s.rs+'</span><span class="x">×</span><span class="'+(s.adv>s.rs?"win":s.adv<s.rs?"lose":"")+'">'+s.adv+'</span></div><div class="lb">Sets</div>'+(s.parc.length?'<div class="parc">'+esc(s.parc.join("   ·   "))+'</div>':'')+'</div>';
-  h+='<div class="side r"><div><div class="tname opp">'+esc(g.opp||"Adversário")+'</div><div class="tmeta">Adversário</div></div><div class="crest opp" style="color:#c3cee2">'+_ic("i-shield")+'</div></div>';
-  h+='</div></div>';
+  var sn=function(pid){return _short(pid, gidOf(pid));};
+  var h='';
   // KPIs
   h+='<div class="kpis">';
   h+='<div class="kpi"><div class="k-top"><span class="k-ic" style="background:var(--good-bg);color:var(--good-d)">'+_ic("i-check")+'</span><span class="k-lb">Acertos</span></div><div class="k-big" style="color:var(--good-d)">'+T.pos+'</div><div class="k-ft">positivos pela régua · '+nSets+' set'+(nSets>1?"s":"")+'</div></div>';
-  h+='<div class="kpi"><div class="k-top"><span class="k-ic" style="background:var(--bad-bg);color:var(--bad)">'+_ic("i-x")+'</span><span class="k-lb">Erros</span></div><div class="k-big" style="color:var(--bad)">'+T.err+'</div><div class="k-ft">erros do time no jogo</div></div>';
+  h+='<div class="kpi"><div class="k-top"><span class="k-ic" style="background:var(--bad-bg);color:var(--bad)">'+_ic("i-x")+'</span><span class="k-lb">Erros</span></div><div class="k-big" style="color:var(--bad)">'+T.err+'</div><div class="k-ft">erros do time '+scopeW+'</div></div>';
   h+='<div class="kpi"><div class="k-top"><span class="k-lb">Aproveitamento</span><div class="ring" style="--p:'+(T.aprov||0)+'"><b>'+(T.aprov==null?"–":T.aprov+"%")+'</b></div></div><div class="k-big">'+sgn(T.saldo)+'</div><div class="k-ft">saldo ('+T.pos+' − '+T.err+')</div></div>';
   h+='<div class="kpi"><div class="k-top"><span class="k-ic" style="background:var(--surf-2);color:var(--navy-2)">'+_ic("i-users")+'</span><span class="k-lb">Pontuaram</span></div><div class="k-big">'+T.nScored+'<span style="font-size:.5em;color:var(--muted)">/'+T.nPlayers+'</span></div><div class="k-ft">atletas com ação positiva</div></div>';
   h+='</div>';
@@ -8096,7 +8105,9 @@ function reportTeamHTML(g){
     var p=players[i], medaled=(i<3&&p.pos>0);
     var rk=medaled?('<span class="medal m'+(i+1)+'">'+(i+1)+'</span>'):('<span class="pos">'+(i+1)+'</span>');
     var apLow=(p.aprov!=null&&p.aprov<70)?" low":"";
-    h+='<tr class="'+(medaled?"top":"")+'"><td class="l"><span class="rk" style="cursor:pointer" onclick="exPlayerReport(\''+g.id+'\',\''+p.pid+'\')" title="Ver relatório individual">'+rk+esc(_short(p.pid,g.id))+'</span></td>';
+    var nm=esc(sn(p.pid));
+    var cell=clickable?('<span class="rk" style="cursor:pointer" onclick="exPlayerReport(\''+gidOf(p.pid)+'\',\''+p.pid+'\')" title="Ver relatório individual">'+rk+nm+'</span>'):('<span class="rk">'+rk+nm+'</span>');
+    h+='<tr class="'+(medaled?"top":"")+'"><td class="l">'+cell+'</td>';
     for(var fo=0;fo<_fOrd.length;fo++)h+='<td>'+_aeV(p.byF[_fOrd[fo]])+'</td>';
     h+='<td class="mut" style="font-weight:800">'+p.n+'</td>';
     h+='<td><span class="tot"><b class="'+(p.pos>0?"aeg":"aez")+'">'+p.pos+'</b><span class="s">/</span><b class="'+(p.err>0?"aeb":"aez")+'">'+p.err+'</b></span></td>';
@@ -8104,9 +8115,9 @@ function reportTeamHTML(g){
   }
   h+='</tbody></table></div></div></div>';
   // TOPS
-  function topBy(fn){var a=[];for(var k=0;k<players.length;k++){var v=fn(players[k]);if(v>0)a.push({who:_short(players[k].pid,g.id),v:v});}a.sort(function(x,y){return y.v-x.v;});return a.slice(0,3);}
+  function topBy(fn){var a=[];for(var k=0;k<players.length;k++){var v=fn(players[k]);if(v>0)a.push({who:sn(players[k].pid),v:v});}a.sort(function(x,y){return y.v-x.v;});return a.slice(0,3);}
   function topCard(cls,icon,title,list){var b="";if(!list.length)b='<div class="tr"><span class="empty">Sem registro</span></div>';else for(var k=0;k<list.length;k++)b+='<div class="tr"><span class="rn'+(k===0?" g1":"")+'">'+(k+1)+'</span><span class="who">'+esc(list[k].who)+'</span><span class="v">'+list[k].v+'</span></div>';return '<div class="top-card"><div class="top-hd '+cls+'">'+_ic(icon)+'<h4>'+title+'</h4></div><div class="top-bd">'+b+'</div></div>';}
-  var zero=[];for(var z=0;z<players.length;z++)if(players[z].err===0&&players[z].pos>0)zero.push({who:_short(players[z].pid,g.id),pos:players[z].pos});
+  var zero=[];for(var z=0;z<players.length;z++)if(players[z].err===0&&players[z].pos>0)zero.push({who:sn(players[z].pid),pos:players[z].pos});
   zero.sort(function(x,y){return y.pos-x.pos;});zero=zero.slice(0,4);
   var zb=zero.length?"":'<div class="tr"><span class="empty">Ninguém 100%</span></div>';
   for(var zz=0;zz<zero.length;zz++)zb+='<div class="tr"><span class="who">'+esc(zero[zz].who)+'</span><svg class="chk" viewBox="0 0 24 24"><use href="#i-check"/></svg></div>';
@@ -8122,10 +8133,10 @@ function reportTeamHTML(g){
   function dcard(grad,icon,tt,vv,ss){return '<div class="dcard"><div class="di" style="background:'+grad+'">'+_ic(icon)+'</div><div class="dt">'+tt+'</div><div class="dv">'+esc(vv)+'</div><div class="ds">'+esc(ss)+'</div></div>';}
   var atkN=dAtk&&dAtk.byF.ataque?dAtk.byF.ataque.n:0;
   h+='<div class="dest">';
-  h+=dcard("linear-gradient(135deg,var(--good),var(--good-d))","i-atk","Ataque cirúrgico",dAtk?_short(dAtk.pid,g.id):"—",dAtk?(_atk(dAtk)+" pontos em "+atkN+" ataques ("+(atkN?Math.round(_atk(dAtk)/atkN*100):0)+"%)"):"sem ataque pontuado");
-  h+=dcard("linear-gradient(135deg,var(--pass),#12539f)","i-block","Muralha",dBlk?_short(dBlk.pid,g.id):"—",dBlk?(_blk(dBlk)+" ponto"+(_blk(dBlk)>1?"s":"")+" de bloqueio"):"sem ponto de bloqueio");
-  h+=dcard("linear-gradient(135deg,var(--rs-a),var(--rs-b))","i-star","Mais completo",(dCmp&&nFund(dCmp)>0)?_short(dCmp.pid,g.id):"—",(dCmp&&nFund(dCmp)>0)?("pontua em "+nFund(dCmp)+" fundamento"+(nFund(dCmp)>1?"s":"")+(dCmp.aprov!=null?", "+dCmp.aprov+"%":"")):"—");
-  h+=dcard("linear-gradient(135deg,var(--warn),#b06a00)","i-check","Zero erro",zero.length?(zero.length+(zero.length>1?" atletas":" atleta")):"—",zero.length?"aproveitamento total no jogo":"todos tiveram algum erro");
+  h+=dcard("linear-gradient(135deg,var(--good),var(--good-d))","i-atk","Ataque cirúrgico",dAtk?sn(dAtk.pid):"—",dAtk?(_atk(dAtk)+" pontos em "+atkN+" ataques ("+(atkN?Math.round(_atk(dAtk)/atkN*100):0)+"%)"):"sem ataque pontuado");
+  h+=dcard("linear-gradient(135deg,var(--pass),#12539f)","i-block","Muralha",dBlk?sn(dBlk.pid):"—",dBlk?(_blk(dBlk)+" ponto"+(_blk(dBlk)>1?"s":"")+" de bloqueio"):"sem ponto de bloqueio");
+  h+=dcard("linear-gradient(135deg,var(--rs-a),var(--rs-b))","i-star","Mais completo",(dCmp&&nFund(dCmp)>0)?sn(dCmp.pid):"—",(dCmp&&nFund(dCmp)>0)?("pontua em "+nFund(dCmp)+" fundamento"+(nFund(dCmp)>1?"s":"")+(dCmp.aprov!=null?", "+dCmp.aprov+"%":"")):"—");
+  h+=dcard("linear-gradient(135deg,var(--warn),#b06a00)","i-check","Zero erro",zero.length?(zero.length+(zero.length>1?" atletas":" atleta")):"—",zero.length?("aproveitamento total "+scopeW):"todos tiveram algum erro");
   h+='</div>';
   // FOCOS + REGUA
   var focos=[];
@@ -8137,7 +8148,21 @@ function reportTeamHTML(g){
   var fl="";for(var fi=0;fi<focos.length;fi++)fl+='<li><svg class="ck" viewBox="0 0 24 24"><use href="#i-check"/></svg><span>'+focos[fi]+'</span></li>';
   h+='<div class="foot2"><div class="method"><div class="m-hd"><span style="color:#7fe3a8">'+_ic("i-check")+'</span><h3>Próximos focos</h3></div><ul>'+fl+'</ul></div>';
   h+='<div class="method"><div class="m-hd"><span style="color:#ff7ab8">'+_ic("i-eq")+'</span><h3>Como os números são calculados</h3></div><ul><li><i></i><span><b>Passe, defesa e levantamento:</b> positivo é só a ação A.</span></li><li><i></i><span><b>Ataque e bloqueio:</b> positivo é o ponto; bloqueado e erro descontam.</span></li><li><i></i><span><b>Saque:</b> positivo é não errar; o ace conta como ponto.</span></li><li><i></i><span><b>Total:</b> soma do time = soma dos atletas.</span></li></ul></div></div>';
-  h+='<div class="fnote"><b>RS-SCOUT</b> · relatório da partida gerado do jogo, com a régua certa · '+(new Date().toLocaleDateString("pt-BR"))+'</div>';
+  h+='<div class="fnote">'+opts.fnote+'</div>';
+  return h;
+}
+function reportTeamHTML(g){
+  var agg=repAgg(g);
+  var te=(g.tid&&typeof tF==="function")?tF(g.tid):null, teamName=te?te.n:"RS-Voleibol";
+  var s=_repSets(g), nSets=Math.max(1,s.rs+s.adv);
+  var h=_repCSS()+'<div class="wrap">'+_repIcons()+'<div class="report">';
+  // HERO
+  h+='<div class="hero">'+_courtSVG+'<div class="glow"></div><div class="hero-in">';
+  h+='<div class="side"><div class="crest" style="color:#fff">'+_ic("i-ball")+'</div><div><div class="tname">'+esc(teamName)+'</div><div class="tmeta">'+agg.players.length+' atletas'+(g.dt?' · '+esc(fD(g.dt)):'')+'</div></div></div>';
+  h+='<div class="score"><div class="sets"><span class="'+(s.rs>s.adv?"win":s.rs<s.adv?"lose":"")+'">'+s.rs+'</span><span class="x">×</span><span class="'+(s.adv>s.rs?"win":s.adv<s.rs?"lose":"")+'">'+s.adv+'</span></div><div class="lb">Sets</div>'+(s.parc.length?'<div class="parc">'+esc(s.parc.join("   ·   "))+'</div>':'')+'</div>';
+  h+='<div class="side r"><div><div class="tname opp">'+esc(g.opp||"Adversário")+'</div><div class="tmeta">Adversário</div></div><div class="crest opp" style="color:#c3cee2">'+_ic("i-shield")+'</div></div>';
+  h+='</div></div>';
+  h+=_reportCoreHTML(agg,{teamName:teamName,gidOf:function(){return g.id;},clickable:true,nSets:nSets,scope:'jogo',fnote:'<b>RS-SCOUT</b> · relatório da partida gerado do jogo, com a régua certa · '+(new Date().toLocaleDateString("pt-BR"))});
   h+='</div></div>';
   return h;
 }
@@ -8146,6 +8171,76 @@ function exTeamReport(gid){
   if(!g||!g.act||!g.act.length){alert("Este jogo ainda não tem ações registradas.");return;}
   var te=(g.tid&&typeof tF==="function")?tF(g.tid):null;
   openPdfOverlay(reportTeamHTML(g),"Relatório — "+(te?te.n:"")+" vs "+(g.opp||""));
+}
+// ===== RELATORIO CONSOLIDADO DO TORNEIO (soma de todos os jogos com scout) =====
+// Jogos do torneio que ja tem acoes, em ordem cronologica.
+function _tourGames(torId){
+  var out=[]; if(!D||!D.games)return out;
+  for(var i=0;i<D.games.length;i++){var g=D.games[i]; if(g&&g.torId===torId&&g.act&&g.act.length)out.push(g);}
+  out.sort(function(a,b){return ((a.dt||"")+(a.tm||"")).localeCompare((b.dt||"")+(b.tm||""));});
+  return out;
+}
+// Consolida entradas AD-HOC do mesmo atleta: a mesma pessoa inserida como atleta
+// avulso em jogos diferentes ganha aids diferentes (adhoc_xxx) e apareceria como
+// linhas repetidas no consolidado. Funde ad-hoc de MESMO NOME numa so. Atletas
+// CADASTRADOS (aid real) NUNCA sao fundidos — cada um tem seu id, ficam intactos.
+function _tourNorm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim();}
+function _consolidatePids(acts, pidGid){
+  var pids={},order=[];
+  for(var i=0;i<acts.length;i++){var pid=acts[i].pid;if(pid!=null&&!pids.hasOwnProperty(pid)){pids[pid]=1;order.push(pid);}}
+  var canon={}, adhocByName={};
+  for(var j=0;j<order.length;j++){
+    var pid=order[j];
+    var pf=(typeof pFind==="function")?pFind(pid, pidGid[pid]):null;
+    var adhoc=(pf&&(pf.adhoc||pf.orphan))||String(pid).indexOf("adhoc")>=0;
+    if(adhoc){
+      var nk=_tourNorm(pf&&pf.nm?pf.nm:pid);
+      if(!adhocByName[nk])adhocByName[nk]=pid;
+      canon[pid]=adhocByName[nk];
+    }else{canon[pid]=pid;}
+  }
+  return acts.map(function(a){ if(a.pid!=null && canon[a.pid] && canon[a.pid]!==a.pid){var c={};for(var k in a)c[k]=a[k];c.pid=canon[a.pid];return c;} return a; });
+}
+function reportTournamentHTML(torId){
+  var tor=(typeof tFnd==="function")?tFnd(torId):null, torName=tor?tor.n:"Torneio";
+  var games=_tourGames(torId);
+  if(!games.length)return _repCSS()+'<div class="wrap"><div class="report"><div class="card"><div class="card-bd">Nenhum jogo com scout registrado neste torneio ainda.</div></div></div></div>';
+  var allActs=[], pidGid={}, W=0,L=0,setsW=0,setsL=0, gmeta=[], teamId=null;
+  for(var i=0;i<games.length;i++){
+    var gm=games[i]; if(!teamId&&gm.tid)teamId=gm.tid;
+    var s=_repSets(gm); setsW+=s.rs; setsL+=s.adv;
+    var res=(s.rs>s.adv)?"V":((s.adv>s.rs)?"D":"-"); if(res==="V")W++; else if(res==="D")L++;
+    gmeta.push({opp:gm.opp||"?", rs:s.rs, adv:s.adv, res:res});
+    for(var a=0;a<gm.act.length;a++){var ac=gm.act[a]; allActs.push(ac); if(ac.pid!=null&&!pidGid[ac.pid])pidGid[ac.pid]=gm.id;}
+  }
+  allActs=_consolidatePids(allActs, pidGid); // funde ad-hoc de mesmo nome (Regis/Robert/Andre em jogos diferentes)
+  var agg=repAgg(null, allActs);
+  var te=(teamId&&typeof tF==="function")?tF(teamId):null, teamName=te?te.n:"RS-Voleibol";
+  var totSets=Math.max(1,setsW+setsL);
+  var h=_repCSS()+'<div class="wrap">'+_repIcons()+'<div class="report">';
+  // HERO consolidado
+  h+='<div class="hero">'+_courtSVG+'<div class="glow"></div><div class="hero-in">';
+  h+='<div class="side"><div class="crest" style="color:#fff">'+_ic("i-ball")+'</div><div><div class="tname">'+esc(teamName)+'</div><div class="tmeta">'+esc(torName)+' · '+agg.players.length+' atletas</div></div></div>';
+  h+='<div class="score"><div class="sets"><span class="'+(W>L?"win":W<L?"lose":"")+'">'+W+'</span><span class="x">×</span><span class="'+(L>W?"win":L<W?"lose":"")+'">'+L+'</span></div><div class="lb">'+games.length+' jogo'+(games.length>1?"s":"")+'</div><div class="parc">'+setsW+' × '+setsL+' sets</div></div>';
+  h+='<div class="side r"><div><div class="tname opp">Consolidado</div><div class="tmeta">do torneio</div></div><div class="crest opp" style="color:#c3cee2">'+_ic("i-star")+'</div></div>';
+  h+='</div></div>';
+  // JOGOS DO TORNEIO
+  h+='<div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-ball")+'</span><h3>Jogos do torneio</h3><span class="tag">'+W+'V · '+L+'D</span></div><div class="card-bd"><div class="gmlist">';
+  for(var gi=0;gi<gmeta.length;gi++){var gx=gmeta[gi];
+    var badge=gx.res==="V"?'<span class="gm-res gm-v">Vitória</span>':(gx.res==="D"?'<span class="gm-res gm-d">Derrota</span>':'<span class="gm-res gm-n">—</span>');
+    h+='<div class="gm-row"><span class="gm-opp">vs '+esc(gx.opp)+'</span><span class="gm-sc">'+gx.rs+' × '+gx.adv+'</span>'+badge+'</div>';
+  }
+  h+='</div></div></div>';
+  // MIOLO consolidado (tabela + tops + destaques + focos) — linhas nao clicaveis (nao ha 1 jogo so)
+  h+=_reportCoreHTML(agg,{teamName:teamName,gidOf:function(pid){return pidGid[pid]||games[0].id;},clickable:false,nSets:totSets,scope:'torneio',fnote:'<b>RS-SCOUT</b> · consolidado do torneio '+esc(torName)+' ('+games.length+' jogo'+(games.length>1?"s":"")+') · '+(new Date().toLocaleDateString("pt-BR"))});
+  h+='</div></div>';
+  return h;
+}
+function exTournamentReport(torId){
+  var games=_tourGames(torId);
+  if(!games.length){alert("Nenhum jogo com scout registrado neste torneio ainda.");return;}
+  var tor=(typeof tFnd==="function")?tFnd(torId):null;
+  openPdfOverlay(reportTournamentHTML(torId),"Relatório — "+(tor?tor.n:"Torneio"));
 }
 // ===== RELATORIO INDIVIDUAL (player-card) =====
 var _REP_ORD=["ataque","recepcao","bloqueio","saque","defesa","levantamento"];

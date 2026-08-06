@@ -6,6 +6,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a0a1a">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="RS Scout">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="application-name" content="RS Scout">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="icon" type="image/png" sizes="48x48" href="./favicon.png">
 <title>RS-SCOUT — Sistema Oficial</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -1215,7 +1222,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-27b - relatorio CONSOLIDADO do torneio; modo tablet: botao 'Voltar' (rodar ao contrario) pra corrigir a rotacao";
+var APP_BUILD="2026-07-27c - PWA Fase 1: instalavel (manifest+icones), abre offline (service worker/app shell), auto-update; nao mexe no scout";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -8617,5 +8624,14 @@ function renderLivePanel(){
 
 
 
+</script>
+<script>
+/* PWA: registra o Service Worker (app instalável + offline do shell + auto-update).
+   Fora do escopo do app principal pra nao competir com o boot. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(e){ console.warn('[PWA] SW nao registrou:', e && e.message); });
+  });
+}
 </script>
 </body></html>

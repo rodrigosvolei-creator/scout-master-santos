@@ -154,6 +154,15 @@ setTimeout(()=>{
   chk(divBal(hi)===0,'individual atacante: divs balanceadas (deu '+divBal(hi)+')');
   chk(divBal(w.reportTeamHTML(g))===0,'time: divs balanceadas');
 
+  // ---- PRINT/PDF: bug real (Rodrigo) — relatorio CORTAVA no A4 (coluna Aprov. cortada na
+  // direita, 4 KPIs numa linha estourando, fundo escuro vazando, cards partidos na virada).
+  var pcss=w._repCSS(); var pblock=pcss.slice(pcss.indexOf('@media print'));
+  chk(/186mm/.test(pblock),'print: largura travada no A4 (nao estoura a direita / corta a coluna Aprov.)');
+  chk(/\.tscroll\{overflow:visible/.test(pblock),'print: tabela sem scroll (scroll no papel = corte)');
+  chk(/\.kpis,\.tops,\.dest\{grid-template-columns:repeat\(2/.test(pblock),'print: layout compacto 2 colunas (KPIs nao estouram a folha)');
+  chk(/\.tops[^}]*\{[^}]*break-inside:avoid|,\.tops,[^}]*break-inside:avoid/.test(pblock) || pblock.indexOf('.tops,.dest,.foot2')>=0,'print: blocos de grid inteiros por pagina (nao corta card na virada)');
+  chk(html.indexOf('html,body{background:#fff!important}')>=0,'print overlay: forca fundo branco (nao vaza o tema escuro do app)');
+
   console.log('\n=== test_relatorio: '+ok+' OK, '+ko+' FAIL ===');
   process.exit(ko>0?1:0);
  }catch(e){console.log('FAIL exception:',e.message);console.log((e.stack||'').split('\n').slice(0,6).join('\n'));process.exit(1);}

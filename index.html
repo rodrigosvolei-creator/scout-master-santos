@@ -1093,11 +1093,12 @@ body.rs-shell .app-content .sc-fitem .fset,
    desktop, Android e iOS — sem depender de iframe.contentWindow.print(). */
 body.pdf-overlay-open{overflow:hidden}
 @media print{
+  html,body{background:#fff!important}          /* nunca deixa o fundo escuro do app vazar pro papel */
   body > *:not(#pdfOverlay){display:none!important}
   body.pdf-overlay-open{overflow:visible}
-  #pdfOverlay{position:static;height:auto;overflow:visible;display:block}
+  #pdfOverlay{position:static;height:auto;overflow:visible;display:block;background:#fff}
   #pdfOverlay .no-print{display:none!important}
-  #pdfOverlay .pdf-overlay-doc{overflow:visible;padding:0}
+  #pdfOverlay .pdf-overlay-doc{overflow:visible;padding:0;background:#fff}
   @page{margin:1cm}
 }
 
@@ -1222,7 +1223,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-27d - card de novo jogo: opcao '3 sets obrigatorios (todos a 25)' (fixed3) — set 3 nao acaba em 15 como o tie do melhor-de-3";
+var APP_BUILD="2026-07-27e - fix PDF/impressao do relatorio: nao corta mais (largura travada no A4, KPIs 2x2, tabela sem scroll, cards inteiros por pagina, fundo branco)";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -8073,7 +8074,22 @@ function _repCSS(){
   +'.gm-res{font-family:var(--fd);font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:3px 9px;border-radius:20px;flex:none}'
   +'.gm-v{background:var(--good-bg);color:var(--good-d)}.gm-d{background:var(--bad-bg);color:var(--bad)}.gm-n{background:var(--surf-2);color:var(--muted)}'
   +'@media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.tops{grid-template-columns:repeat(2,1fr)}.dest{grid-template-columns:repeat(2,1fr)}.foot2{grid-template-columns:1fr}.method.two ul{grid-template-columns:1fr}.hero-in{flex-wrap:wrap}}'
-  +'@media print{.wrap{padding:0;background:#fff}.report{gap:9px}.card,.kpi,.top-card,.dcard,.method,.hero{break-inside:avoid}}'
+  +'@media print{.report{gap:9px}'
+  /* LARGURA: o print do Chrome/Safari as vezes usa a largura da TELA como layout,
+     jogando 4 KPIs numa linha e a tabela larga -> a direita (coluna Aprov.) era CORTADA.
+     Trava tudo na largura util do A4 e forca o layout compacto (2 colunas). */
+  +'.wrap{width:186mm!important;max-width:186mm!important;margin:0 auto!important;padding:0!important;background:#fff}'
+  +'.kpis,.tops,.dest{grid-template-columns:repeat(2,1fr)!important}'
+  +'.grid2,.foot2,.method.two ul{grid-template-columns:1fr!important}'
+  +'.hero-in{flex-wrap:wrap}'
+  /* tabela: sem scroll (no papel scroll = corte); cabe encolhendo o min-width */
+  +'.tscroll{overflow:visible!important}table.tg{min-width:0!important}'
+  /* cada bloco (card, KPIs, tops, destaques, focos, pares) fica inteiro na pagina —
+     senao o grid quebra no meio da linha e CORTA os cards na virada da folha */
+  +'.hero,.kpi,.card,.top-card,.dcard,.method,.kpis,.tops,.dest,.foot2,.grid2,.bars,.qmeta,.qbar{break-inside:avoid;page-break-inside:avoid}'
+  /* tabela longa (muitos atletas): se precisar quebrar, quebra ENTRE linhas e repete o cabecalho — nunca corta uma linha */
+  +'table.tg tr,table.tif tr{break-inside:avoid;page-break-inside:avoid}table.tg thead,table.tif thead{display:table-header-group}'
+  +'}'
   +'</style>';
 }
 var _courtSVG='<svg class="court" viewBox="0 0 400 130" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="#fff" stroke-width="1.4"><rect x="40" y="16" width="320" height="98"/><line x1="133" y1="16" x2="133" y2="114"/><line x1="267" y1="16" x2="267" y2="114"/></g><line x1="200" y1="10" x2="200" y2="120" stroke="#ff2a90" stroke-width="2" opacity=".8"/></svg>';

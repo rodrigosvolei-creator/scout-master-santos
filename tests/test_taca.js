@@ -66,7 +66,7 @@ setTimeout(()=>{
     w.document.getElementById('tnj-opp').value='CARÚ FENERBOUAS (MA)';
     w.document.getElementById('tnj-dt').value='2026-06-21';
     w.document.getElementById('tnj-tm').value='17:15';
-    w.document.getElementById('tnj-fmt').value='5';
+    w.document.getElementById('tnj-fmt').value='bo5';
     w.salvarTorneioJogo();
     var gt=w.D.games.filter(function(g){return g.torId==='t_taca_open';})[0];
     chk(!!gt,'jogo Taça SP criado');

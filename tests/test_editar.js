@@ -75,7 +75,7 @@ setTimeout(()=>{
   dtI.value='2026-06-15';
   tmI.value='16:30';
   var phI=w.document.getElementById('tnj-phase'); if(phI)phI.value='Semifinal';
-  var fmI=w.document.getElementById('tnj-fmt'); if(fmI)fmI.value='5';
+  var fmI=w.document.getElementById('tnj-fmt'); if(fmI)fmI.value='bo5';
   w.salvarTorneioJogo();
   var gp=w.gF('gp');
   ck('apos salvar: adversario atualizado', gp && gp.opp==='New Rivals');

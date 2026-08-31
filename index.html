@@ -1222,7 +1222,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-07-27c - PWA Fase 1: instalavel (manifest+icones), abre offline (service worker/app shell), auto-update; nao mexe no scout";
+var APP_BUILD="2026-07-27d - card de novo jogo: opcao '3 sets obrigatorios (todos a 25)' (fixed3) — set 3 nao acaba em 15 como o tie do melhor-de-3";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -3288,7 +3288,9 @@ function openTorneioNovoJogo(){
   for(var i=0;i<fases.length;i++)m+='<option value="'+fases[i]+'">'+fases[i]+'</option>';
   m+='</select></div>';
   m+='<div class="tnj-field"><span class="tnj-lb">Formato</span><select id="tnj-fmt">';
-  m+='<option value="3">Melhor de 3 sets</option><option value="5">Melhor de 5 sets</option>';
+  m+='<option value="bo3">Melhor de 3 (3º set a 15)</option>';
+  m+='<option value="bo5">Melhor de 5 (5º set a 15)</option>';
+  m+='<option value="fixed3">3 sets obrigatórios (todos a 25)</option>';
   m+='</select></div>';
   m+='</div>';
   // Fase B2.2: tarja admin (Nenhuma / SEM DADOS / CANCELADO). Manual prevalece sobre auto.
@@ -3315,7 +3317,7 @@ function openTorneioNovoJogo(){
     setV("tnj-dt",editG.dt);
     setV("tnj-tm",editG.tm);
     setV("tnj-phase",editG.phase||"Fase de Classifica\u00e7\u00e3o");
-    setV("tnj-fmt",String(editG.maxSets===5?5:3));
+    setV("tnj-fmt",(function(){var f=gameFmt(editG);return (["bo3","bo5","fixed3"].indexOf(f)>=0)?f:"bo3";})());
     if(editG.oppLogoData){
       _tnjLogoData=editG.oppLogoData;
       var txt=document.getElementById("tnj-logo-txt");
@@ -3628,8 +3630,9 @@ function salvarTorneioJogo(){
   var dt=(document.getElementById("tnj-dt")||{}).value;
   var tm=(document.getElementById("tnj-tm")||{}).value;
   var phase=(document.getElementById("tnj-phase")||{}).value;
-  var fmt=parseInt((document.getElementById("tnj-fmt")||{}).value,10);
-  if(fmt!==5)fmt=3; // melhor de 3 por padrao
+  var fmt=(document.getElementById("tnj-fmt")||{}).value;
+  if(["bo3","bo5","fixed3"].indexOf(fmt)<0)fmt="bo3"; // melhor de 3 por padrao
+  var maxSetsV=(fmt==="bo5")?5:3; // fixed3 e bo3 tem 3 sets; fixed3 grava format p/ set 3 ir a 25
   var errEl=document.getElementById("tnj-err");
   opp=(opp||"").trim();
   if(!opp){if(errEl)errEl.textContent="Informe o nome do advers\u00e1rio.";return;}
@@ -3693,7 +3696,7 @@ function salvarTorneioJogo(){
     // Multi-equipe: trocou a equipe na edicao -> atualiza e re-escala pela nova.
     if(tid && tid!==eg.tid){ eg.tid=tid; if(typeof lineupFromTeam==='function') eg.lineup=lineupFromTeam(tid); }
     eg.phase=phase||"Fase de Classifica\u00e7\u00e3o";
-    eg.maxSets=fmt;
+    eg.maxSets=maxSetsV; eg.format=fmt;
     if(_tnjLogoData)eg.oppLogoData=_tnjLogoData;
     // Fase B2.2: persiste tarja admin (vazio remove a tarja manual; auto continua valendo)
     if(newStatusTag) eg.status_tag=newStatusTag; else delete eg.status_tag;
@@ -3708,7 +3711,7 @@ function salvarTorneioJogo(){
   var novoJogo={
     id:uid("g_"),tid:tid,torId:activeTorId,tor:(t?t.n:""),
     cat:(_atTor&&_atTor.cat)||"",phase:phase||"Fase de Classifica\u00e7\u00e3o",
-    maxSets:fmt,
+    maxSets:maxSetsV, format:fmt,
     opp:opp,dt:dt,tm:tm||"",loc:"",
     pl:[],act:[],ss:[],st:"pending",result:null,
     // Fase PG: standalone usa o roster proprio (PG_ROSTER, etc). Default = USA.

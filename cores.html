@@ -146,6 +146,19 @@ h2.sec{font-family:var(--ui);font-weight:800;font-size:20px;letter-spacing:.02em
   outline-offset:-1px}
 .crest{outline-width:2px}
 
+/* ---- faixa de cor: substitui o escudo com iniciais ----
+   O nome da equipe ja esta escrito ao lado; a sigla dentro de uma caixa so
+   repetia a informacao. A faixa identifica a cor sem virar mais um retangulo
+   com texto. */
+.faixa{display:inline-block;flex-shrink:0;width:6px;height:34px;border-radius:99px;
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--fg) 22%,transparent)}
+.faixa.lg{width:8px;height:52px}
+.faixa.xl{width:10px;height:66px}
+.faixa.tl{width:clamp(8px,1vw,16px);height:clamp(60px,9vh,120px);margin:0 auto 14px;display:block}
+.faixa.campea-tl{width:clamp(14px,1.6vw,26px);height:clamp(90px,16vh,200px);display:block;margin:0 auto}
+.pickteam-cor{display:block;width:64px;height:8px;border-radius:99px;
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--fg) 22%,transparent)}
+
 /* ---- mural de jogos ---- */
 .gcard{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--brd);
   border-radius:14px;padding:14px 16px;margin-bottom:10px;transition:.13s}
@@ -743,7 +756,7 @@ function rHome(){
   var camp=coresCampeao(gamesArr(),D.events,D.teams,D.config);
   if(camp&&tF(camp)){
     h='<div class="campeao" style="--c:'+esc(tF(camp).cor)+'">'
-      +'<div class="crest xl" style="background:'+esc(tF(camp).cor)+';--c:'+esc(tF(camp).cor)+'">'+esc(initials(tF(camp).n))+'</div>'
+      +'<span class="faixa xl" style="background:'+esc(tF(camp).cor)+'"></span>'
       +'<div><div class="campeao-lb">CAMPEÃ DO TORNEIO</div>'
       +'<div class="campeao-nm">'+esc(tF(camp).n)+'</div></div></div>'+h;
   }
@@ -753,11 +766,14 @@ function gameCard(g){
   var A=tF(g.a),B=tF(g.b);
   var st=calc(g);
   /* Jogo de mata-mata que ainda espera resultado mostra "Vencedor Semifinal 1". */
+  /* Faixa de cor no lugar do escudo com iniciais: o nome ja esta escrito ao
+     lado, entao a sigla so repetia. A cor continua identificando a equipe. */
   function ladoHTML(t,lado,extra){
     var nm=t?t.n:coresLadoLabel(g,lado,D.teams);
-    var crest='<div class="crest'+(t?'':' vazio')+'" style="background:'+esc(t?t.cor:'#334155')+';--c:'+esc(t?t.cor:'#334155')+'">'+esc(t?initials(nm):'?')+'</div>';
+    var cor=t?t.cor:'#64748b';
+    var faixa='<span class="faixa" style="background:'+esc(cor)+'"></span>';
     var txt='<div style="min-width:0"><div class="gc-nm'+(t?'':' pend')+'">'+esc(nm)+'</div>'+extra+'</div>';
-    return lado==="A"?(crest+txt):(txt+crest);
+    return lado==="A"?(faixa+txt):(txt+faixa);
   }
   var live=g.st==="ao_vivo",fim=(g.st==="finalizada");
   var h='<div class="gcard'+(live?" live":"")+'">';
@@ -808,7 +824,7 @@ function rEscolhaEquipe(g,A,B){
   h+='<div class="pickteam">';
   [A,B].forEach(function(t){
     h+='<button class="pickteam-btn" style="--c:'+esc(t.cor)+'" onclick="setMeuTid(\''+t.id+'\')">';
-    h+='<div class="crest xl" style="background:'+esc(t.cor)+';--c:'+esc(t.cor)+'">'+esc(initials(t.n))+'</div>';
+    h+='<span class="pickteam-cor" style="background:'+esc(t.cor)+'"></span>';
     h+='<div class="pickteam-nm">'+esc(t.n)+'</div>';
     h+='<div class="pickteam-sub">'+playersOf(t).length+' atletas</div>';
     h+='<div class="pickteam-cta">MARCAR ESTA EQUIPE</div></button>';
@@ -826,7 +842,7 @@ function placarHTML(g,A,B,st){
     var serving=st.serve&&st.serve.side===x.s;
     var sacador=serving&&st.serve.jid?pF(x.t,st.serve.jid):null;
     h+='<div class="mesa-side'+(mine?" mine":"")+(serving?" serving":"")+'" style="--c:'+esc(x.t.cor)+'">';
-    h+='<div class="crest lg" style="background:'+esc(x.t.cor)+';--c:'+esc(x.t.cor)+'">'+esc(initials(x.t.n))+'</div>';
+    h+='<span class="faixa lg" style="background:'+esc(x.t.cor)+'"></span>';
     h+='<div class="mesa-id"><div class="nm">'+esc(x.t.n)+'</div>';
     h+='<div class="sub">'+(mine?"VOCÊ MARCA":"outro operador")+'</div>';
     if(serving)h+='<div class="serve-badge">🏐 SACA'+(sacador?" · "+esc(sacador.nm):"")+'</div>';
@@ -1383,7 +1399,7 @@ function rTelao(){
     return '<div class="tl"><div class="tl-hd"><div class="hd-ti" style="font-size:28px">'+esc(D.config.nome||CORES_NOME_PADRAO)+'</div>'
       +'<div class="hd-sub" style="margin-left:auto">RS-VOLEIBOL</div></div>'
       +'<div class="tl-main" style="flex-direction:column;gap:10px">'
-      +'<div class="crest xl" style="background:'+esc(ct.cor)+';--c:'+esc(ct.cor)+';width:170px;height:170px;font-size:74px;border-radius:34px">'+esc(initials(ct.n))+'</div>'
+      +'<span class="faixa campea-tl" style="background:'+esc(ct.cor)+'"></span>'
       +'<div class="hd-sub" style="font-size:13px;letter-spacing:6px">CAMPEÃ DO TORNEIO</div>'
       +'<div class="tl-nm" style="color:'+esc(ct.cor)+'">'+esc(ct.n)+'</div></div></div>';
   }
@@ -1405,7 +1421,7 @@ function rTelao(){
     if(ix===1)h+='<div class="tl-x">×</div>';
     var serving=st.serve&&st.serve.side===x.s;
     h+='<div class="tl-team">';
-    h+='<div class="crest xl" style="background:'+esc(x.t.cor)+';--c:'+esc(x.t.cor)+';margin:0 auto 12px">'+esc(initials(x.t.n))+'</div>';
+    h+='<span class="faixa tl" style="background:'+esc(x.t.cor)+'"></span>';
     h+='<div class="tl-nm">'+esc(x.t.n)+(serving?' <span style="font-size:.5em">🏐</span>':'')+'</div>';
     h+='<div class="tl-pt" style="color:'+esc(x.t.cor)+';--c:'+esc(x.t.cor)+'">'+st.pts[x.s]+'</div>';
     h+='</div>';
@@ -1463,7 +1479,7 @@ function rAdmin(){
   ts.forEach(function(t){
     h+='<div class="card" style="border-left:4px solid '+esc(t.cor)+'">';
     h+='<div class="row" style="margin-bottom:10px">';
-    h+='<div class="crest" style="background:'+esc(t.cor)+';--c:'+esc(t.cor)+'">'+esc(initials(t.n))+'</div>';
+    h+='<span class="faixa" style="background:'+esc(t.cor)+'"></span>';
     h+='<div class="fld" style="flex:1"><span>NOME</span><input value="'+esc(t.n)+'" onchange="editEquipe(\''+t.id+'\',\'n\',this.value)"></div>';
     h+='<div class="fld"><span>COR</span><input type="color" value="'+esc(t.cor)+'" onchange="editEquipe(\''+t.id+'\',\'cor\',this.value)"></div>';
     h+='<button class="btn dgr sm" style="align-self:flex-end" onclick="delEquipe(\''+t.id+'\')">Excluir</button>';

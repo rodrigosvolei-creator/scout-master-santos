@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>RS-Scout · Torneio por Cores</title>
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#0c1322;--bg2:#141d33;--bg3:#0a0f1c;
+  --fg:#e8eef9;--mute:rgba(232,238,249,.62);--faint:rgba(232,238,249,.34);
+  --card:rgba(255,255,255,.05);--card2:rgba(255,255,255,.08);--brd:rgba(255,255,255,.12);
+  --gold:#fbbf24;--green:#059669;--red:#dc2626;--orange:#ea580c;--blue:#2563eb;--gray:#64748b;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:linear-gradient(165deg,var(--bg1) 0%,var(--bg2) 55%,var(--bg3) 100%) fixed;color:var(--fg);
+  font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 60px}
+
+/* ---- header ---- */
+.hd{position:sticky;top:0;z-index:40;background:rgba(10,15,28,.86);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--brd)}
+.hd-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:10px 16px}
+.hd-ti{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;line-height:1;
+  background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hd-sub{font-size:9px;letter-spacing:2.5px;color:var(--faint);font-weight:700;margin-top:2px}
+.hd-nav{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.hd-nav a{font-size:11px;font-weight:700;letter-spacing:.6px;text-decoration:none;color:var(--mute);
+  padding:8px 12px;border-radius:9px;border:1px solid transparent;transition:.13s}
+.hd-nav a:hover{color:var(--fg);background:rgba(255,255,255,.06)}
+.hd-nav a.on{color:#0a0f1c;background:var(--gold);border-color:var(--gold)}
+
+/* ---- blocos ---- */
+h2.sec{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:2px;margin:26px 0 12px;color:var(--fg)}
+.card{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:16px;margin-bottom:12px}
+.muted{color:var(--mute)}.faint{color:var(--faint)}
+.btn{background:rgba(255,255,255,.08);border:1px solid var(--brd);border-radius:10px;padding:10px 15px;
+  font-weight:700;font-size:13px;transition:.13s}
+.btn:hover{background:rgba(255,255,255,.14)}
+.btn.pri{background:var(--gold);color:#0a0f1c;border-color:var(--gold)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.dgr{background:rgba(220,38,38,.18);border-color:rgba(220,38,38,.45);color:#fca5a5}
+.btn.sm{padding:6px 11px;font-size:11px;border-radius:8px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fld>span{font-size:10px;letter-spacing:1.2px;font-weight:800;color:var(--faint)}
+.fld input,.fld select{background:rgba(0,0,0,.28);border:1px solid var(--brd);border-radius:9px;padding:9px 11px;width:100%}
+.fld input[type=color]{padding:3px;height:40px;cursor:pointer}
+.grid{display:grid;gap:10px}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:1px;
+  padding:4px 9px;border-radius:99px;border:1px solid var(--brd)}
+.dot{width:12px;height:12px;border-radius:99px;flex-shrink:0;box-shadow:0 0 0 2px rgba(255,255,255,.14)}
+.crest{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);
+  box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 0 0 2px rgba(255,255,255,.22)}
+.crest.lg{width:60px;height:60px;font-size:26px;border-radius:16px}
+.crest.xl{width:96px;height:96px;font-size:42px;border-radius:22px}
+
+/* ---- mural de jogos ---- */
+.gcard{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--brd);
+  border-radius:14px;padding:14px 16px;margin-bottom:10px;transition:.13s}
+.gcard:hover{background:var(--card2)}
+.gcard.live{border-color:rgba(220,38,38,.5);background:rgba(220,38,38,.08)}
+.gc-vs{flex:1;display:flex;align-items:center;gap:12px;min-width:0}
+.gc-nm{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1.4px;line-height:1}
+.gc-sc{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;min-width:78px;text-align:center}
+.gc-meta{font-size:11px;color:var(--faint);font-weight:600}
+.pill{font-size:9px;font-weight:900;letter-spacing:1.4px;padding:3px 8px;border-radius:99px}
+.pill.live{background:var(--red);color:#fff;animation:pulse 1.8s infinite}
+.pill.fim{background:rgba(255,255,255,.1);color:var(--mute)}
+.pill.age{background:rgba(37,99,235,.22);color:#93c5fd}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* ---- MESA (scout) ---- */
+.mesa-top{display:flex;align-items:stretch;gap:12px;margin:14px 0;flex-wrap:wrap}
+.mesa-side{flex:1;min-width:200px;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;
+  border:2px solid transparent;transition:.15s}
+.mesa-side.mine{border-color:var(--gold);box-shadow:0 0 0 4px rgba(251,191,36,.13)}
+.mesa-side .pts{margin-left:auto;font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:.9}
+.mesa-side .nm{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.4px;line-height:1.05}
+.mesa-side .sub{font-size:10px;font-weight:700;letter-spacing:1px;opacity:.75}
+.serve-badge{font-size:10px;font-weight:900;letter-spacing:1px;background:rgba(0,0,0,.35);padding:3px 8px;border-radius:99px;display:inline-block;margin-top:4px}
+
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px;margin-bottom:6px}
+.pbtn{background:var(--card);border:2px solid var(--brd);border-radius:13px;padding:12px 10px;text-align:left;
+  display:flex;align-items:center;gap:10px;transition:.12s;position:relative;overflow:hidden}
+.pbtn:hover{background:var(--card2)}
+.pbtn.on{border-color:var(--gold);background:rgba(251,191,36,.15);box-shadow:0 0 0 3px rgba(251,191,36,.14)}
+.pbtn.serving::after{content:"🏐";position:absolute;top:5px;right:7px;font-size:13px}
+.pbtn .nu{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:16px;flex-shrink:0;color:#fff}
+.pbtn .pn{font-weight:800;font-size:13px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pbtn .pr{font-size:9px;color:var(--faint);font-weight:700;letter-spacing:.6px}
+.pbtn.bench{opacity:.62;padding:8px 9px}
+.pbtn.bench .nu{width:24px;height:24px;font-size:13px}
+
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:9px}
+.fbox{border:1px solid var(--brd);border-radius:13px;overflow:hidden;background:rgba(0,0,0,.2)}
+.fbox .fh{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.6px;padding:7px 11px;color:#fff}
+.fbox .fb{display:flex;gap:5px;padding:7px;flex-wrap:wrap}
+.fbox .fb button{flex:1;min-width:52px;border-radius:9px;padding:13px 4px;font-weight:900;font-size:13px;
+  color:#fff;transition:.1s;letter-spacing:.4px}
+.fbox .fb button:hover{filter:brightness(1.18)}
+.fbox .fb button:active{transform:scale(.95)}
+.needp .fgrid{opacity:.42;pointer-events:none;filter:grayscale(.5)}
+
+.feed{display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto}
+.fitem{display:flex;align-items:center;gap:8px;font-size:12px;padding:7px 10px;border-radius:9px;background:rgba(0,0,0,.22)}
+.fitem b{font-weight:800}
+.fitem .oc{font-weight:900;font-size:11px;padding:2px 7px;border-radius:6px;color:#fff}
+.fitem.dup{opacity:.55}
+.ladder{display:flex;gap:3px;flex-wrap:wrap;margin-top:8px}
+.ladder i{width:11px;height:16px;border-radius:3px;display:block}
+
+/* ---- tabela ---- */
+table.tb{width:100%;border-collapse:collapse;font-size:13px}
+table.tb th{font-size:9px;letter-spacing:1.2px;font-weight:900;color:var(--faint);text-align:right;padding:8px 7px;
+  border-bottom:1px solid var(--brd);white-space:nowrap}
+table.tb th:nth-child(-n+2),table.tb td:nth-child(-n+2){text-align:left}
+table.tb td{padding:9px 7px;text-align:right;border-bottom:1px solid rgba(255,255,255,.06)}
+table.tb tr:last-child td{border-bottom:none}
+table.tb td.nm{font-weight:800}
+.tscroll{overflow-x:auto}
+
+/* ---- telao ---- */
+body.telao{overflow:hidden}
+.tl{height:100vh;display:flex;flex-direction:column;padding:22px 26px;gap:16px;overflow:hidden}
+.tl-hd{display:flex;align-items:center;gap:14px}
+.tl-main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:26px}
+.tl-team{flex:1;text-align:center}
+.tl-nm{font-family:'Bebas Neue',sans-serif;font-size:clamp(26px,4.4vw,62px);letter-spacing:3px;line-height:1}
+.tl-pt{font-family:'Bebas Neue',sans-serif;font-size:clamp(80px,17vw,230px);line-height:.82}
+.tl-x{font-family:'Bebas Neue',sans-serif;font-size:clamp(26px,4vw,58px);color:var(--faint)}
+.tl-bot{display:flex;gap:16px;align-items:flex-start}
+.tl-bot{flex-shrink:0;max-height:34vh;overflow:hidden}
+.tl-bot>div{flex:1;background:rgba(0,0,0,.3);border:1px solid var(--brd);border-radius:14px;padding:12px 15px;overflow:hidden}
+
+.banner{border-radius:12px;padding:12px 15px;margin:12px 0;font-size:13px;font-weight:600;line-height:1.5}
+.banner.err{background:rgba(220,38,38,.16);border:1px solid rgba(220,38,38,.42);color:#fecaca}
+.banner.inf{background:rgba(37,99,235,.14);border:1px solid rgba(37,99,235,.4);color:#bfdbfe}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:99;padding:12px 20px;border-radius:12px;
+  font-weight:800;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.5);background:#1e293b;border:1px solid var(--brd)}
+.toast.err{background:#7f1d1d;border-color:#dc2626}
+.toast.ok{background:#065f46;border-color:#059669}
+.empty{text-align:center;padding:44px 20px;color:var(--faint)}
+.empty .big{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--mute);margin-bottom:6px}
+.stamp{position:fixed;bottom:4px;right:7px;font-size:9px;font-weight:700;color:rgba(148,163,184,.5);pointer-events:none}
+@media(max-width:640px){
+  .mesa-side .pts{font-size:40px}.hd-nav a{padding:7px 9px;font-size:10px}
+  .pgrid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+}
+</style>
+
+<script>
+(function(){
+  var DBV={"torneio-cores":{"config":{"nome":"MINIS POR CORES","setPoints":21,"vantagem":2,"emQuadra":4,"ptsVitoria":3,"ptsDerrota":1,"dedupeMs":4000},"teams":{"c_az":{"id":"c_az","n":"AZUL","cor":"#2563eb","ordem":0,"players":[{"id":"a1","nm":"ANA","nu":1},{"id":"a2","nm":"BIA","nu":2},{"id":"a3","nm":"CAUÃ","nu":3},{"id":"a4","nm":"DORA","nu":4},{"id":"a5","nm":"ENZO","nu":5}]},"c_vm":{"id":"c_vm","n":"VERMELHA","cor":"#dc2626","ordem":1,"players":[{"id":"v1","nm":"EDU","nu":1},{"id":"v2","nm":"FERNANDA","nu":2},{"id":"v3","nm":"GUI","nu":3},{"id":"v4","nm":"HELOÍSA","nu":4},{"id":"v5","nm":"IGOR","nu":5}]},"c_vd":{"id":"c_vd","n":"VERDE","cor":"#16a34a","ordem":2,"players":[{"id":"g1","nm":"JOÃO","nu":1},{"id":"g2","nm":"KAUANE","nu":2},{"id":"g3","nm":"LARA","nu":3},{"id":"g4","nm":"MURILO","nu":4}]},"c_am":{"id":"c_am","n":"AMARELA","cor":"#eab308","ordem":3,"players":[{"id":"y1","nm":"NINA","nu":1},{"id":"y2","nm":"OTTO","nu":2},{"id":"y3","nm":"PAULA","nu":3},{"id":"y4","nm":"RAFA","nu":4}]}},"games":{"j1":{"id":"j1","a":"c_az","b":"c_vm","dt":"2026-09-05","tm":"09:00","st":"ao_vivo"},"j2":{"id":"j2","a":"c_vd","b":"c_am","dt":"2026-09-05","tm":"09:40","st":"agendada"},"j3":{"id":"j3","a":"c_az","b":"c_vd","dt":"2026-09-05","tm":"10:20","st":"agendada"},"j0":{"id":"j0","a":"c_am","b":"c_vm","dt":"2026-09-05","tm":"08:20","st":"finalizada"}},"events":{"j0":{"-Seed00001":{"t":"serve","tid":"c_am","jid":"y1","ts":1788607214000},"-Seed00002":{"t":"act","tid":"c_am","jid":"y4","ak":"ataque","oc":"Cont","rally":0,"ts":1788607228000},"-Seed00003":{"t":"act","tid":"c_am","jid":"y3","ak":"bloqueio","oc":"Ponto","rally":0,"ts":1788607242000},"-Seed00004":{"t":"act","tid":"c_vm","jid":"v2","ak":"defesa","oc":"B","rally":1,"ts":1788607256000},"-Seed00005":{"t":"act","tid":"c_vm","jid":"v3","ak":"ataque","oc":"Ponto","rally":1,"ts":1788607270000},"-Seed00006":{"t":"act","tid":"c_vm","jid":"v2","ak":"ataque","oc":"Cont","rally":2,"ts":1788607284000},"-Seed00007":{"t":"act","tid":"c_vm","jid":"v3","ak":"defesa","oc":"Erro","rally":2,"ts":1788607298000},"-Seed00008":{"t":"act","tid":"c_vm","jid":"v3","ak":"recepcao","oc":"Erro","rally":3,"ts":1788607312000},"-Seed00009":{"t":"act","tid":"c_am","jid":"y2","ak":"ataque","oc":"Cont","rally":4,"ts":1788607326000},"-Seed00010":{"t":"act","tid":"c_am","jid":"y3","ak":"bloqueio","oc":"Ponto","rally":4,"ts":1788607340000},"-Seed00011":{"t":"act","tid":"c_vm","jid":"v4","ak":"defesa","oc":"B","rally":5,"ts":1788607354000},"-Seed00012":{"t":"act","tid":"c_am","jid":"y1","ak":"bloqueio","oc":"Ponto","rally":5,"ts":1788607368000},"-Seed00013":{"t":"act","tid":"c_vm","jid":"v4","ak":"levantamento","oc":"A","rally":6,"ts":1788607382000},"-Seed00014":{"t":"act","tid":"c_am","jid":"y3","ak":"ataque","oc":"Ponto","rally":6,"ts":1788607396000},"-Seed00015":{"t":"act","tid":"c_am","jid":"y3","ak":"defesa","oc":"Erro","rally":7,"ts":1788607410000},"-Seed00016":{"t":"act","tid":"c_vm","jid":"v2","ak":"bloqueio","oc":"Ponto","rally":8,"ts":1788607424000},"-Seed00017":{"t":"act","tid":"c_am","jid":"y2","ak":"levantamento","oc":"A","rally":9,"ts":1788607438000},"-Seed00018":{"t":"act","tid":"c_vm","jid":"v4","ak":"defesa","oc":"Erro","rally":9,"ts":1788607452000},"-Seed00019":{"t":"act","tid":"c_am","jid":"y2","ak":"saque","oc":"Erro","rally":10,"ts":1788607466000},"-Seed00020":{"t":"act","tid":"c_am","jid":"y1","ak":"saque","oc":"Ace","rally":11,"ts":1788607480000},"-Seed00021":{"t":"act","tid":"c_am","jid":"y4","ak":"saque","oc":"Erro","rally":12,"ts":1788607494000},"-Seed00022":{"t":"act","tid":"c_vm","jid":"v4","ak":"recepcao","oc":"B","rally":13,"ts":1788607508000},"-Seed00023":{"t":"act","tid":"c_am","jid":"y1","ak":"ataque","oc":"Erro","rally":13,"ts":1788607522000},"-Seed00024":{"t":"act","tid":"c_am","jid":"y1","ak":"saque","oc":"Ace","rally":14,"ts":1788607536000},"-Seed00025":{"t":"act","tid":"c_am","jid":"y1","ak":"levantamento","oc":"A","rally":15,"ts":1788607550000},"-Seed00026":{"t":"act","tid":"c_vm","jid":"v4","ak":"ataque","oc":"Ponto","rally":15,"ts":1788607564000},"-Seed00027":{"t":"act","tid":"c_am","jid":"y3","ak":"defesa","oc":"B","rally":16,"ts":1788607578000},"-Seed00028":{"t":"act","tid":"c_am","jid":"y1","ak":"defesa","oc":"Erro","rally":16,"ts":1788607592000},"-Seed00029":{"t":"act","tid":"c_am","jid":"y1","ak":"saque","oc":"Ace","rally":17,"ts":1788607606000},"-Seed00030":{"t":"act","tid":"c_am","jid":"y3","ak":"ataque","oc":"Cont","rally":18,"ts":1788607620000},"-Seed00031":{"t":"act","tid":"c_am","jid":"y4","ak":"saque","oc":"Ace","rally":18,"ts":1788607634000},"-Seed00032":{"t":"act","tid":"c_am","jid":"y4","ak":"defesa","oc":"B","rally":19,"ts":1788607648000},"-Seed00033":{"t":"act","tid":"c_vm","jid":"v3","ak":"saque","oc":"Erro","rally":19,"ts":1788607662000},"-Seed00034":{"t":"act","tid":"c_vm","jid":"v2","ak":"defesa","oc":"B","rally":20,"ts":1788607676000},"-Seed00035":{"t":"act","tid":"c_vm","jid":"v5","ak":"saque","oc":"Ace","rally":20,"ts":1788607690000},"-Seed00036":{"t":"act","tid":"c_am","jid":"y3","ak":"saque","oc":"Ace","rally":21,"ts":1788607704000},"-Seed00037":{"t":"act","tid":"c_am","jid":"y4","ak":"recepcao","oc":"B","rally":22,"ts":1788607718000},"-Seed00038":{"t":"act","tid":"c_vm","jid":"v3","ak":"recepcao","oc":"Erro","rally":22,"ts":1788607732000},"-Seed00039":{"t":"act","tid":"c_vm","jid":"v1","ak":"recepcao","oc":"A","rally":23,"ts":1788607746000},"-Seed00040":{"t":"act","tid":"c_am","jid":"y3","ak":"saque","oc":"Erro","rally":23,"ts":1788607760000},"-Seed00041":{"t":"act","tid":"c_vm","jid":"v3","ak":"ataque","oc":"Ponto","rally":24,"ts":1788607774000},"-Seed00042":{"t":"act","tid":"c_vm","jid":"v1","ak":"recepcao","oc":"B","rally":25,"ts":1788607788000},"-Seed00043":{"t":"act","tid":"c_vm","jid":"v5","ak":"ataque","oc":"Ponto","rally":25,"ts":1788607802000},"-Seed00044":{"t":"act","tid":"c_am","jid":"y4","ak":"recepcao","oc":"B","rally":26,"ts":1788607816000},"-Seed00045":{"t":"act","tid":"c_vm","jid":"v4","ak":"ataque","oc":"Ponto","rally":26,"ts":1788607830000},"-Seed00046":{"t":"act","tid":"c_vm","jid":"v4","ak":"saque","oc":"Ace","rally":27,"ts":1788607844000},"-Seed00047":{"t":"act","tid":"c_vm","jid":"v1","ak":"ataque","oc":"Cont","rally":28,"ts":1788607858000},"-Seed00048":{"t":"act","tid":"c_am","jid":"y3","ak":"saque","oc":"Ace","rally":28,"ts":1788607872000},"-Seed00049":{"t":"act","tid":"c_vm","jid":"v1","ak":"saque","oc":"Ace","rally":29,"ts":1788607886000},"-Seed00050":{"t":"act","tid":"c_vm","jid":"v3","ak":"defesa","oc":"B","rally":30,"ts":1788607900000},"-Seed00051":{"t":"act","tid":"c_vm","jid":"v5","ak":"bloqueio","oc":"Ponto","rally":30,"ts":1788607914000},"-Seed00052":{"t":"act","tid":"c_vm","jid":"v5","ak":"defesa","oc":"B","rally":31,"ts":1788607928000},"-Seed00053":{"t":"act","tid":"c_vm","jid":"v3","ak":"bloqueio","oc":"Ponto","rally":31,"ts":1788607942000},"-Seed00054":{"t":"act","tid":"c_vm","jid":"v2","ak":"recepcao","oc":"B","rally":32,"ts":1788607956000},"-Seed00055":{"t":"act","tid":"c_vm","jid":"v2","ak":"saque","oc":"Erro","rally":32,"ts":1788607970000},"-Seed00056":{"t":"act","tid":"c_am","jid":"y1","ak":"bloqueio","oc":"Ponto","rally":33,"ts":1788607984000},"-Seed00057":{"t":"act","tid":"c_am","jid":"y1","ak":"defesa","oc":"B","rally":34,"ts":1788607998000},"-Seed00058":{"t":"act","tid":"c_vm","jid":"v3","ak":"defesa","oc":"Erro","rally":34,"ts":1788608012000},"-Seed00059":{"t":"act","tid":"c_vm","jid":"v3","ak":"levantamento","oc":"A","rally":35,"ts":1788608026000},"-Seed00060":{"t":"act","tid":"c_am","jid":"y4","ak":"saque","oc":"Ace","rally":35,"ts":1788608040000},"-Seed00061":{"t":"act","tid":"c_am","jid":"y3","ak":"levantamento","oc":"A","rally":36,"ts":1788608054000},"-Seed00062":{"t":"act","tid":"c_am","jid":"y3","ak":"saque","oc":"Ace","rally":36,"ts":1788608068000},"-Seed00063":{"t":"act","tid":"c_am","jid":"y2","ak":"defesa","oc":"B","rally":37,"ts":1788608082000},"-Seed00064":{"t":"act","tid":"c_am","jid":"y3","ak":"ataque","oc":"Ponto","rally":37,"ts":1788608096000}},"j1":{"-Seed00065":{"t":"serve","tid":"c_az","jid":"a1","ts":1788608110000},"-Seed00066":{"t":"act","tid":"c_az","jid":"a4","ak":"ataque","oc":"Cont","rally":0,"ts":1788608124000},"-Seed00067":{"t":"act","tid":"c_az","jid":"a4","ak":"bloqueio","oc":"Ponto","rally":0,"ts":1788608138000},"-Seed00068":{"t":"act","tid":"c_vm","jid":"v2","ak":"defesa","oc":"B","rally":1,"ts":1788608152000},"-Seed00069":{"t":"act","tid":"c_vm","jid":"v3","ak":"ataque","oc":"Ponto","rally":1,"ts":1788608166000},"-Seed00070":{"t":"act","tid":"c_vm","jid":"v2","ak":"ataque","oc":"Cont","rally":2,"ts":1788608180000},"-Seed00071":{"t":"act","tid":"c_vm","jid":"v3","ak":"defesa","oc":"Erro","rally":2,"ts":1788608194000},"-Seed00072":{"t":"act","tid":"c_vm","jid":"v3","ak":"recepcao","oc":"Erro","rally":3,"ts":1788608208000},"-Seed00073":{"t":"act","tid":"c_az","jid":"a2","ak":"ataque","oc":"Cont","rally":4,"ts":1788608222000},"-Seed00074":{"t":"act","tid":"c_az","jid":"a4","ak":"bloqueio","oc":"Ponto","rally":4,"ts":1788608236000},"-Seed00075":{"t":"act","tid":"c_vm","jid":"v4","ak":"defesa","oc":"B","rally":5,"ts":1788608250000},"-Seed00076":{"t":"act","tid":"c_az","jid":"a1","ak":"bloqueio","oc":"Ponto","rally":5,"ts":1788608264000},"-Seed00077":{"t":"act","tid":"c_vm","jid":"v4","ak":"levantamento","oc":"A","rally":6,"ts":1788608278000},"-Seed00078":{"t":"act","tid":"c_az","jid":"a3","ak":"ataque","oc":"Ponto","rally":6,"ts":1788608292000},"-Seed00079":{"t":"act","tid":"c_az","jid":"a4","ak":"defesa","oc":"Erro","rally":7,"ts":1788608306000},"-Seed00080":{"t":"act","tid":"c_vm","jid":"v2","ak":"bloqueio","oc":"Ponto","rally":8,"ts":1788608320000},"-Seed00081":{"t":"act","tid":"c_az","jid":"a2","ak":"levantamento","oc":"A","rally":9,"ts":1788608334000},"-Seed00082":{"t":"act","tid":"c_vm","jid":"v4","ak":"defesa","oc":"Erro","rally":9,"ts":1788608348000},"-Seed00083":{"t":"act","tid":"c_az","jid":"a3","ak":"saque","oc":"Erro","rally":10,"ts":1788608362000},"-Seed00084":{"t":"act","tid":"c_az","jid":"a1","ak":"saque","oc":"Ace","rally":11,"ts":1788608376000},"-Seed00085":{"t":"act","tid":"c_az","jid":"a5","ak":"saque","oc":"Erro","rally":12,"ts":1788608390000},"-Seed00086":{"t":"act","tid":"c_vm","jid":"v4","ak":"recepcao","oc":"B","rally":13,"ts":1788608404000},"-Seed00087":{"t":"act","tid":"c_az","jid":"a1","ak":"ataque","oc":"Erro","rally":13,"ts":1788608418000},"-Seed00088":{"t":"act","tid":"c_az","jid":"a1","ak":"saque","oc":"Ace","rally":14,"ts":1788608432000},"-Seed00089":{"t":"act","tid":"c_az","jid":"a2","ak":"levantamento","oc":"A","rally":15,"ts":1788608446000},"-Seed00090":{"t":"act","tid":"c_vm","jid":"v4","ak":"ataque","oc":"Ponto","rally":15,"ts":1788608460000},"-Seed00091":{"t":"act","tid":"c_az","jid":"a4","ak":"defesa","oc":"B","rally":16,"ts":1788608474000},"-Seed00092":{"t":"act","tid":"c_az","jid":"a1","ak":"defesa","oc":"Erro","rally":16,"ts":1788608488000},"-Seed00093":{"t":"act","tid":"c_az","jid":"a2","ak":"saque","oc":"Ace","rally":17,"ts":1788608502000},"-Seed00094":{"t":"act","tid":"c_az","jid":"a3","ak":"ataque","oc":"Cont","rally":18,"ts":1788608516000},"-Seed00095":{"t":"act","tid":"c_az","jid":"a5","ak":"saque","oc":"Ace","rally":18,"ts":1788608530000},"-Seed00096":{"t":"act","tid":"c_az","jid":"a5","ak":"defesa","oc":"B","rally":19,"ts":1788608544000},"-Seed00097":{"t":"act","tid":"c_vm","jid":"v3","ak":"saque","oc":"Erro","rally":19,"ts":1788608558000},"-Seed00098":{"t":"act","tid":"c_vm","jid":"v2","ak":"defesa","oc":"B","rally":20,"ts":1788608572000},"-Seed00099":{"t":"act","tid":"c_vm","jid":"v5","ak":"saque","oc":"Ace","rally":20,"ts":1788608586000},"-Seed00100":{"t":"act","tid":"c_az","jid":"a4","ak":"saque","oc":"Ace","rally":21,"ts":1788608600000},"-Seed00101":{"t":"act","tid":"c_az","jid":"a2","ak":"recepcao","oc":"A","rally":22,"ts":1788608614000},"-Seed00102":{"t":"act","tid":"c_az","jid":"a2","ak":"defesa","oc":"Erro","rally":22,"ts":1788608628000},"-Seed00103":{"t":"act","tid":"c_vm","jid":"v4","ak":"recepcao","oc":"B","rally":23,"ts":1788608642000},"-Seed00104":{"t":"act","tid":"c_vm","jid":"v4","ak":"ataque","oc":"Ponto","rally":23,"ts":1788608656000}}}}};
+  var LS=[]; var seq=0;
+  function P(p){return String(p).split('/').filter(Boolean);}
+  function get(p){var c=DBV;var a=P(p);for(var i=0;i<a.length;i++){if(c==null)return null;c=c[a[i]];}return c===undefined?null:c;}
+  function set(p,v){var a=P(p),c=DBV;for(var i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object')c[a[i]]={};c=c[a[i]];}
+    if(v===null)delete c[a[a.length-1]];else c[a[a.length-1]]=JSON.parse(JSON.stringify(v));fire();}
+  function fire(){LS.slice().forEach(function(l){try{l.cb({val:function(){return get(l.path);}});}catch(e){}});}
+  function ref(p){return{
+    on:function(e,cb){LS.push({path:p,cb:cb});cb({val:function(){return get(p);}});},
+    off:function(){for(var i=LS.length-1;i>=0;i--)if(LS[i].path===p)LS.splice(i,1);},
+    once:function(){return Promise.resolve({val:function(){return get(p);}});},
+    set:function(v){set(p,v);return Promise.resolve();},
+    remove:function(){set(p,null);return Promise.resolve();},
+    /* prefixo depois de '-Seed' na ordem alfabetica: no RTDB real as chaves de
+       push sao cronologicas, e a demo precisa imitar isso para o feed nao inverter */
+    push:function(v){seq++;var k='-Zdemo'+('00000'+seq).slice(-6);set(p+'/'+k,v);return Promise.resolve({key:k});}
+  };}
+  window.firebase={initializeApp:function(){},database:function(){return {ref:ref};}};
+})();
+</script>
+</head>
+<body>
+<div id="app"></div><div style="position:fixed;left:0;right:0;bottom:0;z-index:999;background:#7c2d12;color:#fed7aa;
+  font:700 11px Inter,sans-serif;padding:7px 14px;text-align:center;letter-spacing:.4px">
+  DEMONSTRAÇÃO — dados de exemplo, nada é salvo. Recarregar a página zera tudo.
+</div>
+
+<div class="stamp" id="stamp"></div>
+
+<script>/* ==========================================================================
+   RS-SCOUT · MODULO "TORNEIO POR CORES" — MOTOR PURO
+   --------------------------------------------------------------------------
+   Modulo ISOLADO. Nao importa, nao altera e nao depende do index.html.
+   Sem DOM, sem Firebase: so funcao pura -> da pra testar em Node.
+
+   PRINCIPIO CENTRAL (o que resolve os 2 operadores simultaneos):
+     Nada de estado mutavel compartilhado. O unico dado gravado e o EVENTO
+     (append-only, push do Firebase = insert). Placar, saque, estatistica e
+     classificacao sao SEMPRE recalculados a partir da lista de eventos.
+     -> Dois aparelhos gravando ao mesmo tempo NAO se sobrescrevem.
+     -> Os dois chegam ao mesmo resultado (a ordem e a das chaves do push).
+
+   DEDUPE DE PONTO (a duvida do "ponto automatico") — DUAS TRAVAS:
+     1) RALLY: cada evento carrega o numero do rally em que foi marcado. O
+        primeiro evento terminal daquele rally (na ordem das chaves) define o
+        ponto; os demais entram como ESTATISTICA e nao mexem no placar.
+        Pega o caso simultaneo (os dois marcam antes de a rede entregar).
+     2) JANELA (dedupeMs): se o OUTRO operador marca, poucos segundos depois,
+        uma acao terminal que aponta para o MESMO vencedor, e o mesmo rally
+        visto do outro lado (ele ja tinha recebido o ponto, entao gravaria no
+        rally seguinte) -> vira estatistica. Sem isso o rally contaria 2 pontos.
+        Os dois filtros importam: acao seguida do MESMO aparelho e rally novo
+        dele; e acao que da o ponto para o OUTRO lado e rally novo de verdade
+        (no volei o intervalo entre pontos consecutivos passa de 4s).
+     -> Operador A marca "ataque ponto" e B marca "defesa erro" do mesmo rally:
+        conta 1 ponto, nao 2 — junto ou com alguns segundos de diferenca.
+        As duas acoes ficam no scout dos atletas.
+   ========================================================================== */
+
+var CORES_ACT = {
+  saque:        { l: "Saque",     i: "\u{1F3D0}",      o: ["Ace", "Erro", "Cont"] },
+  recepcao:     { l: "Recepção", i: "\u{1F932}", o: ["A", "B", "C", "Erro"] },
+  levantamento: { l: "Levant.",   i: "\u{1F446}",      o: ["A", "B", "C", "Erro"] },
+  ataque:       { l: "Ataque",    i: "\u{1F4A5}",      o: ["Ponto", "Bloq", "Erro", "Cont"] },
+  bloqueio:     { l: "Bloqueio",  i: "\u{1F9F1}",      o: ["Ponto", "Erro", "Cont"] },
+  defesa:       { l: "Defesa",    i: "\u{1F6E1}️", o: ["A", "B", "C", "Erro"] }
+};
+var CORES_OC = { Ace: "#059669", Ponto: "#059669", A: "#059669", B: "#d97706", Cont: "#64748b", C: "#ea580c", Bloq: "#ea580c", Erro: "#dc2626" };
+var CORES_FCOL = { saque: "#2563eb", recepcao: "#059669", levantamento: "#7c3aed", ataque: "#dc2626", bloqueio: "#ea580c", defesa: "#0891b2" };
+
+var CORES_CFG_PADRAO = {
+  setPoints: 21,     // set unico ate 21
+  vantagem: 2,       // com 2 de vantagem
+  capPoints: 0,      // 0 = sem teto (vai ate a vantagem de 2)
+  emQuadra: 4,       // 4x4
+  ptsVitoria: 3,
+  ptsDerrota: 1,
+  dedupeMs: 4000     // janela anti-ponto-duplo entre os 2 operadores (0 = desliga)
+};
+
+function coresCfg(c) {
+  var o = {}, k;
+  for (k in CORES_CFG_PADRAO) o[k] = CORES_CFG_PADRAO[k];
+  if (c) for (k in CORES_CFG_PADRAO) if (c[k] != null && c[k] !== "") o[k] = c[k];
+  o.setPoints = parseInt(o.setPoints, 10) || 21;
+  o.vantagem = parseInt(o.vantagem, 10); if (isNaN(o.vantagem)) o.vantagem = 2;
+  o.capPoints = parseInt(o.capPoints, 10) || 0;
+  o.emQuadra = parseInt(o.emQuadra, 10) || 4;
+  o.ptsVitoria = parseInt(o.ptsVitoria, 10); if (isNaN(o.ptsVitoria)) o.ptsVitoria = 3;
+  o.ptsDerrota = parseInt(o.ptsDerrota, 10); if (isNaN(o.ptsDerrota)) o.ptsDerrota = 1;
+  o.dedupeMs = parseInt(o.dedupeMs, 10); if (isNaN(o.dedupeMs)) o.dedupeMs = 4000;
+  return o;
+}
+
+/* Quem leva o ponto de uma acao terminal.
+   'self' = a equipe que marcou · 'opp' = a adversaria · null = nao encerra o rally.
+   Mesma regra do RS-SCOUT (autoScoreSide), inclusive: ERRO DE LEVANTAMENTO NAO
+   PONTUA — decisao do Rodrigo (nem sempre e ponto direto; usa-se o + manual). */
+function coresTerminal(ak, oc) {
+  if (oc === "Ace") return "self";
+  if ((ak === "ataque" || ak === "bloqueio") && oc === "Ponto") return "self";
+  if ((ak === "saque" || ak === "ataque" || ak === "bloqueio") && oc === "Erro") return "opp";
+  if ((ak === "recepcao" || ak === "defesa") && oc === "Erro") return "opp";
+  if (ak === "ataque" && oc === "Bloq") return "opp";
+  return null;
+}
+
+/* Eventos vem do Firebase como objeto {pushKey: ev}. As chaves do push sao
+   cronologicas e ordenaveis como string -> ordem igual em todos os aparelhos. */
+function coresEventList(evObj) {
+  var out = [], k;
+  if (!evObj) return out;
+  if (Object.prototype.toString.call(evObj) === "[object Array]") {
+    for (k = 0; k < evObj.length; k++) if (evObj[k]) out.push(evObj[k]);
+    return out;
+  }
+  var keys = Object.keys(evObj);
+  keys.sort();
+  for (k = 0; k < keys.length; k++) {
+    var e = evObj[keys[k]];
+    if (!e) continue;
+    if (!e.k) e.k = keys[k];
+    out.push(e);
+  }
+  return out;
+}
+
+function coresOther(side) { return side === "A" ? "B" : "A"; }
+
+/* Jogadores em quadra (a ordem da lista E a ordem de saque; os N primeiros jogam). */
+function coresOnCourt(team, cfg) {
+  var ps = (team && team.players) || [];
+  var n = (team && team.emQuadra) || cfg.emQuadra;
+  var out = [];
+  for (var i = 0; i < ps.length && out.length < n; i++) if (ps[i]) out.push(ps[i]);
+  return out;
+}
+
+function coresNextServer(team, lastJid, cfg) {
+  var court = coresOnCourt(team, cfg);
+  if (!court.length) return null;
+  var idx = -1;
+  for (var i = 0; i < court.length; i++) if (court[i].id === lastJid) { idx = i; break; }
+  if (idx < 0) return court[0].id;
+  return court[(idx + 1) % court.length].id;
+}
+
+/* ==========================================================================
+   computeGame — o coracao. Recebe o jogo, os eventos crus e as equipes;
+   devolve TODO o estado derivado. Nao muta nada.
+   ========================================================================== */
+function coresComputeGame(game, evObj, teamsById, cfgIn) {
+  var cfg = coresCfg(cfgIn);
+  var evs = coresEventList(evObj);
+  var tA = teamsById[game.a] || { id: game.a, players: [] };
+  var tB = teamsById[game.b] || { id: game.b, players: [] };
+  var teamOf = { A: tA, B: tB };
+
+  var pts = { A: 0, B: 0 };
+  var adj = { A: 0, B: 0 };          // quanto do placar veio de ajuste manual
+  var rally = 0;                      // rally em disputa
+  var rallyOwner = {};                // rally -> lado que pontuou (dedupe)
+  var serve = null;                   // {side, jid} sacador atual
+  var lastServer = { A: null, B: null }; // ultimo sacador de cada equipe (histerico)
+  var needServer = null;              // lado que precisa escolher o sacador na mao
+  var stats = {};                     // jid -> {n, tid, ak:{...}}
+  var pointLog = [];                  // sequencia de pontos (ladder/telao)
+  var dupes = [];                     // acoes que nao pontuaram (mesmo rally)
+  var lastPointTs = 0, lastPointTid = null, lastPointWin = null;  // ultimo ponto: quando, por quem, para quem
+  var done = false, winner = null;
+
+  function sideOfTid(tid) { return tid === game.a ? "A" : (tid === game.b ? "B" : null); }
+
+  function bumpStat(ev, side) {
+    if (!ev.jid) return;
+    var s = stats[ev.jid];
+    if (!s) { s = stats[ev.jid] = { jid: ev.jid, tid: ev.tid, side: side, n: 0, ak: {} }; }
+    s.n++;
+    var a = s.ak[ev.ak];
+    if (!a) a = s.ak[ev.ak] = { n: 0, oc: {} };
+    a.n++;
+    a.oc[ev.oc] = (a.oc[ev.oc] || 0) + 1;
+  }
+
+  function checkDone() {
+    var hi = Math.max(pts.A, pts.B), lo = Math.min(pts.A, pts.B);
+    var okCap = cfg.capPoints > 0 && hi >= cfg.capPoints;
+    if (hi >= cfg.setPoints && (hi - lo >= cfg.vantagem || okCap)) {
+      done = true; winner = pts.A > pts.B ? "A" : (pts.B > pts.A ? "B" : null);
+    } else { done = false; winner = null; }
+  }
+
+  function advanceServe(winSide) {
+    if (serve && serve.side === winSide) return;      // manteve o saque: mesmo sacador
+    var last = lastServer[winSide];
+    if (!last) { serve = null; needServer = winSide; return; }  // 1a vez dessa equipe: pede manual
+    var nx = coresNextServer(teamOf[winSide], last, cfg);
+    if (!nx) { serve = null; needServer = winSide; return; }
+    serve = { side: winSide, jid: nx };
+    lastServer[winSide] = nx;
+    needServer = null;
+  }
+
+  for (var i = 0; i < evs.length; i++) {
+    var ev = evs[i];
+    if (!ev || !ev.t) continue;
+
+    if (ev.t === "serve") {
+      var sSide = sideOfTid(ev.tid);
+      if (!sSide) continue;
+      serve = { side: sSide, jid: ev.jid };
+      lastServer[sSide] = ev.jid;
+      needServer = null;
+      continue;
+    }
+
+    if (ev.t === "adj") {                   // correcao manual de placar: NAO mexe no saque (§4.6)
+      var aSide = sideOfTid(ev.tid);
+      if (!aSide) continue;
+      var d = parseInt(ev.delta, 10) || 0;
+      if (pts[aSide] + d < 0) d = -pts[aSide];
+      pts[aSide] += d; adj[aSide] += d;
+      checkDone();
+      continue;
+    }
+
+    if (ev.t !== "act") continue;
+    var side = sideOfTid(ev.tid);
+    if (!side) continue;
+    bumpStat(ev, side);
+
+    var term = coresTerminal(ev.ak, ev.oc);
+    if (!term) continue;
+
+    var r = (ev.rally == null) ? rally : (parseInt(ev.rally, 10) || 0);
+    /* Trava 1 — mesmo numero de rally (marcacoes simultaneas). */
+    var mesmoRally = (rallyOwner[r] != null);
+    var win = (term === "self") ? side : coresOther(side);
+    /* Trava 2 — o OUTRO operador marcando o fim do rally que acabou de ser
+       pontuado (ele ja recebeu o evento, entao gravaria no rally seguinte).
+       So conta como repeticao se aponta para o MESMO vencedor: ponto para o
+       outro lado e rally novo, e acao seguida do mesmo aparelho tambem. */
+    var janela = (cfg.dedupeMs > 0 && lastPointTs && ev.ts &&
+                  (ev.ts - lastPointTs) < cfg.dedupeMs &&
+                  ev.tid !== lastPointTid && win === lastPointWin);
+    if (mesmoRally || janela) {
+      ev._dupWhy = mesmoRally ? "rally" : "janela";
+      dupes.push(ev);
+      continue;
+    }
+    rallyOwner[r] = win;
+    pts[win]++;
+    pointLog.push({ rally: r, side: win, jid: ev.jid, tid: ev.tid, ak: ev.ak, oc: ev.oc, by: side });
+    if (r + 1 > rally) rally = r + 1;
+    lastPointTs = ev.ts || 0; lastPointTid = ev.tid; lastPointWin = win;
+    advanceServe(win);
+    checkDone();
+  }
+
+  return {
+    cfg: cfg,
+    a: game.a, b: game.b,
+    teamA: tA, teamB: tB,
+    pts: pts, adj: adj,
+    rally: rally,
+    serve: serve,
+    lastServer: lastServer,
+    needServer: needServer,
+    stats: stats,
+    pointLog: pointLog,
+    dupes: dupes,
+    events: evs,
+    done: done,
+    winner: winner,
+    winnerTid: winner ? (winner === "A" ? game.a : game.b) : null
+  };
+}
+
+/* Aproveitamento do atleta: acertos / (acertos + erros) — mesma regua do
+   relatorio do RS-SCOUT. No saque, "colocar em jogo" (Cont) ja e positivo. */
+function coresPlayerLine(st) {
+  var ac = 0, er = 0, n = 0, pos = 0;
+  for (var ak in st.ak) {
+    var a = st.ak[ak];
+    for (var oc in a.oc) {
+      var q = a.oc[oc]; n += q;
+      if (oc === "Erro") { er += q; continue; }
+      if (ak === "saque") { ac += q; if (oc === "Ace") pos += q; continue; }  // Cont conta como acerto no saque
+      if (oc === "Ace" || oc === "Ponto" || oc === "A") { ac += q; if (oc !== "A") pos += q; continue; }
+      if (oc === "B") { ac += q; continue; }
+      if (oc === "C" || oc === "Bloq" || oc === "Cont") { continue; }         // neutro
+    }
+  }
+  var den = ac + er;
+  return { n: n, ac: ac, er: er, pos: pos, aprov: den ? Math.round(ac * 100 / den) : null };
+}
+
+/* ==========================================================================
+   CLASSIFICACAO — §6 do brief. So conta jogo finalizado.
+   Vitoria=3 · Derrota=1 · desempate: pontos > saldo > pontos pro > confronto direto.
+   ========================================================================== */
+function coresStandings(games, teams, evByGame, cfgIn) {
+  var cfg = coresCfg(cfgIn);
+  var byId = {}, i;
+  for (i = 0; i < teams.length; i++) byId[teams[i].id] = teams[i];
+
+  var row = {};
+  for (i = 0; i < teams.length; i++) {
+    row[teams[i].id] = {
+      tid: teams[i].id, n: teams[i].n, cor: teams[i].cor, ordem: teams[i].ordem || i,
+      j: 0, v: 0, d: 0, pp: 0, pc: 0, saldo: 0, pts: 0
+    };
+  }
+  var h2h = {};   // "a|b" -> vitorias de a sobre b
+
+  for (i = 0; i < games.length; i++) {
+    var g = games[i];
+    if (!g || !row[g.a] || !row[g.b]) continue;
+    var st = coresComputeGame(g, (evByGame && evByGame[g.id]) || null, byId, cfg);
+    var fim = (g.st === "finalizada") || st.done;
+    if (!fim) continue;
+    if (st.pts.A === st.pts.B) continue;           // sem vencedor definido: fora da conta
+    var ra = row[g.a], rb = row[g.b];
+    ra.j++; rb.j++;
+    ra.pp += st.pts.A; ra.pc += st.pts.B;
+    rb.pp += st.pts.B; rb.pc += st.pts.A;
+    var wa = st.pts.A > st.pts.B;
+    if (wa) { ra.v++; rb.d++; h2h[g.a + "|" + g.b] = (h2h[g.a + "|" + g.b] || 0) + 1; }
+    else { rb.v++; ra.d++; h2h[g.b + "|" + g.a] = (h2h[g.b + "|" + g.a] || 0) + 1; }
+  }
+
+  var out = [];
+  for (var k in row) {
+    var r = row[k];
+    r.saldo = r.pp - r.pc;
+    r.pts = r.v * cfg.ptsVitoria + r.d * cfg.ptsDerrota;
+    out.push(r);
+  }
+  out.sort(function (x, y) {
+    if (y.pts !== x.pts) return y.pts - x.pts;
+    if (y.saldo !== x.saldo) return y.saldo - x.saldo;
+    if (y.pp !== x.pp) return y.pp - x.pp;
+    var xy = h2h[x.tid + "|" + y.tid] || 0, yx = h2h[y.tid + "|" + x.tid] || 0;
+    if (xy !== yx) return yx - xy;
+    return (x.ordem - y.ordem) || String(x.n).localeCompare(String(y.n));
+  });
+  for (i = 0; i < out.length; i++) out[i].pos = i + 1;
+  return out;
+}
+
+/* Ordem do mural: AO VIVO no topo, depois agendados por data/hora crescente,
+   finalizados por ultimo (mesmo criterio do RS-SCOUT). */
+function coresOrderGames(games) {
+  var g = (games || []).slice();
+  function rank(x) {
+    if (x.st === "ao_vivo") return 0;
+    if (x.st === "finalizada") return 2;
+    return 1;
+  }
+  function when(x) { return (x.dt || "9999-12-31") + "T" + (x.tm || "23:59"); }
+  g.sort(function (a, b) {
+    var ra = rank(a), rb = rank(b);
+    if (ra !== rb) return ra - rb;
+    if (ra === 2) return when(b) < when(a) ? -1 : (when(b) > when(a) ? 1 : 0);  // finalizados: mais recente primeiro
+    return when(a) < when(b) ? -1 : (when(a) > when(b) ? 1 : 0);
+  });
+  return g;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    CORES_ACT: CORES_ACT, CORES_OC: CORES_OC, CORES_FCOL: CORES_FCOL,
+    CORES_CFG_PADRAO: CORES_CFG_PADRAO,
+    coresCfg: coresCfg, coresTerminal: coresTerminal, coresEventList: coresEventList,
+    coresOnCourt: coresOnCourt, coresNextServer: coresNextServer,
+    coresComputeGame: coresComputeGame, coresPlayerLine: coresPlayerLine,
+    coresStandings: coresStandings, coresOrderGames: coresOrderGames
+  };
+}
+</script>
+<script>
+/* ============================================================================
+   RS-SCOUT · TORNEIO POR CORES — modulo ISOLADO
+   Nao toca no index.html. Dados em NO PROPRIO do RTDB: /torneio-cores
+   Toda a logica de placar/saque/classificacao vive em cores-core.js (testado).
+   Aqui so tem UI + Firebase.
+   ========================================================================== */
+var CORES_BUILD="2026-09-04a";
+document.getElementById("stamp").textContent="cores "+CORES_BUILD;
+
+var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
+  databaseURL:"https://scola-volei-default-rtdb.firebaseio.com",projectId:"scola-volei",
+  storageBucket:"scola-volei.firebasestorage.app",messagingSenderId:"377829329248",
+  appId:"1:377829329248:web:92360b7664cd4a2597f605"};
+firebase.initializeApp(fc);
+var db=firebase.database();
+var ROOT="torneio-cores";
+
+/* ---------- estado ---------- */
+var D={config:{},teams:{},games:{},events:{}};
+var QS=new URLSearchParams(location.search);
+var VIEW=QS.get("v")||"home";
+var GID=QS.get("g")||null;
+var MEUTID=null;          // equipe que ESTE aparelho marca (por jogo)
+var SELP=null;            // atleta selecionado na mesa
+var _evRef=null,_evGid=null;
+var _writeErr=false;
+var _loaded={config:0,teams:0,games:0};
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function toast(m,k){var d=document.createElement("div");d.className="toast"+(k?" "+k:"");d.textContent=m;
+  document.body.appendChild(d);setTimeout(function(){d.remove();},2600);}
+function fD(d){if(!d)return"";try{return new Date(d+"T12:00:00").toLocaleDateString("pt-BR");}catch(e){return d;}}
+function go(v,extra){var u="?v="+v+(extra||"");location.href=u;}
+function teamsArr(){var o=[];for(var k in D.teams)if(D.teams[k])o.push(D.teams[k]);
+  o.sort(function(a,b){return (a.ordem||0)-(b.ordem||0)||String(a.n).localeCompare(String(b.n));});return o;}
+function gamesArr(){var o=[];for(var k in D.games)if(D.games[k])o.push(D.games[k]);return o;}
+function tF(id){return D.teams[id]||null;}
+function initials(n){var w=String(n||"").trim().split(/\s+/);
+  return (w.length>1?(w[0][0]+w[1][0]):String(n||"?").slice(0,2)).toUpperCase();}
+function playersOf(t){return (t&&t.players)||[];}
+function pF(t,jid){var ps=playersOf(t);for(var i=0;i<ps.length;i++)if(ps[i].id===jid)return ps[i];return null;}
+
+/* ---------- gravacao ----------
+   TUDO que o operador marca e um EVENTO NOVO (push = insert). Nunca sobrescreve
+   o no do jogo -> dois aparelhos gravando ao mesmo tempo nao se apagam.        */
+function pushEvent(gid,ev){
+  ev.ts=Date.now();
+  return db.ref(ROOT+"/events/"+gid).push(ev).catch(function(e){onWriteErr(e);throw e;});
+}
+function writeNode(path,val){
+  return db.ref(ROOT+"/"+path).set(val).catch(function(e){onWriteErr(e);throw e;});
+}
+function onWriteErr(e){
+  var m=String((e&&(e.code||e.message))||"");
+  if(m.indexOf("permission")>=0||m.indexOf("PERMISSION")>=0){
+    if(!_writeErr){_writeErr=true;render();}
+  }else{ toast("Falha ao salvar — verifique a conexão","err"); }
+}
+
+/* ---------- listeners (realtime) ---------- */
+function boot(){
+  db.ref(ROOT+"/config").on("value",function(s){D.config=s.val()||{};_loaded.config=1;render();});
+  db.ref(ROOT+"/teams").on("value",function(s){D.teams=s.val()||{};_loaded.teams=1;render();});
+  db.ref(ROOT+"/games").on("value",function(s){D.games=s.val()||{};_loaded.games=1;render();});
+  watchEvents();
+}
+/* Eventos: na mesa escuta so o jogo aberto; no telao/classificacao escuta tudo. */
+function watchEvents(){
+  if(VIEW==="mesa"&&GID){
+    if(_evGid===GID)return;
+    if(_evRef)_evRef.off();
+    _evGid=GID;_evRef=db.ref(ROOT+"/events/"+GID);
+    _evRef.on("value",function(s){D.events[GID]=s.val()||{};render();});
+  }else if(VIEW==="class"||VIEW==="telao"||VIEW==="home"){
+    if(_evGid==="*")return;
+    if(_evRef)_evRef.off();
+    _evGid="*";_evRef=db.ref(ROOT+"/events");
+    _evRef.on("value",function(s){D.events=s.val()||{};render();});
+  }
+}
+/* Aba suspensa (iOS/Android) perde o socket: re-sincroniza ao voltar. */
+function resync(){ try{ db.ref(ROOT+"/games").once("value").then(function(s){D.games=s.val()||{};render();});
+  if(_evGid&&_evGid!=="*")db.ref(ROOT+"/events/"+_evGid).once("value").then(function(s){D.events[_evGid]=s.val()||{};render();});
+  }catch(e){} }
+document.addEventListener("visibilitychange",function(){if(!document.hidden)resync();});
+window.addEventListener("focus",resync);
+window.addEventListener("online",resync);
+
+/* ---------- calculo ---------- */
+function calc(g){ return coresComputeGame(g,D.events[g.id]||null,D.teams,D.config); }
+
+/* ============================ RENDER ============================ */
+function render(){
+  var h="";
+  document.body.classList.toggle("telao",VIEW==="telao");
+  if(VIEW==="telao"){document.getElementById("app").innerHTML=rTelao();return;}
+  h+=rHeader();
+  h+='<div class="wrap">';
+  if(_writeErr)h+='<div class="banner err"><b>Sem permissão de escrita no Firebase.</b> O nó <code>/torneio-cores</code> precisa das regras — cole o conteúdo de <code>firebase-rules-cores.json</code> no console do Firebase (Realtime Database › Regras). Até lá dá pra ver, mas não dá pra marcar.</div>';
+  if(VIEW==="admin")h+=rAdmin();
+  else if(VIEW==="mesa")h+=rMesa();
+  else if(VIEW==="class")h+=rClass();
+  else h+=rHome();
+  h+='</div>';
+  document.getElementById("app").innerHTML=h;
+}
+function rHeader(){
+  var nome=D.config.nome||"TORNEIO POR CORES";
+  var h='<div class="hd"><div class="hd-in"><div>';
+  h+='<div class="hd-ti">'+esc(nome)+'</div><div class="hd-sub">RS-VOLEIBOL · SCOUT</div></div>';
+  h+='<div class="hd-nav">';
+  h+='<a href="?" class="'+(VIEW==="home"?"on":"")+'">Jogos</a>';
+  h+='<a href="?v=class" class="'+(VIEW==="class"?"on":"")+'">Classificação</a>';
+  h+='<a href="?v=telao" target="_blank">Telão</a>';
+  h+='<a href="?v=admin" class="'+(VIEW==="admin"?"on":"")+'">Admin</a>';
+  h+='</div></div></div>';
+  return h;
+}
+
+/* ---------------- HOME: mural de jogos ---------------- */
+function rHome(){
+  var gs=coresOrderGames(gamesArr());
+  var h='<h2 class="sec">JOGOS</h2>';
+  if(!_loaded.games)return h+'<div class="empty">carregando…</div>';
+  if(!gs.length){
+    h+='<div class="empty"><div class="big">NENHUM JOGO AINDA</div>';
+    h+='<div>Crie as equipes por cor e os jogos na aba <b>Admin</b>.</div>';
+    h+='<div class="row" style="justify-content:center;margin-top:16px"><button class="btn pri" onclick="go(\'admin\')">Ir para o Admin</button></div></div>';
+    return h;
+  }
+  for(var i=0;i<gs.length;i++)h+=gameCard(gs[i]);
+  return h;
+}
+function gameCard(g){
+  var A=tF(g.a),B=tF(g.b);if(!A||!B)return"";
+  var st=calc(g);
+  var live=g.st==="ao_vivo",fim=(g.st==="finalizada");
+  var h='<div class="gcard'+(live?" live":"")+'">';
+  h+='<div class="gc-vs">';
+  h+='<div class="crest" style="background:'+esc(A.cor)+'">'+esc(initials(A.n))+'</div>';
+  h+='<div style="min-width:0"><div class="gc-nm">'+esc(A.n)+'</div>';
+  h+='<div class="gc-meta">'+(g.dt?fD(g.dt):"")+(g.tm?" · "+esc(g.tm):"")+'</div></div>';
+  h+='</div>';
+  h+='<div class="gc-sc">'+st.pts.A+'<span class="faint" style="font-size:19px"> x </span>'+st.pts.B+'</div>';
+  h+='<div class="gc-vs" style="justify-content:flex-end;text-align:right">';
+  h+='<div style="min-width:0"><div class="gc-nm">'+esc(B.n)+'</div>';
+  h+='<div class="gc-meta">'+(live?"em andamento":(fim?"encerrado":"a jogar"))+'</div></div>';
+  h+='<div class="crest" style="background:'+esc(B.cor)+'">'+esc(initials(B.n))+'</div>';
+  h+='</div>';
+  h+='<div style="display:flex;flex-direction:column;gap:7px;align-items:flex-end;min-width:96px">';
+  h+='<span class="pill '+(live?"live":(fim?"fim":"age"))+'">'+(live?"AO VIVO":(fim?"FIM":"AGENDADO"))+'</span>';
+  h+='<button class="btn sm pri" onclick="go(\'mesa\',\'&g='+g.id+'\')">'+(fim?"Ver":"Marcar")+'</button>';
+  h+='</div></div>';
+  return h;
+}
+
+/* ---------------- MESA: o scout do operador ---------------- */
+function rMesa(){
+  var g=D.games[GID];
+  if(!g)return '<div class="empty"><div class="big">JOGO NÃO ENCONTRADO</div><button class="btn" onclick="go(\'home\')" style="margin-top:14px">Voltar</button></div>';
+  var A=tF(g.a),B=tF(g.b);
+  if(!A||!B)return '<div class="empty"><div class="big">EQUIPES DO JOGO NÃO EXISTEM MAIS</div></div>';
+  var st=calc(g);
+  MEUTID=MEUTID||localStorage.getItem("cores_tid_"+g.id)||null;
+  if(MEUTID!==g.a&&MEUTID!==g.b)MEUTID=null;
+
+  /* passo 1: escolher qual equipe ESTE aparelho marca */
+  if(!MEUTID){
+    var h='<h2 class="sec">QUEM VOCÊ VAI MARCAR?</h2>';
+    h+='<div class="banner inf">Cada aparelho marca <b>uma</b> equipe. O outro operador abre o mesmo jogo e escolhe a outra — o placar e o saque ficam iguais nos dois, em tempo real.</div>';
+    h+='<div class="mesa-top">';
+    [A,B].forEach(function(t){
+      h+='<button class="mesa-side" style="background:'+esc(t.cor)+'26;border-color:'+esc(t.cor)+'" onclick="setMeuTid(\''+t.id+'\')">';
+      h+='<div class="crest lg" style="background:'+esc(t.cor)+'">'+esc(initials(t.n))+'</div>';
+      h+='<div style="text-align:left"><div class="nm">'+esc(t.n)+'</div>';
+      h+='<div class="sub">'+playersOf(t).length+' atletas · toque para marcar</div></div></button>';
+    });
+    h+='</div>';
+    h+='<div class="row"><button class="btn" onclick="go(\'home\')">← Voltar aos jogos</button></div>';
+    return h;
+  }
+
+  var meu=tF(MEUTID),meuSide=(MEUTID===g.a)?"A":"B";
+  var advT=(meuSide==="A")?B:A;
+  var h='';
+
+  /* placar */
+  h+='<div class="mesa-top">';
+  [{t:A,s:"A"},{t:B,s:"B"}].forEach(function(x){
+    var mine=(x.t.id===MEUTID);
+    var serving=st.serve&&st.serve.side===x.s;
+    h+='<div class="mesa-side'+(mine?" mine":"")+'" style="background:'+esc(x.t.cor)+'22;border-color:'+(mine?"var(--gold)":esc(x.t.cor))+'">';
+    h+='<div class="crest lg" style="background:'+esc(x.t.cor)+'">'+esc(initials(x.t.n))+'</div>';
+    h+='<div style="min-width:0"><div class="nm">'+esc(x.t.n)+'</div>';
+    h+='<div class="sub">'+(mine?"VOCÊ MARCA":"outro operador")+'</div>';
+    if(serving)h+='<div class="serve-badge">🏐 SACANDO'+(st.serve.jid&&pF(x.t,st.serve.jid)?" · "+esc(pF(x.t,st.serve.jid).nm):"")+'</div>';
+    h+='</div>';
+    h+='<div class="pts">'+st.pts[x.s]+'</div></div>';
+  });
+  h+='</div>';
+
+  /* estado do jogo */
+  if(st.done){
+    var wt=st.winnerTid?tF(st.winnerTid):null;
+    h+='<div class="banner inf"><b>Set encerrado</b> — '+(wt?esc(wt.n)+" venceu ":"")+st.pts.A+' x '+st.pts.B+'. ';
+    h+=(g.st!=="finalizada"?'Confirme para entrar na classificação.':'Jogo finalizado.')+'</div>';
+    if(g.st!=="finalizada")h+='<div class="row" style="margin-bottom:12px"><button class="btn pri" onclick="finalizarJogo()">✓ Finalizar jogo</button><button class="btn" onclick="undoLast()">↩ Desfazer última</button></div>';
+  }else if(g.st!=="ao_vivo"){
+    h+='<div class="row" style="margin-bottom:12px"><button class="btn pri" onclick="iniciarJogo()">▶ Iniciar jogo</button><button class="btn" onclick="go(\'home\')">← Jogos</button></div>';
+  }
+
+  /* saque: cada operador manda no saque da PROPRIA equipe (evita disputa) */
+  /* Quem define o sacador e o operador da PROPRIA equipe. Se a vez e do outro
+     lado, eu nao peco nada — so aviso. (Antes os dois avisos apareciam juntos.) */
+  var vezDoOutro=(st.needServer&&st.needServer!==meuSide);
+  var precisaSacador=!st.done&&!vezDoOutro&&(st.needServer===meuSide||!st.serve);
+  if(vezDoOutro){
+    h+='<div class="banner inf">Aguardando o operador da <b>'+esc(advT.n)+'</b> escolher quem saca.</div>';
+  }
+  if(precisaSacador){
+    h+='<div class="banner inf"><b>Toque no atleta que vai sacar</b> pela '+esc(meu.n)+'. Depois disso o rodízio anda sozinho.</div>';
+  }
+
+  /* atletas da MINHA equipe */
+  var court=coresOnCourt(meu,coresCfg(D.config));
+  var bench=playersOf(meu).slice(court.length);
+  h+='<h2 class="sec">'+esc(meu.n)+' <span class="faint" style="font-size:12px;letter-spacing:0">· em quadra</span></h2>';
+  h+='<div class="pgrid">';
+  court.forEach(function(p){h+=pBtn(p,meu,st,precisaSacador,false);});
+  h+='</div>';
+  if(bench.length){
+    h+='<div class="faint" style="font-size:10px;font-weight:800;letter-spacing:1.4px;margin:10px 0 6px">RESERVAS</div>';
+    h+='<div class="pgrid">';
+    bench.forEach(function(p){h+=pBtn(p,meu,st,precisaSacador,true);});
+    h+='</div>';
+  }
+
+  /* botoes de acao (1 toque grava) */
+  h+='<div class="'+(SELP?"":"needp")+'" style="margin-top:16px">';
+  h+='<h2 class="sec" style="margin-top:6px">AÇÃO'+(SELP&&pF(meu,SELP)?' <span class="faint" style="font-size:12px;letter-spacing:0">· '+esc(pF(meu,SELP).nm)+'</span>':' <span class="faint" style="font-size:11px;letter-spacing:0">· escolha o atleta primeiro</span>')+'</h2>';
+  h+='<div class="fgrid">';
+  for(var ak in CORES_ACT){
+    var a=CORES_ACT[ak];
+    h+='<div class="fbox"><div class="fh" style="background:'+CORES_FCOL[ak]+'">'+a.i+' '+esc(a.l)+'</div><div class="fb">';
+    for(var i=0;i<a.o.length;i++){
+      var oc=a.o[i];
+      h+='<button style="background:'+CORES_OC[oc]+'" onclick="mark(\''+ak+'\',\''+oc+'\')">'+esc(oc)+'</button>';
+    }
+    h+='</div></div>';
+  }
+  h+='</div></div>';
+
+  /* controles */
+  h+='<div class="row" style="margin-top:16px">';
+  h+='<button class="btn" onclick="adjust(\''+MEUTID+'\',1)">+1 '+esc(meu.n)+'</button>';
+  h+='<button class="btn" onclick="adjust(\''+MEUTID+'\',-1)">−1 '+esc(meu.n)+'</button>';
+  h+='<button class="btn" onclick="girarSaque()">↻ Girar saque</button>';
+  h+='<button class="btn dgr" onclick="undoLast()">↩ Desfazer minha última</button>';
+  h+='<button class="btn sm" onclick="trocarEquipe()">Trocar equipe deste aparelho</button>';
+  h+='<button class="btn sm" onclick="go(\'home\')">← Jogos</button>';
+  h+='</div>';
+
+  /* feed + ladder */
+  h+='<h2 class="sec">ÚLTIMAS AÇÕES</h2><div class="card">';
+  h+=feedHTML(st,g);
+  if(st.pointLog.length){
+    h+='<div class="ladder">';
+    st.pointLog.forEach(function(p){
+      var c=(p.side==="A")?A.cor:B.cor;
+      h+='<i style="background:'+esc(c)+'" title="'+esc(p.side==="A"?A.n:B.n)+'"></i>';
+    });
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
+}
+function pBtn(p,team,st,precisaSacador,isBench){
+  var serving=st.serve&&st.serve.jid===p.id&&((st.serve.side==="A"&&team.id===st.a)||(st.serve.side==="B"&&team.id===st.b));
+  var on=(SELP===p.id);
+  var act=precisaSacador?("defSacador('"+p.id+"')"):("selP('"+p.id+"')");
+  return '<button class="pbtn'+(on?" on":"")+(serving?" serving":"")+(isBench?" bench":"")+'" onclick="'+act+'">'
+    +'<div class="nu" style="background:'+esc(team.cor)+'">'+esc(p.nu!=null&&p.nu!==""?p.nu:initials(p.nm))+'</div>'
+    +'<div style="min-width:0"><div class="pn">'+esc(p.nm)+'</div>'
+    +(p.po?'<div class="pr">'+esc(p.po)+'</div>':'')+'</div></button>';
+}
+function feedHTML(st,g){
+  var evs=st.events.slice().reverse().filter(function(e){return e.t==="act";}).slice(0,10);
+  if(!evs.length)return '<div class="faint">Nenhuma ação marcada ainda.</div>';
+  var dupKeys={};st.dupes.forEach(function(d){dupKeys[d.k]=d._dupWhy||"rally";});
+  var h='<div class="feed">';
+  evs.forEach(function(e){
+    var t=tF(e.tid),p=t?pF(t,e.jid):null;
+    var a=CORES_ACT[e.ak];
+    h+='<div class="fitem'+(dupKeys[e.k]?" dup":"")+'">';
+    h+='<span class="dot" style="background:'+esc(t?t.cor:"#64748b")+'"></span>';
+    h+='<b>'+esc(p?p.nm:"—")+'</b><span class="faint">'+esc(a?a.l:e.ak)+'</span>';
+    h+='<span class="oc" style="background:'+(CORES_OC[e.oc]||"#64748b")+'">'+esc(e.oc)+'</span>';
+    if(dupKeys[e.k])h+='<span class="faint" style="font-size:10px;margin-left:auto">só estatística · '+(dupKeys[e.k]==="janela"?"o outro operador já marcou este rally":"rally já pontuado")+'</span>';
+    h+='</div>';
+  });
+  h+='</div>';
+  return h;
+}
+
+/* ---------- acoes da mesa ---------- */
+function setMeuTid(tid){MEUTID=tid;localStorage.setItem("cores_tid_"+GID,tid);SELP=null;render();}
+function trocarEquipe(){localStorage.removeItem("cores_tid_"+GID);MEUTID=null;SELP=null;render();}
+/* Sempre SELECIONA (nunca alterna). Toque repetido no mesmo atleta e comum na
+   correria e nao pode zerar a selecao — a acao seguinte deixaria de gravar. */
+function selP(jid){SELP=jid;render();}
+function defSacador(jid){
+  pushEvent(GID,{t:"serve",tid:MEUTID,jid:jid}).then(function(){toast("Sacador definido","ok");});
+  SELP=null;
+}
+function girarSaque(){
+  var g=D.games[GID];if(!g)return;
+  var st=calc(g),meu=tF(MEUTID);
+  var last=st.lastServer[(MEUTID===g.a)?"A":"B"];
+  var nx=coresNextServer(meu,last,coresCfg(D.config));
+  if(!nx){toast("Cadastre os atletas da equipe","err");return;}
+  pushEvent(GID,{t:"serve",tid:MEUTID,jid:nx});
+}
+function mark(ak,oc){
+  if(!SELP){toast("Escolha o atleta primeiro","err");return;}
+  var g=D.games[GID];if(!g)return;
+  var st=calc(g);
+  if(st.done){toast("Set encerrado — finalize o jogo","err");return;}
+  if(g.st!=="ao_vivo"){toast("Inicie o jogo antes de marcar","err");return;}
+  pushEvent(GID,{t:"act",tid:MEUTID,jid:SELP,ak:ak,oc:oc,rally:st.rally}).then(function(ref){
+    /* Se o ponto deste rally ja tinha sido contado pelo outro operador, a acao
+       entra como estatistica e o placar NAO sobe. Avisa, pra nao ficar silencioso. */
+    var key=ref&&ref.key; if(!key)return;
+    setTimeout(function(){
+      var gg=D.games[GID]; if(!gg)return;
+      var st2=calc(gg);
+      for(var i=0;i<st2.dupes.length;i++){
+        if(st2.dupes[i].k===key){ toast("Ação salva no scout. O ponto deste rally já tinha sido contado.",""); break; }
+      }
+    },150);
+  }).catch(function(){});
+}
+function adjust(tid,delta){
+  var g=D.games[GID];if(!g)return;
+  pushEvent(GID,{t:"adj",tid:tid,delta:delta});
+}
+/* Desfaz so o ULTIMO evento DESTE aparelho/equipe — nunca mexe no do outro operador. */
+function undoLast(){
+  var evObj=D.events[GID]||{};
+  var keys=Object.keys(evObj).sort();
+  for(var i=keys.length-1;i>=0;i--){
+    var e=evObj[keys[i]];
+    if(e&&e.tid===MEUTID){
+      db.ref(ROOT+"/events/"+GID+"/"+keys[i]).remove().then(function(){toast("Última ação desfeita","ok");}).catch(onWriteErr);
+      return;
+    }
+  }
+  toast("Nada seu para desfazer","err");
+}
+function iniciarJogo(){var g=D.games[GID];if(!g)return;g.st="ao_vivo";writeNode("games/"+GID+"/st","ao_vivo");}
+function finalizarJogo(){
+  var g=D.games[GID];if(!g)return;
+  var st=calc(g);
+  g.st="finalizada";
+  writeNode("games/"+GID+"/st","finalizada").then(function(){
+    toast("Jogo finalizado — classificação atualizada","ok");
+  });
+}
+
+/* ---------------- CLASSIFICACAO ---------------- */
+function rClass(){
+  var ts=teamsArr();
+  if(!ts.length)return '<div class="empty"><div class="big">SEM EQUIPES</div><div>Cadastre as equipes no Admin.</div></div>';
+  var S=coresStandings(gamesArr(),ts,D.events,D.config);
+  var cfg=coresCfg(D.config);
+  var h='<h2 class="sec">CLASSIFICAÇÃO</h2>';
+  h+='<div class="card"><div class="tscroll"><table class="tb"><thead><tr>';
+  h+='<th>#</th><th>EQUIPE</th><th>J</th><th>V</th><th>D</th><th>PP</th><th>PC</th><th>SALDO</th><th>PTS</th>';
+  h+='</tr></thead><tbody>';
+  S.forEach(function(r){
+    h+='<tr><td class="faint">'+r.pos+'</td>';
+    h+='<td class="nm"><span style="display:inline-flex;align-items:center;gap:9px">';
+    h+='<span class="dot" style="background:'+esc(r.cor)+'"></span>'+esc(r.n)+'</span></td>';
+    h+='<td>'+r.j+'</td><td style="color:#6ee7b7;font-weight:800">'+r.v+'</td><td class="faint">'+r.d+'</td>';
+    h+='<td>'+r.pp+'</td><td>'+r.pc+'</td>';
+    h+='<td style="color:'+(r.saldo>0?"#6ee7b7":(r.saldo<0?"#fca5a5":"var(--mute)"))+'">'+(r.saldo>0?"+":"")+r.saldo+'</td>';
+    h+='<td style="font-family:\'Bebas Neue\',sans-serif;font-size:20px">'+r.pts+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="faint" style="font-size:11px;margin-top:12px;line-height:1.6">Vitória = '+cfg.ptsVitoria+' · Derrota = '+cfg.ptsDerrota+' · Set único até '+cfg.setPoints+' com '+cfg.vantagem+' de vantagem.<br>Desempate: pontos › saldo › pontos pró › confronto direto. Só entram jogos encerrados.</div>';
+  h+='</div>';
+  h+='<h2 class="sec">RESULTADOS</h2>';
+  var fin=coresOrderGames(gamesArr()).filter(function(g){return g.st==="finalizada"||calc(g).done;});
+  if(!fin.length)h+='<div class="empty">Nenhum jogo encerrado ainda.</div>';
+  else fin.forEach(function(g){h+=gameCard(g);});
+  return h;
+}
+
+/* ---------------- TELAO ---------------- */
+function rTelao(){
+  var gs=coresOrderGames(gamesArr());
+  var live=null;
+  for(var i=0;i<gs.length;i++)if(gs[i].st==="ao_vivo"){live=gs[i];break;}
+  if(!live)for(var j=0;j<gs.length;j++)if(gs[j].st!=="finalizada"){live=gs[j];break;}
+  var h='<div class="tl">';
+  h+='<div class="tl-hd"><div class="hd-ti" style="font-size:28px">'+esc(D.config.nome||"TORNEIO POR CORES")+'</div>';
+  h+='<div class="hd-sub" style="margin-left:auto">RS-VOLEIBOL</div></div>';
+  if(!live){
+    h+='<div class="tl-main"><div class="empty"><div class="big">SEM JOGO EM ANDAMENTO</div></div></div></div>';
+    return h;
+  }
+  var A=tF(live.a),B=tF(live.b);
+  if(!A||!B){h+='<div class="tl-main"><div class="empty">equipes não encontradas</div></div></div>';return h;}
+  var st=calc(live);
+  h+='<div class="tl-main">';
+  [{t:A,s:"A"},{t:B,s:"B"}].forEach(function(x,ix){
+    if(ix===1)h+='<div class="tl-x">×</div>';
+    var serving=st.serve&&st.serve.side===x.s;
+    h+='<div class="tl-team">';
+    h+='<div class="crest xl" style="background:'+esc(x.t.cor)+';margin:0 auto 12px">'+esc(initials(x.t.n))+'</div>';
+    h+='<div class="tl-nm">'+esc(x.t.n)+(serving?' <span style="font-size:.5em">🏐</span>':'')+'</div>';
+    h+='<div class="tl-pt" style="color:'+esc(x.t.cor)+'">'+st.pts[x.s]+'</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+  h+='<div class="tl-bot">';
+  /* classificacao resumida */
+  var S=coresStandings(gamesArr(),teamsArr(),D.events,D.config);
+  h+='<div><div class="hd-sub" style="margin-bottom:8px">CLASSIFICAÇÃO</div><table class="tb"><tbody>';
+  S.slice(0,6).forEach(function(r){
+    h+='<tr><td class="faint">'+r.pos+'</td><td class="nm"><span style="display:inline-flex;align-items:center;gap:8px">';
+    h+='<span class="dot" style="background:'+esc(r.cor)+'"></span>'+esc(r.n)+'</span></td>';
+    h+='<td>'+r.v+'V</td><td class="faint">'+(r.saldo>0?"+":"")+r.saldo+'</td>';
+    h+='<td style="font-weight:900">'+r.pts+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  /* proximos */
+  var prox=gs.filter(function(g){return g.st!=="finalizada"&&g.id!==live.id;}).slice(0,4);
+  h+='<div><div class="hd-sub" style="margin-bottom:8px">PRÓXIMOS JOGOS</div>';
+  if(!prox.length)h+='<div class="faint">—</div>';
+  prox.forEach(function(g){
+    var a=tF(g.a),b=tF(g.b);if(!a||!b)return;
+    h+='<div style="display:flex;align-items:center;gap:9px;padding:5px 0;font-weight:700">';
+    h+='<span class="dot" style="background:'+esc(a.cor)+'"></span>'+esc(a.n);
+    h+='<span class="faint">×</span><span class="dot" style="background:'+esc(b.cor)+'"></span>'+esc(b.n);
+    h+='<span class="faint" style="margin-left:auto;font-size:11px">'+(g.tm||fD(g.dt))+'</span></div>';
+  });
+  h+='</div></div></div>';
+  return h;
+}
+
+/* ---------------- ADMIN ---------------- */
+function rAdmin(){
+  var cfg=coresCfg(D.config);
+  var ts=teamsArr();
+  var h='<h2 class="sec">CONFIGURAÇÃO</h2><div class="card"><div class="row">';
+  h+='<div class="fld" style="flex:2"><span>NOME DO TORNEIO</span><input id="cf-n" value="'+esc(D.config.nome||"TORNEIO POR CORES")+'"></div>';
+  h+='<div class="fld"><span>SET ATÉ</span><input id="cf-sp" type="number" value="'+cfg.setPoints+'"></div>';
+  h+='<div class="fld"><span>VANTAGEM</span><input id="cf-va" type="number" value="'+cfg.vantagem+'"></div>';
+  h+='<div class="fld"><span>EM QUADRA</span><input id="cf-eq" type="number" value="'+cfg.emQuadra+'"></div>';
+  h+='<div class="fld"><span>PTS VITÓRIA</span><input id="cf-pv" type="number" value="'+cfg.ptsVitoria+'"></div>';
+  h+='<div class="fld"><span>PTS DERROTA</span><input id="cf-pd" type="number" value="'+cfg.ptsDerrota+'"></div>';
+  h+='<div class="fld"><span>JANELA ANTI-DUPLO (s)</span><input id="cf-dd" type="number" step="0.5" value="'+(cfg.dedupeMs/1000)+'" title="Segundos em que a mesma jogada marcada pelos 2 operadores conta 1 ponto só"></div>';
+  h+='<button class="btn pri" style="align-self:flex-end" onclick="salvarConfig()">Salvar</button>';
+  h+='</div></div>';
+
+  /* equipes */
+  h+='<h2 class="sec">EQUIPES POR COR</h2>';
+  h+='<div class="card"><div class="row">';
+  h+='<div class="fld" style="flex:2"><span>NOME DA EQUIPE</span><input id="nt-n" placeholder="AZUL"></div>';
+  h+='<div class="fld"><span>COR</span><input id="nt-c" type="color" value="#2563eb"></div>';
+  h+='<button class="btn pri" style="align-self:flex-end" onclick="novaEquipe()">+ Criar equipe</button>';
+  h+='</div></div>';
+  if(!ts.length)h+='<div class="empty">Nenhuma equipe ainda.</div>';
+  ts.forEach(function(t){
+    h+='<div class="card" style="border-left:4px solid '+esc(t.cor)+'">';
+    h+='<div class="row" style="margin-bottom:10px">';
+    h+='<div class="crest" style="background:'+esc(t.cor)+'">'+esc(initials(t.n))+'</div>';
+    h+='<div class="fld" style="flex:1"><span>NOME</span><input value="'+esc(t.n)+'" onchange="editEquipe(\''+t.id+'\',\'n\',this.value)"></div>';
+    h+='<div class="fld"><span>COR</span><input type="color" value="'+esc(t.cor)+'" onchange="editEquipe(\''+t.id+'\',\'cor\',this.value)"></div>';
+    h+='<button class="btn dgr sm" style="align-self:flex-end" onclick="delEquipe(\''+t.id+'\')">Excluir</button>';
+    h+='</div>';
+    var ps=playersOf(t);
+    h+='<div class="faint" style="font-size:10px;font-weight:800;letter-spacing:1.2px;margin-bottom:7px">ATLETAS — a ordem da lista É a ordem de saque (os '+cfg.emQuadra+' primeiros entram em quadra)</div>';
+    if(!ps.length)h+='<div class="faint" style="margin-bottom:8px">nenhum atleta</div>';
+    ps.forEach(function(p,ix){
+      h+='<div class="row" style="margin-bottom:6px;flex-wrap:nowrap">';
+      h+='<span class="tag" style="min-width:64px;justify-content:center">'+(ix<cfg.emQuadra?"QUADRA":"RESERVA")+'</span>';
+      h+='<input style="width:64px;background:rgba(0,0,0,.28);border:1px solid var(--brd);border-radius:9px;padding:8px" placeholder="nº" value="'+esc(p.nu==null?"":p.nu)+'" onchange="editPlayer(\''+t.id+'\',\''+p.id+'\',\'nu\',this.value)">';
+      h+='<input style="flex:1;background:rgba(0,0,0,.28);border:1px solid var(--brd);border-radius:9px;padding:8px" value="'+esc(p.nm)+'" onchange="editPlayer(\''+t.id+'\',\''+p.id+'\',\'nm\',this.value)">';
+      h+='<button class="btn sm" onclick="movePlayer(\''+t.id+'\',\''+p.id+'\',-1)" title="subir">↑</button>';
+      h+='<button class="btn sm" onclick="movePlayer(\''+t.id+'\',\''+p.id+'\',1)" title="descer">↓</button>';
+      h+='<button class="btn dgr sm" onclick="delPlayer(\''+t.id+'\',\''+p.id+'\')">×</button>';
+      h+='</div>';
+    });
+    h+='<div class="row" style="margin-top:9px">';
+    h+='<input id="np-'+t.id+'" placeholder="nome do atleta" style="flex:1;background:rgba(0,0,0,.28);border:1px solid var(--brd);border-radius:9px;padding:9px" onkeydown="if(event.key===\'Enter\')addPlayer(\''+t.id+'\')">';
+    h+='<button class="btn" onclick="addPlayer(\''+t.id+'\')">+ Atleta</button></div>';
+    h+='</div>';
+  });
+
+  /* jogos */
+  h+='<h2 class="sec">JOGOS</h2>';
+  if(ts.length<2)h+='<div class="banner inf">Crie pelo menos 2 equipes para montar jogos.</div>';
+  else{
+    var opt=function(sel){var s="";ts.forEach(function(t){s+='<option value="'+t.id+'"'+(sel===t.id?" selected":"")+'>'+esc(t.n)+'</option>';});return s;};
+    h+='<div class="card"><div class="row">';
+    h+='<div class="fld" style="flex:1"><span>EQUIPE A</span><select id="ng-a">'+opt(ts[0].id)+'</select></div>';
+    h+='<div class="fld" style="flex:1"><span>EQUIPE B</span><select id="ng-b">'+opt(ts[1].id)+'</select></div>';
+    h+='<div class="fld"><span>DATA</span><input id="ng-dt" type="date" value="'+(new Date().toISOString().slice(0,10))+'"></div>';
+    h+='<div class="fld"><span>HORÁRIO</span><input id="ng-tm" type="time"></div>';
+    h+='<button class="btn pri" style="align-self:flex-end" onclick="novoJogo()">+ Criar jogo</button>';
+    h+='</div></div>';
+  }
+  var gs=coresOrderGames(gamesArr());
+  gs.forEach(function(g){
+    var a=tF(g.a),b=tF(g.b);if(!a||!b)return;
+    var st=calc(g);
+    h+='<div class="gcard"><div class="gc-vs">';
+    h+='<span class="dot" style="background:'+esc(a.cor)+'"></span><b>'+esc(a.n)+'</b>';
+    h+='<span class="faint">×</span><span class="dot" style="background:'+esc(b.cor)+'"></span><b>'+esc(b.n)+'</b>';
+    h+='</div><div class="gc-sc">'+st.pts.A+'-'+st.pts.B+'</div>';
+    h+='<div class="gc-meta" style="min-width:110px">'+(g.dt?fD(g.dt):"")+(g.tm?" "+esc(g.tm):"")+'</div>';
+    h+='<span class="pill '+(g.st==="ao_vivo"?"live":(g.st==="finalizada"?"fim":"age"))+'">'+(g.st==="ao_vivo"?"AO VIVO":(g.st==="finalizada"?"FIM":"AGENDADO"))+'</span>';
+    h+='<button class="btn sm" onclick="go(\'mesa\',\'&g='+g.id+'\')">Mesa</button>';
+    h+='<button class="btn dgr sm" onclick="delJogo(\''+g.id+'\')">Excluir</button>';
+    h+='</div>';
+  });
+  h+='<div class="faint" style="font-size:11px;margin-top:22px;line-height:1.6">Módulo isolado do RS-Scout · dados em <code>/torneio-cores</code> · build '+CORES_BUILD+'</div>';
+  return h;
+}
+function val(id){var e=document.getElementById(id);return e?e.value:"";}
+function salvarConfig(){
+  var c={nome:val("cf-n"),setPoints:+val("cf-sp")||21,vantagem:+val("cf-va"),
+    emQuadra:+val("cf-eq")||4,ptsVitoria:+val("cf-pv"),ptsDerrota:+val("cf-pd"),
+    dedupeMs:Math.round((parseFloat(val("cf-dd"))||0)*1000)};
+  if(isNaN(c.vantagem))c.vantagem=2;
+  writeNode("config",c).then(function(){toast("Configuração salva","ok");});
+}
+function novaEquipe(){
+  var n=(val("nt-n")||"").trim(),c=val("nt-c")||"#2563eb";
+  if(!n){toast("Informe o nome da equipe","err");return;}
+  var id=uid("c_");
+  writeNode("teams/"+id,{id:id,n:n.toUpperCase(),cor:c,ordem:teamsArr().length,players:[]})
+    .then(function(){toast("Equipe criada","ok");var e=document.getElementById("nt-n");if(e)e.value="";});
+}
+function editEquipe(tid,campo,v){
+  var t=tF(tid);if(!t)return;
+  writeNode("teams/"+tid+"/"+campo,campo==="n"?String(v).toUpperCase():v);
+}
+function delEquipe(tid){
+  var t=tF(tid);if(!t)return;
+  var usada=gamesArr().some(function(g){return g.a===tid||g.b===tid;});
+  if(usada){toast("Equipe está em um jogo — exclua o jogo antes","err");return;}
+  if(!confirm("Excluir a equipe "+t.n+"?"))return;
+  db.ref(ROOT+"/teams/"+tid).remove().catch(onWriteErr);
+}
+function addPlayer(tid){
+  var t=tF(tid);if(!t)return;
+  var el=document.getElementById("np-"+tid);
+  var nm=(el&&el.value||"").trim();
+  if(!nm){toast("Informe o nome","err");return;}
+  var ps=playersOf(t).slice();
+  ps.push({id:uid("p_"),nm:nm.toUpperCase(),nu:""});
+  writeNode("teams/"+tid+"/players",ps).then(function(){if(el)el.value="";});
+}
+function editPlayer(tid,jid,campo,v){
+  var t=tF(tid);if(!t)return;
+  var ps=playersOf(t).slice();
+  for(var i=0;i<ps.length;i++)if(ps[i].id===jid)ps[i][campo]=(campo==="nm"?String(v).toUpperCase():v);
+  writeNode("teams/"+tid+"/players",ps);
+}
+function movePlayer(tid,jid,dir){
+  var t=tF(tid);if(!t)return;
+  var ps=playersOf(t).slice();
+  var i=-1;for(var k=0;k<ps.length;k++)if(ps[k].id===jid){i=k;break;}
+  var j=i+dir;
+  if(i<0||j<0||j>=ps.length)return;
+  var tmp=ps[i];ps[i]=ps[j];ps[j]=tmp;
+  writeNode("teams/"+tid+"/players",ps);
+}
+function delPlayer(tid,jid){
+  var t=tF(tid);if(!t)return;
+  var ps=playersOf(t).filter(function(p){return p.id!==jid;});
+  writeNode("teams/"+tid+"/players",ps);
+}
+function novoJogo(){
+  var a=val("ng-a"),b=val("ng-b");
+  if(!a||!b||a===b){toast("Escolha duas equipes diferentes","err");return;}
+  var id=uid("j_");
+  writeNode("games/"+id,{id:id,a:a,b:b,dt:val("ng-dt")||"",tm:val("ng-tm")||"",st:"agendada"})
+    .then(function(){toast("Jogo criado","ok");});
+}
+function delJogo(gid){
+  if(!confirm("Excluir o jogo e todas as ações marcadas nele?"))return;
+  db.ref(ROOT+"/events/"+gid).remove().catch(function(){});
+  db.ref(ROOT+"/games/"+gid).remove().catch(onWriteErr);
+}
+
+/* ---------- start ---------- */
+render();
+boot();
+setInterval(function(){if(VIEW==="telao")render();},5000);
+</script>
+</body>
+</html>

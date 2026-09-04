@@ -1,0 +1,20 @@
+{
+  "_comment": "REGRAS COMPLETAS do RTDB scola-volei. Cole ISTO INTEIRO em Firebase > scola-volei > Realtime Database > Regras > Publicar. Contem as regras que ja estavam no ar (torneio-master-santos, intactas) + o no NOVO do modulo por cores. O modulo 'torneio-cores' e ISOLADO: apagar esse no nao afeta o RS-Scout.",
+  "_atencao_torneio_cores": "Escrita ABERTA (sem login) por decisao de operacao: os 2 operadores marcam sem senha, como o evento pede. Quem tiver o link pode marcar. Aceitavel para evento de 1 dia com link nao divulgado. Para fechar depois do evento, troque '.write': true por '.write': 'auth != null' (o modulo continua funcionando para quem estiver logado) ou apague o no inteiro.",
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "torneio-master-santos": {
+      "teams":       { ".read": true, ".write": "auth != null" },
+      "games":       { ".read": true, ".write": "auth != null" },
+      "athletes":    { ".read": true, ".write": "auth != null" },
+      "tournaments": { ".read": true, ".write": "auth != null" },
+      "invites":     { ".read": true, ".write": "auth != null" },
+      "users":       { ".read": "auth != null", ".write": "auth != null" }
+    },
+    "torneio-cores": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}

@@ -423,6 +423,117 @@ t('pontuacao da classificacao e parametrizavel', () => {
   eq(S[0].pts, 2); eq(S[1].pts, 0);
 });
 
+console.log('\n== fases: classificatoria + mata-mata ==');
+/* 4 equipes, todas jogaram entre si — monta uma classificacao de verdade. */
+const AM = { id: 'ta', n: 'AMARELA', cor: '#eab308', ordem: 3, players: VERM.players };
+const VD = { id: 'tg', n: 'VERDE', cor: '#16a34a', ordem: 2, players: AZUL.players };
+const Q4 = [AZUL, VERM, VD, AM];
+const Q4BY = { tz: AZUL, tv: VERM, tg: VD, ta: AM };
+function jogo(id, a, b, pa, pb, fase) {
+  const l = [];
+  for (let i = 0; i < pa; i++) l.push(act(a, null, 'ataque', 'Ponto', i));
+  for (let i = 0; i < pb; i++) l.push(act(b, null, 'ataque', 'Ponto', pa + i));
+  return { g: { id, a, b, st: 'finalizada', fase: fase || 'class' }, ev: evs(l) };
+}
+/* AZUL 9pts, VERM 7, VERDE 5, AMARELA 3 (ordem de chegada garantida) */
+const J = [
+  jogo('c1', 'tz', 'tv', 21, 10), jogo('c2', 'tz', 'tg', 21, 11), jogo('c3', 'tz', 'ta', 21, 12),
+  jogo('c4', 'tv', 'tg', 21, 13), jogo('c5', 'tv', 'ta', 21, 14), jogo('c6', 'tg', 'ta', 21, 15)
+];
+const JGAMES = J.map(x => x.g);
+const JEV = {}; J.forEach(x => { JEV[x.g.id] = x.ev; });
+const TAB = C.coresStandings(JGAMES, Q4, JEV, CFG);
+
+t('a classificacao ficou 1o AZUL, 2o VERMELHA, 3o VERDE, 4o AMARELA', () => {
+  eq(TAB.map(r => r.n), ['AZUL', 'VERMELHA', 'VERDE', 'AMARELA']);
+});
+t('FINAL DIRETA: 1o x 2o', () => {
+  const b = C.coresBracket(TAB, 'final', false, { prefixo: 'f' });
+  eq(b.length, 1);
+  eq(b[0].fase, 'final');
+  eq([b[0].a, b[0].b], ['tz', 'tv']);
+});
+t('SEMIFINAIS: 1o x 4o e 2o x 3o, e a final sai das semis', () => {
+  const b = C.coresBracket(TAB, 'semi', false, { prefixo: 'f' });
+  eq(b.length, 3);
+  eq([b[0].a, b[0].b], ['tz', 'ta'], 'SF1 = 1o x 4o');
+  eq([b[1].a, b[1].b], ['tv', 'tg'], 'SF2 = 2o x 3o');
+  eq(b[2].fase, 'final');
+  eq(b[2].a, '', 'a final nasce sem equipes');
+  eq(b[2].srcA, { from: 'f_sf1', tipo: 'win' });
+  eq(b[2].labelA, 'Vencedor Semifinal 1');
+});
+t('com disputa de 3o lugar: perdedores das semis', () => {
+  const b = C.coresBracket(TAB, 'semi', true, { prefixo: 'f' });
+  eq(b.length, 4);
+  const t3 = b.find(x => x.fase === 'terceiro');
+  eq(t3.srcA, { from: 'f_sf1', tipo: 'lose' });
+  eq(t3.srcB, { from: 'f_sf2', tipo: 'lose' });
+});
+t('semifinal exige 4 equipes classificadas', () => {
+  eq(C.coresBracket(TAB.slice(0, 3), 'semi', false, {}), []);
+  eq(C.coresBracket(TAB.slice(0, 1), 'final', false, {}), []);
+});
+
+t('a final so mostra as equipes quando as semis terminam', () => {
+  const b = C.coresBracket(TAB, 'semi', false, { prefixo: 'f' });
+  const todos = JGAMES.concat(b);
+  let r = C.coresResolveGames(todos, JEV, Q4BY, CFG);
+  let fin = r.find(x => x.fase === 'final');
+  eq(fin.a, '', 'semis nem comecaram');
+  eq(C.coresLadoLabel(fin, 'A', Q4BY), 'Vencedor Semifinal 1');
+
+  const sf1 = jogo('f_sf1', 'tz', 'ta', 21, 9);          // AZUL vence a SF1
+  const sf2 = jogo('f_sf2', 'tv', 'tg', 15, 21);         // VERDE vence a SF2
+  const ev2 = Object.assign({}, JEV, { f_sf1: sf1.ev, f_sf2: sf2.ev });
+  const gs2 = JGAMES.concat([sf1.g, sf2.g, b[2]]);
+  r = C.coresResolveGames(gs2, ev2, Q4BY, CFG);
+  fin = r.find(x => x.fase === 'final');
+  eq([fin.a, fin.b], ['tz', 'tg'], 'AZUL x VERDE');
+  eq(C.coresLadoLabel(fin, 'B', Q4BY), 'VERDE');
+});
+t('a disputa de 3o pega os PERDEDORES das semis', () => {
+  const b = C.coresBracket(TAB, 'semi', true, { prefixo: 'f' });
+  const sf1 = jogo('f_sf1', 'tz', 'ta', 21, 9);
+  const sf2 = jogo('f_sf2', 'tv', 'tg', 15, 21);
+  const ev2 = Object.assign({}, JEV, { f_sf1: sf1.ev, f_sf2: sf2.ev });
+  const r = C.coresResolveGames([sf1.g, sf2.g].concat(b.filter(x => x.fase !== 'semi')), ev2, Q4BY, CFG);
+  const t3 = r.find(x => x.fase === 'terceiro');
+  eq([t3.a, t3.b], ['ta', 'tv'], 'AMARELA x VERMELHA');
+});
+t('semifinal em andamento ainda nao define a final', () => {
+  const b = C.coresBracket(TAB, 'semi', false, { prefixo: 'f' });
+  const sf1 = { g: { id: 'f_sf1', a: 'tz', b: 'ta', st: 'ao_vivo' }, ev: evs([act('tz', null, 'ataque', 'Ponto', 0)]) };
+  const r = C.coresResolveGames([sf1.g, b[2]], { f_sf1: sf1.ev }, Q4BY, CFG);
+  eq(r.find(x => x.fase === 'final').a, '');
+});
+
+t('jogo de mata-mata NAO entra na classificacao', () => {
+  const fin = jogo('fin', 'tz', 'tv', 21, 5, 'final');
+  const antes = C.coresStandings(JGAMES, Q4, JEV, CFG);
+  const dep = C.coresStandings(JGAMES.concat([fin.g]), Q4,
+    Object.assign({}, JEV, { fin: fin.ev }), CFG);
+  eq(dep.map(r => [r.n, r.j, r.pts]), antes.map(r => [r.n, r.j, r.pts]), 'tabela intacta');
+});
+t('jogo sem o campo fase conta como classificatoria (compatibilidade)', () => {
+  const g = { id: 'x', a: 'tz', b: 'tv', st: 'finalizada' };
+  eq(C.coresFase(g), 'class');
+});
+t('campeao = vencedor da final', () => {
+  const fin = jogo('fin', 'tz', 'tv', 21, 5, 'final');
+  eq(C.coresCampeao([fin.g], { fin: fin.ev }, Q4BY, CFG), 'tz');
+  const emAberto = { id: 'f2', a: 'tz', b: 'tv', st: 'ao_vivo', fase: 'final' };
+  eq(C.coresCampeao([emAberto], {}, Q4BY, CFG), null);
+});
+t('o mural poe o mata-mata depois da classificatoria', () => {
+  const ord = C.coresOrderGames([
+    { id: 'fin', fase: 'final', st: 'agendada', dt: '2026-09-05', tm: '08:00' },
+    { id: 'c1', fase: 'class', st: 'agendada', dt: '2026-09-05', tm: '11:00' },
+    { id: 'sf', fase: 'semi', st: 'agendada', dt: '2026-09-05', tm: '09:00' }
+  ]);
+  eq(ord.map(x => x.id), ['c1', 'sf', 'fin']);
+});
+
 console.log('\n== ordem do mural ==');
 t('ao vivo primeiro, agendados por horario, finalizados por ultimo', () => {
   const g = C.coresOrderGames([

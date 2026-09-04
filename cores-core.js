@@ -339,6 +339,121 @@ function coresPlayerLine(st) {
 }
 
 /* ==========================================================================
+   FASES — classificatoria + mata-mata
+   --------------------------------------------------------------------------
+   g.fase: "class" (padrao, tambem quando o campo nao existe) | "semi" |
+           "final" | "terceiro".
+   Um jogo de mata-mata pode nascer SEM as equipes definidas, dependendo do
+   resultado de outro: g.srcA = { from:<id do jogo>, tipo:"win"|"lose" } e
+   g.labelA = o que mostrar enquanto nao houver resultado ("Vencedor SF1").
+   Nada disso e gravado de volta: as equipes sao resolvidas na hora de exibir.
+   ========================================================================== */
+var CORES_FASES = {
+  class:    { l: "Classificatória", ordem: 0 },
+  semi:     { l: "Semifinal",       ordem: 1 },
+  terceiro: { l: "3º lugar",        ordem: 2 },
+  final:    { l: "Final",           ordem: 3 }
+};
+function coresFase(g) { return (g && g.fase && CORES_FASES[g.fase]) ? g.fase : "class"; }
+
+/* Vencedor/perdedor de um jogo — so quando ha resultado de verdade. */
+function coresOutcome(game, evByGame, teamsById, cfg) {
+  if (!game || !game.a || !game.b) return null;
+  var st = coresComputeGame(game, (evByGame && evByGame[game.id]) || null, teamsById, cfg);
+  var acabou = (game.st === "finalizada") || st.done;
+  if (!acabou || st.pts.A === st.pts.B) return null;
+  var aGanhou = st.pts.A > st.pts.B;
+  return { win: aGanhou ? game.a : game.b, lose: aGanhou ? game.b : game.a };
+}
+
+/* Preenche as equipes dos jogos que dependem de outros. Varias passadas porque
+   a final depende das semis (2 niveis); para quando nada mais muda. */
+function coresResolveGames(games, evByGame, teamsById, cfgIn) {
+  var cfg = coresCfg(cfgIn);
+  var out = [], byId = {}, i;
+  for (i = 0; i < games.length; i++) {
+    var c = {}; for (var k in games[i]) c[k] = games[i][k];
+    out.push(c); byId[c.id] = c;
+  }
+  for (var passo = 0; passo < 4; passo++) {
+    var mudou = false;
+    for (i = 0; i < out.length; i++) {
+      var g = out[i];
+      ["A", "B"].forEach(function (lado) {
+        var campo = lado === "A" ? "a" : "b", src = g["src" + lado];
+        if (g[campo] || !src || !src.from) return;
+        var oc = coresOutcome(byId[src.from], evByGame, teamsById, cfg);
+        if (!oc) return;
+        g[campo] = (src.tipo === "lose") ? oc.lose : oc.win;
+        mudou = true;
+      });
+    }
+    if (!mudou) break;
+  }
+  return out;
+}
+
+/* Nome para exibir num lado do jogo, resolvido ou nao. */
+function coresLadoLabel(g, lado, teamsById) {
+  var tid = (lado === "A") ? g.a : g.b;
+  if (tid && teamsById[tid]) return teamsById[tid].n;
+  return g["label" + lado] || "A definir";
+}
+
+/* Monta os jogos da fase final a partir da classificacao.
+   modo: "final" (1o x 2o) | "semi" (1o x 4o e 2o x 3o + final)
+   com3o: inclui a disputa de 3o lugar (so no modo semi).
+   Devolve os jogos prontos para gravar — nao grava nada. */
+function coresBracket(standings, modo, com3o, base) {
+  base = base || {};
+  var mk = function (id, fase, extra) {
+    var g = { id: id, a: "", b: "", fase: fase, st: "agendada",
+              dt: base.dt || "", tm: "", ordem: CORES_FASES[fase].ordem };
+    for (var k in extra) g[k] = extra[k];
+    return g;
+  };
+  var pos = function (i) { return standings[i] ? standings[i].tid : ""; };
+  var nome = function (i) { return standings[i] ? standings[i].n : (i + 1) + "º colocado"; };
+  var pref = base.prefixo || ("f_" + Date.now().toString(36));
+
+  if (modo === "final") {
+    if (standings.length < 2) return [];
+    return [mk(pref + "_fin", "final", {
+      a: pos(0), b: pos(1), labelA: nome(0), labelB: nome(1), tm: base.tmFinal || ""
+    })];
+  }
+  if (modo === "semi") {
+    if (standings.length < 4) return [];
+    var s1 = mk(pref + "_sf1", "semi", { a: pos(0), b: pos(3), labelA: nome(0), labelB: nome(3), tm: base.tmSemi || "" });
+    var s2 = mk(pref + "_sf2", "semi", { a: pos(1), b: pos(2), labelA: nome(1), labelB: nome(2), tm: base.tmSemi || "" });
+    var jogos = [s1, s2];
+    if (com3o) {
+      jogos.push(mk(pref + "_3o", "terceiro", {
+        srcA: { from: s1.id, tipo: "lose" }, srcB: { from: s2.id, tipo: "lose" },
+        labelA: "Perdedor Semifinal 1", labelB: "Perdedor Semifinal 2", tm: base.tm3o || ""
+      }));
+    }
+    jogos.push(mk(pref + "_fin", "final", {
+      srcA: { from: s1.id, tipo: "win" }, srcB: { from: s2.id, tipo: "win" },
+      labelA: "Vencedor Semifinal 1", labelB: "Vencedor Semifinal 2", tm: base.tmFinal || ""
+    }));
+    return jogos;
+  }
+  return [];
+}
+
+/* Campeao do torneio: vencedor da final, quando houver. */
+function coresCampeao(games, evByGame, teamsById, cfgIn) {
+  var gs = coresResolveGames(games, evByGame, teamsById, cfgIn);
+  for (var i = 0; i < gs.length; i++) {
+    if (coresFase(gs[i]) !== "final") continue;
+    var oc = coresOutcome(gs[i], evByGame, teamsById, coresCfg(cfgIn));
+    if (oc) return oc.win;
+  }
+  return null;
+}
+
+/* ==========================================================================
    CLASSIFICACAO — §6 do brief. So conta jogo finalizado.
    Vitoria=3 · Derrota=1 · desempate: pontos > saldo > pontos pro > confronto direto.
    ========================================================================== */
@@ -359,6 +474,7 @@ function coresStandings(games, teams, evByGame, cfgIn) {
   for (i = 0; i < games.length; i++) {
     var g = games[i];
     if (!g || !row[g.a] || !row[g.b]) continue;
+    if (coresFase(g) !== "class") continue;   /* mata-mata nao mexe na tabela */
     var st = coresComputeGame(g, (evByGame && evByGame[g.id]) || null, byId, cfg);
     var fim = (g.st === "finalizada") || st.done;
     if (!fim) continue;
@@ -400,10 +516,12 @@ function coresOrderGames(games) {
     if (x.st === "finalizada") return 2;
     return 1;
   }
+  function fase(x) { return CORES_FASES[coresFase(x)].ordem; }
   function when(x) { return (x.dt || "9999-12-31") + "T" + (x.tm || "23:59"); }
   g.sort(function (a, b) {
     var ra = rank(a), rb = rank(b);
     if (ra !== rb) return ra - rb;
+    if (fase(a) !== fase(b)) return fase(a) - fase(b);   /* mata-mata depois da classificatoria */
     if (ra === 2) return when(b) < when(a) ? -1 : (when(b) > when(a) ? 1 : 0);  // finalizados: mais recente primeiro
     return when(a) < when(b) ? -1 : (when(a) > when(b) ? 1 : 0);
   });
@@ -416,7 +534,9 @@ if (typeof module !== "undefined" && module.exports) {
     CORES_CFG_PADRAO: CORES_CFG_PADRAO,
     coresCfg: coresCfg, coresTerminal: coresTerminal, coresEventList: coresEventList,
     coresOnCourt: coresOnCourt, coresNextServer: coresNextServer,
-    CORES_FUND: CORES_FUND,
+    CORES_FUND: CORES_FUND, CORES_FASES: CORES_FASES,
+    coresFase: coresFase, coresOutcome: coresOutcome, coresResolveGames: coresResolveGames,
+    coresLadoLabel: coresLadoLabel, coresBracket: coresBracket, coresCampeao: coresCampeao,
     coresComputeGame: coresComputeGame, coresPlayerLine: coresPlayerLine,
     coresStandings: coresStandings, coresOrderGames: coresOrderGames
   };

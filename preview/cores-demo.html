@@ -114,7 +114,7 @@ h2.sec{font-family:var(--ui);font-weight:800;font-size:20px;letter-spacing:.02em
 .grid{display:grid;gap:10px}
 .tag{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:1px;
   padding:4px 9px;border-radius:99px;border:1px solid var(--brd)}
-.dot{width:12px;height:12px;border-radius:99px;flex-shrink:0;box-shadow:0 0 0 2px var(--halo)}
+.dot{display:inline-block;vertical-align:middle;width:12px;height:12px;border-radius:99px;flex-shrink:0;box-shadow:0 0 0 2px var(--halo)}
 .crest{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
   font-family:var(--num);font-size:17px;letter-spacing:.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);
   box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 0 0 2px rgba(255,255,255,.22)}
@@ -145,9 +145,6 @@ h2.sec{font-family:var(--ui);font-weight:800;font-size:20px;letter-spacing:.02em
   outline:1px solid color-mix(in srgb,var(--fg) 34%,transparent);
   outline-offset:-1px}
 .crest{outline-width:2px}
-
-
-}
 
 /* ---- mural de jogos ---- */
 .gcard{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--brd);
@@ -513,7 +510,7 @@ body.claro.telao::before{opacity:.03}
   .slot.filled{border-color:oklch(from var(--c,#888) clamp(.42,l,.78) c h)}
   .pod{border-color:oklch(from var(--c,#888) clamp(.42,l,.78) c h)}
   .dest{border-top-color:var(--f)}
-
+}
 </style>
 
 <script>

@@ -45,7 +45,14 @@ function ev(store, o) { clock += 14000; o.ts = clock; store[K()] = o; }
 
 const AK_POS = [['ataque', 'Ponto'], ['saque', 'Ace'], ['bloqueio', 'Ponto']];
 const AK_ERR = [['ataque', 'Erro'], ['recepcao', 'Erro'], ['saque', 'Erro'], ['defesa', 'Erro']];
-const AK_TOQ = [['recepcao', 'A'], ['recepcao', 'B'], ['levantamento', 'A'], ['defesa', 'B'], ['ataque', 'Cont']];
+/* Mistura de qualidade parecida com jogo de verdade: mais A e B que C, para o
+   relatorio nascer com ranking que faz sentido. */
+const AK_TOQ = [
+  ['recepcao', 'A'], ['recepcao', 'A'], ['recepcao', 'B'], ['recepcao', 'B'], ['recepcao', 'C'],
+  ['levantamento', 'A'], ['levantamento', 'A'], ['levantamento', 'B'], ['levantamento', 'C'],
+  ['defesa', 'A'], ['defesa', 'B'], ['defesa', 'B'], ['defesa', 'C'],
+  ['ataque', 'Cont'], ['saque', 'Cont']
+];
 
 function monta(gid, tidA, tidB, psA, psB, alvoA, alvoB) {
   const store = SEED['torneio-cores'].events[gid] = {};
@@ -60,7 +67,7 @@ function monta(gid, tidA, tidB, psA, psB, alvoA, alvoB) {
   while (pa < alvoA || pb < alvoB) {
     const daA = (pa < alvoA) && (pb >= alvoB || rnd() < 0.52);
     /* alguns toques antes do ponto, para a estatistica nao ficar so de pontos */
-    if (rnd() < 0.7) {
+    for (var tq_i = 0; tq_i < (rnd() < 0.55 ? 2 : 1); tq_i++) {
       const ps = rnd() < 0.5 ? psA : psB, tid = ps === psA ? tidA : tidB;
       const tq = AK_TOQ[Math.floor(rnd() * AK_TOQ.length)];
       ev(store, { t: 'act', tid, jid: ps[Math.floor(rnd() * ps.length)].id, ak: tq[0], oc: tq[1], rally });

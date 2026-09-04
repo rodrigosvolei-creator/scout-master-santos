@@ -303,6 +303,43 @@ body.claro .step.done{background:rgba(5,150,105,.08)}
 body.claro .subbar{background:rgba(216,27,121,.09);border-color:rgba(216,27,121,.3)}
 body.claro .tl-bot>div{background:rgba(216,27,121,.05)}
 
+/* ---- relatorio ---- */
+.relfiltro{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chip{font-size:12px;font-weight:700;padding:8px 14px;border-radius:99px;border:1px solid var(--brd);
+  background:var(--card);transition:.13s}
+.chip:hover{background:var(--card2)}
+.chip.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.podio{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px}
+.pod{border:2px solid var(--c);border-radius:18px;padding:18px 16px;text-align:center;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--c) 20%,transparent),rgba(255,255,255,.03))}
+.pod1{box-shadow:0 0 0 3px rgba(255,77,157,.18)}
+.pod-pos{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--acc);letter-spacing:1px}
+.pod-nm{font-family:'Bebas Neue',sans-serif;font-size:27px;letter-spacing:1.2px;line-height:1.05;margin-top:2px}
+.pod-eq{display:flex;align-items:center;justify-content:center;gap:7px;font-size:11px;color:var(--mute);
+  font-weight:700;margin-top:5px}
+.pod-pts{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:1;margin-top:8px}
+.pod-lb{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.24em;color:var(--faint)}
+.pod-det{font-size:11px;color:var(--mute);margin-top:9px;padding-top:9px;border-top:1px solid var(--brd)}
+.relgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.relcard{border:1px solid var(--brd);border-radius:15px;overflow:hidden;background:var(--card)}
+.relcard-hd{display:flex;align-items:center;gap:8px;font-family:'Bebas Neue',sans-serif;font-size:16px;
+  letter-spacing:1.4px;padding:9px 14px;color:#fff}
+.relcard-met{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;
+  background:rgba(0,0,0,.28);padding:3px 8px;border-radius:99px}
+.relcard-bd{padding:12px 14px;display:flex;flex-direction:column;gap:9px}
+.relrow{display:flex;align-items:center;gap:9px;font-size:13px}
+.relpos{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--faint);width:14px;flex-shrink:0}
+.relnm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:9em}
+.relbar{flex:1;height:7px;border-radius:99px;background:rgba(128,128,128,.22);overflow:hidden;min-width:40px}
+.relbar i{display:block;height:100%;border-radius:99px}
+.relpct{font-variant-numeric:tabular-nums;min-width:3.2em;text-align:right}
+.reldet{font-size:10px;color:var(--faint);min-width:5.5em;text-align:right}
+.amostra{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--faint);
+  padding-bottom:4px;border-bottom:1px dashed var(--brd);margin-bottom:4px}
+.relrow.pouco{opacity:.62}
+body.claro .relcard-met{background:rgba(255,255,255,.25)}
+body.claro .pod{background:linear-gradient(160deg,color-mix(in srgb,var(--c) 14%,#fff),#fff)}
+
 /* ---- tabela ---- */
 table.tb{width:100%;border-collapse:collapse;font-size:13px}
 table.tb th{font-size:9px;letter-spacing:1.2px;font-weight:900;color:var(--faint);text-align:right;padding:8px 7px;
@@ -466,7 +503,7 @@ function watchEvents(){
     if(_evRef)_evRef.off();
     _evGid=GID;_evRef=db.ref(ROOT+"/events/"+GID);
     _evRef.on("value",function(s){D.events[GID]=s.val()||{};render();});
-  }else if(VIEW==="class"||VIEW==="telao"||VIEW==="home"||VIEW==="admin"){
+  }else if(VIEW==="class"||VIEW==="telao"||VIEW==="home"||VIEW==="admin"||VIEW==="rel"){
     if(_evGid==="*")return;
     if(_evRef)_evRef.off();
     _evGid="*";_evRef=db.ref(ROOT+"/events");
@@ -498,6 +535,7 @@ function render(){
   if(VIEW==="admin")h+=rAdmin();
   else if(VIEW==="mesa")h+=rMesa();
   else if(VIEW==="class")h+=rClass();
+  else if(VIEW==="rel")h+=rRelatorio();
   else h+=rHome();
   h+='</div>';
   document.getElementById("app").innerHTML=h;
@@ -510,6 +548,7 @@ function rHeader(){
   h+='<div class="hd-nav">';
   h+='<a href="?" class="'+(VIEW==="home"?"on":"")+'" onclick="event.preventDefault();go(\'home\')">Jogos</a>';
   h+='<a href="?v=class" class="'+(VIEW==="class"?"on":"")+'" onclick="event.preventDefault();go(\'class\')">Classificação</a>';
+  h+='<a href="?v=rel" class="'+(VIEW==="rel"?"on":"")+'" onclick="event.preventDefault();go(\'rel\')">Relatório</a>';
   h+='<a href="?v=telao" target="_blank">Telão</a>';
   h+='<a href="?v=admin" class="'+(VIEW==="admin"?"on":"")+'" onclick="event.preventDefault();go(\'admin\')">Admin</a>';
   h+='<button class="hd-tema" onclick="trocarTema()" title="'+(TEMA==="claro"?"Mudar para o tema escuro":"Mudar para o tema claro")+'">'+(TEMA==="claro"?"\u{1F319}":"\u2600\uFE0F")+'</button>';
@@ -1028,6 +1067,124 @@ function rClass(){
   else fin.forEach(function(g){h+=gameCard(g);});
   return h;
 }
+
+/* ---------------- RELATORIO ---------------- */
+var REL_JOGO="";     /* "" = torneio inteiro */
+
+function rRelatorio(){
+  var ts=teamsArr();
+  var gs=coresOrderGames(gamesRes());
+  var comAcao=gs.filter(function(g){ var e=D.events[g.id]; return e&&Object.keys(e).length; });
+  var h='<h2 class="sec">RELATÓRIO<span class="sec-sub">'+(REL_JOGO?"um jogo":"torneio inteiro")+'</span></h2>';
+
+  if(!ts.length||!comAcao.length){
+    return h+'<div class="empty"><div class="big">SEM DADOS AINDA</div><div>O relatório aparece quando houver jogo com ações marcadas.</div></div>';
+  }
+
+  /* filtro: torneio inteiro ou um jogo */
+  h+='<div class="relfiltro"><span class="ctrl-lb">MOSTRAR</span>';
+  h+='<button class="chip'+(REL_JOGO?"":" on")+'" onclick="relJogo(\'\')">Torneio inteiro</button>';
+  comAcao.forEach(function(g){
+    var a=tF(g.a),b=tF(g.b); if(!a||!b)return;
+    h+='<button class="chip'+(REL_JOGO===g.id?" on":"")+'" onclick="relJogo(\''+g.id+'\')">'
+      +esc(a.n)+' × '+esc(b.n)+'</button>';
+  });
+  h+='</div>';
+
+  var R=coresRankings(gamesArr(),ts,D.events,D.config,{gameId:REL_JOGO||null});
+  if(!R.temDado)return h+'<div class="empty">Nenhuma ação neste recorte.</div>';
+
+  /* ---- maiores pontuadores ---- */
+  h+='<h2 class="sec">MAIORES PONTUADORAS<span class="sec-sub">ace, ataque e bloqueio que fecharam o rally</span></h2>';
+  if(!R.pontuadores.length)h+='<div class="card faint">Nenhum ponto de ataque, saque ou bloqueio ainda.</div>';
+  else{
+    h+='<div class="podio">';
+    R.pontuadores.slice(0,3).forEach(function(x,i){
+      h+='<div class="pod pod'+(i+1)+'" style="--c:'+esc(x.cor)+'">';
+      h+='<div class="pod-pos">'+(i+1)+'º</div>';
+      h+='<div class="pod-nm">'+esc(x.nm)+'</div>';
+      h+='<div class="pod-eq"><span class="dot" style="background:'+esc(x.cor)+'"></span>'+esc(x.equipe)+'</div>';
+      h+='<div class="pod-pts">'+x.pontos+'</div><div class="pod-lb">PONTOS</div>';
+      h+='<div class="pod-det">'+x.ace+' ace · '+x.ataque+' ataque · '+x.bloqueio+' bloqueio</div>';
+      h+='</div>';
+    });
+    h+='</div>';
+    if(R.pontuadores.length>3){
+      h+='<div class="card"><div class="tscroll"><table class="tb"><thead><tr>'
+        +'<th>#</th><th>ATLETA</th><th>EQUIPE</th><th>ACE</th><th>ATAQUE</th><th>BLOQ</th><th>PONTOS</th>'
+        +'</tr></thead><tbody>';
+      R.pontuadores.slice(3).forEach(function(x){
+        h+='<tr><td class="faint">'+x.pos+'</td><td class="nm">'+esc(x.nm)+'</td>';
+        h+='<td><span class="dot" style="background:'+esc(x.cor)+'"></span> '+esc(x.equipe)+'</td>';
+        h+='<td>'+x.ace+'</td><td>'+x.ataque+'</td><td>'+x.bloqueio+'</td>';
+        h+='<td style="font-weight:800">'+x.pontos+'</td></tr>';
+      });
+      h+='</tbody></table></div></div>';
+    }
+  }
+
+  /* ---- por fundamento ---- */
+  h+='<h2 class="sec">POR FUNDAMENTO<span class="sec-sub">mínimo de '+R.minAcoes+' ações para entrar no ranking</span></h2>';
+  h+='<div class="relgrid">';
+  CORES_FUND.forEach(function(ak){
+    var F=R.fundamentos[ak];
+    h+='<div class="relcard"><div class="relcard-hd" style="background:'+CORES_FCOL[ak]+'">'+F.icone+' '+esc(F.label)
+      +'<span class="relcard-met">'+esc(F.rotulo)+'</span></div><div class="relcard-bd">';
+    if(!F.ranking.length&&F.poucos.length){
+      /* Ninguem atingiu o minimo: em vez de card vazio, mostra o que ha com a
+         ressalva — dado pouco e melhor que nada, desde que rotulado. */
+      h+='<div class="amostra">amostra pequena (menos de '+R.minAcoes+' ações)</div>';
+      F.poucos.slice(0,5).forEach(function(x){
+        h+='<div class="relrow pouco"><span class="relpos">–</span>';
+        h+='<span class="dot" style="background:'+esc(x.cor)+'"></span>';
+        h+='<span class="relnm">'+esc(x.nm)+'</span>';
+        h+='<span class="relbar"></span>';
+        h+='<b class="relpct">'+(F.abc?Math.round((x.A||0)*100/x.n):Math.round((x.acertos||0)*100/x.n))+'%</b>';
+        h+='<span class="reldet">'+(F.abc?((x.A||0)+'A de '+x.n):((x.acertos||0)+' de '+x.n))+'</span></div>';
+      });
+    }else if(!F.ranking.length){
+      h+='<div class="faint" style="font-size:12px">Sem ações marcadas.</div>';
+    }else{
+      F.ranking.slice(0,5).forEach(function(x,i){
+        h+='<div class="relrow"><span class="relpos">'+(i+1)+'</span>';
+        h+='<span class="dot" style="background:'+esc(x.cor)+'"></span>';
+        h+='<span class="relnm">'+esc(x.nm)+'</span>';
+        h+='<span class="relbar"><i style="width:'+Math.max(2,x.pct)+'%;background:'+CORES_FCOL[ak]+'"></i></span>';
+        h+='<b class="relpct">'+x.pct+'%</b>';
+        h+='<span class="reldet">'+(F.abc?(x.A+'A de '+x.n):(x.acertos+' de '+x.n))+'</span>';
+        h+='</div>';
+      });
+    }
+    h+='</div></div>';
+  });
+  h+='</div>';
+
+  /* ---- tabela geral ---- */
+  h+='<h2 class="sec">TODAS AS ATLETAS</h2>';
+  h+='<div class="card"><div class="tscroll"><table class="tb"><thead><tr>';
+  h+='<th>ATLETA</th><th>EQUIPE</th><th>AÇÕES</th><th>PONTOS</th><th>ERROS</th>';
+  CORES_FUND.forEach(function(ak){h+='<th>'+esc(CORES_ACT[ak].l.toUpperCase())+'</th>';});
+  h+='</tr></thead><tbody>';
+  R.geral.forEach(function(L){
+    h+='<tr><td class="nm">'+esc(L.nm)+'</td>';
+    h+='<td><span class="dot" style="background:'+esc(L.cor)+'"></span> '+esc(L.equipe)+'</td>';
+    h+='<td>'+L.acoes+'</td>';
+    h+='<td style="color:#6ee7b7;font-weight:800">'+L.pontos+'</td>';
+    h+='<td style="color:#fca5a5">'+L.erros+'</td>';
+    CORES_FUND.forEach(function(ak){
+      var f=L.porFund[ak];
+      h+='<td class="'+(f.n?'':'faint')+'">'+(f.n||'–')+'</td>';
+    });
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="faint" style="font-size:11px;margin-top:12px;line-height:1.6">';
+  h+='<b>Pontos</b> = ace + ataque que fechou + bloqueio que fechou (ponto vindo de erro do adversário não é creditado a ninguém).<br>';
+  h+='<b>% A</b> na recepção, levantamento e defesa; no saque é % de ace, no ataque e no bloqueio é % de ponto.';
+  h+='</div></div>';
+  return h;
+}
+function relJogo(gid){REL_JOGO=gid||"";render();}
 
 /* ---------------- TELAO ---------------- */
 function rTelao(){

@@ -523,6 +523,160 @@ function coresStandings(games, teams, evByGame, cfgIn) {
   return out;
 }
 
+/* ==========================================================================
+   RELATORIOS — rankings do torneio (ou de um jogo)
+   --------------------------------------------------------------------------
+   Duas leituras que o Rodrigo pediu:
+   1) MAIORES PONTUADORES: so acoes que encerram o rally A FAVOR de quem fez —
+      ace, ataque ponto, bloqueio ponto. Erro do adversario nao entra: nao e
+      merito de um atleta identificado (e por isso nem tem jid).
+   2) POR FUNDAMENTO, TIPO A: para os fundamentos que tem classificacao de
+      qualidade (recepcao, levantamento, defesa), o ranking e o % de A.
+      Saque, ataque e bloqueio nao tem A/B/C — entram com a metrica que faz
+      sentido em cada um (ace, ponto, ponto).
+   Quem tem pouquissimas acoes fica fora dos rankings de PORCENTAGEM (um unico
+   A viraria 100%): minAcoes, ajustavel.
+   ========================================================================== */
+var CORES_FUND_ABC = ["recepcao", "levantamento", "defesa"];  /* tem A/B/C */
+
+/* Acoes que valem PONTO para quem executou. */
+function coresEhPonto(ak, oc) {
+  return (ak === "saque" && oc === "Ace") ||
+         ((ak === "ataque" || ak === "bloqueio") && oc === "Ponto");
+}
+
+function coresRankings(games, teams, evByGame, cfgIn, opts) {
+  var cfg = coresCfg(cfgIn);
+  opts = opts || {};
+  /* 3 e o piso razoavel para set unico de 21 no 4x4: com 5 quase ninguem
+     entrava no ranking de um fundamento so. */
+  var minAcoes = (opts.minAcoes == null) ? 3 : opts.minAcoes;
+  var soJogo = opts.gameId || null;
+
+  var byId = {}, i, j;
+  for (i = 0; i < teams.length; i++) byId[teams[i].id] = teams[i];
+
+  /* indice de atletas: um jogador pode aparecer em varios jogos */
+  var info = {};
+  for (i = 0; i < teams.length; i++) {
+    var ps = teams[i].players || [];
+    for (j = 0; j < ps.length; j++) {
+      info[ps[j].id] = { jid: ps[j].id, nm: ps[j].nm, nu: ps[j].nu,
+                         tid: teams[i].id, equipe: teams[i].n, cor: teams[i].cor };
+    }
+  }
+
+  var linha = {};   /* jid -> acumulado */
+  function pega(jid) {
+    if (!info[jid]) return null;
+    if (!linha[jid]) {
+      var L = { jid: jid, nm: info[jid].nm, nu: info[jid].nu, tid: info[jid].tid,
+                equipe: info[jid].equipe, cor: info[jid].cor,
+                acoes: 0, pontos: 0, erros: 0, jogos: {},
+                porFund: {} };
+      for (var k in CORES_ACT) if (CORES_FUND.indexOf(k) >= 0) {
+        L.porFund[k] = { n: 0, A: 0, B: 0, C: 0, Erro: 0, Ace: 0, Ponto: 0, Bloq: 0, Cont: 0 };
+      }
+      linha[jid] = L;
+    }
+    return linha[jid];
+  }
+
+  for (i = 0; i < games.length; i++) {
+    var g = games[i];
+    if (!g) continue;
+    if (soJogo && g.id !== soJogo) continue;
+    var evs = coresEventList((evByGame && evByGame[g.id]) || null);
+    for (j = 0; j < evs.length; j++) {
+      var e = evs[j];
+      if (!e || e.t !== "act" || !e.jid) continue;      /* falta/ponto avulso nao tem atleta */
+      var L = pega(e.jid);
+      if (!L) continue;
+      var f = L.porFund[e.ak];
+      if (!f) continue;                                  /* fundamento fora do painel */
+      L.acoes++;
+      L.jogos[g.id] = 1;
+      f.n++;
+      if (f[e.oc] != null) f[e.oc]++;
+      if (e.oc === "Erro") L.erros++;
+      if (coresEhPonto(e.ak, e.oc)) L.pontos++;
+    }
+  }
+
+  var todos = [];
+  for (var jid in linha) {
+    var L = linha[jid];
+    L.njogos = Object.keys(L.jogos).length;
+    delete L.jogos;
+    todos.push(L);
+  }
+
+  function ordena(arr, chave) {
+    arr.sort(function (a, b) {
+      if (b[chave] !== a[chave]) return b[chave] - a[chave];
+      if (b.acoes !== a.acoes) return b.acoes - a.acoes;     /* mais volume desempata */
+      return String(a.nm).localeCompare(String(b.nm));
+    });
+    for (var i = 0; i < arr.length; i++) arr[i].pos = i + 1;
+    return arr;
+  }
+
+  /* 1) maiores pontuadores */
+  var pontuadores = ordena(todos.filter(function (L) { return L.pontos > 0; }).map(function (L) {
+    return { jid: L.jid, nm: L.nm, nu: L.nu, equipe: L.equipe, cor: L.cor, tid: L.tid,
+             pontos: L.pontos, acoes: L.acoes, njogos: L.njogos,
+             ace: L.porFund.saque.Ace, ataque: L.porFund.ataque.Ponto, bloqueio: L.porFund.bloqueio.Ponto };
+  }), "pontos");
+
+  /* 2) por fundamento */
+  var fundamentos = {};
+  CORES_FUND.forEach(function (ak) {
+    var abc = CORES_FUND_ABC.indexOf(ak) >= 0;
+    var lista = [];
+    todos.forEach(function (L) {
+      var f = L.porFund[ak];
+      if (!f || !f.n) return;
+      var item = { jid: L.jid, nm: L.nm, nu: L.nu, equipe: L.equipe, cor: L.cor, tid: L.tid,
+                   n: f.n, acoes: f.n, erros: f.Erro };
+      if (abc) {
+        item.A = f.A; item.B = f.B; item.C = f.C;
+        item.pct = Math.round(f.A * 100 / f.n);          /* % de A sobre o total */
+        item.rotulo = "% A";
+      } else if (ak === "saque") {
+        item.acertos = f.Ace; item.emJogo = f.Cont;
+        item.pct = Math.round(f.Ace * 100 / f.n);
+        item.rotulo = "% ace";
+      } else if (ak === "ataque") {
+        item.acertos = f.Ponto; item.bloqueados = f.Bloq;
+        item.pct = Math.round(f.Ponto * 100 / f.n);
+        item.rotulo = "% ponto";
+      } else if (ak === "bloqueio") {
+        item.acertos = f.Ponto;
+        item.pct = Math.round(f.Ponto * 100 / f.n);
+        item.rotulo = "% ponto";
+      }
+      lista.push(item);
+    });
+    fundamentos[ak] = {
+      label: CORES_ACT[ak].l, icone: CORES_ACT[ak].i, abc: abc,
+      rotulo: lista.length ? lista[0].rotulo : (abc ? "% A" : "%"),
+      /* o ranking de % exige um minimo de acoes; quem tem menos aparece a parte */
+      ranking: ordena(lista.filter(function (x) { return x.n >= minAcoes; }), "pct"),
+      poucos: lista.filter(function (x) { return x.n < minAcoes; })
+    };
+  });
+
+  /* 3) tabela geral */
+  var geral = todos.slice().sort(function (a, b) {
+    if (b.pontos !== a.pontos) return b.pontos - a.pontos;
+    if (b.acoes !== a.acoes) return b.acoes - a.acoes;
+    return String(a.nm).localeCompare(String(b.nm));
+  });
+
+  return { pontuadores: pontuadores, fundamentos: fundamentos, geral: geral,
+           minAcoes: minAcoes, temDado: todos.length > 0 };
+}
+
 /* Ordem do mural: AO VIVO no topo, depois agendados por data/hora crescente,
    finalizados por ultimo (mesmo criterio do RS-SCOUT). */
 function coresOrderGames(games) {
@@ -553,6 +707,7 @@ if (typeof module !== "undefined" && module.exports) {
     CORES_FUND: CORES_FUND, CORES_FASES: CORES_FASES,
     coresFase: coresFase, coresOutcome: coresOutcome, coresResolveGames: coresResolveGames,
     coresLadoLabel: coresLadoLabel, coresBracket: coresBracket, coresCampeao: coresCampeao,
+    CORES_FUND_ABC: CORES_FUND_ABC, coresEhPonto: coresEhPonto, coresRankings: coresRankings,
     coresComputeGame: coresComputeGame, coresPlayerLine: coresPlayerLine,
     coresStandings: coresStandings, coresOrderGames: coresOrderGames
   };

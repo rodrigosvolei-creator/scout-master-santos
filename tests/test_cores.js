@@ -650,6 +650,96 @@ t('o mural poe o mata-mata depois da classificatoria', () => {
   eq(ord.map(x => x.id), ['c1', 'sf', 'fin']);
 });
 
+console.log('\n== relatorios: pontuadores e ranking por fundamento ==');
+const RT = [
+  { id: 'tz', n: 'AZUL', cor: '#2563eb', players: [
+    { id: 'z1', nm: 'ANA', nu: 1 }, { id: 'z2', nm: 'BIA', nu: 2 }, { id: 'z3', nm: 'CAU', nu: 3 }] },
+  { id: 'tv', n: 'VERMELHA', cor: '#dc2626', players: [
+    { id: 'v1', nm: 'EDU', nu: 1 }, { id: 'v2', nm: 'FE', nu: 2 }] }
+];
+let rk = 0;
+function rKey() { rk++; return '-Rk' + String(rk).padStart(4, '0'); }
+function mkEv(lista) { const o = {}; lista.forEach(e => { o[rKey()] = e; }); return o; }
+function A(tid, jid, ak, oc, n) {
+  const out = []; for (let i = 0; i < (n || 1); i++) out.push({ t: 'act', tid, jid, ak, oc, rally: rk + i });
+  return out;
+}
+/* ANA: 4 aces, 3 ataques ponto, 2 erros de ataque, 1 bloqueio ponto
+   BIA: recepcao 7A 2B 1C ; CAU: recepcao 2A 6B 2C ; EDU: 1 recepcao A (pouco volume)
+   FE : ataque 5 pontos em 10                                                        */
+const EVJ = mkEv([].concat(
+  A('tz', 'z1', 'saque', 'Ace', 4), A('tz', 'z1', 'ataque', 'Ponto', 3),
+  A('tz', 'z1', 'ataque', 'Erro', 2), A('tz', 'z1', 'bloqueio', 'Ponto', 1),
+  A('tz', 'z2', 'recepcao', 'A', 7), A('tz', 'z2', 'recepcao', 'B', 2), A('tz', 'z2', 'recepcao', 'C', 1),
+  A('tz', 'z3', 'recepcao', 'A', 2), A('tz', 'z3', 'recepcao', 'B', 6), A('tz', 'z3', 'recepcao', 'C', 2),
+  A('tv', 'v1', 'recepcao', 'A', 1),
+  A('tv', 'v2', 'ataque', 'Ponto', 5), A('tv', 'v2', 'ataque', 'Cont', 5),
+  /* falta e ponto avulso NAO tem atleta: nao podem entrar em ranking nenhum */
+  [{ t: 'act', tid: 'tz', jid: null, ak: 'falta', oc: 'Erro', rally: 900 }],
+  [{ t: 'act', tid: 'tz', jid: null, ak: 'pontonos', oc: 'Ponto', rally: 901 }]
+));
+const RG = [{ id: 'gr', a: 'tz', b: 'tv', st: 'finalizada' }];
+const R = C.coresRankings(RG, RT, { gr: EVJ }, CFG, { minAcoes: 5 });
+
+t('maiores pontuadores: so conta acao que gera ponto para quem fez', () => {
+  eq(R.pontuadores.map(x => [x.nm, x.pontos]), [['ANA', 8], ['FE', 5]]);
+  const ana = R.pontuadores[0];
+  eq([ana.ace, ana.ataque, ana.bloqueio], [4, 3, 1], 'ace + ataque ponto + bloqueio ponto');
+});
+t('quem nao pontuou fica fora da lista de pontuadores', () => {
+  eq(R.pontuadores.filter(x => x.nm === 'BIA').length, 0);
+});
+t('falta e "ponto da equipe" NAO entram no ranking de ninguem', () => {
+  const total = R.geral.reduce((acc, L) => acc + L.acoes, 0);
+  eq(total, 4 + 3 + 2 + 1 + 10 + 10 + 1 + 10, 'so acoes com atleta');
+});
+t('ranking de recepcao e por % de A', () => {
+  const r = R.fundamentos.recepcao.ranking;
+  eq(r.map(x => [x.nm, x.pct]), [['BIA', 70], ['CAU', 20]]);
+  eq(R.fundamentos.recepcao.rotulo, '% A');
+  eq(R.fundamentos.recepcao.abc, true);
+});
+t('quem tem poucas acoes fica FORA do ranking de porcentagem', () => {
+  eq(R.fundamentos.recepcao.ranking.filter(x => x.nm === 'EDU').length, 0, 'nao lidera com 1 acao');
+  eq(R.fundamentos.recepcao.poucos.map(x => [x.nm, x.n]), [['EDU', 1]]);
+});
+t('o minimo padrao e 3 (set unico de 21 no 4x4 tem pouco volume por fundamento)', () => {
+  const Rp = C.coresRankings(RG, RT, { gr: EVJ }, CFG);
+  eq(Rp.minAcoes, 3);
+});
+t('o minimo de acoes e ajustavel', () => {
+  const R1 = C.coresRankings(RG, RT, { gr: EVJ }, CFG, { minAcoes: 1 });
+  eq(R1.fundamentos.recepcao.ranking[0].nm, 'EDU', 'com minimo 1, o 100% de uma acao lidera');
+  eq(R1.fundamentos.recepcao.poucos.length, 0);
+});
+t('fundamento sem A/B/C usa a metrica certa: saque=ace, ataque/bloqueio=ponto', () => {
+  eq(R.fundamentos.saque.abc, false);
+  eq(R.fundamentos.saque.rotulo, '% ace');
+  eq(R.fundamentos.ataque.rotulo, '% ponto');
+  /* ANA: 3 pontos em 5 ataques = 60% · FE: 5 em 10 = 50% */
+  eq(R.fundamentos.ataque.ranking.map(x => [x.nm, x.pct]), [['ANA', 60], ['FE', 50]]);
+});
+t('a tabela geral traz acoes, pontos e erros por atleta', () => {
+  const ana = R.geral.find(x => x.nm === 'ANA');
+  eq([ana.acoes, ana.pontos, ana.erros], [10, 8, 2]);
+  eq(ana.equipe, 'AZUL');
+  eq(ana.njogos, 1);
+});
+t('da para pedir o relatorio de UM jogo so', () => {
+  const R2 = C.coresRankings(RG, RT, { gr: EVJ }, CFG, { gameId: 'outro' });
+  eq(R2.temDado, false, 'jogo sem acoes');
+  const R3 = C.coresRankings(RG, RT, { gr: EVJ }, CFG, { gameId: 'gr' });
+  eq(R3.pontuadores[0].nm, 'ANA');
+});
+t('coresEhPonto: so ace, ataque ponto e bloqueio ponto', () => {
+  eq(C.coresEhPonto('saque', 'Ace'), true);
+  eq(C.coresEhPonto('ataque', 'Ponto'), true);
+  eq(C.coresEhPonto('bloqueio', 'Ponto'), true);
+  eq(C.coresEhPonto('recepcao', 'A'), false);
+  eq(C.coresEhPonto('ataque', 'Erro'), false);
+  eq(C.coresEhPonto('saque', 'Cont'), false);
+});
+
 console.log('\n== ordem do mural ==');
 t('ao vivo primeiro, agendados por horario, finalizados por ultimo', () => {
   const g = C.coresOrderGames([

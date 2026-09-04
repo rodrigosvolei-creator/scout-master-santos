@@ -129,7 +129,24 @@ h2.sec{font-family:var(--ui);font-weight:800;font-size:20px;letter-spacing:.02em
   .crest,.pbtn .pos,.poolp-nu,.slot-n{
     color:oklch(from var(--c,#888) clamp(0,(l - 0.6) * -1000,1) 0 0);
     text-shadow:none}
-  body.claro .tl-pt{color:oklch(from var(--c,#888) min(l,.55) c h)}
+  /* A cor usada como TINTA (placar do telao) precisa do caminho inverso: no
+     escuro nunca pode ficar escura demais, no claro nunca clara demais.
+     Cores oficiais do torneio incluem BRANCO e PRETO — sem isto, o placar do
+     PRETO sumia no tema escuro e o do BRANCO no claro. */
+  .tl-pt{color:oklch(from var(--c,#888) max(l,.62) c h)}
+  body.claro .tl-pt{color:oklch(from var(--c,#888) min(l,.5) c h)}
+}
+
+/* ---- contorno de seguranca em tudo que CARREGA a cor da equipe ----
+   O branco sobre fundo claro (1.08:1) e o preto sobre fundo escuro (1.01:1)
+   viravam mancha invisivel. O anel usa a cor do TEXTO do tema, entao aparece
+   com qualquer cor de equipe. */
+.crest,.pbtn .pos,.poolp-nu,.slot-n,.dot,.ladder i{
+  outline:1px solid color-mix(in srgb,var(--fg) 34%,transparent);
+  outline-offset:-1px}
+.crest{outline-width:2px}
+
+
 }
 
 /* ---- mural de jogos ---- */
@@ -484,6 +501,19 @@ body.claro.telao::before{opacity:.03}
   .mesa-side .pts{font-size:40px}.hd-nav a{padding:7px 9px;font-size:10px}
   .pgrid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
 }
+
+/* BORDA DE ESTADO na cor da equipe: com BRANCO no tema claro (ou PRETO no
+   escuro) a borda sumia e o operador perdia de vista quem esta sacando. Aqui a
+   cor e presa numa faixa de luminosidade visivel — a matiz continua a da
+   equipe, so nao deixa chegar no extremo. Vale so para BORDA de estado; o
+   escudo e o placar seguem com a cor exata do cadastro. */
+@supports (color: oklch(from red l c h)){
+  .pbtn.serving{border-color:oklch(from var(--c,#888) clamp(.42,l,.78) c h)}
+  .mesa-side{border-color:oklch(from var(--c,#888) clamp(.42,l,.78) c h)}
+  .slot.filled{border-color:oklch(from var(--c,#888) clamp(.42,l,.78) c h)}
+  .pod{border-color:oklch(from var(--c,#888) clamp(.42,l,.78) c h)}
+  .dest{border-top-color:var(--f)}
+
 </style>
 
 <script>

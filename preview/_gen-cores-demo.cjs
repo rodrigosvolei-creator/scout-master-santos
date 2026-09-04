@@ -52,7 +52,11 @@ function monta(gid, tidA, tidB, psA, psB, alvoA, alvoB) {
   let pa = 0, pb = 0, rally = 0;
   let r = 1;
   const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
-  ev(store, { t: 'serve', tid: tidA, jid: psA[0].id });
+  /* escalacao das duas equipes (ordem de saque 1..4) + quem abre sacando */
+  const N = SEED['torneio-cores'].config.emQuadra;
+  ev(store, { t: 'lineup', tid: tidA, ordem: psA.slice(0, N).map(p => p.id) });
+  ev(store, { t: 'lineup', tid: tidB, ordem: psB.slice(0, N).map(p => p.id) });
+  ev(store, { t: 'first', tid: tidA });
   while (pa < alvoA || pb < alvoB) {
     const daA = (pa < alvoA) && (pb >= alvoB || rnd() < 0.52);
     /* alguns toques antes do ponto, para a estatistica nao ficar so de pontos */

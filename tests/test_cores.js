@@ -31,6 +31,9 @@ function act(tid, jid, ak, oc, rally, k) { return { k: k, t: 'act', tid, jid, ak
 function serve(tid, jid, k) { return { k: k, t: 'serve', tid, jid }; }
 function adj(tid, delta, k) { return { k: k, t: 'adj', tid, delta }; }
 function run(list, cfg) { return C.coresComputeGame(GAME, evs(list), TEAMS, cfg || CFG); }
+function lineup(tid, ordem, k) { return { k, t: 'lineup', tid, ordem }; }
+function sub(tid, out, entra, k) { return { k, t: 'sub', tid, out, in: entra }; }
+function first(tid, k) { return { k, t: 'first', tid }; }
 
 console.log('\n== regra de ponto (mesma do RS-SCOUT) ==');
 t('ace / ataque ponto / bloqueio ponto pontuam para quem marcou', () => {
@@ -163,11 +166,11 @@ t('JANELA desligavel (dedupeMs=0) volta ao dedupe so por rally', () => {
 });
 
 console.log('\n== ordem de saque (rodizio) ==');
-t('1a vez que a equipe vai sacar: o app PEDE o sacador (nao chuta)', () => {
+t('1a vez que a equipe vai sacar: entra o #1 da escalacao dela (sem perguntar)', () => {
   const r = run([serve('tz', 'z1'), act('tz', 'z3', 'ataque', 'Erro', 0)]);
   eq(r.pts, { A: 0, B: 1 });
-  eq(r.needServer, 'B', 'pede o 1o sacador da VERMELHA');
-  eq(r.serve, null);
+  eq(r.serve, { side: 'B', jid: 'v1' }, 'sacador = 1o da ordem da VERMELHA');
+  eq(r.needServer, null, 'nao para o jogo para perguntar');
 });
 t('depois do 1o sacador definido, o side-out avanca sozinho no rodizio', () => {
   const r = run([
@@ -211,6 +214,94 @@ t('"girar saque" manual troca o sacador e o rodizio segue dali', () => {
     serve('tv', 'v1'), act('tv', 'v2', 'ataque', 'Erro', 1)     // ponto AZUL: retoma de z3 -> z4
   ]);
   eq(r.serve, { side: 'A', jid: 'z4' });
+});
+
+console.log('\n== escalacao (ordem de saque 1..4) ==');
+t('a equipe que abre sacando sai da escalacao: saca o #1', () => {
+  const r = run([lineup('tz', ['z3', 'z1', 'z4', 'z2']), first('tz')]);
+  eq(r.serve, { side: 'A', jid: 'z3' }, 'quem esta na posicao 1');
+  eq(r.firstServeSide, 'A');
+});
+t('o rodizio segue a ordem POSICIONADA, nao a do cadastro', () => {
+  const r = run([
+    lineup('tz', ['z3', 'z1', 'z4', 'z2']), first('tz'),
+    act('tz', 'z3', 'saque', 'Erro', 0),        // ponto VERM, saque passa
+    act('tv', 'v2', 'ataque', 'Erro', 1)        // ponto AZUL: proximo do z3 e o z1
+  ]);
+  eq(r.serve, { side: 'A', jid: 'z1' });
+});
+t('a escalacao volta ao #1 depois do ultimo', () => {
+  const r = run([
+    lineup('tz', ['z3', 'z1']), first('tz'),
+    act('tz', 'z3', 'saque', 'Erro', 0), act('tv', 'v1', 'saque', 'Erro', 1),
+    act('tz', 'z1', 'saque', 'Erro', 2), act('tv', 'v2', 'saque', 'Erro', 3)
+  ]);
+  eq(r.serve, { side: 'A', jid: 'z3' }, 'circular');
+});
+t('sem escalacao definida vale a ordem do cadastro (os N primeiros)', () => {
+  const r = run([first('tz')]);
+  eq(r.serve, { side: 'A', jid: 'z1' });
+  eq(r.lineup.A, ['z1', 'z2', 'z3', 'z4']);
+  eq(r.lineupSet.A, false);
+});
+t('a adversaria comeca do #1 dela quando recupera o saque', () => {
+  const r = run([
+    lineup('tz', ['z1', 'z2', 'z3', 'z4']), lineup('tv', ['v4', 'v3', 'v2', 'v1']), first('tz'),
+    act('tz', 'z1', 'saque', 'Erro', 0)
+  ]);
+  eq(r.serve, { side: 'B', jid: 'v4' }, '1o da ordem da VERMELHA');
+});
+t('REGRESSAO: escolher quem saca ANTES de posicionar (a ordem dos passos na tela)', () => {
+  const r = run([first('tz'), lineup('tz', ['z3', 'z1', 'z4', 'z2'])]);
+  eq(r.serve, { side: 'A', jid: 'z3' }, 'sacador = posicao 1 da escalacao, nao a do cadastro');
+});
+t('com o jogo em andamento, mudar a escalacao NAO reinicia o saque', () => {
+  const r = run([
+    first('tz'), lineup('tz', ['z1', 'z2', 'z3', 'z4']),
+    act('tz', 'z1', 'saque', 'Erro', 0),        // ponto VERM, saque vai para v1
+    act('tv', 'v1', 'saque', 'Erro', 1),        // ponto AZUL: rodizio -> z2
+    lineup('tz', ['z4', 'z3', 'z2', 'z1'])      // operador corrige a ordem no meio do jogo
+  ]);
+  eq(r.serve, { side: 'A', jid: 'z2' }, 'segue sacando quem estava');
+  eq(r.lineup.A, ['z4', 'z3', 'z2', 'z1'], 'mas a ordem nova vale dali pra frente');
+});
+t('"girar saque" manual nao e desfeito por uma escalacao posterior', () => {
+  const r = run([first('tz'), lineup('tz', ['z1', 'z2', 'z3', 'z4']),
+    serve('tz', 'z3'), lineup('tz', ['z4', 'z3', 'z2', 'z1'])]);
+  eq(r.serve, { side: 'A', jid: 'z3' }, 'a escolha manual manda');
+});
+t('trocar a escalacao antes do jogo substitui a anterior', () => {
+  const r = run([lineup('tz', ['z1', 'z2', 'z3', 'z4']), lineup('tz', ['z4', 'z3', 'z2', 'z1']), first('tz')]);
+  eq(r.lineup.A, ['z4', 'z3', 'z2', 'z1']);
+  eq(r.serve, { side: 'A', jid: 'z4' });
+});
+
+console.log('\n== substituicao ==');
+const SEIS = { id: 'tz', n: 'AZUL', players: AZUL.players.concat([{ id: 'z5', nm: 'Ivo' }]) };
+const T6 = { tz: SEIS, tv: VERM };
+function run6(list) { return C.coresComputeGame(GAME, evs(list), T6, CFG); }
+t('o reserva entra na POSICAO do titular que sai', () => {
+  const r = run6([lineup('tz', ['z1', 'z2', 'z3', 'z4']), first('tz'), sub('tz', 'z2', 'z5')]);
+  eq(r.lineup.A, ['z1', 'z5', 'z3', 'z4'], 'z5 assumiu a posicao 2');
+  eq(r.subs.length, 1);
+});
+t('depois da substituicao o rodizio passa por quem entrou', () => {
+  const r = run6([
+    lineup('tz', ['z1', 'z2', 'z3', 'z4']), first('tz'), sub('tz', 'z2', 'z5'),
+    act('tz', 'z1', 'saque', 'Erro', 0),      // ponto VERM
+    act('tv', 'v1', 'saque', 'Erro', 1)       // ponto AZUL: depois do z1 vem o z5
+  ]);
+  eq(r.serve, { side: 'A', jid: 'z5' });
+});
+t('substituir o proprio sacador passa o saque para quem entrou', () => {
+  const r = run6([lineup('tz', ['z1', 'z2', 'z3', 'z4']), first('tz'), sub('tz', 'z1', 'z5')]);
+  eq(r.serve, { side: 'A', jid: 'z5' });
+  eq(r.lineup.A, ['z5', 'z2', 'z3', 'z4']);
+});
+t('substituicao de quem nao esta em quadra e ignorada', () => {
+  const r = run([lineup('tz', ['z1', 'z2', 'z3', 'z4']), sub('tz', 'zX', 'z9')]);
+  eq(r.lineup.A, ['z1', 'z2', 'z3', 'z4']);
+  eq(r.subs.length, 0);
 });
 
 console.log('\n== fim do set ==');

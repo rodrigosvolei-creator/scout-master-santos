@@ -133,7 +133,16 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
   var rallyOwner = {};                // rally -> lado que pontuou (dedupe)
   var serve = null;                   // {side, jid} sacador atual
   var lastServer = { A: null, B: null }; // ultimo sacador de cada equipe (histerico)
-  var needServer = null;              // lado que precisa escolher o sacador na mao
+  var needServer = null;              // lado sem nenhum atleta para sacar (caso degenerado)
+  /* Escalacao = a ORDEM DE SAQUE posicionada 1..N pelo operador (evento 'lineup').
+     Enquanto nao houver, vale a ordem do cadastro da equipe. Substituicao ('sub')
+     troca o atleta MANTENDO a posicao, entao o rodizio segue certo. */
+  var lineup = { A: coresOnCourt(tA, cfg).map(function (p) { return p.id; }),
+                 B: coresOnCourt(tB, cfg).map(function (p) { return p.id; }) };
+  var lineupSet = { A: false, B: false };
+  var subs = [];                      // historico de substituicoes
+  var firstServeSide = null;          // qual EQUIPE saca o primeiro rally
+  var manualServe = false;            // houve escolha manual de sacador ('girar saque')
   var stats = {};                     // jid -> {n, tid, ak:{...}}
   var pointLog = [];                  // sequencia de pontos (ladder/telao)
   var dupes = [];                     // acoes que nao pontuaram (mesmo rally)
@@ -161,14 +170,31 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
     } else { done = false; winner = null; }
   }
 
+  /* Proximo na ordem de saque da equipe (circular). Sem ultimo sacador, e o #1. */
+  function nextOf(side, last) {
+    var lst = lineup[side] || [];
+    if (!lst.length) return null;
+    if (!last) return lst[0];
+    var i = lst.indexOf(last);
+    if (i < 0) return lst[0];
+    return lst[(i + 1) % lst.length];
+  }
   function advanceServe(winSide) {
     if (serve && serve.side === winSide) return;      // manteve o saque: mesmo sacador
-    var last = lastServer[winSide];
-    if (!last) { serve = null; needServer = winSide; return; }  // 1a vez dessa equipe: pede manual
-    var nx = coresNextServer(teamOf[winSide], last, cfg);
+    var nx = nextOf(winSide, lastServer[winSide]);
     if (!nx) { serve = null; needServer = winSide; return; }
     serve = { side: winSide, jid: nx };
     lastServer[winSide] = nx;
+    needServer = null;
+  }
+  /* O primeiro saque do jogo sai da escalacao: e o #1 da equipe que abre sacando.
+     O operador nao escolhe sacador em lista nenhuma — ele posiciona 1..N. */
+  function ensureInitialServe() {
+    if (serve || !firstServeSide) return;
+    var nx = nextOf(firstServeSide, null);
+    if (!nx) { needServer = firstServeSide; return; }
+    serve = { side: firstServeSide, jid: nx };
+    lastServer[firstServeSide] = nx;
     needServer = null;
   }
 
@@ -176,11 +202,41 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
     var ev = evs[i];
     if (!ev || !ev.t) continue;
 
+    if (ev.t === "lineup") {                // ordem de saque posicionada 1..N
+      var lSide = sideOfTid(ev.tid);
+      if (!lSide || !ev.ordem || !ev.ordem.length) continue;
+      lineup[lSide] = ev.ordem.slice();
+      lineupSet[lSide] = true;
+      /* Com o jogo ainda 0x0 e sem escolha manual, o sacador inicial vem da
+         escalacao nova. Sem isto, quem escolhe "quem saca" ANTES de posicionar
+         (a ordem dos passos na tela) travava o sacador pela lista do cadastro. */
+      if (rally === 0 && !manualServe) { serve = null; lastServer = { A: null, B: null }; ensureInitialServe(); }
+      continue;
+    }
+    if (ev.t === "sub") {                   // substituicao: entra na posicao de quem sai
+      var sbSide = sideOfTid(ev.tid);
+      if (!sbSide) continue;
+      var lst = lineup[sbSide] || [], pos = lst.indexOf(ev.out);
+      if (pos < 0) continue;
+      lst[pos] = ev.in;
+      if (lastServer[sbSide] === ev.out) lastServer[sbSide] = ev.in;   // mantem o rodizio
+      if (serve && serve.side === sbSide && serve.jid === ev.out) serve.jid = ev.in;
+      subs.push({ side: sbSide, tid: ev.tid, out: ev.out, in: ev.in });
+      continue;
+    }
+    if (ev.t === "first") {                 // qual equipe saca o primeiro rally
+      var fSide = sideOfTid(ev.tid);
+      if (!fSide) continue;
+      firstServeSide = fSide;
+      if (rally === 0 && !manualServe) { serve = null; lastServer = { A: null, B: null }; ensureInitialServe(); }
+      continue;
+    }
     if (ev.t === "serve") {
       var sSide = sideOfTid(ev.tid);
       if (!sSide) continue;
       serve = { side: sSide, jid: ev.jid };
       lastServer[sSide] = ev.jid;
+      manualServe = true;
       needServer = null;
       continue;
     }
@@ -202,6 +258,7 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
 
     var term = coresTerminal(ev.ak, ev.oc);
     if (!term) continue;
+    ensureInitialServe();
 
     var r = (ev.rally == null) ? rally : (parseInt(ev.rally, 10) || 0);
     /* Trava 1 — mesmo numero de rally (marcacoes simultaneas). */
@@ -238,6 +295,10 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
     lastServer: lastServer,
     needServer: needServer,
     stats: stats,
+    lineup: lineup,
+    lineupSet: lineupSet,
+    subs: subs,
+    firstServeSide: firstServeSide,
     pointLog: pointLog,
     dupes: dupes,
     events: evs,

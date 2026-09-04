@@ -153,7 +153,14 @@ h2.sec{font-family:var(--ui);font-weight:800;font-size:20px;letter-spacing:.02em
    porque age sobre o desenho ja renderizado — halo claro para descolar do
    fundo, sombra escura para dar peso. */
 .ico{display:inline-block;margin-right:6px;line-height:1;
-  filter:drop-shadow(0 0 1px rgba(255,255,255,.95)) drop-shadow(0 1px 2px rgba(0,0,0,.55))}
+  /* Halo de 1px nao vencia vermelho-sobre-vermelho (o 💥 no fundo do ataque).
+     drop-shadow empilhado engrossa o contorno: cada camada desenha por cima da
+     anterior, entao 4 camadas brancas viram uma borda solida que RECORTA o
+     emoji do fundo, qualquer que seja a cor dele. */
+  filter:
+    drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff)
+    drop-shadow(0 0 1px #fff) drop-shadow(0 0 2px rgba(255,255,255,.9))
+    drop-shadow(0 1px 2px rgba(0,0,0,.5))}
 .dest-fund .ico{margin-right:5px}
 
 /* ---- faixa de cor: substitui o escudo com iniciais ----

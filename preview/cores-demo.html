@@ -364,6 +364,17 @@ body.claro .tl-bot>div{background:rgba(216,27,121,.05)}
 body.claro .relcard-met{background:rgba(255,255,255,.25)}
 body.claro .pod{background:linear-gradient(160deg,color-mix(in srgb,var(--c) 14%,#fff),#fff)}
 
+.destgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:10px;margin-bottom:6px}
+.dest{border:1px solid var(--brd);border-top:3px solid var(--f);border-radius:14px;padding:14px 15px;
+  background:var(--card);display:flex;flex-direction:column;gap:2px}
+.dest-fund{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;
+  color:var(--mute);text-transform:uppercase}
+.dest-nm{font-family:'Bebas Neue',sans-serif;font-size:23px;letter-spacing:1px;line-height:1.1;margin-top:6px}
+.dest-eq{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mute);font-weight:600}
+.dest-pct{font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1;color:var(--f);margin-top:8px}
+.dest-pct small{font-size:.5em;margin-left:1px}
+.dest-lb{font-size:10px;color:var(--faint);font-weight:600}
+
 /* ---- tabela ---- */
 table.tb{width:100%;border-collapse:collapse;font-size:13px}
 table.tb th{font-size:9px;letter-spacing:1.2px;font-weight:900;color:var(--faint);text-align:right;padding:8px 7px;
@@ -1918,8 +1929,30 @@ function rRelatorio(){
     }
   }
 
+  /* ---- destaques: a lider de cada fundamento, sem precisar rolar ate o detalhe ---- */
+  var lideres=[];
+  CORES_FUND.forEach(function(ak){
+    var F=R.fundamentos[ak];
+    var l=F.ranking[0];
+    if(l)lideres.push({ak:ak,F:F,x:l});
+  });
+  if(lideres.length){
+    h+='<h2 class="sec">DESTAQUES<span class="sec-sub">a melhor de cada fundamento</span></h2>';
+    h+='<div class="destgrid">';
+    lideres.forEach(function(d){
+      h+='<div class="dest" style="--f:'+CORES_FCOL[d.ak]+'">';
+      h+='<div class="dest-fund">'+d.F.icone+' '+esc(d.F.label)+'</div>';
+      h+='<div class="dest-nm">'+esc(d.x.nm)+'</div>';
+      h+='<div class="dest-eq"><span class="dot" style="background:'+esc(d.x.cor)+'"></span>'+esc(d.x.equipe)+'</div>';
+      h+='<div class="dest-pct">'+d.x.pct+'<small>%</small></div>';
+      h+='<div class="dest-lb">'+esc(d.F.rotulo)+' · '+(d.F.abc?(d.x.A+'A de '+d.x.n):(d.x.acertos+' de '+d.x.n))+'</div>';
+      h+='</div>';
+    });
+    h+='</div>';
+  }
+
   /* ---- por fundamento ---- */
-  h+='<h2 class="sec">POR FUNDAMENTO<span class="sec-sub">mínimo de '+R.minAcoes+' ações para entrar no ranking</span></h2>';
+  h+='<h2 class="sec">RANKING POR FUNDAMENTO<span class="sec-sub">mínimo de '+R.minAcoes+' ações para entrar</span></h2>';
   h+='<div class="relgrid">';
   CORES_FUND.forEach(function(ak){
     var F=R.fundamentos[ak];

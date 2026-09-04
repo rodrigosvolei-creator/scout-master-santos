@@ -42,8 +42,12 @@ var CORES_ACT = {
 };
 /* Os 6 fundamentos que aparecem no painel (a falta nao entra: nao tem atleta). */
 var CORES_FUND = ["saque", "recepcao", "levantamento", "ataque", "bloqueio", "defesa"];
-var CORES_OC = { Ace: "#059669", Ponto: "#059669", A: "#059669", B: "#d97706", Cont: "#64748b", C: "#ea580c", Bloq: "#ea580c", Erro: "#dc2626" };
-var CORES_FCOL = { saque: "#2563eb", recepcao: "#059669", levantamento: "#7c3aed", ataque: "#dc2626", bloqueio: "#ea580c", defesa: "#0891b2" };
+/* Um degrau mais escuras que o padrao Tailwind: com texto branco em cima, as
+   originais ficavam em 3.2-3.8:1 (abaixo do minimo 4.5:1) e sumiam com sol na
+   tela do ginasio. As MATIZES nao mudam — verde continua verde: e vocabulario
+   que o operador ja aprendeu, nao decoracao. */
+var CORES_OC = { Ace: "#047857", Ponto: "#047857", A: "#047857", B: "#b45309", Cont: "#556070", C: "#c2410c", Bloq: "#c2410c", Erro: "#b91c1c" };
+var CORES_FCOL = { saque: "#1d4ed8", recepcao: "#047857", levantamento: "#6d28d9", ataque: "#b91c1c", bloqueio: "#c2410c", defesa: "#0e7490" };
 
 var CORES_CFG_PADRAO = {
   setPoints: 21,     // set unico ate 21

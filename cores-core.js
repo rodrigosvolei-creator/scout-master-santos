@@ -36,7 +36,8 @@ var CORES_ACT = {
   bloqueio:     { l: "Bloqueio",  i: "\u{1F9F1}",      o: ["Ponto", "Erro", "Cont"] },
   defesa:       { l: "Defesa",    i: "\u{1F6E1}️", o: ["A", "B", "C", "Erro"] },
   /* Fora do painel de fundamentos — entra por um botao proprio, sem atleta. */
-  falta:        { l: "Falta",     i: "⚠", o: ["Erro"] }
+  falta:        { l: "Falta",     i: "⚠", o: ["Erro"] },
+  pontoadv:     { l: "Ponto do adversário", i: "➕", o: ["Erro"] }
 };
 /* Os 6 fundamentos que aparecem no painel (a falta nao entra: nao tem atleta). */
 var CORES_FUND = ["saque", "recepcao", "levantamento", "ataque", "bloqueio", "defesa"];
@@ -75,6 +76,11 @@ function coresTerminal(ak, oc) {
   /* Falta da equipe sem fundamento (rodizio/posicional/conducao/invasao/tempo):
      nao tem atleta nem fundamento, e sempre ponto do adversario. */
   if (ak === "falta") return "opp";
+  /* "O adversario pontuou" — registrado pelo operador do lado que SOFREU o
+     ponto, sem atribuir falta a ninguem. Existe para o placar e o RODIZIO
+     andarem sem depender de o outro operador marcar a jogada dele. Se os dois
+     marcarem o mesmo rally, o dedupe garante 1 ponto so. */
+  if (ak === "pontoadv") return "opp";
   if (oc === "Ace") return "self";
   if ((ak === "ataque" || ak === "bloqueio") && oc === "Ponto") return "self";
   if ((ak === "saque" || ak === "ataque" || ak === "bloqueio") && oc === "Erro") return "opp";
@@ -279,8 +285,12 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
        pontuado (ele ja recebeu o evento, entao gravaria no rally seguinte).
        So conta como repeticao se aponta para o MESMO vencedor: ponto para o
        outro lado e rally novo, e acao seguida do mesmo aparelho tambem. */
-    var janela = (cfg.dedupeMs > 0 && lastPointTs && ev.ts &&
-                  (ev.ts - lastPointTs) < cfg.dedupeMs &&
+    /* dt precisa ser POSITIVO e pequeno. Sem o dt>=0, um aparelho com o relogio
+       adiantado fazia os eventos do outro chegarem "no passado" e a janela
+       engolia pontos legitimos. Relogios de maquinas diferentes divergem —
+       por isso o ts tambem passou a ser carimbado pelo servidor. */
+    var dt = (typeof ev.ts === "number" && lastPointTs) ? (ev.ts - lastPointTs) : null;
+    var janela = (cfg.dedupeMs > 0 && dt !== null && dt >= 0 && dt < cfg.dedupeMs &&
                   ev.tid !== lastPointTid && win === lastPointWin);
     if (mesmoRally || janela) {
       ev._dupWhy = mesmoRally ? "rally" : "janela";
@@ -291,7 +301,7 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
     pts[win]++;
     pointLog.push({ rally: r, side: win, jid: ev.jid, tid: ev.tid, ak: ev.ak, oc: ev.oc, by: side });
     if (r + 1 > rally) rally = r + 1;
-    lastPointTs = ev.ts || 0; lastPointTid = ev.tid; lastPointWin = win;
+    lastPointTs = (typeof ev.ts === "number") ? ev.ts : 0; lastPointTid = ev.tid; lastPointWin = win;
     advanceServe(win);
     checkDone();
   }

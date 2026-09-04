@@ -7,33 +7,67 @@
 <link rel="icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
 <style>
+/* Paleta da marca RS Voleibol — a mesma do site institucional.
+   --acc (magenta) substitui o dourado, que nao era cor da RS.
+   Verde/vermelho/laranja NAO mudam: sao semanticos (acerto, erro, atencao). */
 :root{
-  --bg1:#0c1322;--bg2:#141d33;--bg3:#0a0f1c;
-  --fg:#e8eef9;--mute:rgba(232,238,249,.62);--faint:rgba(232,238,249,.34);
-  --card:rgba(255,255,255,.05);--card2:rgba(255,255,255,.08);--brd:rgba(255,255,255,.12);
-  --gold:#fbbf24;--green:#059669;--red:#dc2626;--orange:#ea580c;--blue:#2563eb;--gray:#64748b;
+  --bg1:#170a1e;--bg2:#241030;--bg3:#0f0614;
+  --fg:#f7eef5;--mute:rgba(247,238,245,.66);--faint:rgba(247,238,245,.36);
+  --card:rgba(255,255,255,.055);--card2:rgba(255,255,255,.09);--brd:rgba(255,255,255,.13);
+  --acc:#FF4D9D;--acc2:#A93FC0;--acc-ink:#2A0A1A;
+  --green:#059669;--red:#dc2626;--orange:#ea580c;--blue:#2563eb;--gray:#64748b;
+  --leao:.05;              /* forca da marca d'agua do leao */
+  --sombra:rgba(0,0,0,.45);
+}
+/* Tema CLARO — para notebook em ginasio iluminado. */
+body.claro{
+  --bg1:#ffffff;--bg2:#FCF4F8;--bg3:#F6E8F0;
+  --fg:#2A0A1A;--mute:#5a2a44;--faint:rgba(42,10,26,.45);
+  --card:rgba(216,27,121,.045);--card2:rgba(216,27,121,.09);--brd:rgba(216,27,121,.18);
+  --acc:#D81B79;--acc2:#8B2FA0;--acc-ink:#ffffff;
+  --leao:.045;
+  --sombra:rgba(216,27,121,.14);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:linear-gradient(165deg,var(--bg1) 0%,var(--bg2) 55%,var(--bg3) 100%) fixed;color:var(--fg);
-  font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
+body{color:var(--fg);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden;
+  background:
+    radial-gradient(70% 50% at 50% -5%, rgba(216,27,121,.12), transparent 60%),
+    radial-gradient(60% 45% at 50% 110%, rgba(139,47,160,.12), transparent 60%),
+    linear-gradient(165deg,var(--bg1) 0%,var(--bg2) 55%,var(--bg3) 100%);
+  background-attachment:fixed}
+/* MARCA D'AGUA — o leao ao fundo, fixo, atras de tudo e sem capturar toque.
+   Fica FORA da mesa do operador (body.trabalho): ali a tela e ferramenta,
+   qualquer coisa competindo com os cards atrapalha quem esta marcando. */
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:url("rs-leao.png") no-repeat right -6vw bottom -8vh;
+  background-size:auto 78vh;opacity:var(--leao);
+  filter:saturate(1.1)}
+body.trabalho::before{opacity:0}
+#app{position:relative;z-index:1}
 button,input,select{font-family:inherit;font-size:inherit;color:inherit}
 button{cursor:pointer;border:none;background:none}
 .wrap{max-width:1180px;margin:0 auto;padding:0 16px 60px}
 
 /* ---- header ---- */
-.hd{position:sticky;top:0;z-index:40;background:rgba(10,15,28,.86);backdrop-filter:blur(10px);
+.hd{position:sticky;top:0;z-index:40;background:rgba(15,6,20,.86);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--brd)}
 .hd-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:10px 16px}
-.hd-ti{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;line-height:1;
-  background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.hd-sub{font-size:9px;letter-spacing:2.5px;color:var(--faint);font-weight:700;margin-top:2px}
+.hd-ti{font-family:'Cinzel',serif;font-weight:700;font-size:17px;letter-spacing:.1em;line-height:1.15;
+  text-transform:uppercase;
+  background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hd-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.32em;color:var(--faint);font-weight:600;margin-top:3px}
+.hd-marca{display:flex;align-items:center;gap:11px;min-width:0}
+.hd-marca img{height:34px;width:auto;flex-shrink:0}
+.hd-tema{background:transparent;border:1px solid var(--brd);border-radius:99px;width:34px;height:34px;
+  display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;transition:.15s}
+.hd-tema:hover{background:var(--card2);border-color:var(--acc)}
 .hd-nav{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
 .hd-nav a{font-size:11px;font-weight:700;letter-spacing:.6px;text-decoration:none;color:var(--mute);
   padding:8px 12px;border-radius:9px;border:1px solid transparent;transition:.13s}
 .hd-nav a:hover{color:var(--fg);background:rgba(255,255,255,.06)}
-.hd-nav a.on{color:#0a0f1c;background:var(--gold);border-color:var(--gold)}
+.hd-nav a.on{color:var(--acc-ink);background:var(--acc);border-color:var(--acc)}
 
 /* ---- blocos ---- */
 h2.sec{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:2px;margin:26px 0 12px;color:var(--fg)}
@@ -42,7 +76,7 @@ h2.sec{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:2px;mar
 .btn{background:rgba(255,255,255,.08);border:1px solid var(--brd);border-radius:10px;padding:10px 15px;
   font-weight:700;font-size:13px;transition:.13s}
 .btn:hover{background:rgba(255,255,255,.14)}
-.btn.pri{background:var(--gold);color:#0a0f1c;border-color:var(--gold)}
+.btn.pri{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
 .btn.pri:hover{filter:brightness(1.08)}
 .btn.dgr{background:rgba(220,38,38,.18);border-color:rgba(220,38,38,.45);color:#fca5a5}
 .btn.sm{padding:6px 11px;font-size:11px;border-radius:8px}
@@ -70,7 +104,7 @@ h2.sec{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:2px;mar
 .gc-nm{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1.4px;line-height:1}
 .gc-sc{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;min-width:78px;text-align:center}
 .gc-meta{font-size:11px;color:var(--faint);font-weight:600}
-.pill{font-size:9px;font-weight:900;letter-spacing:1.4px;padding:3px 8px;border-radius:99px}
+.pill{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;padding:3px 8px;border-radius:99px}
 .pill.live{background:var(--red);color:#fff;animation:pulse 1.8s infinite}
 .pill.fim{background:rgba(255,255,255,.1);color:var(--mute)}
 .pill.age{background:rgba(37,99,235,.22);color:#93c5fd}
@@ -80,17 +114,17 @@ h2.sec{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:2px;mar
 .mesa-top{display:flex;align-items:stretch;gap:12px;margin:14px 0;flex-wrap:wrap}
 .mesa-side{flex:1;min-width:200px;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;
   border:2px solid transparent;transition:.15s}
-.mesa-side.mine{border-color:var(--gold);box-shadow:0 0 0 4px rgba(251,191,36,.13)}
+.mesa-side.mine{border-color:var(--acc);box-shadow:0 0 0 4px rgba(255,77,157,.13)}
 .mesa-side .pts{margin-left:auto;font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:.9}
 .mesa-side .nm{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.4px;line-height:1.05}
-.mesa-side .sub{font-size:10px;font-weight:700;letter-spacing:1px;opacity:.75}
+.mesa-side .sub{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.14em;opacity:.75}
 .serve-badge{font-size:10px;font-weight:900;letter-spacing:1px;background:rgba(0,0,0,.35);padding:3px 8px;border-radius:99px;display:inline-block;margin-top:4px}
 
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px;margin-bottom:6px}
 .pbtn{background:var(--card);border:2px solid var(--brd);border-radius:13px;padding:12px 10px;text-align:left;
   display:flex;align-items:center;gap:10px;transition:.12s;position:relative;overflow:hidden}
 .pbtn:hover{background:var(--card2)}
-.pbtn.on{border-color:var(--gold);background:rgba(251,191,36,.15);box-shadow:0 0 0 3px rgba(251,191,36,.14)}
+.pbtn.on{border-color:var(--acc);background:rgba(255,77,157,.15);box-shadow:0 0 0 3px rgba(255,77,157,.14)}
 .pbtn.serving::after{content:"🏐";position:absolute;top:5px;right:7px;font-size:13px}
 .pbtn .nu{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;
   font-family:'Bebas Neue',sans-serif;font-size:16px;flex-shrink:0;color:#fff}
@@ -136,7 +170,7 @@ h2.sec .sec-sub::before{content:"· "}
 
 /* ---- placar ---- */
 .mesa-side{background:linear-gradient(160deg,color-mix(in srgb,var(--c) 22%,transparent),rgba(255,255,255,.03))}
-.mesa-side.serving{box-shadow:inset 0 0 0 1px rgba(251,191,36,.35)}
+.mesa-side.serving{box-shadow:inset 0 0 0 1px rgba(255,77,157,.35)}
 .mesa-id{min-width:0;flex:1}
 .mesa-side .pts{font-variant-numeric:tabular-nums;text-shadow:0 3px 14px rgba(0,0,0,.45)}
 
@@ -144,7 +178,7 @@ h2.sec .sec-sub::before{content:"· "}
 .step{background:var(--card);border:1px solid var(--brd);border-radius:16px;padding:16px 18px;margin-bottom:12px}
 .step.done{border-color:rgba(5,150,105,.42);background:rgba(5,150,105,.07)}
 .step-hd{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px;margin-bottom:8px}
-.step-n{width:24px;height:24px;border-radius:99px;background:var(--gold);color:#0a0f1c;
+.step-n{width:24px;height:24px;border-radius:99px;background:var(--acc);color:var(--acc-ink);
   display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0}
 .step.done .step-n{background:var(--green);color:#fff}
 .step-ok{margin-left:auto;font-size:11px;font-weight:800;color:#6ee7b7;letter-spacing:.5px}
@@ -179,10 +213,10 @@ h2.sec .sec-sub::before{content:"· "}
 /* ---- reservas / substituicao ---- */
 .benchrow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:rgba(0,0,0,.2);
   border:1px solid var(--brd);border-radius:13px;padding:10px 14px;margin-top:10px}
-.benchlb{font-size:10px;font-weight:900;letter-spacing:1.4px;color:var(--faint)}
+.benchlb{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--faint)}
 .benchp{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--mute)}
 .benchrow .btn{margin-left:auto}
-.subbar{background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.4);border-radius:13px;
+.subbar{background:rgba(255,77,157,.12);border:1px solid rgba(255,77,157,.4);border-radius:13px;
   padding:13px 15px;margin-top:10px;font-size:13px}
 
 /* ---- cards dos atletas ---- */
@@ -192,10 +226,10 @@ h2.sec .sec-sub::before{content:"· "}
   box-shadow:inset 0 0 0 2px rgba(255,255,255,.2)}
 .pbtn .pn{font-size:14px}
 .pbtn .pr{font-size:10px;color:var(--faint);font-weight:700;letter-spacing:.5px;margin-top:2px}
-.pbtn .pr .saca{color:var(--gold);letter-spacing:.8px}
+.pbtn .pr .saca{color:var(--acc);letter-spacing:.8px}
 .pbtn .pr .sai{color:#fca5a5;letter-spacing:.8px}
 .pbtn .camisa{opacity:.65}
-.pbtn.serving{border-color:var(--gold);background:rgba(251,191,36,.1)}
+.pbtn.serving{border-color:var(--acc);background:rgba(255,77,157,.1)}
 .pbtn.serving::after{content:none}
 .pbtn.subpick{border-style:dashed}
 .pbtn.out{border-color:var(--red);background:rgba(220,38,38,.16)}
@@ -205,31 +239,66 @@ h2.sec .sec-sub::before{content:"· "}
 .fasegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
 .faseopt{display:flex;flex-direction:column;gap:4px;text-align:left;padding:15px 16px;border-radius:14px;
   border:2px solid var(--brd);background:rgba(255,255,255,.05);transition:.13s}
-.faseopt:hover:not(.off){border-color:var(--gold);background:rgba(251,191,36,.1)}
+.faseopt:hover:not(.off){border-color:var(--acc);background:rgba(255,77,157,.1)}
 .faseopt.off{opacity:.4;cursor:not-allowed}
 .faseopt b{font-size:14px}
 .faseopt span{font-size:11px;color:var(--mute)}
-.faseopt i{font-style:normal;font-size:11px;font-weight:800;color:var(--gold);margin-top:4px}
+.faseopt i{font-style:normal;font-size:11px;font-weight:800;color:var(--acc);margin-top:4px}
 .faseopt.off i{color:var(--faint)}
 .fasetag{font-size:9px;font-weight:900;letter-spacing:1.2px;padding:3px 8px;border-radius:99px;
-  background:rgba(251,191,36,.18);color:var(--gold);border:1px solid rgba(251,191,36,.35)}
+  background:rgba(255,77,157,.18);color:var(--acc);border:1px solid rgba(255,77,157,.35)}
 .crest.vazio{box-shadow:inset 0 0 0 2px rgba(255,255,255,.12);color:var(--faint)}
 .gc-nm.pend,b.pend{color:var(--faint);font-style:italic}
 .campeao{display:flex;align-items:center;gap:20px;margin:18px 0 6px;padding:22px 24px;border-radius:20px;
   border:2px solid var(--c);background:linear-gradient(120deg,color-mix(in srgb,var(--c) 26%,transparent),rgba(255,255,255,.04))}
-.campeao-lb{font-size:11px;font-weight:900;letter-spacing:3px;color:var(--gold)}
+.campeao-lb{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.3em;color:var(--acc)}
 .campeao-nm{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:2px;line-height:1}
 .ctrls{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:14px;padding-top:16px;border-top:1px solid var(--brd)}
-.ctrl-lb{font-size:10px;font-weight:900;letter-spacing:1.2px;color:var(--faint);margin-left:6px}
+.ctrl-lb{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--faint);margin-left:6px}
 .ctrls .ctrl-lb:first-child{margin-left:0}
 .faltabar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
 .btn.falta{background:rgba(234,88,12,.2);border-color:rgba(234,88,12,.55);color:#fdba74;font-size:14px;padding:12px 18px}
 .btn.falta:hover{background:rgba(234,88,12,.32)}
+.btn.pontoadv{background:rgba(37,99,235,.2);border-color:rgba(37,99,235,.55);color:#93c5fd;font-size:14px;padding:12px 18px}
+.btn.pontoadv:hover{background:rgba(37,99,235,.32)}
+body.claro .btn.falta{color:#9a3412}
+body.claro .btn.pontoadv{color:#1e40af}
+.faltahint{line-height:1.6;max-width:52ch}
 .faltahint{font-size:11px;color:var(--mute)}
 .dupwhy{font-size:10px;margin-left:auto;color:var(--faint);text-align:right;line-height:1.3}
 .banner.ok{background:rgba(5,150,105,.16);border:1px solid rgba(5,150,105,.45);color:#a7f3d0}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 @media(prefers-reduced-motion:reduce){.pill.live{animation:none}}
+
+/* ===== Ajustes do tema CLARO =====
+   Onde havia cor crua (preto/navy), o claro precisa do par — senao o texto
+   escuro cai sobre fundo escuro. */
+body.claro .hd{background:rgba(255,255,255,.86);border-bottom-color:var(--brd)}
+body.claro .fld input,body.claro .fld select,
+body.claro .pool input,body.claro .row input{background:#fff;border-color:var(--brd);color:var(--fg)}
+body.claro .fbox{background:rgba(216,27,121,.04)}
+body.claro .fitem{background:rgba(216,27,121,.05)}
+body.claro .slot{background:rgba(216,27,121,.04)}
+body.claro .benchrow{background:rgba(216,27,121,.05)}
+body.claro .btn{background:rgba(216,27,121,.07)}
+body.claro .btn:hover{background:rgba(216,27,121,.14)}
+body.claro .poolp{background:rgba(216,27,121,.06)}
+body.claro .faseopt{background:rgba(216,27,121,.05)}
+body.claro .pickteam-btn{background:linear-gradient(160deg,color-mix(in srgb,var(--c) 18%,#fff),#fff)}
+body.claro .toast{background:#2A0A1A;color:#fff;border-color:rgba(0,0,0,.2)}
+body.claro .crest,body.claro .pbtn .pos{box-shadow:0 4px 12px var(--sombra),inset 0 0 0 2px rgba(255,255,255,.35)}
+body.claro .pill.fim{background:rgba(42,10,26,.09);color:var(--mute)}
+body.claro .slot-n{background:rgba(42,10,26,.1)}
+body.claro .serve-badge{background:rgba(255,255,255,.7);color:var(--fg)}
+body.claro .mesa-side .pts{text-shadow:none}
+body.claro .stamp{color:rgba(42,10,26,.4);background:transparent}
+body.claro .gcard.live{background:rgba(220,38,38,.07)}
+body.claro .banner.inf{background:rgba(37,99,235,.09);color:#1e3a8a}
+body.claro .banner.err{background:rgba(220,38,38,.09);color:#7f1d1d}
+body.claro .banner.ok{background:rgba(5,150,105,.1);color:#065f46}
+body.claro .step.done{background:rgba(5,150,105,.08)}
+body.claro .subbar{background:rgba(216,27,121,.09);border-color:rgba(216,27,121,.3)}
+body.claro .tl-bot>div{background:rgba(216,27,121,.05)}
 
 /* ---- tabela ---- */
 table.tb{width:100%;border-collapse:collapse;font-size:13px}
@@ -243,7 +312,10 @@ table.tb td.nm{font-weight:800}
 
 /* ---- telao ---- */
 body.telao{overflow:hidden}
-.tl{height:100vh;display:flex;flex-direction:column;padding:22px 26px;gap:16px;overflow:hidden}
+.tl{height:100vh;display:flex;flex-direction:column;padding:22px 26px;gap:16px;overflow:hidden;position:relative;z-index:1}
+/* No telao o leao pode aparecer: e tela de exibicao, nao de trabalho. */
+body.telao::before{opacity:.09;background-position:center center;background-size:auto 92vh}
+.tl-nm{font-family:'Bebas Neue',sans-serif}
 .tl-hd{display:flex;align-items:center;gap:14px}
 .tl-main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:26px}
 .tl-team{flex:1;text-align:center}
@@ -339,7 +411,8 @@ var CORES_ACT = {
   bloqueio:     { l: "Bloqueio",  i: "\u{1F9F1}",      o: ["Ponto", "Erro", "Cont"] },
   defesa:       { l: "Defesa",    i: "\u{1F6E1}️", o: ["A", "B", "C", "Erro"] },
   /* Fora do painel de fundamentos — entra por um botao proprio, sem atleta. */
-  falta:        { l: "Falta",     i: "⚠", o: ["Erro"] }
+  falta:        { l: "Falta",     i: "⚠", o: ["Erro"] },
+  pontoadv:     { l: "Ponto do adversário", i: "➕", o: ["Erro"] }
 };
 /* Os 6 fundamentos que aparecem no painel (a falta nao entra: nao tem atleta). */
 var CORES_FUND = ["saque", "recepcao", "levantamento", "ataque", "bloqueio", "defesa"];
@@ -378,6 +451,11 @@ function coresTerminal(ak, oc) {
   /* Falta da equipe sem fundamento (rodizio/posicional/conducao/invasao/tempo):
      nao tem atleta nem fundamento, e sempre ponto do adversario. */
   if (ak === "falta") return "opp";
+  /* "O adversario pontuou" — registrado pelo operador do lado que SOFREU o
+     ponto, sem atribuir falta a ninguem. Existe para o placar e o RODIZIO
+     andarem sem depender de o outro operador marcar a jogada dele. Se os dois
+     marcarem o mesmo rally, o dedupe garante 1 ponto so. */
+  if (ak === "pontoadv") return "opp";
   if (oc === "Ace") return "self";
   if ((ak === "ataque" || ak === "bloqueio") && oc === "Ponto") return "self";
   if ((ak === "saque" || ak === "ataque" || ak === "bloqueio") && oc === "Erro") return "opp";
@@ -582,8 +660,12 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
        pontuado (ele ja recebeu o evento, entao gravaria no rally seguinte).
        So conta como repeticao se aponta para o MESMO vencedor: ponto para o
        outro lado e rally novo, e acao seguida do mesmo aparelho tambem. */
-    var janela = (cfg.dedupeMs > 0 && lastPointTs && ev.ts &&
-                  (ev.ts - lastPointTs) < cfg.dedupeMs &&
+    /* dt precisa ser POSITIVO e pequeno. Sem o dt>=0, um aparelho com o relogio
+       adiantado fazia os eventos do outro chegarem "no passado" e a janela
+       engolia pontos legitimos. Relogios de maquinas diferentes divergem —
+       por isso o ts tambem passou a ser carimbado pelo servidor. */
+    var dt = (typeof ev.ts === "number" && lastPointTs) ? (ev.ts - lastPointTs) : null;
+    var janela = (cfg.dedupeMs > 0 && dt !== null && dt >= 0 && dt < cfg.dedupeMs &&
                   ev.tid !== lastPointTid && win === lastPointWin);
     if (mesmoRally || janela) {
       ev._dupWhy = mesmoRally ? "rally" : "janela";
@@ -594,7 +676,7 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
     pts[win]++;
     pointLog.push({ rally: r, side: win, jid: ev.jid, tid: ev.tid, ak: ev.ak, oc: ev.oc, by: side });
     if (r + 1 > rally) rally = r + 1;
-    lastPointTs = ev.ts || 0; lastPointTid = ev.tid; lastPointWin = win;
+    lastPointTs = (typeof ev.ts === "number") ? ev.ts : 0; lastPointTid = ev.tid; lastPointWin = win;
     advanceServe(win);
     checkDone();
   }
@@ -852,8 +934,17 @@ if (typeof module !== "undefined" && module.exports) {
    Toda a logica de placar/saque/classificacao vive em cores-core.js (testado).
    Aqui so tem UI + Firebase.
    ========================================================================== */
+/* Tema claro/escuro. Escuro e o padrao (fica melhor projetado no telao);
+   o claro serve para notebook em ginasio muito iluminado. Fica no aparelho. */
+var TEMA=(function(){try{return localStorage.getItem("cores_tema")||"escuro";}catch(e){return "escuro";}})();
+function aplicarTema(){try{document.body.classList.toggle("claro",TEMA==="claro");}catch(e){}}
+function trocarTema(){
+  TEMA=(TEMA==="claro")?"escuro":"claro";
+  try{localStorage.setItem("cores_tema",TEMA);}catch(e){}
+  aplicarTema();render();
+}
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-04b";
+var CORES_BUILD="2026-09-04c";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -920,7 +1011,10 @@ function pF(t,jid){var ps=playersOf(t);for(var i=0;i<ps.length;i++)if(ps[i].id==
    TUDO que o operador marca e um EVENTO NOVO (push = insert). Nunca sobrescreve
    o no do jogo -> dois aparelhos gravando ao mesmo tempo nao se apagam.        */
 function pushEvent(gid,ev){
-  ev.ts=Date.now();
+  /* Carimbo do SERVIDOR, nao do aparelho: os dois notebooks podem estar com o
+     relogio desencontrado, e o dedupe por tempo depende de uma base unica. */
+  try{ ev.ts=(firebase.database.ServerValue&&firebase.database.ServerValue.TIMESTAMP)||Date.now(); }
+  catch(e){ ev.ts=Date.now(); }
   return db.ref(ROOT+"/events/"+gid).push(ev).catch(function(e){onWriteErr(e);throw e;});
 }
 function writeNode(path,val){
@@ -968,7 +1062,10 @@ function calc(g){ return coresComputeGame(g,D.events[g.id]||null,D.teams,D.confi
 /* ============================ RENDER ============================ */
 function render(){
   var h="";
+  aplicarTema();
   document.body.classList.toggle("telao",VIEW==="telao");
+  /* Na mesa o leao sai de cena: e tela de trabalho, nada compete com os cards. */
+  document.body.classList.toggle("trabalho",VIEW==="mesa");
   if(VIEW==="telao"){document.getElementById("app").innerHTML=rTelao();return;}
   h+=rHeader();
   h+='<div class="wrap">';
@@ -982,13 +1079,15 @@ function render(){
 }
 function rHeader(){
   var nome=D.config.nome||CORES_NOME_PADRAO;
-  var h='<div class="hd"><div class="hd-in"><div>';
-  h+='<div class="hd-ti">'+esc(nome)+'</div><div class="hd-sub">RS-VOLEIBOL · SCOUT</div></div>';
+  var h='<div class="hd"><div class="hd-in">';
+  h+='<div class="hd-marca"><img src="rs-leao.png" alt="RS Voleibol"><div>';
+  h+='<div class="hd-ti">'+esc(nome)+'</div><div class="hd-sub">RS-VOLEIBOL · SCOUT</div></div></div>';
   h+='<div class="hd-nav">';
   h+='<a href="?" class="'+(VIEW==="home"?"on":"")+'" onclick="event.preventDefault();go(\'home\')">Jogos</a>';
   h+='<a href="?v=class" class="'+(VIEW==="class"?"on":"")+'" onclick="event.preventDefault();go(\'class\')">Classificação</a>';
   h+='<a href="?v=telao" target="_blank">Telão</a>';
   h+='<a href="?v=admin" class="'+(VIEW==="admin"?"on":"")+'" onclick="event.preventDefault();go(\'admin\')">Admin</a>';
+  h+='<button class="hd-tema" onclick="trocarTema()" title="'+(TEMA==="claro"?"Mudar para o tema escuro":"Mudar para o tema claro")+'">'+(TEMA==="claro"?"\u{1F319}":"\u2600\uFE0F")+'</button>';
   h+='</div></div></div>';
   return h;
 }
@@ -1280,11 +1379,15 @@ function rMesaJogo(g,meu,adv,st,meuSide,A,B){
   /* controles */
   /* Falta sem fundamento (rodizio, posicional, conducao, invasao, tempo):
      nao tem atleta e da ponto direto para a adversaria. */
-  h+='<div class="faltabar"><button class="btn falta" onclick="marcarFalta()">⚠ Falta da '+esc(meu.n)+'</button>';
-  h+='<span class="faltahint">rodízio, posicional, condução, invasão, tempo — ponto para a '+esc(adv.n)+'</span></div>';
+  h+='<div class="faltabar">';
+  h+='<button class="btn falta" onclick="marcarFalta()">⚠ Falta da '+esc(meu.n)+'</button>';
+  h+='<button class="btn pontoadv" onclick="marcarPontoAdv()">➕ Ponto da '+esc(adv.n)+'</button>';
+  h+='<span class="faltahint"><b>Falta</b>: rodízio, posicional, condução, invasão, tempo.<br>'
+    +'<b>Ponto da '+esc(adv.n)+'</b>: quando ela pontuou e você não quer esperar o outro operador marcar — '
+    +'sobe o placar e <b>roda o saque</b>. Se os dois marcarem o mesmo rally, conta 1 ponto só.</span></div>';
 
   h+='<div class="ctrls">';
-  h+='<span class="ctrl-lb">Placar '+esc(meu.n)+'</span>';
+  h+='<span class="ctrl-lb" title="Correção de placar: não mexe no saque">Corrigir '+esc(meu.n)+'</span>';
   h+='<button class="btn" onclick="adjust(\''+MEUTID+'\',1)">+1</button>';
   h+='<button class="btn" onclick="adjust(\''+MEUTID+'\',-1)">−1</button>';
   h+='<span class="ctrl-lb">'+esc(adv.n)+'</span>';
@@ -1409,6 +1512,16 @@ function marcarFalta(){
   if(g.st!=="ao_vivo"){toast("Inicie o jogo antes de marcar","err");return;}
   /* sem jid: e falta da equipe, nao entra na estatistica de nenhum atleta */
   pushEvent(GID,{t:"act",tid:MEUTID,jid:null,ak:"falta",oc:"Erro",rally:st.rally});
+}
+/* O adversario pontuou. Sobe o placar dele e ROTACIONA o saque — diferente do
+   +1, que e so correcao de numero. Sem isto, o operador so via o rodizio andar
+   quando o outro operador marcasse a jogada dele. */
+function marcarPontoAdv(){
+  var g=D.games[GID];if(!g)return;
+  var st=calc(g);
+  if(st.done){toast("Set encerrado — finalize o jogo","err");return;}
+  if(g.st!=="ao_vivo"){toast("Inicie o jogo antes de marcar","err");return;}
+  pushEvent(GID,{t:"act",tid:MEUTID,jid:null,ak:"pontoadv",oc:"Erro",rally:st.rally});
 }
 function adjust(tid,delta){
   var g=D.games[GID];if(!g)return;

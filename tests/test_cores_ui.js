@@ -323,6 +323,18 @@ fakeDB['torneio-cores'] = {
     bs[3].click(); await wait();
     eq(placar(A), antes);
   });
+  await t('"Ponto da VERMELHA" sobe o placar dela E RODA O SAQUE (sem depender do outro operador)', async () => {
+    avancar(12000);
+    const antes = placar(A);
+    const sacavaAntes = txt(A).indexOf('SACA') >= 0 ? (txt(A).split('SACA ·')[1]||'').slice(0,12) : '';
+    clickBtn(A, 'Ponto da VERMELHA'); await wait();
+    eq(placar(A), [antes[0], antes[1] + 1], 'placar da adversaria subiu');
+    eq(placar(B), [antes[0], antes[1] + 1], 'igual no outro aparelho');
+    const q = quadra(A);
+    eq(q.filter(x => x.saca).length, 0, 'o saque saiu da nossa equipe: quem saca agora e a adversaria');
+    const ev = Object.values(getAt('torneio-cores/events/j1')).filter(e => e.ak === 'pontoadv');
+    eq(ev.length, 1); eq(ev[0].jid, null, 'sem atleta');
+  });
   await t('"Falta da AZUL" da ponto para a VERMELHA sem escolher atleta', async () => {
     avancar(12000);
     const antes = placar(A);

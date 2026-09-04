@@ -155,6 +155,20 @@ t('JANELA nao bloqueia acao seguida do MESMO operador (rally novo dele)', () => 
   ]);
   eq(r.pts, { A: 2, B: 0 }, 'sequencia legitima do proprio operador conta');
 });
+t('RELOGIOS DESENCONTRADOS: evento que chega "no passado" NAO e engolido', () => {
+  const T0 = 1757000000000;
+  const r = run([
+    serve('tz', 'z1', '-Er01'),
+    actT('tz', 'z3', 'ataque', 'Ponto', 0, '-Er02', T0 + 60000),   // aparelho adiantado 1 min
+    actT('tv', 'v2', 'ataque', 'Ponto', 1, '-Er03', T0)            // o outro, com hora "atras"
+  ]);
+  eq(r.pts, { A: 1, B: 1 }, 'os dois pontos contam');
+  eq(r.dupes.length, 0);
+});
+t('evento sem ts (dado antigo) nao aciona a janela', () => {
+  const r = run([serve('tz', 'z1'), act('tz', 'z3', 'ataque', 'Ponto', 0), act('tv', 'v1', 'ataque', 'Ponto', 1)]);
+  eq(r.pts, { A: 1, B: 1 });
+});
 t('JANELA desligavel (dedupeMs=0) volta ao dedupe so por rally', () => {
   const T0 = 1757000000000;
   const r = run([
@@ -421,6 +435,55 @@ t('pontuacao da classificacao e parametrizavel', () => {
   const j1 = placar('j1', 'tz', 'tv', 21, 15);
   const S = C.coresStandings([j1.g], [AZUL, VERM], { j1: j1.ev }, { setPoints: 21, ptsVitoria: 2, ptsDerrota: 0 });
   eq(S[0].pts, 2); eq(S[1].pts, 0);
+});
+
+console.log('\n== ponto do adversario (nao depender do outro operador) ==');
+function padv(tid, rally, k, ts) { return { k, t: 'act', tid, jid: null, ak: 'pontoadv', oc: 'Erro', rally, ts }; }
+t('o operador registra que a adversaria pontuou: placar sobe do lado dela', () => {
+  const r = run([lineup('tz', ['z1', 'z2', 'z3', 'z4']), first('tz'), padv('tz', 0)]);
+  eq(r.pts, { A: 0, B: 1 });
+});
+t('e o SAQUE roda — era o furo: o rodizio dependia do outro operador marcar', () => {
+  const r = run([
+    lineup('tz', ['z1', 'z2', 'z3', 'z4']), lineup('tv', ['v2', 'v1', 'v3', 'v4']), first('tz'),
+    padv('tz', 0)
+  ]);
+  eq(r.serve, { side: 'B', jid: 'v2' }, 'passou para o #1 da adversaria');
+});
+t('marcando dois seguidos, o rodizio da adversaria anda', () => {
+  const r = run([
+    lineup('tz', ['z1', 'z2', 'z3', 'z4']), lineup('tv', ['v2', 'v1', 'v3', 'v4']), first('tz'),
+    padv('tz', 0), padv('tz', 1)
+  ]);
+  eq(r.pts, { A: 0, B: 2 });
+  eq(r.serve, { side: 'B', jid: 'v2' }, 'quem saca e pontua MANTEM o saque');
+});
+t('recuperando o saque, o rodizio da propria equipe anda', () => {
+  const r = run([
+    lineup('tz', ['z1', 'z2', 'z3', 'z4']), lineup('tv', ['v2', 'v1', 'v3', 'v4']), first('tz'),
+    padv('tz', 0),                                  // ponto da adversaria, ela saca
+    act('tv', 'v2', 'saque', 'Erro', 1)             // ela erra: ponto nosso
+  ]);
+  eq(r.pts, { A: 1, B: 1 });
+  eq(r.serve, { side: 'A', jid: 'z2' }, 'depois de z1 vem z2');
+});
+t('nao suja a estatistica de nenhum atleta', () => {
+  const r = run([lineup('tz', ['z1', 'z2', 'z3', 'z4']), first('tz'), padv('tz', 0)]);
+  eq(Object.keys(r.stats).length, 0);
+});
+t('os DOIS operadores marcando o mesmo rally = 1 ponto so', () => {
+  const T0 = 1757000000000;
+  const r = run([
+    lineup('tz', ['z1', 'z2', 'z3', 'z4']), first('tz'),
+    { k: '-Ep01', t: 'act', tid: 'tz', jid: null, ak: 'pontoadv', oc: 'Erro', rally: 0, ts: T0 },
+    { k: '-Ep02', t: 'act', tid: 'tv', jid: 'v1', ak: 'ataque', oc: 'Ponto', rally: 0, ts: T0 + 900 }
+  ]);
+  eq(r.pts, { A: 0, B: 1 }, 'um ponto');
+  eq(r.dupes.length, 1);
+  eq(r.stats.v1.n, 1, 'mas a jogada da atleta continua no scout dela');
+});
+t('fora do painel de fundamentos (nao tem atleta)', () => {
+  eq(C.CORES_FUND.indexOf('pontoadv'), -1);
 });
 
 console.log('\n== fases: classificatoria + mata-mata ==');

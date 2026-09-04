@@ -65,7 +65,8 @@ function avancar(ms) { CLOCK += ms; }
 
 function aparelho(qs) {
   const dom = new JSDOM(htmlMod, {
-    url: 'http://localhost/cores.html' + (qs || ''),
+    /* a pagina esta fechada ao publico (EM_OBRAS): os testes entram com a chave */
+    url: 'http://localhost/cores.html' + (qs ? qs + '&dev=rs2026' : '?dev=rs2026'),
     runScripts: 'dangerously',
     pretendToBeVisual: true,
     beforeParse(w) {

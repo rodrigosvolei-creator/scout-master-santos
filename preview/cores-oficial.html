@@ -1310,7 +1310,16 @@ function obrasLiberado(){
   if(q===OBRAS_CHAVE){ try{localStorage.setItem("cores_dev","1");}catch(e){} return true; }
   try{ return localStorage.getItem("cores_dev")==="1"; }catch(e){ return false; }
 }
-function obrasSair(){ try{localStorage.removeItem("cores_dev");}catch(e){} location.href="?"; }
+/* Sair do modo de teste tranca o aparelho na tela publica. Sem confirmar, um
+   toque sem querer no meio do jogo deixava o operador de fora. */
+function obrasSair(){
+  var aviso="Sair do modo de teste?"
+    +"\n\nEste aparelho vai passar a ver a pagina de em construcao, como o publico."
+    +"\n\nPara voltar, abra: cores.html?dev="+OBRAS_CHAVE;
+  if(!confirm(aviso))return;
+  try{localStorage.removeItem("cores_dev");}catch(e){}
+  location.href="?";
+}
 var CORES_NOME_PADRAO="Mini Minis - Cores";
 var CORES_BUILD="2026-09-04e";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;

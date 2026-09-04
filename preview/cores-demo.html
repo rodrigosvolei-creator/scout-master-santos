@@ -303,6 +303,18 @@ body.claro .step.done{background:rgba(5,150,105,.08)}
 body.claro .subbar{background:rgba(216,27,121,.09);border-color:rgba(216,27,121,.3)}
 body.claro .tl-bot>div{background:rgba(216,27,121,.05)}
 
+/* ---- faixa "em construcao" ---- */
+.obras{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;
+  padding:9px 18px;background:color-mix(in srgb,var(--acc) 14%,transparent);
+  border-bottom:1px solid var(--brd);font-size:12px;color:var(--mute)}
+.obras-badge{display:inline-flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:700;letter-spacing:.22em;color:var(--acc);
+  border:1px solid color-mix(in srgb,var(--acc) 45%,transparent);padding:5px 12px;border-radius:99px;
+  background:var(--bg1)}
+.obras-badge i{width:7px;height:7px;border-radius:99px;background:var(--acc);display:block;
+  animation:pulse 1.8s infinite}
+@media(max-width:640px){.obras span:last-child{display:none}}
+
 /* ---- relatorio ---- */
 .relfiltro{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
 .chip{font-size:12px;font-weight:700;padding:8px 14px;border-radius:99px;border:1px solid var(--brd);
@@ -1144,8 +1156,11 @@ function trocarTema(){
   try{localStorage.setItem("cores_tema",TEMA);}catch(e){}
   aplicarTema();render();
 }
+/* Faixa "em construcao" — o link ja esta publico no site institucional e o
+   modulo ainda esta em acabamento. Trocar para false quando estiver pronto. */
+var EM_OBRAS=true;
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-04c";
+var CORES_BUILD="2026-09-04d";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -1269,6 +1284,8 @@ function render(){
   document.body.classList.toggle("trabalho",VIEW==="mesa");
   if(VIEW==="telao"){document.getElementById("app").innerHTML=rTelao();return;}
   h+=rHeader();
+  if(EM_OBRAS)h+='<div class="obras"><span class="obras-badge"><i></i> EM CONSTRUÇÃO</span>'
+    +'<span>Estamos preparando o app para o torneio. Pode entrar e testar — o que você marcar aqui vale.</span></div>';
   h+='<div class="wrap">';
   if(_writeErr)h+='<div class="banner err"><b>Sem permissão de escrita no Firebase.</b> O nó <code>/torneio-cores</code> precisa das regras — cole o conteúdo de <code>firebase-rules-cores.json</code> no console do Firebase (Realtime Database › Regras). Até lá dá pra ver, mas não dá pra marcar.</div>';
   if(VIEW==="admin")h+=rAdmin();

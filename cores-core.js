@@ -28,20 +28,21 @@
         As duas acoes ficam no scout dos atletas.
    ========================================================================== */
 
-/* Sem campo de icone: os emojis de fundamento (💥 ataque, 🧱 bloqueio, 👆
-   levantamento) sumiam sobre o proprio fundo colorido e, mesmo legiveis, viravam
-   charada. O nome do fundamento ja diz tudo e a cor ja diferencia. */
+/* O icone ajuda a bater o olho e achar o fundamento — fica. O problema nunca
+   foi o emoji: era o CONTRASTE, emoji colorido sobre fundo da mesma familia de
+   cor (colisao vermelha no vermelho do ataque, tijolo laranja no laranja do
+   bloqueio). Resolvido no CSS com halo na classe .ico, nao tirando o icone. */
 var CORES_ACT = {
-  saque:        { l: "Saque",      o: ["Ace", "Erro", "Cont"] },
-  recepcao:     { l: "Recepção", o: ["A", "B", "C", "Erro"] },
-  levantamento: { l: "Levant.",      o: ["A", "B", "C", "Erro"] },
-  ataque:       { l: "Ataque",      o: ["Ponto", "Bloq", "Erro", "Cont"] },
-  bloqueio:     { l: "Bloqueio",      o: ["Ponto", "Erro", "Cont"] },
-  defesa:       { l: "Defesa", o: ["A", "B", "C", "Erro"] },
-  /* Fora do painel de fundamentos — entra por um botao proprio, sem atleta. */
-  falta:        { l: "Falta", o: ["Erro"] },
-  pontoadv:     { l: "Ponto do adversário", o: ["Erro"] },
-  pontonos:     { l: "Ponto da equipe", o: ["Ponto"] }
+  saque:        { l: "Saque",     i: "\u{1F3D0}",       o: ["Ace", "Erro", "Cont"] },
+  recepcao:     { l: "Recepção", i: "\u{1F932}",       o: ["A", "B", "C", "Erro"] },
+  levantamento: { l: "Levant.",   i: "\u{1F446}",       o: ["A", "B", "C", "Erro"] },
+  ataque:       { l: "Ataque",    i: "\u{1F4A5}",       o: ["Ponto", "Bloq", "Erro", "Cont"] },
+  bloqueio:     { l: "Bloqueio",  i: "\u{1F9F1}",       o: ["Ponto", "Erro", "Cont"] },
+  defesa:       { l: "Defesa",    i: "\u{1F6E1}\uFE0F", o: ["A", "B", "C", "Erro"] },
+  /* Fora do painel de fundamentos — entram por botao proprio, sem atleta. */
+  falta:        { l: "Falta",     i: "\u26A0", o: ["Erro"] },
+  pontoadv:     { l: "Ponto do adversário", i: "\u2795", o: ["Erro"] },
+  pontonos:     { l: "Ponto da equipe",     i: "\u2795", o: ["Ponto"] }
 };
 /* Os 6 fundamentos que aparecem no painel (a falta nao entra: nao tem atleta). */
 var CORES_FUND = ["saque", "recepcao", "levantamento", "ataque", "bloqueio", "defesa"];
@@ -665,7 +666,7 @@ function coresRankings(games, teams, evByGame, cfgIn, opts) {
       lista.push(item);
     });
     fundamentos[ak] = {
-      label: CORES_ACT[ak].l, abc: abc,
+      label: CORES_ACT[ak].l, icone: CORES_ACT[ak].i, abc: abc,
       rotulo: lista.length ? lista[0].rotulo : (abc ? "% A" : "%"),
       /* o ranking de % exige um minimo de acoes; quem tem menos aparece a parte */
       ranking: ordena(lista.filter(function (x) { return x.n >= minAcoes; }), "pct"),

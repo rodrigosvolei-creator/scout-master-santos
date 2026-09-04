@@ -2167,7 +2167,25 @@ function rTelao(){
   h+='<div class="tl-hd"><div class="hd-ti" style="font-size:28px">'+esc(D.config.nome||CORES_NOME_PADRAO)+'</div>';
   h+='<div class="hd-sub" style="margin-left:auto">RS-VOLEIBOL</div></div>';
   if(!live){
-    h+='<div class="tl-main"><div class="empty"><div class="big">SEM JOGO EM ANDAMENTO</div></div></div></div>';
+    /* Intervalo entre jogos: em vez de uma tela vazia projetada no ginasio,
+       mostra a classificacao — que e o que as pessoas querem ver mesmo. */
+    var Sv=coresStandings(gamesArr(),teamsArr(),D.events,D.config);
+    h+='<div class="tl-main" style="flex-direction:column;gap:14px">';
+    h+='<div class="hd-sub" style="font-size:13px;letter-spacing:6px">CLASSIFICAÇÃO</div>';
+    if(!Sv.length||!Sv.some(function(r){return r.j>0;})){
+      h+='<div class="empty"><div class="big">EM BREVE</div></div>';
+    }else{
+      h+='<table class="tb" style="max-width:900px;width:100%"><tbody>';
+      Sv.forEach(function(r){
+        h+='<tr><td class="faint">'+r.pos+'</td><td class="nm"><span style="display:inline-flex;align-items:center;gap:12px">';
+        h+='<span class="faixa" style="background:'+esc(r.cor)+';height:26px"></span>'+esc(r.n)+'</span></td>';
+        h+='<td>'+r.j+'J</td><td>'+r.v+'V</td><td class="faint">'+r.d+'D</td>';
+        h+='<td>'+(r.saldo>0?"+":"")+r.saldo+'</td>';
+        h+='<td style="font-weight:800">'+r.pts+'</td></tr>';
+      });
+      h+='</tbody></table>';
+    }
+    h+='</div></div>';
     return h;
   }
   var A=tF(live.a),B=tF(live.b);

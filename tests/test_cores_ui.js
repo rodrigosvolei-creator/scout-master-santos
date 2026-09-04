@@ -82,7 +82,10 @@ function aparelho(qs) {
 const wait = (ms) => new Promise(r => setTimeout(r, ms || 25));
 
 /* ---------- helpers de tela ---------- */
-function txt(w) { return w.document.body.textContent.replace(/\s+/g, ' '); }
+/* So o conteudo RENDERIZADO: body.textContent inclui o texto de dentro das
+   tags <script>, entao qualquer string presente no codigo-fonte 'apareceria'
+   na tela e daria falso positivo. */
+function txt(w) { return (w.document.querySelector('#app') || w.document.body).textContent.replace(/\s+/g, ' '); }
 function all(w, sel) { return Array.from(w.document.querySelectorAll(sel)); }
 function byText(w, sel, s) {
   return all(w, sel).find(e => e.textContent.replace(/\s+/g, ' ').indexOf(s) >= 0) || null;
@@ -411,9 +414,11 @@ fakeDB['torneio-cores'] = {
     eq(linhas[1][linhas[1].length - 1], '1', 'derrota vale 1');
   });
   await t('o telao mostra o placar e a classificacao', async () => {
-    const T = aparelho('?v=telao'); await wait();
+    const T = aparelho('?v=telao'); await wait(120);
     inc(txt(T), 'MINIS POR CORES');
+    /* sem jogo em andamento o telao mostra a CLASSIFICACAO, nao uma tela vazia */
     inc(txt(T), 'CLASSIFICAÇÃO');
+    inc(txt(T), 'AZUL', 'a tabela precisa listar as equipes');
   });
 
   console.log('\n== admin ==');

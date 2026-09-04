@@ -571,17 +571,20 @@ window.firebase={initializeApp:function(){},database:function(){return {ref:ref}
         As duas acoes ficam no scout dos atletas.
    ========================================================================== */
 
+/* Sem campo de icone: os emojis de fundamento (💥 ataque, 🧱 bloqueio, 👆
+   levantamento) sumiam sobre o proprio fundo colorido e, mesmo legiveis, viravam
+   charada. O nome do fundamento ja diz tudo e a cor ja diferencia. */
 var CORES_ACT = {
-  saque:        { l: "Saque",     i: "\u{1F3D0}",      o: ["Ace", "Erro", "Cont"] },
-  recepcao:     { l: "Recepção", i: "\u{1F932}", o: ["A", "B", "C", "Erro"] },
-  levantamento: { l: "Levant.",   i: "\u{1F446}",      o: ["A", "B", "C", "Erro"] },
-  ataque:       { l: "Ataque",    i: "\u{1F4A5}",      o: ["Ponto", "Bloq", "Erro", "Cont"] },
-  bloqueio:     { l: "Bloqueio",  i: "\u{1F9F1}",      o: ["Ponto", "Erro", "Cont"] },
-  defesa:       { l: "Defesa",    i: "\u{1F6E1}️", o: ["A", "B", "C", "Erro"] },
+  saque:        { l: "Saque",      o: ["Ace", "Erro", "Cont"] },
+  recepcao:     { l: "Recepção", o: ["A", "B", "C", "Erro"] },
+  levantamento: { l: "Levant.",      o: ["A", "B", "C", "Erro"] },
+  ataque:       { l: "Ataque",      o: ["Ponto", "Bloq", "Erro", "Cont"] },
+  bloqueio:     { l: "Bloqueio",      o: ["Ponto", "Erro", "Cont"] },
+  defesa:       { l: "Defesa", o: ["A", "B", "C", "Erro"] },
   /* Fora do painel de fundamentos — entra por um botao proprio, sem atleta. */
-  falta:        { l: "Falta",     i: "⚠", o: ["Erro"] },
-  pontoadv:     { l: "Ponto do adversário", i: "➕", o: ["Erro"] },
-  pontonos:     { l: "Ponto da equipe",     i: "➕", o: ["Ponto"] }
+  falta:        { l: "Falta", o: ["Erro"] },
+  pontoadv:     { l: "Ponto do adversário", o: ["Erro"] },
+  pontonos:     { l: "Ponto da equipe", o: ["Ponto"] }
 };
 /* Os 6 fundamentos que aparecem no painel (a falta nao entra: nao tem atleta). */
 var CORES_FUND = ["saque", "recepcao", "levantamento", "ataque", "bloqueio", "defesa"];
@@ -1205,7 +1208,7 @@ function coresRankings(games, teams, evByGame, cfgIn, opts) {
       lista.push(item);
     });
     fundamentos[ak] = {
-      label: CORES_ACT[ak].l, icone: CORES_ACT[ak].i, abc: abc,
+      label: CORES_ACT[ak].l, abc: abc,
       rotulo: lista.length ? lista[0].rotulo : (abc ? "% A" : "%"),
       /* o ranking de % exige um minimo de acoes; quem tem menos aparece a parte */
       ranking: ordena(lista.filter(function (x) { return x.n >= minAcoes; }), "pct"),
@@ -1737,7 +1740,7 @@ function rMesaJogo(g,meu,adv,st,meuSide,A,B){
   h+='<div class="fgrid">';
   for(var fi=0;fi<CORES_FUND.length;fi++){
     var ak=CORES_FUND[fi], a=CORES_ACT[ak];
-    h+='<div class="fbox"><div class="fh" style="background:'+CORES_FCOL[ak]+'">'+a.i+' '+esc(a.l)+'</div><div class="fb">';
+    h+='<div class="fbox"><div class="fh" style="background:'+CORES_FCOL[ak]+'">'+esc(a.l)+'</div><div class="fb">';
     for(var i=0;i<a.o.length;i++){
       var oc=a.o[i];
       h+='<button style="background:'+CORES_OC[oc]+'" onclick="mark(\''+ak+'\',\''+oc+'\')">'+esc(oc)+'</button>';
@@ -2044,7 +2047,7 @@ function rRelatorio(){
     h+='<div class="destgrid">';
     lideres.forEach(function(d){
       h+='<div class="dest" style="--f:'+CORES_FCOL[d.ak]+'">';
-      h+='<div class="dest-fund">'+d.F.icone+' '+esc(d.F.label)+'</div>';
+      h+='<div class="dest-fund">'+esc(d.F.label)+'</div>';
       h+='<div class="dest-nm">'+esc(d.x.nm)+'</div>';
       h+='<div class="dest-eq"><span class="dot" style="background:'+esc(d.x.cor)+'"></span>'+esc(d.x.equipe)+'</div>';
       h+='<div class="dest-pct">'+d.x.pct+'<small>%</small></div>';
@@ -2059,7 +2062,7 @@ function rRelatorio(){
   h+='<div class="relgrid">';
   CORES_FUND.forEach(function(ak){
     var F=R.fundamentos[ak];
-    h+='<div class="relcard"><div class="relcard-hd" style="background:'+CORES_FCOL[ak]+'">'+F.icone+' '+esc(F.label)
+    h+='<div class="relcard"><div class="relcard-hd" style="background:'+CORES_FCOL[ak]+'">'+esc(F.label)
       +'<span class="relcard-met">'+esc(F.rotulo)+'</span></div><div class="relcard-bd">';
     if(!F.ranking.length&&F.poucos.length){
       /* Ninguem atingiu o minimo: em vez de card vazio, mostra o que ha com a

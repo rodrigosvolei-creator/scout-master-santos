@@ -34,8 +34,12 @@ var CORES_ACT = {
   levantamento: { l: "Levant.",   i: "\u{1F446}",      o: ["A", "B", "C", "Erro"] },
   ataque:       { l: "Ataque",    i: "\u{1F4A5}",      o: ["Ponto", "Bloq", "Erro", "Cont"] },
   bloqueio:     { l: "Bloqueio",  i: "\u{1F9F1}",      o: ["Ponto", "Erro", "Cont"] },
-  defesa:       { l: "Defesa",    i: "\u{1F6E1}️", o: ["A", "B", "C", "Erro"] }
+  defesa:       { l: "Defesa",    i: "\u{1F6E1}️", o: ["A", "B", "C", "Erro"] },
+  /* Fora do painel de fundamentos — entra por um botao proprio, sem atleta. */
+  falta:        { l: "Falta",     i: "⚠", o: ["Erro"] }
 };
+/* Os 6 fundamentos que aparecem no painel (a falta nao entra: nao tem atleta). */
+var CORES_FUND = ["saque", "recepcao", "levantamento", "ataque", "bloqueio", "defesa"];
 var CORES_OC = { Ace: "#059669", Ponto: "#059669", A: "#059669", B: "#d97706", Cont: "#64748b", C: "#ea580c", Bloq: "#ea580c", Erro: "#dc2626" };
 var CORES_FCOL = { saque: "#2563eb", recepcao: "#059669", levantamento: "#7c3aed", ataque: "#dc2626", bloqueio: "#ea580c", defesa: "#0891b2" };
 
@@ -68,6 +72,9 @@ function coresCfg(c) {
    Mesma regra do RS-SCOUT (autoScoreSide), inclusive: ERRO DE LEVANTAMENTO NAO
    PONTUA — decisao do Rodrigo (nem sempre e ponto direto; usa-se o + manual). */
 function coresTerminal(ak, oc) {
+  /* Falta da equipe sem fundamento (rodizio/posicional/conducao/invasao/tempo):
+     nao tem atleta nem fundamento, e sempre ponto do adversario. */
+  if (ak === "falta") return "opp";
   if (oc === "Ace") return "self";
   if ((ak === "ataque" || ak === "bloqueio") && oc === "Ponto") return "self";
   if ((ak === "saque" || ak === "ataque" || ak === "bloqueio") && oc === "Erro") return "opp";
@@ -189,8 +196,12 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
   }
   /* O primeiro saque do jogo sai da escalacao: e o #1 da equipe que abre sacando.
      O operador nao escolhe sacador em lista nenhuma — ele posiciona 1..N. */
-  function ensureInitialServe() {
+  /* permitirFallback=false: enquanto a equipe que abre sacando NAO tiver
+     posicionado a ordem, nao aponta sacador nenhum — apontar o #1 do cadastro
+     mostrava um nome que o operador nao escolheu e trocava sozinho depois. */
+  function ensureInitialServe(permitirFallback) {
     if (serve || !firstServeSide) return;
+    if (!permitirFallback && !lineupSet[firstServeSide]) return;
     var nx = nextOf(firstServeSide, null);
     if (!nx) { needServer = firstServeSide; return; }
     serve = { side: firstServeSide, jid: nx };
@@ -210,7 +221,7 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
       /* Com o jogo ainda 0x0 e sem escolha manual, o sacador inicial vem da
          escalacao nova. Sem isto, quem escolhe "quem saca" ANTES de posicionar
          (a ordem dos passos na tela) travava o sacador pela lista do cadastro. */
-      if (rally === 0 && !manualServe) { serve = null; lastServer = { A: null, B: null }; ensureInitialServe(); }
+      if (rally === 0 && !manualServe) { serve = null; lastServer = { A: null, B: null }; ensureInitialServe(false); }
       continue;
     }
     if (ev.t === "sub") {                   // substituicao: entra na posicao de quem sai
@@ -228,7 +239,7 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
       var fSide = sideOfTid(ev.tid);
       if (!fSide) continue;
       firstServeSide = fSide;
-      if (rally === 0 && !manualServe) { serve = null; lastServer = { A: null, B: null }; ensureInitialServe(); }
+      if (rally === 0 && !manualServe) { serve = null; lastServer = { A: null, B: null }; ensureInitialServe(false); }
       continue;
     }
     if (ev.t === "serve") {
@@ -258,7 +269,7 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
 
     var term = coresTerminal(ev.ak, ev.oc);
     if (!term) continue;
-    ensureInitialServe();
+    ensureInitialServe(true);   /* ja esta marcando: melhor o #1 do cadastro que nada */
 
     var r = (ev.rally == null) ? rally : (parseInt(ev.rally, 10) || 0);
     /* Trava 1 — mesmo numero de rally (marcacoes simultaneas). */
@@ -405,6 +416,7 @@ if (typeof module !== "undefined" && module.exports) {
     CORES_CFG_PADRAO: CORES_CFG_PADRAO,
     coresCfg: coresCfg, coresTerminal: coresTerminal, coresEventList: coresEventList,
     coresOnCourt: coresOnCourt, coresNextServer: coresNextServer,
+    CORES_FUND: CORES_FUND,
     coresComputeGame: coresComputeGame, coresPlayerLine: coresPlayerLine,
     coresStandings: coresStandings, coresOrderGames: coresOrderGames
   };

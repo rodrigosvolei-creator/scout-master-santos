@@ -238,11 +238,16 @@ t('a escalacao volta ao #1 depois do ultimo', () => {
   ]);
   eq(r.serve, { side: 'A', jid: 'z3' }, 'circular');
 });
-t('sem escalacao definida vale a ordem do cadastro (os N primeiros)', () => {
+t('escolher a equipe que saca NAO aponta sacador antes de posicionar', () => {
   const r = run([first('tz')]);
-  eq(r.serve, { side: 'A', jid: 'z1' });
-  eq(r.lineup.A, ['z1', 'z2', 'z3', 'z4']);
+  eq(r.serve, null, 'nao chuta um nome que o operador nao escolheu');
+  eq(r.lineup.A, ['z1', 'z2', 'z3', 'z4'], 'a ordem do cadastro fica como base');
   eq(r.lineupSet.A, false);
+});
+t('se marcarem sem escalacao, ai sim usa a ordem do cadastro (nao trava o jogo)', () => {
+  const r = run([first('tz'), act('tz', 'z1', 'saque', 'Ace', 0)]);
+  eq(r.pts, { A: 1, B: 0 });
+  eq(r.serve, { side: 'A', jid: 'z1' });
 });
 t('a adversaria comeca do #1 dela quando recupera o saque', () => {
   const r = run([
@@ -274,6 +279,35 @@ t('trocar a escalacao antes do jogo substitui a anterior', () => {
   const r = run([lineup('tz', ['z1', 'z2', 'z3', 'z4']), lineup('tz', ['z4', 'z3', 'z2', 'z1']), first('tz')]);
   eq(r.lineup.A, ['z4', 'z3', 'z2', 'z1']);
   eq(r.serve, { side: 'A', jid: 'z4' });
+});
+
+console.log('\n== falta da equipe (rodizio, posicional, conducao...) ==');
+t('falta da equipe da ponto para a adversaria', () => {
+  const r = run([lineup('tz', ['z1', 'z2', 'z3', 'z4']), first('tz'),
+    { t: 'act', tid: 'tz', jid: null, ak: 'falta', oc: 'Erro', rally: 0 }]);
+  eq(r.pts, { A: 0, B: 1 });
+});
+t('falta nao entra na estatistica de nenhum atleta', () => {
+  const r = run([lineup('tz', ['z1', 'z2', 'z3', 'z4']), first('tz'),
+    { t: 'act', tid: 'tz', jid: null, ak: 'falta', oc: 'Erro', rally: 0 }]);
+  eq(Object.keys(r.stats).length, 0);
+});
+t('falta passa o saque para a adversaria, como qualquer ponto', () => {
+  const r = run([lineup('tz', ['z1', 'z2', 'z3', 'z4']), lineup('tv', ['v3', 'v1', 'v2', 'v4']), first('tz'),
+    { t: 'act', tid: 'tz', jid: null, ak: 'falta', oc: 'Erro', rally: 0 }]);
+  eq(r.serve, { side: 'B', jid: 'v3' });
+});
+t('falta entra no dedupe como qualquer acao terminal', () => {
+  const T0 = 1757000000000;
+  const r = run([lineup('tz', ['z1', 'z2', 'z3', 'z4']), first('tz'),
+    { k: '-Ex01', t: 'act', tid: 'tz', jid: null, ak: 'falta', oc: 'Erro', rally: 0, ts: T0 },
+    { k: '-Ex02', t: 'act', tid: 'tv', jid: 'v1', ak: 'ataque', oc: 'Ponto', rally: 1, ts: T0 + 1500 }
+  ]);
+  eq(r.pts, { A: 0, B: 1 }, 'os dois operadores marcaram o mesmo rally');
+});
+t('a falta NAO aparece no painel de fundamentos', () => {
+  eq(C.CORES_FUND.indexOf('falta'), -1);
+  eq(C.CORES_FUND.length, 6);
 });
 
 console.log('\n== substituicao ==');

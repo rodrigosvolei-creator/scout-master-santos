@@ -307,12 +307,30 @@ fakeDB['torneio-cores'] = {
 
   console.log('\n== correcoes ==');
   await t('+1 e −1 manuais mexem no placar sem mexer no sacador', async () => {
-    const antes = placar(A)[0];
-    clickBtn(A, '+1 AZUL'); await wait();
-    eq(placar(A)[0], antes + 1);
+    const antes = placar(A);
+    const bs = all(A, '.ctrls button');
+    bs[0].click(); await wait();                    // +1 da propria equipe
+    eq(placar(A)[0], antes[0] + 1);
     inc(txt(A), '🏐 SACA · ENZO');
-    clickBtn(A, '−1 AZUL'); await wait();
-    eq(placar(A)[0], antes);
+    bs[1].click(); await wait();                    // −1
+    eq(placar(A)[0], antes[0]);
+  });
+  await t('da para corrigir tambem o placar da ADVERSARIA (o operador nao fica preso)', async () => {
+    const antes = placar(A);
+    const bs = all(A, '.ctrls button');
+    bs[2].click(); await wait();                    // +1 da adversaria
+    eq(placar(A)[1], antes[1] + 1);
+    bs[3].click(); await wait();
+    eq(placar(A), antes);
+  });
+  await t('"Falta da AZUL" da ponto para a VERMELHA sem escolher atleta', async () => {
+    avancar(12000);
+    const antes = placar(A);
+    clickBtn(A, 'Falta da AZUL'); await wait();
+    eq(placar(A), [antes[0], antes[1] + 1], 'ponto para a adversaria');
+    eq(placar(B), [antes[0], antes[1] + 1], 'igual no outro aparelho');
+    const f = Object.values(getAt('torneio-cores/events/j1')).filter(e => e.ak === 'falta');
+    eq(f.length, 1); eq(f[0].jid, null, 'sem atleta');
   });
   await t('"desfazer minha ultima" remove SO uma acao do proprio operador', async () => {
     const antes = Object.values(getAt('torneio-cores/events/j1') || {});
@@ -386,6 +404,33 @@ fakeDB['torneio-cores'] = {
     AD.document.getElementById('ng-dt').value = '2026-09-05';
     clickBtn(AD, 'Criar jogo'); await wait();
     eq(Object.values(getAt('torneio-cores/games') || {}).length, 2);
+  });
+
+  console.log('\n== navegacao ==');
+  await t('trocar de tela nao recarrega a pagina (mantem o banco carregado)', async () => {
+    const N = aparelho('?v=mesa&g=j1'); await wait();
+    const marca = { v: 1 }; N.__marca = marca;              // sobrevive se nao recarregar
+    N.go('home'); await wait();
+    if (N.__marca !== marca) throw new Error('a pagina recarregou');
+    inc(txt(N), 'JOGOS');
+    eq(N.location.search.indexOf('v=home') >= 0, true, 'a URL acompanha');
+  });
+  await t('ao abrir OUTRO jogo a equipe do jogo anterior nao vaza', async () => {
+    const gs = Object.values(getAt('torneio-cores/games') || {});
+    const outro = gs.find(g => g.id !== 'j1');
+    const N = aparelho('?v=mesa&g=' + outro.id); await wait();
+    click(N, '.pickteam-btn', 'AZUL'); await wait();
+    inc(txt(N), 'você marca a AZUL');                        // jogo novo: cai no setup
+    N.go('mesa', '&g=j1'); await wait();
+    inc(txt(N), 'QUEM VOCÊ VAI MARCAR?', 'pergunta de novo no outro jogo');
+  });
+  await t('o botao de trocar equipe existe tambem no setup', async () => {
+    const outro = Object.values(getAt('torneio-cores/games') || {}).find(g => g.id !== 'j1');
+    const N = aparelho('?v=mesa&g=' + outro.id); await wait();
+    click(N, '.pickteam-btn', 'AZUL'); await wait();
+    if (!byText(N, 'button', 'Marcar a outra equipe')) throw new Error('sem saida da equipe escolhida');
+    clickBtn(N, 'Marcar a outra equipe'); await wait();
+    inc(txt(N), 'QUEM VOCÊ VAI MARCAR?');
   });
 
   console.log('\n' + (fail ? '✗ ' + fail + ' FALHA(S) · ' : '✓ TUDO VERDE · ') + ok + ' testes');

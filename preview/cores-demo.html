@@ -202,7 +202,13 @@ h2.sec .sec-sub::before{content:"· "}
 .pbtn.ghost{opacity:.5;justify-content:center}
 .pbtn .pr{text-transform:uppercase}
 
-.ctrls{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--brd)}
+.ctrls{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:14px;padding-top:16px;border-top:1px solid var(--brd)}
+.ctrl-lb{font-size:10px;font-weight:900;letter-spacing:1.2px;color:var(--faint);margin-left:6px}
+.ctrls .ctrl-lb:first-child{margin-left:0}
+.faltabar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
+.btn.falta{background:rgba(234,88,12,.2);border-color:rgba(234,88,12,.55);color:#fdba74;font-size:14px;padding:12px 18px}
+.btn.falta:hover{background:rgba(234,88,12,.32)}
+.faltahint{font-size:11px;color:var(--mute)}
 .dupwhy{font-size:10px;margin-left:auto;color:var(--faint);text-align:right;line-height:1.3}
 .banner.ok{background:rgba(5,150,105,.16);border:1px solid rgba(5,150,105,.45);color:#a7f3d0}
 .btn:disabled{opacity:.4;cursor:not-allowed}
@@ -314,8 +320,12 @@ var CORES_ACT = {
   levantamento: { l: "Levant.",   i: "\u{1F446}",      o: ["A", "B", "C", "Erro"] },
   ataque:       { l: "Ataque",    i: "\u{1F4A5}",      o: ["Ponto", "Bloq", "Erro", "Cont"] },
   bloqueio:     { l: "Bloqueio",  i: "\u{1F9F1}",      o: ["Ponto", "Erro", "Cont"] },
-  defesa:       { l: "Defesa",    i: "\u{1F6E1}️", o: ["A", "B", "C", "Erro"] }
+  defesa:       { l: "Defesa",    i: "\u{1F6E1}️", o: ["A", "B", "C", "Erro"] },
+  /* Fora do painel de fundamentos — entra por um botao proprio, sem atleta. */
+  falta:        { l: "Falta",     i: "⚠", o: ["Erro"] }
 };
+/* Os 6 fundamentos que aparecem no painel (a falta nao entra: nao tem atleta). */
+var CORES_FUND = ["saque", "recepcao", "levantamento", "ataque", "bloqueio", "defesa"];
 var CORES_OC = { Ace: "#059669", Ponto: "#059669", A: "#059669", B: "#d97706", Cont: "#64748b", C: "#ea580c", Bloq: "#ea580c", Erro: "#dc2626" };
 var CORES_FCOL = { saque: "#2563eb", recepcao: "#059669", levantamento: "#7c3aed", ataque: "#dc2626", bloqueio: "#ea580c", defesa: "#0891b2" };
 
@@ -348,6 +358,9 @@ function coresCfg(c) {
    Mesma regra do RS-SCOUT (autoScoreSide), inclusive: ERRO DE LEVANTAMENTO NAO
    PONTUA — decisao do Rodrigo (nem sempre e ponto direto; usa-se o + manual). */
 function coresTerminal(ak, oc) {
+  /* Falta da equipe sem fundamento (rodizio/posicional/conducao/invasao/tempo):
+     nao tem atleta nem fundamento, e sempre ponto do adversario. */
+  if (ak === "falta") return "opp";
   if (oc === "Ace") return "self";
   if ((ak === "ataque" || ak === "bloqueio") && oc === "Ponto") return "self";
   if ((ak === "saque" || ak === "ataque" || ak === "bloqueio") && oc === "Erro") return "opp";
@@ -469,8 +482,12 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
   }
   /* O primeiro saque do jogo sai da escalacao: e o #1 da equipe que abre sacando.
      O operador nao escolhe sacador em lista nenhuma — ele posiciona 1..N. */
-  function ensureInitialServe() {
+  /* permitirFallback=false: enquanto a equipe que abre sacando NAO tiver
+     posicionado a ordem, nao aponta sacador nenhum — apontar o #1 do cadastro
+     mostrava um nome que o operador nao escolheu e trocava sozinho depois. */
+  function ensureInitialServe(permitirFallback) {
     if (serve || !firstServeSide) return;
+    if (!permitirFallback && !lineupSet[firstServeSide]) return;
     var nx = nextOf(firstServeSide, null);
     if (!nx) { needServer = firstServeSide; return; }
     serve = { side: firstServeSide, jid: nx };
@@ -490,7 +507,7 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
       /* Com o jogo ainda 0x0 e sem escolha manual, o sacador inicial vem da
          escalacao nova. Sem isto, quem escolhe "quem saca" ANTES de posicionar
          (a ordem dos passos na tela) travava o sacador pela lista do cadastro. */
-      if (rally === 0 && !manualServe) { serve = null; lastServer = { A: null, B: null }; ensureInitialServe(); }
+      if (rally === 0 && !manualServe) { serve = null; lastServer = { A: null, B: null }; ensureInitialServe(false); }
       continue;
     }
     if (ev.t === "sub") {                   // substituicao: entra na posicao de quem sai
@@ -508,7 +525,7 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
       var fSide = sideOfTid(ev.tid);
       if (!fSide) continue;
       firstServeSide = fSide;
-      if (rally === 0 && !manualServe) { serve = null; lastServer = { A: null, B: null }; ensureInitialServe(); }
+      if (rally === 0 && !manualServe) { serve = null; lastServer = { A: null, B: null }; ensureInitialServe(false); }
       continue;
     }
     if (ev.t === "serve") {
@@ -538,7 +555,7 @@ function coresComputeGame(game, evObj, teamsById, cfgIn) {
 
     var term = coresTerminal(ev.ak, ev.oc);
     if (!term) continue;
-    ensureInitialServe();
+    ensureInitialServe(true);   /* ja esta marcando: melhor o #1 do cadastro que nada */
 
     var r = (ev.rally == null) ? rally : (parseInt(ev.rally, 10) || 0);
     /* Trava 1 — mesmo numero de rally (marcacoes simultaneas). */
@@ -685,6 +702,7 @@ if (typeof module !== "undefined" && module.exports) {
     CORES_CFG_PADRAO: CORES_CFG_PADRAO,
     coresCfg: coresCfg, coresTerminal: coresTerminal, coresEventList: coresEventList,
     coresOnCourt: coresOnCourt, coresNextServer: coresNextServer,
+    CORES_FUND: CORES_FUND,
     coresComputeGame: coresComputeGame, coresPlayerLine: coresPlayerLine,
     coresStandings: coresStandings, coresOrderGames: coresOrderGames
   };
@@ -730,7 +748,23 @@ function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slic
 function toast(m,k){var d=document.createElement("div");d.className="toast"+(k?" "+k:"");d.textContent=m;
   document.body.appendChild(d);setTimeout(function(){d.remove();},2600);}
 function fD(d){if(!d)return"";try{return new Date(d+"T12:00:00").toLocaleDateString("pt-BR");}catch(e){return d;}}
-function go(v,extra){var u="?v="+v+(extra||"");location.href=u;}
+/* Navegacao SEM recarregar: trocar de tela mantem a conexao com o banco e o
+   estado carregado (recarregar a pagina no meio do torneio e caro e, num
+   celular com sinal ruim, demora). */
+function go(v,extra){
+  var u="?v="+v+(extra||"");
+  try{history.pushState({},"",u);}catch(e){location.href=u;return;}
+  aplicarRota();
+}
+function aplicarRota(){
+  QS=new URLSearchParams(location.search);
+  VIEW=QS.get("v")||"home";
+  GID=QS.get("g")||null;
+  SELP=null;SETUP=null;SUBPICK=false;SUBOUT=null;ESCALACAO_ABERTA=false;_rallyVisto=-1;MEUTID=null;
+  watchEvents();
+  render();
+}
+window.addEventListener("popstate",aplicarRota);
 function teamsArr(){var o=[];for(var k in D.teams)if(D.teams[k])o.push(D.teams[k]);
   o.sort(function(a,b){return (a.ordem||0)-(b.ordem||0)||String(a.n).localeCompare(String(b.n));});return o;}
 function gamesArr(){var o=[];for(var k in D.games)if(D.games[k])o.push(D.games[k]);return o;}
@@ -809,10 +843,10 @@ function rHeader(){
   var h='<div class="hd"><div class="hd-in"><div>';
   h+='<div class="hd-ti">'+esc(nome)+'</div><div class="hd-sub">RS-VOLEIBOL · SCOUT</div></div>';
   h+='<div class="hd-nav">';
-  h+='<a href="?" class="'+(VIEW==="home"?"on":"")+'">Jogos</a>';
-  h+='<a href="?v=class" class="'+(VIEW==="class"?"on":"")+'">Classificação</a>';
+  h+='<a href="?" class="'+(VIEW==="home"?"on":"")+'" onclick="event.preventDefault();go(\'home\')">Jogos</a>';
+  h+='<a href="?v=class" class="'+(VIEW==="class"?"on":"")+'" onclick="event.preventDefault();go(\'class\')">Classificação</a>';
   h+='<a href="?v=telao" target="_blank">Telão</a>';
-  h+='<a href="?v=admin" class="'+(VIEW==="admin"?"on":"")+'">Admin</a>';
+  h+='<a href="?v=admin" class="'+(VIEW==="admin"?"on":"")+'" onclick="event.preventDefault();go(\'admin\')">Admin</a>';
   h+='</div></div></div>';
   return h;
 }
@@ -920,7 +954,7 @@ function rSetup(g,meu,adv,st,meuSide,A,B){
   var elenco=playersOf(meu);
   var usados={};SETUP.forEach(function(j){usados[j]=1;});
 
-  var h='<h2 class="sec">ANTES DE COMEÇAR<span class="sec-sub">'+esc(meu.n)+'</span></h2>';
+  var h='<h2 class="sec">ANTES DE COMEÇAR<span class="sec-sub">você marca a '+esc(meu.n)+'</span></h2>';
 
   /* passo 1 — equipe que abre sacando */
   h+='<div class="step'+(st.firstServeSide?" done":"")+'">';
@@ -961,6 +995,7 @@ function rSetup(g,meu,adv,st,meuSide,A,B){
   h+='<div class="row" style="margin-top:12px">';
   h+='<button class="btn pri" onclick="salvarEscalacao()"'+(SETUP.length<n||!st.firstServeSide?" disabled":"")+'>✓ Confirmar e começar</button>';
   if(SETUP.length)h+='<button class="btn sm" onclick="setupLimpar()">Limpar</button>';
+  h+='<button class="btn sm" onclick="trocarEquipe()">Marcar a outra equipe</button>';
   h+='<button class="btn sm" onclick="go(\'home\')">← Jogos</button>';
   h+='</div>';
   if(SETUP.length>=n&&!st.firstServeSide)h+='<div class="step-hint" style="color:#fca5a5">Falta escolher quem saca primeiro (passo 1).</div>';
@@ -1066,8 +1101,8 @@ function rMesaJogo(g,meu,adv,st,meuSide,A,B){
   h+='<div class="'+(SELP&&!travado?"":"needp")+'" style="margin-top:18px">';
   h+='<h2 class="sec">AÇÃO<span class="sec-sub">'+(SELP&&pF(meu,SELP)?esc(pF(meu,SELP).nm):(travado?"jogo não está ao vivo":"escolha o atleta acima"))+'</span></h2>';
   h+='<div class="fgrid">';
-  for(var ak in CORES_ACT){
-    var a=CORES_ACT[ak];
+  for(var fi=0;fi<CORES_FUND.length;fi++){
+    var ak=CORES_FUND[fi], a=CORES_ACT[ak];
     h+='<div class="fbox"><div class="fh" style="background:'+CORES_FCOL[ak]+'">'+a.i+' '+esc(a.l)+'</div><div class="fb">';
     for(var i=0;i<a.o.length;i++){
       var oc=a.o[i];
@@ -1078,9 +1113,18 @@ function rMesaJogo(g,meu,adv,st,meuSide,A,B){
   h+='</div></div>';
 
   /* controles */
+  /* Falta sem fundamento (rodizio, posicional, conducao, invasao, tempo):
+     nao tem atleta e da ponto direto para a adversaria. */
+  h+='<div class="faltabar"><button class="btn falta" onclick="marcarFalta()">⚠ Falta da '+esc(meu.n)+'</button>';
+  h+='<span class="faltahint">rodízio, posicional, condução, invasão, tempo — ponto para a '+esc(adv.n)+'</span></div>';
+
   h+='<div class="ctrls">';
-  h+='<button class="btn" onclick="adjust(\''+MEUTID+'\',1)">+1 '+esc(meu.n)+'</button>';
-  h+='<button class="btn" onclick="adjust(\''+MEUTID+'\',-1)">−1 '+esc(meu.n)+'</button>';
+  h+='<span class="ctrl-lb">Placar '+esc(meu.n)+'</span>';
+  h+='<button class="btn" onclick="adjust(\''+MEUTID+'\',1)">+1</button>';
+  h+='<button class="btn" onclick="adjust(\''+MEUTID+'\',-1)">−1</button>';
+  h+='<span class="ctrl-lb">'+esc(adv.n)+'</span>';
+  h+='<button class="btn" onclick="adjust(\''+adv.id+'\',1)">+1</button>';
+  h+='<button class="btn" onclick="adjust(\''+adv.id+'\',-1)">−1</button>';
   h+='<button class="btn" onclick="girarSaque()">↻ Girar saque</button>';
   h+='<button class="btn dgr" onclick="undoLast()">↩ Desfazer minha última</button>';
   h+='<button class="btn sm" onclick="reabrirEscalacao()">✎ Escalação</button>';
@@ -1192,6 +1236,14 @@ function mark(ak,oc){
       }
     },150);
   }).catch(function(){});
+}
+function marcarFalta(){
+  var g=D.games[GID];if(!g)return;
+  var st=calc(g);
+  if(st.done){toast("Set encerrado — finalize o jogo","err");return;}
+  if(g.st!=="ao_vivo"){toast("Inicie o jogo antes de marcar","err");return;}
+  /* sem jid: e falta da equipe, nao entra na estatistica de nenhum atleta */
+  pushEvent(GID,{t:"act",tid:MEUTID,jid:null,ak:"falta",oc:"Erro",rally:st.rally});
 }
 function adjust(tid,delta){
   var g=D.games[GID];if(!g)return;

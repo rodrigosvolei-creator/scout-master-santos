@@ -37,7 +37,8 @@ var CORES_ACT = {
   defesa:       { l: "Defesa",    i: "\u{1F6E1}️", o: ["A", "B", "C", "Erro"] },
   /* Fora do painel de fundamentos — entra por um botao proprio, sem atleta. */
   falta:        { l: "Falta",     i: "⚠", o: ["Erro"] },
-  pontoadv:     { l: "Ponto do adversário", i: "➕", o: ["Erro"] }
+  pontoadv:     { l: "Ponto do adversário", i: "➕", o: ["Erro"] },
+  pontonos:     { l: "Ponto da equipe",     i: "➕", o: ["Ponto"] }
 };
 /* Os 6 fundamentos que aparecem no painel (a falta nao entra: nao tem atleta). */
 var CORES_FUND = ["saque", "recepcao", "levantamento", "ataque", "bloqueio", "defesa"];
@@ -81,6 +82,11 @@ function coresTerminal(ak, oc) {
      andarem sem depender de o outro operador marcar a jogada dele. Se os dois
      marcarem o mesmo rally, o dedupe garante 1 ponto so. */
   if (ak === "pontoadv") return "opp";
+  /* Simetrico: a NOSSA equipe pontuou sem que exista acao nossa para marcar —
+     o adversario errou o saque, mandou a bola fora ou cometeu falta. Sem isto o
+     operador so conseguia registrar ponto PARA o adversario, e o side-out a
+     favor (recuperar o saque) dependia do outro operador marcar o erro dele. */
+  if (ak === "pontonos") return "self";
   if (oc === "Ace") return "self";
   if ((ak === "ataque" || ak === "bloqueio") && oc === "Ponto") return "self";
   if ((ak === "saque" || ak === "ataque" || ak === "bloqueio") && oc === "Erro") return "opp";

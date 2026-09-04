@@ -484,6 +484,59 @@ t('os DOIS operadores marcando o mesmo rally = 1 ponto so', () => {
 });
 t('fora do painel de fundamentos (nao tem atleta)', () => {
   eq(C.CORES_FUND.indexOf('pontoadv'), -1);
+  eq(C.CORES_FUND.indexOf('pontonos'), -1);
+});
+
+/* O caso que o Rodrigo levantou: a NOSSA equipe pontua no saque do adversario
+   (ele errou o saque / mandou fora / fez falta). Nao ha acao nossa para marcar,
+   e sem este botao o side-out A FAVOR dependia do outro operador. */
+function pnos(tid, rally, k, ts) { return { k, t: 'act', tid, jid: null, ak: 'pontonos', oc: 'Ponto', rally, ts }; }
+t('adversario sacando e NOS pontuamos: placar sobe do nosso lado', () => {
+  const r = run([
+    lineup('tz', ['z1', 'z2', 'z3', 'z4']), lineup('tv', ['v1', 'v2', 'v3', 'v4']), first('tv'),
+    pnos('tz', 0)
+  ]);
+  eq(r.pts, { A: 1, B: 0 });
+});
+t('e RECUPERAMOS o saque — era o furo do side-out a favor', () => {
+  const r = run([
+    lineup('tz', ['z3', 'z1', 'z4', 'z2']), lineup('tv', ['v1', 'v2', 'v3', 'v4']), first('tv'),
+    pnos('tz', 0)
+  ]);
+  eq(r.serve, { side: 'A', jid: 'z3' }, 'nosso #1 assume o saque');
+});
+t('o rodizio anda a cada vez que recuperamos o saque', () => {
+  const r = run([
+    lineup('tz', ['z1', 'z2', 'z3', 'z4']), lineup('tv', ['v1', 'v2', 'v3', 'v4']), first('tv'),
+    pnos('tz', 0),                                  // recuperamos: z1 saca
+    padv('tz', 1),                                  // perdemos: adversaria saca
+    pnos('tz', 2)                                   // recuperamos de novo: z2
+  ]);
+  eq(r.pts, { A: 2, B: 1 });
+  eq(r.serve, { side: 'A', jid: 'z2' }, 'depois de z1 vem z2');
+});
+t('nos pontuando em sequencia MANTEMOS o mesmo sacador', () => {
+  const r = run([
+    lineup('tz', ['z1', 'z2', 'z3', 'z4']), lineup('tv', ['v1', 'v2', 'v3', 'v4']), first('tv'),
+    pnos('tz', 0), pnos('tz', 1), pnos('tz', 2)
+  ]);
+  eq(r.pts, { A: 3, B: 0 });
+  eq(r.serve, { side: 'A', jid: 'z1' }, 'quem saca e pontua nao roda');
+});
+t('nao suja a estatistica de nenhum atleta', () => {
+  const r = run([lineup('tz', ['z1', 'z2', 'z3', 'z4']), first('tv'), pnos('tz', 0)]);
+  eq(Object.keys(r.stats).length, 0);
+});
+t('os dois operadores marcando o mesmo rally = 1 ponto so', () => {
+  const T0 = 1757000000000;
+  const r = run([
+    lineup('tz', ['z1', 'z2', 'z3', 'z4']), first('tv'),
+    { k: '-En01', t: 'act', tid: 'tz', jid: null, ak: 'pontonos', oc: 'Ponto', rally: 0, ts: T0 },
+    { k: '-En02', t: 'act', tid: 'tv', jid: 'v1', ak: 'saque', oc: 'Erro', rally: 0, ts: T0 + 1200 }
+  ]);
+  eq(r.pts, { A: 1, B: 0 });
+  eq(r.dupes.length, 1);
+  eq(r.stats.v1.n, 1, 'o erro de saque dela continua no scout dela');
 });
 
 console.log('\n== fases: classificatoria + mata-mata ==');

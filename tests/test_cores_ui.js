@@ -323,11 +323,11 @@ fakeDB['torneio-cores'] = {
     bs[3].click(); await wait();
     eq(placar(A), antes);
   });
-  await t('"Ponto da VERMELHA" sobe o placar dela E RODA O SAQUE (sem depender do outro operador)', async () => {
+  await t('"Ponto VERMELHA" sobe o placar dela E RODA O SAQUE (sem depender do outro operador)', async () => {
     avancar(12000);
     const antes = placar(A);
     const sacavaAntes = txt(A).indexOf('SACA') >= 0 ? (txt(A).split('SACA ·')[1]||'').slice(0,12) : '';
-    clickBtn(A, 'Ponto da VERMELHA'); await wait();
+    clickBtn(A, 'Ponto VERMELHA'); await wait();
     eq(placar(A), [antes[0], antes[1] + 1], 'placar da adversaria subiu');
     eq(placar(B), [antes[0], antes[1] + 1], 'igual no outro aparelho');
     const q = quadra(A);
@@ -358,6 +358,34 @@ fakeDB['torneio-cores'] = {
     inc(txt(A), 'Ordem de saque da AZUL');
     clickBtn(A, 'Cancelar'); await wait();
     inc(txt(A), 'AÇÃO');
+  });
+
+  console.log('\n== o outro operador marcando: o ponto chega sozinho ==');
+  await t('erro de saque marcado pelo operador DELA ja da o ponto e o saque para nos', async () => {
+    avancar(12000);
+    clickBtn(A, 'Ponto VERMELHA'); await wait();          // tira o saque de nos
+    const antes = placar(A);
+    avancar(12000);
+    click(B, '.pbtn', 'HEL'); await wait();
+    clickAcao(B, 'Saque', 'Erro'); await wait();          // o operador DELA marca o erro dela
+    eq(placar(A), [antes[0] + 1, antes[1]], 'o ponto veio para nos, sem tocarmos em nada');
+    eq(placar(B), placar(A), 'mesmo placar nos dois aparelhos');
+    eq(quadra(A).filter(x => x.saca).length, 1, 'e o saque voltou para a nossa equipe');
+  });
+  await t('se NOS tambem marcarmos o mesmo rally, continua 1 ponto so', async () => {
+    avancar(12000);
+    clickBtn(A, 'Ponto VERMELHA'); await wait();          // perde o saque de novo
+    const antes = placar(A);
+    avancar(12000);
+    clickBtn(A, 'Ponto AZUL'); await wait();              // nos, sem esperar o colega
+    click(B, '.pbtn', 'HEL'); await wait();
+    clickAcao(B, 'Saque', 'Erro'); await wait();          // ele marca o MESMO rally
+    eq(placar(A), [antes[0] + 1, antes[1]], 'um ponto, nao dois');
+    eq(placar(B), placar(A));
+    const evs = Object.values(getAt('torneio-cores/events/j1'));
+    eq(evs.filter(e => e.ak === 'pontonos').length >= 1, true, 'o nosso registro ficou');
+    eq(evs.filter(e => e.ak === 'saque' && e.oc === 'Erro' && e.tid === 'tv').length >= 1, true,
+       'e o erro dela tambem — a estatistica da atleta nao se perde');
   });
 
   console.log('\n== fim de jogo e classificacao ==');

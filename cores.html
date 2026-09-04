@@ -259,6 +259,9 @@ h2.sec .sec-sub::before{content:"· "}
 .faltabar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
 .btn.falta{background:rgba(234,88,12,.2);border-color:rgba(234,88,12,.55);color:#fdba74;font-size:14px;padding:12px 18px}
 .btn.falta:hover{background:rgba(234,88,12,.32)}
+.btn.pontonos{background:rgba(5,150,105,.22);border-color:rgba(5,150,105,.55);color:#6ee7b7;font-size:14px;padding:12px 18px}
+.btn.pontonos:hover{background:rgba(5,150,105,.34)}
+body.claro .btn.pontonos{color:#065f46}
 .btn.pontoadv{background:rgba(37,99,235,.2);border-color:rgba(37,99,235,.55);color:#93c5fd;font-size:14px;padding:12px 18px}
 .btn.pontoadv:hover{background:rgba(37,99,235,.32)}
 body.claro .btn.falta{color:#9a3412}
@@ -801,12 +804,18 @@ function rMesaJogo(g,meu,adv,st,meuSide,A,B){
   /* controles */
   /* Falta sem fundamento (rodizio, posicional, conducao, invasao, tempo):
      nao tem atleta e da ponto direto para a adversaria. */
+  /* Ponto sem fundamento: quando o rally termina sem uma acao de atleta que
+     valha marcar (bola fora do adversario, erro de saque dele, falta). Cobre os
+     DOIS lados — senao o operador so conseguia registrar ponto contra si. */
   h+='<div class="faltabar">';
+  h+='<button class="btn pontonos" onclick="marcarPontoNos()">➕ Ponto '+esc(meu.n)+'</button>';
+  h+='<button class="btn pontoadv" onclick="marcarPontoAdv()">➕ Ponto '+esc(adv.n)+'</button>';
   h+='<button class="btn falta" onclick="marcarFalta()">⚠ Falta da '+esc(meu.n)+'</button>';
-  h+='<button class="btn pontoadv" onclick="marcarPontoAdv()">➕ Ponto da '+esc(adv.n)+'</button>';
-  h+='<span class="faltahint"><b>Falta</b>: rodízio, posicional, condução, invasão, tempo.<br>'
-    +'<b>Ponto da '+esc(adv.n)+'</b>: quando ela pontuou e você não quer esperar o outro operador marcar — '
-    +'sobe o placar e <b>roda o saque</b>. Se os dois marcarem o mesmo rally, conta 1 ponto só.</span></div>';
+  h+='<span class="faltahint">Para quando o rally acaba sem uma jogada sua para marcar. '
+    +'<b>Ponto '+esc(meu.n)+'</b>: o adversário errou o saque, mandou fora ou fez falta. '
+    +'<b>Ponto '+esc(adv.n)+'</b>: ela pontuou e você não quer esperar o outro operador. '
+    +'<b>Falta</b>: rodízio, posicional, condução, invasão, tempo (conta como falta da equipe).<br>'
+    +'Os três <b>rodam o saque</b>. Se os dois operadores marcarem o mesmo rally, conta 1 ponto só.</span></div>';
 
   h+='<div class="ctrls">';
   h+='<span class="ctrl-lb" title="Correção de placar: não mexe no saque">Corrigir '+esc(meu.n)+'</span>';
@@ -938,6 +947,15 @@ function marcarFalta(){
 /* O adversario pontuou. Sobe o placar dele e ROTACIONA o saque — diferente do
    +1, que e so correcao de numero. Sem isto, o operador so via o rodizio andar
    quando o outro operador marcasse a jogada dele. */
+/* A nossa equipe pontuou sem acao nossa (erro/falta do adversario). Sobe o nosso
+   placar e recupera o saque — o side-out a favor deixa de depender do colega. */
+function marcarPontoNos(){
+  var g=D.games[GID];if(!g)return;
+  var st=calc(g);
+  if(st.done){toast("Set encerrado — finalize o jogo","err");return;}
+  if(g.st!=="ao_vivo"){toast("Inicie o jogo antes de marcar","err");return;}
+  pushEvent(GID,{t:"act",tid:MEUTID,jid:null,ak:"pontonos",oc:"Ponto",rally:st.rally});
+}
 function marcarPontoAdv(){
   var g=D.games[GID];if(!g)return;
   var st=calc(g);

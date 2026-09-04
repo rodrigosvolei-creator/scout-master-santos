@@ -1,4 +1,4 @@
-/* Gera preview/cores-demo.html — o modulo "Torneio por Cores" com um Firebase
+/* Gera preview/cores-demo.html — o modulo "Mini Minis - Cores" com um Firebase
    FALSO em memoria e dados de exemplo. Serve para ver e clicar a interface sem
    depender das regras do RTDB e sem gravar nada em lugar nenhum.
    Roda: node preview/_gen-cores-demo.cjs                                     */
@@ -11,7 +11,7 @@ const core = fs.readFileSync(path.join(ROOT, 'cores-core.js'), 'utf8');
 
 const SEED = {
   'torneio-cores': {
-    config: { nome: 'MINIS POR CORES', setPoints: 21, vantagem: 2, emQuadra: 4, ptsVitoria: 3, ptsDerrota: 1, dedupeMs: 4000 },
+    config: { nome: 'Mini Minis - Cores', setPoints: 21, vantagem: 2, emQuadra: 4, ptsVitoria: 3, ptsDerrota: 1, dedupeMs: 4000 },
     teams: {
       c_az: { id: 'c_az', n: 'AZUL', cor: '#2563eb', ordem: 0, players: [
         { id: 'a1', nm: 'ANA', nu: 1 }, { id: 'a2', nm: 'BIA', nu: 2 }, { id: 'a3', nm: 'CAUÃ', nu: 3 },

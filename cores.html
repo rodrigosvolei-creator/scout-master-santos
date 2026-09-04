@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>RS-Scout · Torneio por Cores</title>
+<title>RS-Scout · Mini Minis - Cores</title>
 <link rel="icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -279,12 +279,13 @@ body.telao{overflow:hidden}
 <script src="cores-core.js"></script>
 <script>
 /* ============================================================================
-   RS-SCOUT · TORNEIO POR CORES — modulo ISOLADO
+   RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
    Nao toca no index.html. Dados em NO PROPRIO do RTDB: /torneio-cores
    Toda a logica de placar/saque/classificacao vive em cores-core.js (testado).
    Aqui so tem UI + Firebase.
    ========================================================================== */
-var CORES_BUILD="2026-09-04a";
+var CORES_NOME_PADRAO="Mini Minis - Cores";
+var CORES_BUILD="2026-09-04b";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -412,7 +413,7 @@ function render(){
   document.getElementById("app").innerHTML=h;
 }
 function rHeader(){
-  var nome=D.config.nome||"TORNEIO POR CORES";
+  var nome=D.config.nome||CORES_NOME_PADRAO;
   var h='<div class="hd"><div class="hd-in"><div>';
   h+='<div class="hd-ti">'+esc(nome)+'</div><div class="hd-sub">RS-VOLEIBOL · SCOUT</div></div>';
   h+='<div class="hd-nav">';
@@ -913,7 +914,7 @@ function rTelao(){
   var campT=coresCampeao(gamesArr(),D.events,D.teams,D.config);
   if(campT&&tF(campT)){
     var ct=tF(campT);
-    return '<div class="tl"><div class="tl-hd"><div class="hd-ti" style="font-size:28px">'+esc(D.config.nome||"TORNEIO POR CORES")+'</div>'
+    return '<div class="tl"><div class="tl-hd"><div class="hd-ti" style="font-size:28px">'+esc(D.config.nome||CORES_NOME_PADRAO)+'</div>'
       +'<div class="hd-sub" style="margin-left:auto">RS-VOLEIBOL</div></div>'
       +'<div class="tl-main" style="flex-direction:column;gap:10px">'
       +'<div class="crest xl" style="background:'+esc(ct.cor)+';width:170px;height:170px;font-size:74px;border-radius:34px">'+esc(initials(ct.n))+'</div>'
@@ -924,7 +925,7 @@ function rTelao(){
   for(var i=0;i<gs.length;i++)if(gs[i].st==="ao_vivo"){live=gs[i];break;}
   if(!live)for(var j=0;j<gs.length;j++)if(gs[j].st!=="finalizada"){live=gs[j];break;}
   var h='<div class="tl">';
-  h+='<div class="tl-hd"><div class="hd-ti" style="font-size:28px">'+esc(D.config.nome||"TORNEIO POR CORES")+'</div>';
+  h+='<div class="tl-hd"><div class="hd-ti" style="font-size:28px">'+esc(D.config.nome||CORES_NOME_PADRAO)+'</div>';
   h+='<div class="hd-sub" style="margin-left:auto">RS-VOLEIBOL</div></div>';
   if(!live){
     h+='<div class="tl-main"><div class="empty"><div class="big">SEM JOGO EM ANDAMENTO</div></div></div></div>';
@@ -975,7 +976,7 @@ function rAdmin(){
   var cfg=coresCfg(D.config);
   var ts=teamsArr();
   var h='<h2 class="sec">CONFIGURAÇÃO</h2><div class="card"><div class="row">';
-  h+='<div class="fld" style="flex:2"><span>NOME DO TORNEIO</span><input id="cf-n" value="'+esc(D.config.nome||"TORNEIO POR CORES")+'"></div>';
+  h+='<div class="fld" style="flex:2"><span>NOME DO TORNEIO</span><input id="cf-n" value="'+esc(D.config.nome||CORES_NOME_PADRAO)+'"></div>';
   h+='<div class="fld"><span>SET ATÉ</span><input id="cf-sp" type="number" value="'+cfg.setPoints+'"></div>';
   h+='<div class="fld"><span>VANTAGEM</span><input id="cf-va" type="number" value="'+cfg.vantagem+'"></div>';
   h+='<div class="fld"><span>EM QUADRA</span><input id="cf-eq" type="number" value="'+cfg.emQuadra+'"></div>';

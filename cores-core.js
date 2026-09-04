@@ -1,5 +1,5 @@
 /* ==========================================================================
-   RS-SCOUT · MODULO "TORNEIO POR CORES" — MOTOR PURO
+   RS-SCOUT · MODULO "MINI MINIS - CORES" — MOTOR PURO
    --------------------------------------------------------------------------
    Modulo ISOLADO. Nao importa, nao altera e nao depende do index.html.
    Sem DOM, sem Firebase: so funcao pura -> da pra testar em Node.

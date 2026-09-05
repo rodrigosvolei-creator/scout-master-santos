@@ -571,7 +571,7 @@ body.claro.telao::before{opacity:.03}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js?v=2026-09-05d"></script>
+<script src="cores-core.js?v=2026-09-05e"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -612,7 +612,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-05d";
+var CORES_BUILD="2026-09-05e";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -790,6 +790,9 @@ function rHeader(){
   h+='<a href="?v=class" class="'+(VIEW==="class"?"on":"")+'" onclick="event.preventDefault();go(\'class\')">Classificação</a>';
   h+='<a href="?v=rel" class="'+(VIEW==="rel"?"on":"")+'" onclick="event.preventDefault();go(\'rel\')">Relatório</a>';
   h+='<a href="?v=telao" target="_blank">Telão</a>';
+  /* Manual de quem aponta: pagina propria, abre em outra aba pra nao tirar
+     ninguem do jogo no meio da marcacao. */
+  h+='<a href="manual/" target="_blank" rel="noopener" title="Passo a passo de como marcar">Manual</a>';
   h+='<a href="?v=admin" class="'+(VIEW==="admin"?"on":"")+'" onclick="event.preventDefault();go(\'admin\')">Admin</a>';
   if(EM_OBRAS)h+='<span class="hd-obras" onclick="obrasSair()" title="A página está fechada ao público. Clique para sair do modo de teste.">EM OBRAS</span>';
   h+='<button class="hd-tema" onclick="trocarTema()" title="'+(TEMA==="claro"?"Mudar para o tema escuro":"Mudar para o tema claro")+'">'+(TEMA==="claro"?"\u{1F319}":"\u2600\uFE0F")+'</button>';

@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apontamento Mini Minis Cores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --paper:#FFFBFD; --paper-2:#F8EFF4; --paper-3:#F1E3EB;
+  --ink:#26101B; --ink-2:#5B3B4B; --ink-3:#8A6B7A;
+  --rule:rgba(38,16,27,.13); --rule-2:rgba(38,16,27,.07);
+  --acc:#C2185B; --acc-2:#7B2E8E; --acc-soft:rgba(194,24,91,.09);
+  --warn-bg:rgba(180,83,9,.10); --warn-ink:#8A4708; --warn-rule:rgba(180,83,9,.28);
+  --ok-bg:rgba(4,120,87,.10); --ok-ink:#046A4E; --ok-rule:rgba(4,120,87,.26);
+  --shot-bg:#0B0B0D;
+  --serif:'Cinzel',Georgia,serif;
+  --ui:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#100C12; --paper-2:#181220; --paper-3:#211829;
+    --ink:#F5EBF1; --ink-2:#CBB2C0; --ink-3:#9C8494;
+    --rule:rgba(245,235,241,.16); --rule-2:rgba(245,235,241,.08);
+    --acc:#FF74AE; --acc-2:#C58BE0; --acc-soft:rgba(255,116,174,.13);
+    --warn-bg:rgba(251,146,60,.14); --warn-ink:#FBBF77; --warn-rule:rgba(251,146,60,.34);
+    --ok-bg:rgba(52,211,153,.13); --ok-ink:#7EE7BE; --ok-rule:rgba(52,211,153,.30);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#100C12; --paper-2:#181220; --paper-3:#211829;
+  --ink:#F5EBF1; --ink-2:#CBB2C0; --ink-3:#9C8494;
+  --rule:rgba(245,235,241,.16); --rule-2:rgba(245,235,241,.08);
+  --acc:#FF74AE; --acc-2:#C58BE0; --acc-soft:rgba(255,116,174,.13);
+  --warn-bg:rgba(251,146,60,.14); --warn-ink:#FBBF77; --warn-rule:rgba(251,146,60,.34);
+  --ok-bg:rgba(52,211,153,.13); --ok-ink:#7EE7BE; --ok-rule:rgba(52,211,153,.30);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--ui); font-size:17px; line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.pg{max-width:820px;margin:0 auto;padding:0 22px 90px}
+
+/* ---------- capa ---------- */
+.capa{padding:54px 0 30px;border-bottom:2px solid var(--ink);margin-bottom:44px}
+.marca{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+.marca img{width:38px;height:38px;object-fit:contain}
+.marca span{font-family:var(--serif);font-weight:700;letter-spacing:.22em;
+  font-size:12px;text-transform:uppercase;color:var(--acc)}
+.capa h1{
+  font-family:var(--serif);font-weight:700;font-size:clamp(34px,6.4vw,54px);
+  line-height:1.06;letter-spacing:-.01em;margin:0 0 14px;text-wrap:balance}
+.capa .sub{font-size:19px;color:var(--ink-2);max-width:56ch;margin:0}
+.capa .quando{margin-top:24px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600}
+
+/* ---------- blocos ---------- */
+h2{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--acc);
+  font-weight:700;margin:0 0 6px}
+p{margin:0 0 14px;max-width:66ch}
+p:last-child{margin-bottom:0}
+strong{font-weight:700}
+.chave{background:var(--acc-soft);padding:1px 6px;border-radius:5px;font-weight:600;
+  white-space:nowrap;color:var(--acc)}
+
+.antes{background:var(--paper-2);border-radius:16px;padding:26px 28px;margin-bottom:52px}
+.antes h2{margin-bottom:14px}
+.antes ul{margin:0;padding-left:0;list-style:none;display:grid;gap:11px}
+.antes li{position:relative;padding-left:22px;max-width:64ch}
+.antes li::before{content:"";position:absolute;left:2px;top:.62em;width:7px;height:7px;
+  border-radius:50%;background:var(--acc)}
+
+/* ---------- passos ---------- */
+.passo{display:grid;grid-template-columns:64px 1fr;gap:0 22px;
+  padding:34px 0;border-top:1px solid var(--rule)}
+.passo:first-of-type{border-top:2px solid var(--ink)}
+.n{font-size:34px;font-weight:800;line-height:1;color:var(--acc);
+  font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.passo h3{grid-column:2;margin:0 0 10px;font-size:26px;font-weight:700;
+  line-height:1.2;letter-spacing:-.015em;text-wrap:balance}
+.passo .corpo{grid-column:2}
+@media (max-width:620px){
+  .passo{grid-template-columns:1fr;gap:0}
+  .passo h3,.passo .corpo{grid-column:1}
+  .n{font-size:26px;margin-bottom:4px}
+}
+
+/* ---------- imagens ---------- */
+figure{margin:20px 0 4px}
+figure img{display:block;width:100%;height:auto;border-radius:12px;
+  background:var(--shot-bg);border:1px solid var(--rule)}
+figcaption{margin-top:9px;font-size:14px;color:var(--ink-3);line-height:1.5}
+figure.recorte img{border-radius:10px}
+
+/* ---------- avisos ---------- */
+.nota{border-left:3px solid var(--acc);padding:2px 0 2px 16px;margin:18px 0;
+  color:var(--ink-2);font-size:16px;max-width:62ch}
+.aviso{background:var(--warn-bg);border:1px solid var(--warn-rule);border-radius:12px;
+  padding:15px 18px;margin:18px 0;color:var(--warn-ink);font-size:16px;max-width:64ch}
+.aviso b{color:var(--warn-ink)}
+.certo{background:var(--ok-bg);border:1px solid var(--ok-rule);border-radius:12px;
+  padding:15px 18px;margin:18px 0;color:var(--ok-ink);font-size:16px;max-width:64ch}
+
+/* ---------- tabela de acoes ---------- */
+.tabwrap{overflow-x:auto;margin:22px 0 6px;border:1px solid var(--rule);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:15.5px}
+th{text-align:left;font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:700;padding:12px 14px;background:var(--paper-2);
+  border-bottom:1px solid var(--rule)}
+td{padding:11px 14px;border-bottom:1px solid var(--rule-2);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.gr{font-weight:700;white-space:nowrap;color:var(--ink)}
+td.bt{white-space:nowrap}
+.pill{display:inline-block;padding:2px 9px;border-radius:7px;font-size:13.5px;
+  font-weight:700;color:#fff;line-height:1.5}
+.p-ok{background:#047857} .p-med{background:#B45309} .p-ruim{background:#C2410C}
+.p-err{background:#B91C1C} .p-cont{background:#556070}
+.grupo td{background:var(--paper-2);font-weight:700;font-size:13px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+
+/* ---------- lista de solucoes ---------- */
+.socorro{display:grid;gap:0;border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+.socorro>div{display:grid;grid-template-columns:minmax(150px,.9fr) 1.6fr;gap:0;
+  border-top:1px solid var(--rule-2)}
+.socorro>div:first-child{border-top:0}
+.socorro dt{padding:13px 16px;font-weight:700;background:var(--paper-2);margin:0}
+.socorro dd{padding:13px 16px;margin:0;color:var(--ink-2)}
+@media (max-width:620px){
+  .socorro>div{grid-template-columns:1fr}
+  .socorro dd{padding-top:0}
+}
+
+/* ---------- depois ---------- */
+.depois{display:grid;gap:26px;margin-top:6px}
+
+footer{margin-top:60px;padding-top:22px;border-top:2px solid var(--ink);
+  font-size:13.5px;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:8px 18px;
+  justify-content:space-between}
+footer b{color:var(--ink-2);font-weight:600}
+
+a{color:var(--acc)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+@media print{
+  /* No papel a pagina e sempre clara: o Chrome leva o tema do sistema para a
+     impressao e o PDF sairia com fundo escuro. */
+  :root,:root[data-theme="dark"]{
+    --paper:#fff; --paper-2:#F8EFF4; --paper-3:#F1E3EB;
+    --ink:#26101B; --ink-2:#5B3B4B; --ink-3:#7A5A6A;
+    --rule:rgba(38,16,27,.22); --rule-2:rgba(38,16,27,.12);
+    --acc:#B01553; --acc-2:#7B2E8E; --acc-soft:rgba(194,24,91,.10);
+    --warn-bg:rgba(180,83,9,.10); --warn-ink:#7A3E07; --warn-rule:rgba(180,83,9,.35);
+    --ok-bg:rgba(4,120,87,.10); --ok-ink:#04553F; --ok-rule:rgba(4,120,87,.32);
+  }
+  html,body{background:#fff!important;color:#26101B}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-size:11pt} .pg{max-width:none;padding:0}
+  .passo{page-break-inside:avoid}
+  .passo{break-inside:avoid} figure{break-inside:avoid}
+}
+</style>
+
+</head>
+<body>
+<div class="pg">
+
+<header class="capa">
+  <div class="marca"><img src="img/leao.png" alt=""><span>RS Voleibol · São Paulo</span></div>
+  <h1>Mini Minis&nbsp;·&nbsp;Cores<br>Guia de quem aponta</h1>
+  <p class="sub">Como registrar as jogadas da sua equipe, do primeiro saque até o fim do jogo. Todas as telas deste guia são as telas de verdade do aplicativo.</p>
+  <div class="quando">Torneio de 5 de setembro de 2026 · 4×4 · set único até 21</div>
+</header>
+
+<section class="antes">
+  <h2>Antes de tudo</h2>
+  <ul>
+    <li>Cada jogo tem <strong>duas pessoas apontando</strong> — uma para cada equipe.</li>
+    <li>Você registra <strong>só as jogadas da sua equipe</strong>. A outra pessoa registra as dela.</li>
+    <li>O <strong>placar é o mesmo</strong> para os dois e sobe sozinho. Ninguém precisa combinar número.</li>
+    <li>Não tem senha e não precisa instalar nada. Funciona no celular, no tablet e no notebook.</li>
+    <li>Errou? <strong>Dá para desfazer.</strong> Não trave o jogo por medo de errar.</li>
+  </ul>
+</section>
+
+<div class="passo">
+  <div class="n">1</div>
+  <h3>Entrar</h3>
+  <div class="corpo">
+    <p>Abra o navegador do celular e digite <strong>rsvoleibol.com.br</strong>. No alto da página, toque no botão rosa <span class="chave">Mini Minis - Cores</span>.</p>
+    <figure>
+      <img src="img/01-site.jpg" alt="Site rsvoleibol.com.br com o botão Mini Minis - Cores no canto superior direito">
+      <figcaption>O botão fica no canto de cima, à direita. Também tem um logo abaixo do nome do clube.</figcaption>
+    </figure>
+    <p class="nota">Depois de entrar, salve a página nos favoritos do celular. No dia do torneio você vai abrir várias vezes.</p>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="n">2</div>
+  <h3>Achar o seu jogo</h3>
+  <div class="corpo">
+    <p>A primeira tela é a lista de <strong>Jogos</strong> do dia, na ordem em que vão acontecer. Ache o jogo que você vai apontar e toque em <span class="chave">Marcar</span>.</p>
+    <figure>
+      <img src="img/02-jogos.jpg" alt="Lista com os dez jogos do dia, cada um com as duas equipes e o botão Marcar">
+      <figcaption>Cada linha é um jogo. O coração mostra a cor da equipe.</figcaption>
+    </figure>
+    <figure class="recorte">
+      <img src="img/03-card-jogo.jpg" alt="Um jogo da lista, com PRETO à esquerda, AMARELO à direita e o botão Marcar">
+      <figcaption>À direita: <strong>AGENDADO</strong> (ainda não começou), <strong>AO VIVO</strong> (rolando agora) ou <strong>FIM</strong>.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="n">3</div>
+  <h3>Dizer qual equipe é a sua</h3>
+  <div class="corpo">
+    <p>O aplicativo pergunta qual das duas você vai apontar. Toque na sua.</p>
+    <figure>
+      <img src="img/04-quem-marcar.jpg" alt="Tela perguntando qual equipe você vai marcar, com as duas opções">
+      <figcaption>Depois de escolher, o aplicativo lembra da sua equipe nesse jogo.</figcaption>
+    </figure>
+    <div class="aviso"><b>Combine com a outra pessoa antes.</b> Cada um escolhe uma equipe. Se as duas escolherem a mesma, uma das equipes fica sem apontamento.</div>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="n">4</div>
+  <h3>Preparar o jogo</h3>
+  <div class="corpo">
+    <p>Duas coisas antes da primeira bola.</p>
+    <p><strong>Primeiro: qual equipe saca.</strong> Essa escolha vale para as duas — se a outra pessoa já marcou, aparece marcado para você também.</p>
+    <figure class="recorte">
+      <img src="img/05b-quem-saca.jpg" alt="Passo 1 da preparação: qual equipe saca primeiro">
+      <figcaption>Basta uma das duas pessoas responder.</figcaption>
+    </figure>
+    <p><strong>Depois: a ordem de saque da sua equipe.</strong> Toque nos quatro atletas na ordem em que vão sacar. Quem ficar na posição&nbsp;1 começa sacando; daí em diante o rodízio anda sozinho.</p>
+    <figure>
+      <img src="img/05-antes-comecar.jpg" alt="Tela ANTES DE COMEÇAR com as quatro posições vazias e a lista de atletas">
+      <figcaption>As quatro caixas de cima são as posições. Os nomes embaixo são o elenco.</figcaption>
+    </figure>
+    <figure>
+      <img src="img/06-ordem-preenchida.jpg" alt="As quatro posições preenchidas e o botão Confirmar e começar liberado">
+      <figcaption>Com as quatro posições preenchidas, o botão <strong>Confirmar e começar</strong> libera.</figcaption>
+    </figure>
+    <p class="nota">Colocou na ordem errada? Toque na posição para tirar o atleta, ou use <span class="chave">Limpar</span> e recomece.</p>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="n">5</div>
+  <h3>Começar</h3>
+  <div class="corpo">
+    <p>Toque em <span class="chave">▶ Iniciar jogo</span>. A partir daqui o jogo está valendo.</p>
+    <figure>
+      <img src="img/07-iniciar.jpg" alt="Tela com a escalação pronta e o botão Iniciar jogo">
+      <figcaption>Ainda dá para arrumar a escalação em <strong>Mudar escalação</strong>.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="n">6</div>
+  <h3>Marcar as jogadas</h3>
+  <div class="corpo">
+    <p>É sempre <strong>dois toques</strong>: primeiro <strong>quem</strong> fez a jogada, depois <strong>o que</strong> ela fez.</p>
+    <figure>
+      <img src="img/08-mesa.jpg" alt="Tela de marcação completa: placar, atletas em quadra, blocos de ação e barra de correção">
+      <figcaption>A tela inteira de trabalho. Placar no alto, atletas no meio, ações embaixo.</figcaption>
+    </figure>
+    <p><strong>Quem fez.</strong> Os quatro que estão em quadra ficam logo abaixo do placar, na ordem de saque. Quem está sacando aparece destacado.</p>
+    <figure class="recorte">
+      <img src="img/09-quadra.jpg" alt="Os quatro atletas em quadra, com o primeiro destacado como sacando">
+      <figcaption>Toque no atleta. O nome dele aparece ao lado da palavra <strong>AÇÃO</strong>.</figcaption>
+    </figure>
+    <p><strong>O que ela fez.</strong> Cada bloco colorido é um fundamento. Toque no botão que descreve o que aconteceu.</p>
+    <figure>
+      <img src="img/10-acoes.jpg" alt="Os seis blocos de ação: saque, recepção, levantamento, ataque, bloqueio e defesa">
+      <figcaption>Seis blocos, um para cada fundamento.</figcaption>
+    </figure>
+
+    <div class="tabwrap">
+      <table>
+        <thead><tr><th>Fundamento</th><th>Botão</th><th>Quando usar</th></tr></thead>
+        <tbody>
+          <tr class="grupo"><td colspan="3">Saque</td></tr>
+          <tr><td class="gr">Saque</td><td class="bt"><span class="pill p-ok">Ace</span></td><td>Sacou e fez o ponto direto.</td></tr>
+          <tr><td class="gr"></td><td class="bt"><span class="pill p-err">Erro</span></td><td>Bola na rede ou fora. Ponto para a outra equipe.</td></tr>
+          <tr><td class="gr"></td><td class="bt"><span class="pill p-cont">Cont</span></td><td>Sacou, a outra recebeu e o jogo continuou.</td></tr>
+
+          <tr class="grupo"><td colspan="3">Recepção · Levantamento · Defesa</td></tr>
+          <tr><td class="gr">Os três</td><td class="bt"><span class="pill p-ok">A</span></td><td>Saiu perfeito, deu para jogar tudo.</td></tr>
+          <tr><td class="gr"></td><td class="bt"><span class="pill p-med">B</span></td><td>Deu para jogar, mas não do jeito ideal.</td></tr>
+          <tr><td class="gr"></td><td class="bt"><span class="pill p-ruim">C</span></td><td>Saiu ruim, quase só sobrou devolver.</td></tr>
+          <tr><td class="gr"></td><td class="bt"><span class="pill p-err">Erro</span></td><td>Não deu para jogar. Ponto para a outra equipe.</td></tr>
+
+          <tr class="grupo"><td colspan="3">Ataque</td></tr>
+          <tr><td class="gr">Ataque</td><td class="bt"><span class="pill p-ok">Ponto</span></td><td>Bateu e fez o ponto.</td></tr>
+          <tr><td class="gr"></td><td class="bt"><span class="pill p-ruim">Bloq</span></td><td>O bloqueio da outra parou a bola. Ponto para a outra equipe.</td></tr>
+          <tr><td class="gr"></td><td class="bt"><span class="pill p-err">Erro</span></td><td>Bateu na rede ou jogou fora. Ponto para a outra equipe.</td></tr>
+          <tr><td class="gr"></td><td class="bt"><span class="pill p-cont">Cont</span></td><td>Bateu, a outra defendeu e o jogo continuou.</td></tr>
+
+          <tr class="grupo"><td colspan="3">Bloqueio</td></tr>
+          <tr><td class="gr">Bloqueio</td><td class="bt"><span class="pill p-ok">Ponto</span></td><td>Bloqueou e a bola caiu do outro lado.</td></tr>
+          <tr><td class="gr"></td><td class="bt"><span class="pill p-err">Erro</span></td><td>Encostou na rede, invadiu ou a bola saiu no bloqueio.</td></tr>
+          <tr><td class="gr"></td><td class="bt"><span class="pill p-cont">Cont</span></td><td>Bloqueou e o jogo continuou.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="nota"><strong>Cont</strong> quer dizer “continuou”: a jogada aconteceu, mas o ponto não acabou ali.</p>
+
+    <div class="certo"><b>Não precisa registrar tudo.</b> Registre o que der. Uma jogada que passou não estraga nada — o placar continua certo porque a outra pessoa também está apontando.</div>
+
+    <p>Quando a jogada termina o ponto, o <strong>placar sobe sozinho</strong> e o saque passa para quem tem que sacar.</p>
+    <figure>
+      <img src="img/13-apos-ponto.jpg" alt="Tela depois de marcar um ace: placar 1 a 0 e a jogada listada em Últimas ações">
+      <figcaption>Aqui foi um <strong>Ace</strong> da LUIZA: o placar virou 1 × 0 e a jogada entrou em <strong>Últimas ações</strong>.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="n">7</div>
+  <h3>Quando o ponto não foi de ninguém da sua equipe</h3>
+  <div class="corpo">
+    <p>Tem rally que acaba sem uma jogada sua para registrar. Use os três botões grandes:</p>
+    <figure class="recorte">
+      <img src="img/11-extras.jpg" alt="Os botões Ponto da sua equipe, Ponto da outra equipe e Falta">
+      <figcaption>Ficam logo abaixo dos blocos de ação.</figcaption>
+    </figure>
+    <div class="socorro">
+      <div><dt>+ Ponto (sua equipe)</dt><dd>A outra errou o saque, mandou a bola fora ou fez falta.</dd></div>
+      <div><dt>+ Ponto (outra equipe)</dt><dd>A outra pontuou e você não quer esperar o outro apontador registrar.</dd></div>
+      <div><dt>⚠ Falta da (sua equipe)</dt><dd>Rodízio errado, condução, invasão, tempo, dois toques.</dd></div>
+    </div>
+    <p class="nota">Os três passam o saque. Se as duas pessoas marcarem a mesma jogada, o aplicativo conta <strong>um ponto só</strong>.</p>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="n">8</div>
+  <h3>Trocar um atleta</h3>
+  <div class="corpo">
+    <p>Toque em <span class="chave">⇄ Substituir</span>, depois em quem sai e em quem entra.</p>
+    <figure>
+      <img src="img/14-substituir.jpg" alt="Tela em modo substituição, pedindo para escolher quem sai">
+      <figcaption>Quem entra assume a posição de saque de quem saiu — o rodízio segue certo.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="n">9</div>
+  <h3>Corrigir</h3>
+  <div class="corpo">
+    <p>A faixa embaixo da tela é só para arrumar as coisas.</p>
+    <figure class="recorte">
+      <img src="img/12-corrigir.jpg" alt="Barra de correção: mais um, menos um, girar saque e desfazer minha última">
+      <figcaption>Fica sempre visível, mesmo rolando a tela.</figcaption>
+    </figure>
+    <div class="socorro">
+      <div><dt>Desfazer minha última</dt><dd>Apaga a última coisa que <strong>você</strong> marcou. Não mexe no que a outra pessoa marcou.</dd></div>
+      <div><dt>+1 e −1</dt><dd>Acerta o número do placar, das duas equipes, sem mexer no saque.</dd></div>
+      <div><dt>Girar saque</dt><dd>Passa o saque para o próximo da fila sem marcar ponto nenhum.</dd></div>
+    </div>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="n">10</div>
+  <h3>Terminar o jogo</h3>
+  <div class="corpo">
+    <p>Ao chegar em 21 com dois de diferença, o aplicativo avisa que o set acabou.</p>
+    <figure class="recorte">
+      <img src="img/15-set-encerrado.jpg" alt="Aviso verde: set encerrado, PRETO venceu por 21 a 0">
+      <figcaption>O aviso aparece no alto da tela de marcação.</figcaption>
+    </figure>
+    <p>Toque em <span class="chave">✓ Finalizar jogo</span>. É esse toque que joga o resultado na classificação.</p>
+    <figure>
+      <img src="img/16-finalizar.jpg" alt="Tela de fim de set com o botão Finalizar jogo">
+      <figcaption>Só uma das duas pessoas precisa finalizar.</figcaption>
+    </figure>
+    <figure class="recorte">
+      <img src="img/17-jogo-encerrado.jpg" alt="O jogo na lista, agora com o resultado e a etiqueta FIM">
+      <figcaption>Na lista, o jogo passa a mostrar o placar e a etiqueta <strong>FIM</strong>.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<section style="margin-top:52px;padding-top:34px;border-top:2px solid var(--ink)">
+  <h2>Depois do jogo</h2>
+  <p style="font-size:19px;margin-bottom:26px">Tudo o que você aponta aparece na hora nestas três telas, no menu de cima. Qualquer pessoa pode abrir.</p>
+  <div class="depois">
+    <figure>
+      <img src="img/18-classificacao.jpg" alt="Tabela de classificação com as cinco equipes">
+      <figcaption><strong>Classificação</strong> — vitória vale 3, derrota vale 1. Só entram jogos finalizados.</figcaption>
+    </figure>
+    <figure>
+      <img src="img/19-relatorio.jpg" alt="Relatório com as maiores pontuadoras e o desempenho por fundamento">
+      <figcaption><strong>Relatório</strong> — quem mais pontuou e como cada atleta foi em cada fundamento. Sai do que você apontou.</figcaption>
+    </figure>
+    <figure>
+      <img src="img/20-telao.jpg" alt="Telão com o placar grande do jogo ao vivo, classificação e próximos jogos">
+      <figcaption><strong>Telão</strong> — placar grande para projetar no ginásio, com os próximos jogos.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section style="margin-top:52px;padding-top:34px;border-top:2px solid var(--ink)">
+  <h2>Se algo der errado</h2>
+  <div class="socorro" style="margin-top:16px">
+    <div><dt>A internet caiu</dt><dd>Anote no papel e lance depois. Nada do que já foi marcado se perde.</dd></div>
+    <div><dt>Marquei no atleta errado</dt><dd><strong>Desfazer minha última</strong> e marque de novo.</dd></div>
+    <div><dt>Entrei no jogo errado</dt><dd>Toque em <strong>← Jogos</strong> e escolha o certo.</dd></div>
+    <div><dt>Escolhi a equipe errada</dt><dd>Toque em <strong>Trocar equipe</strong> na faixa de baixo.</dd></div>
+    <div><dt>O placar está diferente do da mesa</dt><dd>Acerte com <strong>+1</strong> e <strong>−1</strong>. Não desfaça jogadas por causa do número.</dd></div>
+    <div><dt>A tela travou</dt><dd>Feche e abra de novo. O jogo continua de onde parou.</dd></div>
+  </div>
+  <div class="aviso" style="margin-top:22px"><b>Não entre na aba Admin durante o torneio.</b> É onde ficam as equipes e a tabela de jogos. Se precisar mexer, chame o Rodrigo.</div>
+</section>
+
+<footer>
+  <span><b>RS Voleibol</b> · Mini Minis - Cores</span>
+  <span>5 de setembro de 2026</span>
+</footer>
+
+</div>
+
+</body>
+</html>

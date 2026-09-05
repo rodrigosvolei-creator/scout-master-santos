@@ -98,5 +98,26 @@ console.log('\n== previa da tabela ==');
 t('.tabjg é flex (senao a linha do confronto empilha)', /\.tabjg\s*\{[^}]*display:\s*flex/.test(css));
 t('.tabjg usa var(--surf) (funciona nos dois temas)', /\.tabjg\s*\{[^}]*var\(--surf\)/.test(css));
 
+/* ---- telao: a cor da equipe nao pode sumir no fundo ----
+   Bug real do dia do evento: o JS escrevia color inline no placar, e estilo
+   inline vence QUALQUER regra do CSS — a trava que clareia/escurece a cor da
+   equipe conforme o tema nunca rodava. O placar do PRETO sumia no tema escuro e
+   o do BRANCO no claro. */
+console.log('\n== telao: preto no escuro, branco no claro ==');
+t('o placar do telao NAO leva color inline', !/class="tl-pt" style="color:/.test(html),
+  'inline vence o @supports e a trava de contraste nao roda');
+t('o placar do telao recebe --c', /class="tl-pt" style="--c:/.test(html));
+t('.tl-pt tem cor base legivel (sem oklch, cai no --fg)', /\.tl-pt\{[^}]*color:\s*var\(--fg\)/.test(css));
+const iBase = css.indexOf('.tl-pt{'), iSup = css.indexOf('.tl-pt{color:oklch');
+t('a trava vem DEPOIS da regra base (mesma especificidade, a ultima vence)',
+  iBase >= 0 && iSup > iBase, 'base em ' + iBase + ', trava em ' + iSup);
+t('e o tema claro tem a trava inversa', /body\.claro\s+\.tl-pt\{color:oklch/.test(css));
+/* A faixa do telao ja se chamou "tl" — mesma classe do CONTAINER .tl — e herdava
+   padding e height:100vh dele. Nome de modificador nao pode colidir com nome de
+   container. */
+t('a faixa do telao nao reusa a classe do container (.tl)', !/faixa tl"/.test(html) && !/\.faixa\.tl[,{]/.test(css));
+t('.faixa.telao existe com tamanho proprio', /\.faixa\.telao\{[^}]*width:/.test(css));
+t('a faixa do telao tem anel de contraste de 3px', /\.faixa\.telao[^{]*\{[^}]*0 0 0 3px/.test(css));
+
 console.log('\n' + (fail ? '✗ ' + fail + ' FALHA(S) · ' : '✓ TUDO VERDE · ') + ok + ' checagens');
 process.exit(fail ? 1 : 0);

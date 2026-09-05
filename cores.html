@@ -129,12 +129,6 @@ h2.sec{font-family:var(--ui);font-weight:800;font-size:20px;letter-spacing:.02em
   .crest,.pbtn .pos,.poolp-nu,.slot-n{
     color:oklch(from var(--c,#888) clamp(0,(l - 0.6) * -1000,1) 0 0);
     text-shadow:none}
-  /* A cor usada como TINTA (placar do telao) precisa do caminho inverso: no
-     escuro nunca pode ficar escura demais, no claro nunca clara demais.
-     Cores oficiais do torneio incluem BRANCO e PRETO — sem isto, o placar do
-     PRETO sumia no tema escuro e o do BRANCO no claro. */
-  .tl-pt{color:oklch(from var(--c,#888) max(l,.62) c h)}
-  body.claro .tl-pt{color:oklch(from var(--c,#888) min(l,.5) c h)}
 }
 
 /* ---- contorno de seguranca em tudo que CARREGA a cor da equipe ----
@@ -171,7 +165,14 @@ h2.sec{font-family:var(--ui);font-weight:800;font-size:20px;letter-spacing:.02em
   box-shadow:0 0 0 1px color-mix(in srgb,var(--fg) 22%,transparent)}
 .faixa.lg{width:8px;height:52px}
 .faixa.xl{width:10px;height:66px}
-.faixa.tl{width:clamp(8px,1vw,16px);height:clamp(60px,9vh,120px);margin:0 auto 14px;display:block}
+/* O modificador da faixa do telao chamava-se "tl" e COLIDIA com a classe do
+   container do telao: a faixa herdava padding:22px 26px e height:100vh dele, e
+   so por acidente virava um bloco de 52px. Agora tem nome proprio e tamanho
+   declarado. */
+.faixa.telao{width:clamp(46px,5vw,96px);height:clamp(58px,8vh,120px);margin:0 auto 14px;display:block;border-radius:99px}
+/* No telao a faixa e grande e fica sozinha no fundo: 1px de anel some. Preto
+   no fundo escuro e branco no fundo claro precisam de contorno de verdade. */
+.faixa.telao,.faixa.campea-tl{box-shadow:0 0 0 3px color-mix(in srgb,var(--fg) 72%,transparent)}
 .faixa.campea-tl{width:clamp(14px,1.6vw,26px);height:clamp(90px,16vh,200px);display:block;margin:0 auto}
 .pickteam-cor{display:block;width:64px;height:8px;border-radius:99px;
   box-shadow:0 0 0 1px color-mix(in srgb,var(--fg) 22%,transparent)}
@@ -522,7 +523,15 @@ body.claro.telao::before{opacity:.03}
 .tl-main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:26px}
 .tl-team{flex:1;text-align:center}
 .tl-nm{font-family:var(--ui);font-weight:800;font-size:clamp(26px,4.2vw,58px);letter-spacing:-.01em;line-height:1.05}
-.tl-pt{font-family:var(--num);font-size:clamp(80px,17vw,230px);line-height:.82;font-variant-numeric:tabular-nums}
+.tl-pt{font-family:var(--num);font-size:clamp(80px,17vw,230px);line-height:.82;font-variant-numeric:tabular-nums;color:var(--fg)}
+/* A cor da equipe como TINTA do placar precisa do caminho inverso da tinta
+   sobre fundo colorido: no tema escuro nunca pode ficar escura demais, no claro
+   nunca clara demais — as cores oficiais incluem BRANCO e PRETO. Tem que vir
+   DEPOIS da regra base: mesma especificidade, a ultima vence. */
+@supports (color: oklch(from red l c h)){
+  .tl-pt{color:oklch(from var(--c,#888) max(l,.62) c h)}
+  body.claro .tl-pt{color:oklch(from var(--c,#888) min(l,.5) c h)}
+}
 .tl-x{font-family:var(--num);font-size:clamp(26px,4vw,58px);color:var(--mute)}
 .tl-bot{display:flex;gap:16px;align-items:flex-start}
 .tl-bot{flex-shrink:0;max-height:34vh;overflow:hidden}
@@ -563,7 +572,7 @@ body.claro.telao::before{opacity:.03}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js?v=2026-09-05b"></script>
+<script src="cores-core.js?v=2026-09-05c"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -604,7 +613,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-05b";
+var CORES_BUILD="2026-09-05c";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -1488,9 +1497,12 @@ function rTelao(){
     if(ix===1)h+='<div class="tl-x">×</div>';
     var serving=st.serve&&st.serve.side===x.s;
     h+='<div class="tl-team">';
-    h+='<span class="faixa tl" style="background:'+esc(x.t.cor)+'"></span>';
+    h+='<span class="faixa telao" style="background:'+esc(x.t.cor)+'"></span>';
     h+='<div class="tl-nm">'+esc(x.t.n)+(serving?' <span style="font-size:.5em">🏐</span>':'')+'</div>';
-    h+='<div class="tl-pt" style="color:'+esc(x.t.cor)+';--c:'+esc(x.t.cor)+'">'+st.pts[x.s]+'</div>';
+    /* SEM color inline: estilo inline vence o @supports que ajusta a cor da
+       equipe ao tema, e o placar do PRETO sumia no escuro / do BRANCO no claro.
+       Passa so o --c; quem pinta e o CSS. */
+    h+='<div class="tl-pt" style="--c:'+esc(x.t.cor)+'">'+st.pts[x.s]+'</div>';
     h+='</div>';
   });
   h+='</div>';

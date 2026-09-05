@@ -1302,7 +1302,7 @@ function trocarTema(){
    Quem tem a chave entra normalmente (e fica liberado nesse aparelho):
        .../cores.html?dev=rs2026
    Para abrir para todo mundo, trocar EM_OBRAS para false. */
-var EM_OBRAS=false;
+var EM_OBRAS=false;   /* ABERTO ao publico (05/09). Voltar para true fecha a pagina de novo. */
 var OBRAS_CHAVE="rs2026";
 function obrasLiberado(){
   var q=null;
@@ -1321,7 +1321,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-04e";
+var CORES_BUILD="2026-09-05a";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",

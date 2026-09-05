@@ -13,12 +13,15 @@
    --acc (magenta) substitui o dourado, que nao era cor da RS.
    Verde/vermelho/laranja NAO mudam: sao semanticos (acerto, erro, atencao). */
 :root{
-  --bg1:#170a1e;--bg2:#241030;--bg3:#0f0614;
+  /* Preto de verdade, sem roxo no fundo: o magenta/roxo da RS fica nos
+     detalhes (titulo, botoes, destaques), nao na tela inteira. */
+  --bg1:#0d0d0f;--bg2:#0a0a0c;--bg3:#000000;
+  --glow-a:transparent;--glow-b:transparent;
   --fg:#f7eef5;--mute:rgba(247,238,245,.66);--faint:rgba(247,238,245,.62);
   --card:rgba(255,255,255,.055);--card2:rgba(255,255,255,.09);--brd:rgba(255,255,255,.13);
   --acc:#FF4D9D;--acc2:#A93FC0;--acc-ink:#2A0A1A;
   --green:#059669;--red:#dc2626;--orange:#ea580c;--blue:#2563eb;--gray:#64748b;
-  --leao:.05;              /* forca da marca d'agua do leao */
+  --leao:0;                /* escuro = preto limpo, sem marca d'agua */
   --sombra:rgba(0,0,0,.45);
   /* Superficies e sinais por TOKEN. Antes o tema claro sobrescrevia .btn
      inteiro e vencia .btn.pri/.dgr/.falta por especificidade — o botao
@@ -43,6 +46,7 @@
 /* Tema CLARO — para notebook em ginasio iluminado. */
 body.claro{
   --bg1:#ffffff;--bg2:#FCF4F8;--bg3:#F6E8F0;
+  --glow-a:rgba(216,27,121,.12);--glow-b:rgba(139,47,160,.12);
   --fg:#2A0A1A;--mute:#5a2a44;--faint:rgba(42,10,26,.68);
   --card:rgba(216,27,121,.045);--card2:rgba(216,27,121,.09);--brd:rgba(216,27,121,.18);
   --acc:#D81B79;--acc2:#8B2FA0;--acc-ink:#ffffff;
@@ -59,8 +63,8 @@ body.claro{
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{color:var(--fg);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden;
   background:
-    radial-gradient(70% 50% at 50% -5%, rgba(216,27,121,.12), transparent 60%),
-    radial-gradient(60% 45% at 50% 110%, rgba(139,47,160,.12), transparent 60%),
+    radial-gradient(70% 50% at 50% -5%, var(--glow-a), transparent 60%),
+    radial-gradient(60% 45% at 50% 110%, var(--glow-b), transparent 60%),
     linear-gradient(165deg,var(--bg1) 0%,var(--bg2) 55%,var(--bg3) 100%);
   background-attachment:fixed}
 /* MARCA D'AGUA — o leao ao fundo, fixo, atras de tudo e sem capturar toque.
@@ -114,7 +118,6 @@ h2.sec{font-family:var(--ui);font-weight:800;font-size:20px;letter-spacing:.02em
 .grid{display:grid;gap:10px}
 .tag{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:1px;
   padding:4px 9px;border-radius:99px;border:1px solid var(--brd)}
-.dot{display:inline-block;vertical-align:middle;width:12px;height:12px;border-radius:99px;flex-shrink:0;box-shadow:0 0 0 2px var(--halo)}
 .crest{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
   font-family:var(--num);font-size:17px;letter-spacing:.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);
   box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 0 0 2px rgba(255,255,255,.22)}
@@ -135,7 +138,7 @@ h2.sec{font-family:var(--ui);font-weight:800;font-size:20px;letter-spacing:.02em
    O branco sobre fundo claro (1.08:1) e o preto sobre fundo escuro (1.01:1)
    viravam mancha invisivel. O anel usa a cor do TEXTO do tema, entao aparece
    com qualquer cor de equipe. */
-.crest,.pbtn .pos,.poolp-nu,.slot-n,.dot,.ladder i{
+.crest,.pbtn .pos,.poolp-nu,.slot-n,.ladder i{
   outline:1px solid color-mix(in srgb,var(--fg) 34%,transparent);
   outline-offset:-1px}
 .crest{outline-width:2px}
@@ -157,25 +160,21 @@ h2.sec{font-family:var(--ui);font-weight:800;font-size:20px;letter-spacing:.02em
     drop-shadow(0 1px 2px rgba(0,0,0,.5))}
 .dest-fund .ico{margin-right:5px}
 
-/* ---- faixa de cor: substitui o escudo com iniciais ----
-   O nome da equipe ja esta escrito ao lado; a sigla dentro de uma caixa so
-   repetia a informacao. A faixa identifica a cor sem virar mais um retangulo
-   com texto. */
-.faixa{display:inline-block;flex-shrink:0;width:6px;height:34px;border-radius:99px;
-  box-shadow:0 0 0 1px color-mix(in srgb,var(--fg) 48%,transparent)}
-.faixa.lg{width:8px;height:52px}
-.faixa.xl{width:10px;height:66px}
-/* O modificador da faixa do telao chamava-se "tl" e COLIDIA com a classe do
-   container do telao: a faixa herdava padding:22px 26px e height:100vh dele, e
-   so por acidente virava um bloco de 52px. Agora tem nome proprio e tamanho
-   declarado. */
-.faixa.telao{width:clamp(46px,5vw,96px);height:clamp(58px,8vh,120px);margin:0 auto 14px;display:block;border-radius:99px}
-/* No telao a faixa e grande e fica sozinha no fundo: 1px de anel some. Preto
-   no fundo escuro e branco no fundo claro precisam de contorno de verdade. */
-.faixa.telao,.faixa.campea-tl{box-shadow:0 0 0 3px color-mix(in srgb,var(--fg) 72%,transparent)}
-.faixa.campea-tl{width:clamp(14px,1.6vw,26px);height:clamp(90px,16vh,200px);display:block;margin:0 auto}
-.pickteam-cor{display:block;width:64px;height:8px;border-radius:99px;
-  box-shadow:0 0 0 1px color-mix(in srgb,var(--fg) 22%,transparent)}
+/* ---- coracao na cor da equipe ----
+   Substitui a bolinha e a faixa: e a marca que o Rodrigo usa na relacao dos
+   times. SVG e nao emoji por dois motivos: a cor e a do cadastro, exata (emoji
+   so tem 12 cores fixas), e o contorno impede o BRANCO de sumir no fundo claro
+   e o PRETO no escuro — emoji nao aceita contorno. */
+.hrt{display:inline-block;vertical-align:-3px;flex-shrink:0;overflow:visible}
+.hrt path{stroke:color-mix(in srgb,var(--fg) 50%,transparent);stroke-width:1.3;
+  stroke-linejoin:round;paint-order:stroke}
+.dot{display:inline-block;width:18px;height:17px}
+.faixa{width:19px;height:18px}
+.faixa.lg{width:32px;height:30px}
+.faixa.xl{width:46px;height:42px}
+.faixa.telao{width:clamp(58px,6vw,112px);height:auto;display:block;margin:0 auto 10px}
+.faixa.campea-tl{width:clamp(96px,13vw,200px);height:auto;display:block;margin:0 auto}
+.pickteam-cor{width:38px;height:35px;display:block;margin:0 auto 2px}
 
 /* ---- previa da tabela (admin) ----
    Lista simples, sem contorno por jogo: o ponto de cor ja identifica a equipe e
@@ -572,7 +571,7 @@ body.claro.telao::before{opacity:.03}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js?v=2026-09-05c"></script>
+<script src="cores-core.js?v=2026-09-05d"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -613,7 +612,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-05c";
+var CORES_BUILD="2026-09-05d";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -773,6 +772,14 @@ function rEmObras(){
   h+='</div>';
   return h;
 }
+/* Coracao na cor da equipe — a marca visual do torneio, no lugar da bolinha.
+   Recebe a cor JA escapada, corHeart(esc(t.cor),"dot"), pra casar com o resto
+   do render. SVG e nao emoji: a cor e a do cadastro (exata) e o contorno
+   impede o BRANCO de sumir no fundo claro e o PRETO no escuro. */
+function corHeart(corEsc,cls){
+  return '<svg class="hrt '+cls+'" viewBox="0 0 24 22" aria-hidden="true">'
+    +'<path d="M12 20.6 4.1 12.5C1.7 10 1.9 6 4.5 3.9 6.9 2 10.3 2.5 12 4.9c1.7-2.4 5.1-2.9 7.5-1 2.6 2.1 2.8 6.1.4 8.6z" fill="'+corEsc+'"/></svg>';
+}
 function rHeader(){
   var nome=D.config.nome||CORES_NOME_PADRAO;
   var h='<div class="hd"><div class="hd-in">';
@@ -814,7 +821,7 @@ function rHome(){
   var camp=coresCampeao(gamesArr(),D.events,D.teams,D.config);
   if(camp&&tF(camp)){
     h='<div class="campeao" style="--c:'+esc(tF(camp).cor)+'">'
-      +'<span class="faixa xl" style="background:'+esc(tF(camp).cor)+'"></span>'
+      +corHeart(esc(tF(camp).cor),'faixa xl')
       +'<div><div class="campeao-lb">CAMPEÃ DO TORNEIO</div>'
       +'<div class="campeao-nm">'+esc(tF(camp).n)+'</div></div></div>'+h;
   }
@@ -829,7 +836,7 @@ function gameCard(g){
   function ladoHTML(t,lado,extra){
     var nm=t?t.n:coresLadoLabel(g,lado,D.teams);
     var cor=t?t.cor:'#64748b';
-    var faixa='<span class="faixa" style="background:'+esc(cor)+'"></span>';
+    var faixa=corHeart(esc(cor),'faixa');
     var txt='<div style="min-width:0"><div class="gc-nm'+(t?'':' pend')+'">'+esc(nm)+'</div>'+extra+'</div>';
     return lado==="A"?(faixa+txt):(txt+faixa);
   }
@@ -882,7 +889,7 @@ function rEscolhaEquipe(g,A,B){
   h+='<div class="pickteam">';
   [A,B].forEach(function(t){
     h+='<button class="pickteam-btn" style="--c:'+esc(t.cor)+'" onclick="setMeuTid(\''+t.id+'\')">';
-    h+='<span class="pickteam-cor" style="background:'+esc(t.cor)+'"></span>';
+    h+=corHeart(esc(t.cor),'pickteam-cor');
     h+='<div class="pickteam-nm">'+esc(t.n)+'</div>';
     h+='<div class="pickteam-sub">'+playersOf(t).length+' atletas</div>';
     h+='<div class="pickteam-cta">MARCAR ESTA EQUIPE</div></button>';
@@ -900,7 +907,7 @@ function placarHTML(g,A,B,st){
     var serving=st.serve&&st.serve.side===x.s;
     var sacador=serving&&st.serve.jid?pF(x.t,st.serve.jid):null;
     h+='<div class="mesa-side'+(mine?" mine":"")+(serving?" serving":"")+'" style="--c:'+esc(x.t.cor)+'">';
-    h+='<span class="faixa lg" style="background:'+esc(x.t.cor)+'"></span>';
+    h+=corHeart(esc(x.t.cor),'faixa lg');
     h+='<div class="mesa-id"><div class="nm">'+esc(x.t.n)+'</div>';
     h+='<div class="sub">'+(mine?"VOCÊ MARCA":"outro operador")+'</div>';
     if(serving)h+='<div class="serve-badge">🏐 SACA'+(sacador?" · "+esc(sacador.nm):"")+'</div>';
@@ -928,7 +935,7 @@ function rSetup(g,meu,adv,st,meuSide,A,B){
   [A,B].forEach(function(t){
     var on=st.firstServeSide===((t.id===g.a)?"A":"B");
     h+='<button class="teamchoice'+(on?" on":"")+'" style="--c:'+esc(t.cor)+'" onclick="setFirstServe(\''+t.id+'\')">';
-    h+='<span class="dot" style="background:'+esc(t.cor)+'"></span>'+esc(t.n)+(on?' 🏐':'')+'</button>';
+    h+=corHeart(esc(t.cor),'dot')+esc(t.n)+(on?' 🏐':'')+'</button>';
   });
   h+='</div>';
   h+='<div class="step-hint">Vale para as duas equipes — o outro operador vê a mesma escolha.</div>';
@@ -1150,7 +1157,7 @@ function feedHTML(st,g){
     var t=tF(e.tid),p=t?pF(t,e.jid):null;
     var a=CORES_ACT[e.ak];
     h+='<div class="fitem'+(dupKeys[e.k]?" dup":"")+'">';
-    h+='<span class="dot" style="background:'+esc(t?t.cor:"#64748b")+'"></span>';
+    h+=corHeart(esc(t?t.cor:"#64748b"),'dot');
     h+='<b>'+esc(p?p.nm:"—")+'</b><span class="faint">'+esc(a?a.l:e.ak)+'</span>';
     h+='<span class="oc" style="background:'+(CORES_OC[e.oc]||"#64748b")+'">'+esc(e.oc)+'</span>';
     if(dupKeys[e.k])h+='<span class="dupwhy">só estatística · '+(dupKeys[e.k]==="janela"?"o outro operador já marcou este rally":"rally já pontuado")+'</span>';
@@ -1292,7 +1299,7 @@ function rClass(){
   S.forEach(function(r){
     h+='<tr><td class="faint">'+r.pos+'</td>';
     h+='<td class="nm"><span style="display:inline-flex;align-items:center;gap:9px">';
-    h+='<span class="dot" style="background:'+esc(r.cor)+'"></span>'+esc(r.n)+'</span></td>';
+    h+=corHeart(esc(r.cor),'dot')+esc(r.n)+'</span></td>';
     h+='<td>'+r.j+'</td><td style="color:var(--ok);font-weight:800">'+r.v+'</td><td class="faint">'+r.d+'</td>';
     h+='<td>'+r.pp+'</td><td>'+r.pc+'</td>';
     h+='<td style="color:'+(r.saldo>0?"var(--ok)":(r.saldo<0?"var(--bad)":"var(--mute)"))+'">'+(r.saldo>0?"+":"")+r.saldo+'</td>';
@@ -1343,7 +1350,7 @@ function rRelatorio(){
       h+='<div class="pod pod'+(i+1)+'" style="--c:'+esc(x.cor)+'">';
       h+='<div class="pod-pos">'+(i+1)+'º</div>';
       h+='<div class="pod-nm">'+esc(x.nm)+'</div>';
-      h+='<div class="pod-eq"><span class="dot" style="background:'+esc(x.cor)+'"></span>'+esc(x.equipe)+'</div>';
+      h+='<div class="pod-eq">'+corHeart(esc(x.cor),'dot')+''+esc(x.equipe)+'</div>';
       h+='<div class="pod-pts">'+x.pontos+'</div><div class="pod-lb">PONTOS</div>';
       h+='<div class="pod-det">'+x.ace+' ace · '+x.ataque+' ataque · '+x.bloqueio+' bloqueio</div>';
       h+='</div>';
@@ -1355,7 +1362,7 @@ function rRelatorio(){
         +'</tr></thead><tbody>';
       R.pontuadores.slice(3).forEach(function(x){
         h+='<tr><td class="faint">'+x.pos+'</td><td class="nm">'+esc(x.nm)+'</td>';
-        h+='<td><span class="dot" style="background:'+esc(x.cor)+'"></span> '+esc(x.equipe)+'</td>';
+        h+='<td>'+corHeart(esc(x.cor),'dot')+' '+esc(x.equipe)+'</td>';
         h+='<td>'+x.ace+'</td><td>'+x.ataque+'</td><td>'+x.bloqueio+'</td>';
         h+='<td style="font-weight:800">'+x.pontos+'</td></tr>';
       });
@@ -1377,7 +1384,7 @@ function rRelatorio(){
       h+='<div class="dest" style="--f:'+CORES_FCOL[d.ak]+'">';
       h+='<div class="dest-fund"><span class="ico">'+d.F.icone+'</span>'+esc(d.F.label)+'</div>';
       h+='<div class="dest-nm">'+esc(d.x.nm)+'</div>';
-      h+='<div class="dest-eq"><span class="dot" style="background:'+esc(d.x.cor)+'"></span>'+esc(d.x.equipe)+'</div>';
+      h+='<div class="dest-eq">'+corHeart(esc(d.x.cor),'dot')+''+esc(d.x.equipe)+'</div>';
       h+='<div class="dest-pct">'+d.x.pct+'<small>%</small></div>';
       h+='<div class="dest-lb">'+esc(d.F.rotulo)+' · '+(d.F.abc?(d.x.A+'A de '+d.x.n):(d.x.acertos+' de '+d.x.n))+'</div>';
       h+='</div>';
@@ -1398,7 +1405,7 @@ function rRelatorio(){
       h+='<div class="amostra">amostra pequena (menos de '+R.minAcoes+' ações)</div>';
       F.poucos.slice(0,5).forEach(function(x){
         h+='<div class="relrow pouco"><span class="relpos">–</span>';
-        h+='<span class="dot" style="background:'+esc(x.cor)+'"></span>';
+        h+=corHeart(esc(x.cor),'dot');
         h+='<span class="relnm">'+esc(x.nm)+'</span>';
         h+='<span class="relbar"></span>';
         h+='<b class="relpct">'+(F.abc?Math.round((x.A||0)*100/x.n):Math.round((x.acertos||0)*100/x.n))+'%</b>';
@@ -1409,7 +1416,7 @@ function rRelatorio(){
     }else{
       F.ranking.slice(0,5).forEach(function(x,i){
         h+='<div class="relrow"><span class="relpos">'+(i+1)+'</span>';
-        h+='<span class="dot" style="background:'+esc(x.cor)+'"></span>';
+        h+=corHeart(esc(x.cor),'dot');
         h+='<span class="relnm">'+esc(x.nm)+'</span>';
         h+='<span class="relbar"><i style="width:'+Math.max(2,x.pct)+'%;background:'+CORES_FCOL[ak]+'"></i></span>';
         h+='<b class="relpct">'+x.pct+'%</b>';
@@ -1429,7 +1436,7 @@ function rRelatorio(){
   h+='</tr></thead><tbody>';
   R.geral.forEach(function(L){
     h+='<tr><td class="nm">'+esc(L.nm)+'</td>';
-    h+='<td><span class="dot" style="background:'+esc(L.cor)+'"></span> '+esc(L.equipe)+'</td>';
+    h+='<td>'+corHeart(esc(L.cor),'dot')+' '+esc(L.equipe)+'</td>';
     h+='<td>'+L.acoes+'</td>';
     h+='<td style="color:var(--ok);font-weight:800">'+L.pontos+'</td>';
     h+='<td style="color:var(--bad)">'+L.erros+'</td>';
@@ -1457,7 +1464,7 @@ function rTelao(){
     return '<div class="tl"><div class="tl-hd"><div class="hd-ti" style="font-size:28px">'+esc(D.config.nome||CORES_NOME_PADRAO)+'</div>'
       +'<div class="hd-sub" style="margin-left:auto">RS-VOLEIBOL</div></div>'
       +'<div class="tl-main" style="flex-direction:column;gap:10px">'
-      +'<span class="faixa campea-tl" style="background:'+esc(ct.cor)+'"></span>'
+      +corHeart(esc(ct.cor),'faixa campea-tl')
       +'<div class="hd-sub" style="font-size:13px;letter-spacing:6px">CAMPEÃ DO TORNEIO</div>'
       +'<div class="tl-nm" style="color:'+esc(ct.cor)+'">'+esc(ct.n)+'</div></div></div>';
   }
@@ -1479,7 +1486,7 @@ function rTelao(){
       h+='<table class="tb" style="max-width:900px;width:100%"><tbody>';
       Sv.forEach(function(r){
         h+='<tr><td class="faint">'+r.pos+'</td><td class="nm"><span style="display:inline-flex;align-items:center;gap:12px">';
-        h+='<span class="faixa" style="background:'+esc(r.cor)+';height:26px"></span>'+esc(r.n)+'</span></td>';
+        h+=corHeart(esc(r.cor),'faixa')+esc(r.n)+'</span></td>';
         h+='<td>'+r.j+'J</td><td>'+r.v+'V</td><td class="faint">'+r.d+'D</td>';
         h+='<td>'+(r.saldo>0?"+":"")+r.saldo+'</td>';
         h+='<td style="font-weight:800">'+r.pts+'</td></tr>';
@@ -1497,7 +1504,7 @@ function rTelao(){
     if(ix===1)h+='<div class="tl-x">×</div>';
     var serving=st.serve&&st.serve.side===x.s;
     h+='<div class="tl-team">';
-    h+='<span class="faixa telao" style="background:'+esc(x.t.cor)+'"></span>';
+    h+=corHeart(esc(x.t.cor),'faixa telao');
     h+='<div class="tl-nm">'+esc(x.t.n)+(serving?' <span style="font-size:.5em">🏐</span>':'')+'</div>';
     /* SEM color inline: estilo inline vence o @supports que ajusta a cor da
        equipe ao tema, e o placar do PRETO sumia no escuro / do BRANCO no claro.
@@ -1512,7 +1519,7 @@ function rTelao(){
   h+='<div><div class="hd-sub" style="margin-bottom:8px">CLASSIFICAÇÃO</div><table class="tb"><tbody>';
   S.slice(0,6).forEach(function(r){
     h+='<tr><td class="faint">'+r.pos+'</td><td class="nm"><span style="display:inline-flex;align-items:center;gap:8px">';
-    h+='<span class="dot" style="background:'+esc(r.cor)+'"></span>'+esc(r.n)+'</span></td>';
+    h+=corHeart(esc(r.cor),'dot')+esc(r.n)+'</span></td>';
     h+='<td>'+r.v+'V</td><td class="faint">'+(r.saldo>0?"+":"")+r.saldo+'</td>';
     h+='<td style="font-weight:800">'+r.pts+'</td></tr>';
   });
@@ -1524,8 +1531,8 @@ function rTelao(){
   prox.forEach(function(g){
     var a=tF(g.a),b=tF(g.b);if(!a||!b)return;
     h+='<div style="display:flex;align-items:center;gap:9px;padding:5px 0;font-weight:700">';
-    h+='<span class="dot" style="background:'+esc(a.cor)+'"></span>'+esc(a.n);
-    h+='<span class="faint">×</span><span class="dot" style="background:'+esc(b.cor)+'"></span>'+esc(b.n);
+    h+=corHeart(esc(a.cor),'dot')+esc(a.n);
+    h+='<span class="faint">×</span>'+corHeart(esc(b.cor),'dot')+''+esc(b.n);
     h+='<span class="faint" style="margin-left:auto;font-size:11px">'+(g.tm||fD(g.dt))+'</span></div>';
   });
   h+='</div></div></div>';
@@ -1558,7 +1565,7 @@ function rAdmin(){
   ts.forEach(function(t){
     h+='<div class="card" style="border-left:4px solid '+esc(t.cor)+'">';
     h+='<div class="row" style="margin-bottom:10px">';
-    h+='<span class="faixa" style="background:'+esc(t.cor)+'"></span>';
+    h+=corHeart(esc(t.cor),'faixa');
     h+='<div class="fld" style="flex:1"><span>NOME</span><input value="'+esc(t.n)+'" onchange="editEquipe(\''+t.id+'\',\'n\',this.value)"></div>';
     h+='<div class="fld"><span>COR</span><input type="color" value="'+esc(t.cor)+'" onchange="editEquipe(\''+t.id+'\',\'cor\',this.value)"></div>';
     h+='<button class="btn dgr sm" style="align-self:flex-end" onclick="delEquipe(\''+t.id+'\')">Excluir</button>';
@@ -1604,8 +1611,8 @@ function rAdmin(){
     var st=calc(g);
     h+='<div class="gcard"><div class="gc-vs">';
     if(coresFase(g)!=="class")h+='<span class="fasetag">'+esc(CORES_FASES[coresFase(g)].l)+'</span>';
-    h+='<span class="dot" style="background:'+esc(a?a.cor:"#334155")+'"></span><b'+(a?'':' class="pend"')+'>'+esc(nomeA)+'</b>';
-    h+='<span class="faint">×</span><span class="dot" style="background:'+esc(b?b.cor:"#334155")+'"></span><b'+(b?'':' class="pend"')+'>'+esc(nomeB)+'</b>';
+    h+=''+corHeart(esc(a?a.cor:"#334155"),'dot')+'<b'+(a?'':' class="pend"')+'>'+esc(nomeA)+'</b>';
+    h+='<span class="faint">×</span>'+corHeart(esc(b?b.cor:"#334155"),'dot')+'<b'+(b?'':' class="pend"')+'>'+esc(nomeB)+'</b>';
     h+='</div><div class="gc-sc">'+st.pts.A+'-'+st.pts.B+'</div>';
     h+='<div class="gc-meta" style="min-width:110px">'+(g.dt?fD(g.dt):"")+(g.tm?" "+esc(g.tm):"")+'</div>';
     h+='<span class="pill '+(g.st==="ao_vivo"?"live":(g.st==="finalizada"?"fim":"age"))+'">'+(g.st==="ao_vivo"?"AO VIVO":(g.st==="finalizada"?"FIM":"AGENDADO"))+'</span>';
@@ -1821,9 +1828,9 @@ function rAdminTabela(ts){
     var a=tF(g.a),b=tF(g.b);
     var existe=_tabTemPar(jaGs,g.a,g.b);
     h+='<div class="tabjg'+(existe?" ja":"")+'">';
-    h+='<span class="dot" style="background:'+esc(a?a.cor:"#64748b")+'"></span><b>'+esc(a?a.n:"?")+'</b>';
+    h+=''+corHeart(esc(a?a.cor:"#64748b"),'dot')+'<b>'+esc(a?a.n:"?")+'</b>';
     h+='<span class="faint">×</span>';
-    h+='<span class="dot" style="background:'+esc(b?b.cor:"#64748b")+'"></span><b>'+esc(b?b.n:"?")+'</b>';
+    h+=''+corHeart(esc(b?b.cor:"#64748b"),'dot')+'<b>'+esc(b?b.n:"?")+'</b>';
     if(existe)h+='<span class="tabja">já criado</span>';
     h+='</div>';
   });

@@ -117,7 +117,18 @@ t('e o tema claro tem a trava inversa', /body\.claro\s+\.tl-pt\{color:oklch/.tes
    container. */
 t('a faixa do telao nao reusa a classe do container (.tl)', !/faixa tl"/.test(html) && !/\.faixa\.tl[,{]/.test(css));
 t('.faixa.telao existe com tamanho proprio', /\.faixa\.telao\{[^}]*width:/.test(css));
-t('a faixa do telao tem anel de contraste de 3px', /\.faixa\.telao[^{]*\{[^}]*0 0 0 3px/.test(css));
+/* A marca da equipe virou CORACAO na cor do cadastro. O contorno agora e o
+   stroke do SVG (nao mais um anel retangular): sem ele o BRANCO some no fundo
+   claro e o PRETO no escuro. paint-order:stroke joga o traco pra fora. */
+t('o coracao tem contorno', /\.hrt path\{[^}]*stroke:/.test(css));
+t('o contorno fica por fora (paint-order:stroke)', /\.hrt path\{[^}]*paint-order:\s*stroke/.test(css));
+t('a marca da equipe e coracao, nao bolinha', /function corHeart\(/.test(html) && !/class="dot" style="background/.test(html));
+t('o coracao aparece na classificacao e no mural', (html.match(/corHeart\(/g) || []).length >= 20,
+  (html.match(/corHeart\(/g) || []).length + ' usos');
+/* ---- tema escuro: fundo preto, sem roxo e sem marca d'agua ---- */
+t('o escuro tem fundo preto', /--bg3:#000000/.test(raiz) && /--bg1:#0[0-9a-f]{5}/.test(raiz));
+t('sem brilho roxo no fundo escuro', /--glow-a:transparent/.test(raiz) && /--glow-b:transparent/.test(raiz));
+t('a marca d\'agua do leao fica so no claro', /--leao:0;/.test(raiz) && /--leao:\.\d+/.test(claro));
 
 console.log('\n' + (fail ? '✗ ' + fail + ' FALHA(S) · ' : '✓ TUDO VERDE · ') + ok + ' checagens');
 process.exit(fail ? 1 : 0);

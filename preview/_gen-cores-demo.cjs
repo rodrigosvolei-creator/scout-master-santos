@@ -122,7 +122,7 @@ const SHIM = `
 const out = html
   .replace('var EM_OBRAS=true;', 'var EM_OBRAS=false;   /* demo: sem o aviso de obras */')
   .replace(/<script src="https:\/\/www\.gstatic\.com\/firebasejs[^"]*"><\/script>\s*/g, '')
-  .replace('<script src="cores-core.js"></script>', '<script>' + core + '</script>')
+  .replace(/<script src="cores-core\.js[^"]*"><\/script>/, '<script>' + core + '</script>')
   .replace('</head>', SHIM.split('<div style="position:fixed')[0] + '</head>')
   .replace('<div id="app"></div>', '<div id="app"></div>' + '<div style="position:fixed' + SHIM.split('<div style="position:fixed')[1]);
 

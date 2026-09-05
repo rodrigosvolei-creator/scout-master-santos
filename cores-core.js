@@ -424,6 +424,110 @@ function coresLadoLabel(g, lado, teamsById) {
   return g["label" + lado] || "A definir";
 }
 
+/* ==========================================================================
+   MOTOR DE TABELA — todos contra todos (round-robin, metodo do circulo).
+   Com N equipes: N-1 rodadas (N par) ou N rodadas (N impar, uma folga por
+   rodada). Dentro de uma rodada nenhuma equipe joga duas vezes, entao ninguem
+   entra em quadra em dois jogos seguidos.
+   Devolve os jogos prontos para gravar — NAO grava nada e NAO poe horario:
+   o horario e definido na hora, conforme quem ja chegou.
+   ========================================================================== */
+function coresRodadas(ids) {
+  var lista = [];
+  for (var i = 0; i < ids.length; i++) lista.push(ids[i]);
+  if (lista.length < 2) return [];
+  var FOLGA = null;
+  if (lista.length % 2) lista.push(FOLGA);          /* impar ganha um "vazio" */
+  var n = lista.length, arr = lista.slice(), rodadas = [];
+  for (var r = 0; r < n - 1; r++) {
+    var jogos = [];
+    for (var k = 0; k < n / 2; k++) {
+      var x = arr[k], y = arr[n - 1 - k];
+      if (x === FOLGA || y === FOLGA) continue;
+      /* alterna o lado A/B pra ninguem ficar sempre do mesmo lado da mesa */
+      if ((r + k) % 2) jogos.push([y, x]); else jogos.push([x, y]);
+    }
+    rodadas.push(jogos);
+    arr = [arr[0], arr[n - 1]].concat(arr.slice(1, n - 1));  /* gira, fixando o 1o */
+  }
+  return rodadas;
+}
+
+/* opts: { turnos: 1|2, dt: "AAAA-MM-DD", prefixo, pular: [[a,b],...] }
+   pular = confrontos que ja existem (nas duas ordens) e nao devem ser repetidos. */
+function coresTabela(teams, opts) {
+  opts = opts || {};
+  var ids = [];
+  for (var i = 0; i < teams.length; i++) ids.push(teams[i] && teams[i].id ? teams[i].id : teams[i]);
+  var turnos = (opts.turnos === 2) ? 2 : 1;
+  var base = coresRodadas(ids);
+  if (!base.length) return [];
+
+  /* Duas coisas de uma vez, antes de materializar:
+     1) dentro da rodada, comeca pelo jogo que NAO repete equipe do jogo
+        anterior — assim quase ninguem joga duas partidas seguidas;
+     2) o lado A vai para quem esteve menos vezes do lado A ate aqui, senao
+        uma equipe acaba sempre do mesmo lado da mesa. */
+  var ordem = [], bal = {}, ultimo = null;
+  for (var ri = 0; ri < base.length; ri++) {
+    var fila = base[ri].slice(), daRodada = [];
+    while (fila.length) {
+      var esc = 0;
+      for (var q = 0; q < fila.length; q++) {
+        if (!ultimo || (fila[q].indexOf(ultimo[0]) < 0 && fila[q].indexOf(ultimo[1]) < 0)) { esc = q; break; }
+      }
+      var p = fila.splice(esc, 1)[0];
+      ultimo = p;
+      var x = p[0], y = p[1];
+      if ((bal[x] || 0) > (bal[y] || 0)) { var tr = x; x = y; y = tr; }
+      bal[x] = (bal[x] || 0) + 1; bal[y] = (bal[y] || 0) - 1;
+      daRodada.push([x, y]);
+    }
+    ordem.push(daRodada);
+  }
+
+  var ja = {};
+  var chave = function (a, b) { return a < b ? a + "|" + b : b + "|" + a; };
+  (opts.pular || []).forEach(function (p2) { ja[chave(p2[0], p2[1])] = 1; });
+
+  var pref = opts.prefixo || ("t_" + Date.now().toString(36));
+  var out = [], rod = 0;
+  for (var t = 0; t < turnos; t++) {
+    for (var k = 0; k < ordem.length; k++) {
+      rod++;
+      for (var ji = 0; ji < ordem[k].length; ji++) {
+        var pp = ordem[k][ji];
+        var a = t ? pp[1] : pp[0], b = t ? pp[0] : pp[1];   /* volta = manda o outro */
+        if (ja[chave(a, b)]) continue;
+        var nu = out.length + 1;
+        out.push({
+          id: pref + "_" + (nu < 10 ? "0" + nu : "" + nu),
+          a: a, b: b, fase: "class", st: "agendada",
+          dt: opts.dt || "", tm: "", rodada: rod, turno: t + 1
+        });
+      }
+    }
+  }
+  return out;
+}
+
+/* Quem folga em cada rodada — so para mostrar na previa. */
+function coresFolgas(teams, jogos) {
+  var porRodada = {};
+  jogos.forEach(function (g) {
+    var r = g.rodada || 1;
+    if (!porRodada[r]) porRodada[r] = {};
+    porRodada[r][g.a] = 1; porRodada[r][g.b] = 1;
+  });
+  var out = [];
+  Object.keys(porRodada).sort(function (a, b) { return a - b; }).forEach(function (r) {
+    var fora = [];
+    teams.forEach(function (t) { if (!porRodada[r][t.id]) fora.push(t); });
+    out.push({ rodada: +r, folga: fora });
+  });
+  return out;
+}
+
 /* Monta os jogos da fase final a partir da classificacao.
    modo: "final" (1o x 2o) | "semi" (1o x 4o e 2o x 3o + final)
    com3o: inclui a disputa de 3o lugar (so no modo semi).
@@ -715,6 +819,7 @@ if (typeof module !== "undefined" && module.exports) {
     CORES_FUND: CORES_FUND, CORES_FASES: CORES_FASES,
     coresFase: coresFase, coresOutcome: coresOutcome, coresResolveGames: coresResolveGames,
     coresLadoLabel: coresLadoLabel, coresBracket: coresBracket, coresCampeao: coresCampeao,
+    coresRodadas: coresRodadas, coresTabela: coresTabela, coresFolgas: coresFolgas,
     CORES_FUND_ABC: CORES_FUND_ABC, coresEhPonto: coresEhPonto, coresRankings: coresRankings,
     coresComputeGame: coresComputeGame, coresPlayerLine: coresPlayerLine,
     coresStandings: coresStandings, coresOrderGames: coresOrderGames

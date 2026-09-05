@@ -73,5 +73,30 @@ const claro = (css.match(/body\.claro\s*\{([\s\S]*?)\}/) || [])[1] || '';
   t(tk + ' existe no escuro e no claro', raiz.includes(tk + ':') && claro.includes(tk + ':'));
 });
 
+/* ---- cache do cores-core: bug real ----
+   O cores.html mudou, o navegador serviu o cores-core.js VELHO do cache e a
+   pagina inteira congelou em silencio (coresTabela nao existia, rAdmin()
+   estourou, render() morreu antes de escrever no #app e a tela ficou parada no
+   estado anterior). A tag leva a versao junto, e ela tem que acompanhar o
+   CORES_BUILD — senao o cache volta a valer. */
+console.log('\n== cache e falha silenciosa ==');
+const buildTag = (html.match(/var CORES_BUILD="([^"]+)"/) || [])[1];
+const srcTag = (html.match(/<script src="cores-core\.js\?v=([^"]+)"><\/script>/) || [])[1];
+t('a tag do cores-core leva ?v= (quebra-cache)', !!srcTag,
+  'sem isso, HTML novo + core velho = tela congelada sem mensagem');
+t('a versao da tag acompanha o CORES_BUILD', !!buildTag && srcTag === buildTag,
+  'build=' + buildTag + ' | tag=' + srcTag);
+t('render() protege a montagem da tela', /try\s*\{[\s\S]{0,400}rAdmin\(\)[\s\S]{0,400}\}\s*catch/.test(html),
+  'se uma secao estourar, a tela tem que mostrar o erro, nao congelar');
+t('e mostra o erro na tela', /Erro ao montar esta tela/.test(html));
+
+/* ---- previa da tabela ---- */
+console.log('\n== previa da tabela ==');
+['.tabprev', '.tabrod', '.tabjg', '.tabres'].forEach(cls => {
+  t(cls + ' tem regra propria', new RegExp(esc(cls) + '\s*[,{]').test(css));
+});
+t('.tabjg é flex (senao a linha do confronto empilha)', /\.tabjg\s*\{[^}]*display:\s*flex/.test(css));
+t('.tabjg usa var(--surf) (funciona nos dois temas)', /\.tabjg\s*\{[^}]*var\(--surf\)/.test(css));
+
 console.log('\n' + (fail ? '✗ ' + fail + ' FALHA(S) · ' : '✓ TUDO VERDE · ') + ok + ' checagens');
 process.exit(fail ? 1 : 0);

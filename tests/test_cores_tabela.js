@@ -1,0 +1,256 @@
+/* Motor de tabela — todos contra todos.
+   Testa o motor puro (cores-core) E a tela do Admin de verdade: sobe o
+   cores.html num jsdom com as 5 equipes reais, clica em "Gerar tabela" e
+   confere o que foi GRAVADO no banco.
+   Roda: node tests/test_cores_tabela.js  */
+const fs = require('fs');
+const { JSDOM } = require('jsdom');
+const C = require('../cores-core.js');
+
+let ok = 0, fail = 0;
+async function t(name, fn) {
+  try { await fn(); ok++; console.log('  ✓ ' + name); }
+  catch (e) { fail++; console.log('  ✗ ' + name + '\n      ' + (e && e.message)); }
+}
+function eq(a, b, m) {
+  const A = JSON.stringify(a), B = JSON.stringify(b);
+  if (A !== B) throw new Error((m ? m + ': ' : '') + 'esperado ' + B + ', veio ' + A);
+}
+function ok_(c, m) { if (!c) throw new Error(m || 'falso'); }
+
+const CORES = ['c_amarelo', 'c_azul', 'c_branco', 'c_cinza', 'c_preto'];
+const TIMES = CORES.map((id, i) => ({ id: id, n: id.slice(2).toUpperCase(), cor: '#111827', ordem: i, players: [] }));
+const par = (g) => [g.a, g.b].slice().sort().join('|');
+
+(async () => {
+  console.log('\n== motor puro ==');
+
+  await t('5 equipes = 10 jogos (todos contra todos, 1 turno)', () => {
+    eq(C.coresTabela(TIMES, {}).length, 10);
+  });
+  await t('cada dupla aparece exatamente uma vez', () => {
+    const j = C.coresTabela(TIMES, {});
+    const vis = {};
+    j.forEach(g => { if (vis[par(g)]) throw new Error('confronto repetido: ' + par(g)); vis[par(g)] = 1; });
+    eq(Object.keys(vis).length, 10);
+  });
+  await t('cada equipe joga 4 vezes', () => {
+    const j = C.coresTabela(TIMES, {}), n = {};
+    j.forEach(g => { n[g.a] = (n[g.a] || 0) + 1; n[g.b] = (n[g.b] || 0) + 1; });
+    CORES.forEach(id => eq(n[id], 4, id));
+  });
+  await t('5 rodadas, 2 jogos por rodada', () => {
+    const j = C.coresTabela(TIMES, {});
+    const porRod = {};
+    j.forEach(g => porRod[g.rodada] = (porRod[g.rodada] || 0) + 1);
+    eq(Object.keys(porRod).length, 5);
+    Object.keys(porRod).forEach(r => eq(porRod[r], 2, 'rodada ' + r));
+  });
+  await t('dentro da rodada ninguem joga duas vezes', () => {
+    const j = C.coresTabela(TIMES, {}), vis = {};
+    j.forEach(g => {
+      const ka = g.rodada + ':' + g.a, kb = g.rodada + ':' + g.b;
+      if (vis[ka] || vis[kb]) throw new Error('equipe repetida na rodada ' + g.rodada);
+      vis[ka] = 1; vis[kb] = 1;
+    });
+  });
+  await t('ninguem joga dois jogos seguidos', () => {
+    const j = C.coresTabela(TIMES, {});
+    for (let i = 1; i < j.length; i++) {
+      const ant = [j[i - 1].a, j[i - 1].b];
+      if (ant.indexOf(j[i].a) >= 0 || ant.indexOf(j[i].b) >= 0)
+        throw new Error('jogo ' + (i + 1) + ' repete equipe do anterior');
+    }
+  });
+  await t('uma equipe folga por rodada (numero impar de equipes)', () => {
+    const j = C.coresTabela(TIMES, {});
+    const f = C.coresFolgas(TIMES, j);
+    eq(f.length, 5);
+    f.forEach(x => eq(x.folga.length, 1, 'rodada ' + x.rodada));
+    const quem = {};
+    f.forEach(x => quem[x.folga[0].id] = 1);
+    eq(Object.keys(quem).length, 5, 'cada equipe folga uma vez');
+  });
+  await t('ids saem em ordem alfabetica = ordem da tabela', () => {
+    const j = C.coresTabela(TIMES, { prefixo: 'tz' });
+    const ids = j.map(g => g.id);
+    eq(ids.slice().sort(), ids, 'a ordem lexicografica tem que bater com a gerada');
+  });
+  await t('sem horario e com a data pedida', () => {
+    const j = C.coresTabela(TIMES, { dt: '2026-09-05' });
+    j.forEach(g => { eq(g.tm, ''); eq(g.dt, '2026-09-05'); eq(g.st, 'agendada'); eq(g.fase, 'class'); });
+  });
+  await t('2 turnos = 20 jogos, ida e volta com o lado trocado', () => {
+    const j = C.coresTabela(TIMES, { turnos: 2 });
+    eq(j.length, 20);
+    const ida = j.filter(g => g.turno === 1), volta = j.filter(g => g.turno === 2);
+    eq(ida.length, 10); eq(volta.length, 10);
+    ida.forEach(g => {
+      const v = volta.find(x => par(x) === par(g));
+      ok_(v, 'sem volta para ' + par(g));
+      ok_(v.a === g.b && v.b === g.a, 'a volta tem que inverter os lados');
+    });
+  });
+  await t('numero par de equipes: 4 -> 6 jogos, 3 rodadas, sem folga', () => {
+    const q = TIMES.slice(0, 4);
+    const j = C.coresTabela(q, {});
+    eq(j.length, 6);
+    eq(C.coresFolgas(q, j).map(x => x.folga.length), [0, 0, 0]);
+  });
+  await t('2 equipes = 1 jogo; menos que isso = nenhum', () => {
+    eq(C.coresTabela(TIMES.slice(0, 2), {}).length, 1);
+    eq(C.coresTabela(TIMES.slice(0, 1), {}).length, 0);
+    eq(C.coresTabela([], {}).length, 0);
+  });
+  await t('"pular" nao recria confronto que ja existe (nas duas ordens)', () => {
+    const j = C.coresTabela(TIMES, { pular: [['c_azul', 'c_preto'], ['c_cinza', 'c_branco']] });
+    eq(j.length, 8);
+    j.forEach(g => {
+      ok_(par(g) !== 'c_azul|c_preto', 'recriou azul x preto');
+      ok_(par(g) !== 'c_branco|c_cinza', 'recriou branco x cinza');
+    });
+  });
+  await t('6 equipes: 15 jogos, 5 rodadas de 3', () => {
+    const seis = TIMES.concat([{ id: 'c_verde', n: 'VERDE' }]);
+    const j = C.coresTabela(seis, {});
+    eq(j.length, 15);
+    eq(j[j.length - 1].rodada, 5);
+  });
+  await t('a tabela alterna o lado A/B (ninguem sempre do mesmo lado)', () => {
+    const j = C.coresTabela(TIMES, {}), esq = {}, dir = {};
+    j.forEach(g => { esq[g.a] = (esq[g.a] || 0) + 1; dir[g.b] = (dir[g.b] || 0) + 1; });
+    CORES.forEach(id => ok_((esq[id] || 0) >= 1 && (dir[id] || 0) >= 1, id + ' ficou sempre do mesmo lado'));
+  });
+
+  /* ---------------- tela do Admin ---------------- */
+  console.log('\n== admin, na tela ==');
+
+  const fakeDB = {}, listeners = [];
+  const parts = p => p.split('/').filter(Boolean);
+  const getAt = p => { let c = fakeDB; for (const k of parts(p)) { if (c == null) return null; c = c[k]; } return c === undefined ? null : c; };
+  function setAt(p, v) {
+    const a = parts(p); let c = fakeDB;
+    for (let i = 0; i < a.length - 1; i++) { if (c[a[i]] == null || typeof c[a[i]] !== 'object') c[a[i]] = {}; c = c[a[i]]; }
+    if (v === null) delete c[a[a.length - 1]]; else c[a[a.length - 1]] = JSON.parse(JSON.stringify(v));
+    listeners.slice().forEach(l => { try { l.cb({ val: () => getAt(l.path) }); } catch (e) { } });
+  }
+  const makeRef = p => ({
+    on(e, cb) { listeners.push({ path: p, cb }); cb({ val: () => getAt(p) }); },
+    off() { },
+    once() { return Promise.resolve({ val: () => getAt(p) }); },
+    set(v) { setAt(p, v); return Promise.resolve(); },
+    remove() { setAt(p, null); return Promise.resolve(); },
+    push(v) { const k = '-k' + Object.keys(getAt(p) || {}).length; setAt(p + '/' + k, v); return Promise.resolve({ key: k }); }
+  });
+  const teams = {};
+  TIMES.forEach(x => teams[x.id] = x);
+  fakeDB['torneio-cores'] = { config: { nome: 'Mini Minis - Cores', emQuadra: 4 }, teams: teams, games: {} };
+
+  const html = fs.readFileSync('cores.html', 'utf8')
+    .replace(/<script src="https:\/\/www\.gstatic\.com\/firebasejs[^"]*"><\/script>/g, '')
+    .replace(/<script src="cores-core\.js[^"]*"><\/script>/, '<script>' + fs.readFileSync('cores-core.js', 'utf8') + '</script>')
+    .replace('firebase.initializeApp(fc);', 'var firebase=window.fbm; firebase.initializeApp(fc);');
+
+  let CONFIRMOU = true;
+  const dom = new JSDOM(html, {
+    url: 'http://localhost/cores.html?v=admin', runScripts: 'dangerously', pretendToBeVisual: true,
+    beforeParse(w) {
+      w.fbm = { initializeApp() { }, database: () => ({ ref: makeRef }) };
+      w.confirm = () => CONFIRMOU; w.alert = () => { }; w.scrollTo = () => { };
+    }
+  });
+  const w = dom.window;
+  const wait = ms => new Promise(r => setTimeout(r, ms || 40));
+  const tela = () => (w.document.querySelector('#app') || w.document.body).textContent.replace(/\s+/g, ' ');
+  const botao = s => Array.from(w.document.querySelectorAll('button')).find(b => b.textContent.replace(/\s+/g, ' ').indexOf(s) >= 0);
+  const jogos = () => Object.values(getAt('torneio-cores/games') || {});
+  await wait();
+
+  await t('a secao TABELA aparece no admin', () => {
+    ok_(w.document.querySelector('.tabprev'), 'sem previa na tela');
+    ok_(tela().indexOf('todos contra todos') >= 0, 'sem o subtitulo');
+  });
+  await t('a tela diz 10 jogos, 5 rodadas, 4 por equipe', () => {
+    const r = w.document.querySelector('.tabres').textContent.replace(/\s+/g, ' ');
+    ok_(/10 jogos/.test(r), 'nao diz 10 jogos: ' + r);
+    ok_(/5 rodadas/.test(r), 'nao diz 5 rodadas: ' + r);
+    ok_(/4 jogos por equipe/.test(r), 'nao diz 4 por equipe: ' + r);
+  });
+  await t('a previa mostra 5 rodadas com 10 confrontos e as folgas', () => {
+    eq(w.document.querySelectorAll('.tabrod').length, 5);
+    eq(w.document.querySelectorAll('.tabjg').length, 10);
+    eq(Array.from(w.document.querySelectorAll('.tabrod')).filter(e => /folga:/.test(e.textContent)).length, 5);
+  });
+  await t('o botao diz quantos jogos vai criar', () => {
+    ok_(botao('Gerar tabela — 10 jogos'), 'botao: ' + ((botao('Gerar tabela') || {}).textContent || 'nenhum'));
+  });
+  await t('trocar para 2 turnos recalcula a previa na hora', () => {
+    w.setTab('tn', '2');
+    ok_(/20 jogos/.test(w.document.querySelector('.tabres').textContent), 'nao virou 20');
+    eq(w.document.querySelectorAll('.tabjg').length, 20);
+    ok_(botao('Gerar tabela — 20 jogos'), 'botao nao acompanhou');
+    w.setTab('tn', '1');
+  });
+  await t('clicar em Gerar cria os 10 jogos no banco', async () => {
+    eq(jogos().length, 0, 'comecou sujo');
+    botao('Gerar tabela').click(); await wait();
+    eq(jogos().length, 10);
+  });
+  await t('os jogos gravados sao todos contra todos, agendados e sem horario', () => {
+    const g = jogos(), vis = {};
+    g.forEach(x => { vis[par(x)] = (vis[par(x)] || 0) + 1; eq(x.st, 'agendada'); eq(x.tm, ''); eq(x.fase, 'class'); ok_(x.dt, 'sem data'); });
+    eq(Object.keys(vis).length, 10);
+    Object.keys(vis).forEach(k => eq(vis[k], 1, k));
+  });
+  await t('o mural mostra os 10 jogos NA ORDEM da tabela', async () => {
+    w.go('home'); await wait();
+    const cards = Array.from(w.document.querySelectorAll('.gcard'));
+    eq(cards.length, 10);
+    const naTela = cards.map(c => Array.from(c.querySelectorAll('.gc-nm')).map(e => e.textContent.trim()).join(' x '));
+    const esperado = jogos().slice().sort((a, b) => a.id < b.id ? -1 : 1).map(g => teams[g.a].n + ' x ' + teams[g.b].n);
+    eq(naTela, esperado, 'o mural tem que seguir a ordem gerada — o proximo jogo fica no topo');
+    w.go('admin'); await wait();
+  });
+  await t('gerar de novo nao duplica nada', () => {
+    ok_(!botao('Gerar tabela — '), 'ainda oferece criar jogo repetido');
+    ok_(botao('Tudo já criado'), 'devia dizer que ja esta tudo criado');
+    ok_(tela().indexOf('Já existem') >= 0, 'sem aviso de jogos existentes');
+    eq(jogos().length, 10);
+  });
+  await t('apagar a tabela remove os 10 agendados', async () => {
+    botao('Apagar e refazer').click(); await wait();
+    eq(jogos().length, 0);
+  });
+  await t('jogo com dado marcado NAO e apagado', async () => {
+    botao('Gerar tabela').click(); await wait();
+    const alvo = jogos()[0], outro = jogos()[1];
+    setAt('torneio-cores/events/' + alvo.id + '/-e1', { t: 'act', tid: alvo.a, r: 0 });
+    setAt('torneio-cores/games/' + outro.id + '/st', 'finalizada');
+    await wait();
+    botao('Apagar e refazer').click(); await wait();
+    eq(jogos().length, 2, 'devia sobrar o com evento e o finalizado');
+    ok_(jogos().some(g => g.id === alvo.id), 'apagou jogo com dado marcado');
+  });
+  await t('depois de apagar, a tabela recria so os 8 que faltam', async () => {
+    ok_(botao('Gerar tabela — 8 jogos'), 'botao: ' + ((botao('Gerar tabela') || {}).textContent || 'nenhum'));
+    eq(w.document.querySelectorAll('.tabjg.ja').length, 2, 'os 2 existentes deviam aparecer como "ja criado"');
+    botao('Gerar tabela').click(); await wait();
+    eq(jogos().length, 10);
+    const vis = {};
+    jogos().forEach(x => vis[par(x)] = (vis[par(x)] || 0) + 1);
+    eq(Object.keys(vis).length, 10, 'nao fechou todos contra todos');
+    Object.keys(vis).forEach(k => eq(vis[k], 1, 'confronto duplicado: ' + k));
+  });
+  await t('cancelar no confirm nao grava nada', async () => {
+    jogos().forEach(g => setAt('torneio-cores/games/' + g.id, null));
+    setAt('torneio-cores/events', null);
+    await wait();
+    CONFIRMOU = false;
+    botao('Gerar tabela').click(); await wait();
+    eq(jogos().length, 0);
+    CONFIRMOU = true;
+  });
+
+  console.log('\n' + (fail ? '✗ ' + fail + ' FALHA(S) · ' : '✓ TUDO VERDE · ') + ok + ' checagens');
+  process.exit(fail ? 1 : 0);
+})();

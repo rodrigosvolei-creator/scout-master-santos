@@ -11,7 +11,7 @@ const FECHADA = /var EM_OBRAS=true/.test(html);
 
 const mod = html
   .replace(/<script src="https:\/\/www\.gstatic\.com\/firebasejs[^"]*"><\/script>/g, '')
-  .replace('<script src="cores-core.js"></script>', '<script>' + core + '</script>')
+  .replace(/<script src="cores-core\.js[^"]*"><\/script>/, '<script>' + core + '</script>')
   .replace('firebase.initializeApp(fc);', 'var firebase=window.fbm; firebase.initializeApp(fc);');
 
 const db = { 'torneio-cores': { config: { nome: 'Mini Minis - Cores' }, teams: {}, games: {} } };

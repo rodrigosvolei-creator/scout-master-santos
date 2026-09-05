@@ -46,7 +46,7 @@ const html = fs.readFileSync('cores.html', 'utf8');
 const core = fs.readFileSync('cores-core.js', 'utf8');
 const mod = html
   .replace(/<script src="https:\/\/www\.gstatic\.com\/firebasejs[^"]*"><\/script>/g, '')
-  .replace('<script src="cores-core.js"></script>', '<script>' + core + '</script>')
+  .replace(/<script src="cores-core\.js[^"]*"><\/script>/, '<script>' + core + '</script>')
   .replace('firebase.initializeApp(fc);', 'var firebase=window.fbm; firebase.initializeApp(fc);');
 
 function abrir(qs) {

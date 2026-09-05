@@ -67,7 +67,7 @@ function ref(p){return{on:function(e,cb){LS.push({path:p,cb:cb});cb({val:functio
 window.firebase={initializeApp:function(){},database:function(){return {ref:ref};}};})();<\/script>`;
 const out=html
   .replace(/<script src="https:\/\/www\.gstatic\.com\/firebasejs[^"]*"><\/script>\s*/g,'')
-  .replace('<script src="cores-core.js"></script>','<script>'+core+'</script>')
+  .replace(/<script src="cores-core\.js[^"]*"><\/script>/,'<script>'+core+'</script>')
   .replace('var EM_OBRAS=true;','var EM_OBRAS=false;')
   .replace('</head>',SHIM+'</head>');
 fs.writeFileSync(path.join(__dirname,'cores-oficial.html'),out);

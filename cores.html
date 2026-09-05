@@ -176,6 +176,20 @@ h2.sec{font-family:var(--ui);font-weight:800;font-size:20px;letter-spacing:.02em
 .pickteam-cor{display:block;width:64px;height:8px;border-radius:99px;
   box-shadow:0 0 0 1px color-mix(in srgb,var(--fg) 22%,transparent)}
 
+/* ---- previa da tabela (admin) ----
+   Lista simples, sem contorno por jogo: o ponto de cor ja identifica a equipe e
+   o nome esta escrito ao lado. */
+.tabres{margin-top:13px;font-size:14px;line-height:1.6}
+.tabres b{font-family:var(--num);font-size:26px;letter-spacing:1px;vertical-align:-2px;margin-right:2px}
+.tabprev{margin-top:14px;border-top:1px solid var(--linha);padding-top:12px}
+.tabrod{font-size:10px;font-weight:800;letter-spacing:1.4px;color:var(--mute);margin:14px 0 7px}
+.tabprev>.tabrod:first-child{margin-top:0}
+.tabjg{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:10px;
+  background:var(--surf);margin-bottom:5px;font-size:14px}
+.tabjg b{font-weight:700}
+.tabjg.ja{opacity:.45}
+.tabja{margin-left:auto;font-size:10px;font-weight:800;letter-spacing:1.1px;color:var(--mute)}
+
 /* ---- mural de jogos ---- */
 .gcard{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--brd);
   border-radius:14px;padding:14px 16px;margin-bottom:10px;transition:.13s}
@@ -549,7 +563,7 @@ body.claro.telao::before{opacity:.03}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js"></script>
+<script src="cores-core.js?v=2026-09-05b"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -590,7 +604,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-05a";
+var CORES_BUILD="2026-09-05b";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -721,11 +735,20 @@ function render(){
   h+=rHeader();
   h+='<div class="wrap">';
   if(_writeErr)h+='<div class="banner err"><b>Sem permissão de escrita no Firebase.</b> O nó <code>/torneio-cores</code> precisa das regras — cole o conteúdo de <code>firebase-rules-cores.json</code> no console do Firebase (Realtime Database › Regras). Até lá dá pra ver, mas não dá pra marcar.</div>';
-  if(VIEW==="admin")h+=rAdmin();
-  else if(VIEW==="mesa")h+=rMesa();
-  else if(VIEW==="class")h+=rClass();
-  else if(VIEW==="rel")h+=rRelatorio();
-  else h+=rHome();
+  /* Se uma secao quebrar, a tela mostra o erro em vez de congelar no
+     estado anterior (foi o que aconteceu quando o navegador serviu um
+     cores-core.js velho: render() morria e a pagina ficava parada, sem pista). */
+  try{
+    if(VIEW==="admin")h+=rAdmin();
+    else if(VIEW==="mesa")h+=rMesa();
+    else if(VIEW==="class")h+=rClass();
+    else if(VIEW==="rel")h+=rRelatorio();
+    else h+=rHome();
+  }catch(e){
+    h+='<div class="banner err"><b>Erro ao montar esta tela.</b> '+esc((e&&e.message)||e)
+      +' — recarregue segurando Shift (Ctrl+Shift+R). Nada do que ja foi marcado se perde.</div>';
+    if(typeof console!=="undefined")console.error(e);
+  }
   h+='</div>';
   document.getElementById("app").innerHTML=h;
 }
@@ -1547,6 +1570,8 @@ function rAdmin(){
     h+='</div>';
   });
 
+  h+=rAdminTabela(ts);
+
   /* jogos */
   h+='<h2 class="sec">JOGOS</h2>';
   if(ts.length<2)h+='<div class="banner inf">Crie pelo menos 2 equipes para montar jogos.</div>';
@@ -1721,6 +1746,109 @@ function delPlayer(tid,jid){
   var ps=playersOf(t).filter(function(p){return p.id!==jid;});
   writeNode("teams/"+tid+"/players",ps);
 }
+/* ---------------- MOTOR DE TABELA (admin) ----------------
+   Gera a classificatoria inteira de uma vez, todos contra todos. Sem horario:
+   o horario e definido na hora, conforme quem ja chegou — por isso a tabela sai
+   em RODADAS, e dentro da rodada ninguem joga dois jogos seguidos. */
+var TABTURNOS=1, TABDT=null;
+function setTab(campo,v){ if(campo==="tn")TABTURNOS=(+v===2?2:1); else TABDT=v; render(); }
+function _tabClassGames(){ return gamesArr().filter(function(g){return coresFase(g)==="class";}); }
+function _tabPular(gs){ return gs.map(function(g){return [g.a,g.b];}); }
+function _tabTemPar(gs,a,b){
+  for(var i=0;i<gs.length;i++){ if((gs[i].a===a&&gs[i].b===b)||(gs[i].a===b&&gs[i].b===a))return true; }
+  return false;
+}
+function _tabApagaveis(gs){
+  return gs.filter(function(g){
+    return g.st!=="finalizada" && g.st!=="ao_vivo" && !(D.events&&D.events[g.id]);
+  });
+}
+
+function rAdminTabela(ts){
+  if(ts.length<2)return "";
+  if(TABDT===null)TABDT=(new Date()).toISOString().slice(0,10);
+  var jaGs=_tabClassGames();
+  var cheia=coresTabela(ts,{turnos:TABTURNOS,prefixo:"p"});
+  var novos=coresTabela(ts,{turnos:TABTURNOS,prefixo:"p",pular:_tabPular(jaGs)});
+  var folgas=coresFolgas(ts,cheia);
+  var nrod=cheia.length?cheia[cheia.length-1].rodada:0;
+  var porEq=(ts.length-1)*TABTURNOS;
+
+  var h='<h2 class="sec">TABELA<span class="sec-sub">todos contra todos</span></h2>';
+  h+='<div class="card">';
+  h+='<div class="row" style="align-items:flex-end">';
+  h+='<div class="fld" style="flex:1;min-width:230px"><span>FORMATO</span><select onchange="setTab(\'tn\',this.value)">'
+    +'<option value="1"'+(TABTURNOS===1?" selected":"")+'>1 turno — cada dupla joga uma vez</option>'
+    +'<option value="2"'+(TABTURNOS===2?" selected":"")+'>2 turnos — ida e volta</option></select></div>';
+  h+='<div class="fld"><span>DATA</span><input type="date" value="'+esc(TABDT)+'" onchange="setTab(\'dt\',this.value)"></div>';
+  h+='<button class="btn pri" style="align-self:flex-end"'+(novos.length?' onclick="gerarTabela()"':' disabled')+'>'
+    +(novos.length?'Gerar tabela — '+novos.length+' jogo'+(novos.length===1?'':'s'):'Tudo já criado')+'</button>';
+  if(_tabApagaveis(jaGs).length)
+    h+='<button class="btn dgr" style="align-self:flex-end" onclick="apagarTabela()">Apagar e refazer</button>';
+  h+='</div>';
+
+  h+='<div class="tabres"><b>'+cheia.length+'</b> jogo'+(cheia.length===1?'':'s')+' na classificatória · '
+    +nrod+' rodada'+(nrod===1?'':'s')+' · '+porEq+' jogo'+(porEq===1?'':'s')+' por equipe · sem horário definido</div>';
+
+  if(jaGs.length){
+    var repetidos=cheia.length-novos.length;
+    h+='<div class="banner inf">Já existem <b>'+jaGs.length+'</b> jogo(s) da classificatória. '
+      +(repetidos? 'Os '+repetidos+' confronto(s) que já estão criados são pulados' : 'Nenhum deles bate com a tabela abaixo')
+      +' — nada do que já foi marcado se perde.</div>';
+  }
+
+  h+='<div class="tabprev">';
+  var rAtual=-1;
+  cheia.forEach(function(g){
+    if(g.rodada!==rAtual){
+      rAtual=g.rodada;
+      var f=null; for(var k=0;k<folgas.length;k++)if(folgas[k].rodada===rAtual)f=folgas[k];
+      h+='<div class="tabrod">RODADA '+rAtual+(TABTURNOS===2?' <span class="faint">· '+(g.turno===1?'ida':'volta')+'</span>':'')
+        +(f&&f.folga.length?' <span class="faint">· folga: '+f.folga.map(function(t){return esc(t.n);}).join(", ")+'</span>':'')+'</div>';
+    }
+    var a=tF(g.a),b=tF(g.b);
+    var existe=_tabTemPar(jaGs,g.a,g.b);
+    h+='<div class="tabjg'+(existe?" ja":"")+'">';
+    h+='<span class="dot" style="background:'+esc(a?a.cor:"#64748b")+'"></span><b>'+esc(a?a.n:"?")+'</b>';
+    h+='<span class="faint">×</span>';
+    h+='<span class="dot" style="background:'+esc(b?b.cor:"#64748b")+'"></span><b>'+esc(b?b.n:"?")+'</b>';
+    if(existe)h+='<span class="tabja">já criado</span>';
+    h+='</div>';
+  });
+  h+='</div>';
+  h+='<div class="faint" style="font-size:11px;margin-top:12px;line-height:1.6">A rodada é só a ordem sugerida: dá para puxar qualquer jogo para frente se uma equipe não estiver completa. O horário fica em branco e pode ser preenchido jogo a jogo.</div>';
+  h+='</div>';
+  return h;
+}
+
+function gerarTabela(){
+  var ts=teamsArr();
+  if(ts.length<2){toast("Crie pelo menos 2 equipes","err");return;}
+  var jaGs=_tabClassGames();
+  var jogos=coresTabela(ts,{turnos:TABTURNOS,dt:TABDT||"",
+    prefixo:"t"+Date.now().toString(36),pular:_tabPular(jaGs)});
+  if(!jogos.length){toast("Todos os confrontos já estão criados","err");return;}
+  if(!confirm("Criar "+jogos.length+" jogo(s) da classificatória?"
+    +(jaGs.length?" Os "+jaGs.length+" jogo(s) que já existem continuam como estão.":"")))return;
+  var falta=jogos.length;
+  jogos.forEach(function(g){
+    writeNode("games/"+g.id,g).then(function(){
+      falta--; if(falta===0)toast(jogos.length+" jogos criados","ok");
+    });
+  });
+}
+
+function apagarTabela(){
+  var jaGs=_tabClassGames();
+  var podem=_tabApagaveis(jaGs);
+  var ficam=jaGs.length-podem.length;
+  if(!podem.length){toast("Nenhum jogo pode ser apagado — todos já têm dados","err");return;}
+  if(!confirm("Apagar "+podem.length+" jogo(s) agendado(s) da classificatória?"
+    +(ficam?" Os "+ficam+" que já têm dados ficam.":"")))return;
+  podem.forEach(function(g){ db.ref(ROOT+"/games/"+g.id).remove().catch(onWriteErr); });
+  toast(podem.length+" jogo(s) apagado(s)","ok");
+}
+
 function novoJogo(){
   var a=val("ng-a"),b=val("ng-b");
   if(!a||!b||a===b){toast("Escolha duas equipes diferentes","err");return;}

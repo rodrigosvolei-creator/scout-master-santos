@@ -5,7 +5,7 @@ const fs=require('fs');const {JSDOM}=require('jsdom');
 const html=fs.readFileSync('cores.html','utf8');
 const core=fs.readFileSync('cores-core.js','utf8');
 const mod=html.replace(/<script src="https:\/\/www\.gstatic\.com\/firebasejs[^"]*"><\/script>/g,'')
- .replace('<script src="cores-core.js"></script>','<script>'+core+'</script>')
+ .replace(/<script src="cores-core\.js[^"]*"><\/script>/,'<script>'+core+'</script>')
  .replace('firebase.initializeApp(fc);','var firebase=window.fbm; firebase.initializeApp(fc);');
 const db={'torneio-cores':{config:{nome:'T',setPoints:21,vantagem:2,emQuadra:4},
  teams:{t1:{id:'t1',n:'AZUL',cor:'#00f',ordem:0,players:[{id:'a1',nm:'ANA'},{id:'a2',nm:'BIA'},{id:'a3',nm:'CAU'},{id:'a4',nm:'DU'}]},
@@ -32,21 +32,33 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms||60));
 let ok=0,fail=0;
 const t=(n,c,x)=>{if(c){ok++;console.log('  ✓ '+n);}else{fail++;console.log('  ✗ '+n+(x?'\n      '+x:''));}};
 (async()=>{
-  console.log('\n== 1) sair do EM OBRAS e voltar ==');
-  const w1=abrir('?dev=rs2026',false); await wait(120);
-  t('entrou com a chave', !!w1.document.querySelector('.hd-nav'));
-  const selo=w1.document.querySelector('.hd-obras');
-  t('o selo EM OBRAS esta no topo', !!selo);
-  confirmou=null; selo.click(); await wait(80);
-  t('clicar PEDE confirmacao', confirmou!==null, 'sairia sem avisar');
-  t('o aviso explica como voltar', /dev=rs2026/.test(confirmou||''), confirmou||'');
-  t('recusando, CONTINUA no app', w1.localStorage.getItem('cores_dev')==='1' && !!w1.document.querySelector('.hd-nav'));
+  /* A parte 1 so faz sentido com a pagina fechada. Hoje ela esta ABERTA
+     (EM_OBRAS=false) — entao esta secao confere o cenario oposto: ninguem
+     precisa de chave e nao ha selo nenhum. */
+  const FECHADA=/var EM_OBRAS=true/.test(html);
+  console.log('\n== 1) trava de publico (pagina '+(FECHADA?'FECHADA':'ABERTA')+') ==');
+  if(FECHADA){
+    const w1=abrir('?dev=rs2026',false); await wait(120);
+    t('entrou com a chave', !!w1.document.querySelector('.hd-nav'));
+    const selo=w1.document.querySelector('.hd-obras');
+    t('o selo EM OBRAS esta no topo', !!selo);
+    confirmou=null; selo.click(); await wait(80);
+    t('clicar PEDE confirmacao', confirmou!==null, 'sairia sem avisar');
+    t('o aviso explica como voltar', /dev=rs2026/.test(confirmou||''), confirmou||'');
+    t('recusando, CONTINUA no app', w1.localStorage.getItem('cores_dev')==='1' && !!w1.document.querySelector('.hd-nav'));
+    const w2=abrir('?dev=rs2026',true); await wait(120);
+    w2.document.querySelector('.hd-obras').click(); await wait(80);
+    t('confirmando, o aparelho volta a ser publico', w2.localStorage.getItem('cores_dev')===null);
+    const w3=abrir('?dev=rs2026',true); await wait(120);
+    t('e da para entrar de novo com a chave', !!w3.document.querySelector('.hd-nav') && w3.localStorage.getItem('cores_dev')==='1');
+  }else{
+    const w1=abrir('?',true); await wait(120);
+    t('o publico entra sem chave', !!w1.document.querySelector('.hd-nav'));
+    t('nao ha selo EM OBRAS no topo', !w1.document.querySelector('.hd-obras'));
+    const w2=abrir('?v=admin',true); await wait(160);
+    t('o Admin abre sem chave', !!w2.document.getElementById('ng-a'));
+  }
 
-  const w2=abrir('?dev=rs2026',true); await wait(120);
-  w2.document.querySelector('.hd-obras').click(); await wait(80);
-  t('confirmando, o aparelho volta a ser publico', w2.localStorage.getItem('cores_dev')===null);
-  const w3=abrir('?dev=rs2026',true); await wait(120);
-  t('e da para entrar de novo com a chave', !!w3.document.querySelector('.hd-nav') && w3.localStorage.getItem('cores_dev')==='1');
 
   console.log('\n== 2) criar e excluir um jogo ==');
   const A=abrir('?v=admin&dev=rs2026',true); await wait(160);

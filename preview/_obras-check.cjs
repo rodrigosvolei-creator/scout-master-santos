@@ -20,7 +20,7 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms||60));
   let ok=0,fail=0;
   const t=(n,c)=>{ if(c){ok++;console.log('  ✓ '+n);} else {fail++;console.log('  ✗ '+n);} };
   const pub=abrir('?'); await wait();
-  const txtPub=pub.document.body.textContent.replace(/\s+/g,' ');
+  const txtPub=(pub.document.querySelector('#app')||pub.document.body).textContent.replace(/\s+/g,' ');
   console.log('\n== como o PUBLICO ve ==');
   t('mostra "EM CONSTRUÇÃO"', txtPub.includes('EM CONSTRUÇÃO'));
   t('mostra o nome do torneio', txtPub.includes('Mini Minis'));

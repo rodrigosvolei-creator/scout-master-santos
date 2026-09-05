@@ -133,8 +133,8 @@ function clicaTxt(w, sel, s) {
 
   await t('iniciar o jogo mostra os 6 fundamentos', async () => {
     clicaTxt(C, '.cel-x', 'Iniciar jogo'); await wait(80);
-    eq(all(C, '.cel-lin').length, 6, 'os seis fundamentos ficam na tela');
-    eq(all(C, '.cel-b').length, 22, 'todos os botoes de acao');
+    eq(all(C, '.cel-fund').length, 6, 'os seis fundamentos ficam na tela');
+    eq(all(C, '.cel-out').length, 0, 'o resultado so aparece depois de escolher o fundamento');
     eq(all(C, '.cel-p').length, 4, 'os quatro em quadra');
   });
 
@@ -146,8 +146,10 @@ function clicaTxt(w, sel, s) {
   });
 
   await t('marcar um ace sobe o placar e grava o evento certo', async () => {
-    const lin = all(C, '.cel-lin').find(l => /Saque/.test(l.querySelector('.cel-fh').textContent));
-    Array.from(lin.querySelectorAll('.cel-b')).find(b => b.textContent === 'Ace').click();
+    /* atleta -> fundamento -> resultado, como no scout 6x6 */
+    all(C, '.cel-fund').find(b => /Saque/.test(b.textContent)).click(); await wait(60);
+    eq(all(C, '.cel-out').map(b => b.textContent), ['Ace', 'Erro', 'Cont'], 'so os resultados do saque');
+    all(C, '.cel-out').find(b => b.textContent === 'Ace').click();
     await wait(90);
     const ev = Object.values(getAt('torneio-cores/events/j1')).slice(-1)[0];
     eq({ t: ev.t, tid: ev.tid, jid: ev.jid, ak: ev.ak, oc: ev.oc }, { t: 'act', tid: 'tp', jid: 'p1', ak: 'saque', oc: 'Ace' });
@@ -177,7 +179,7 @@ function clicaTxt(w, sel, s) {
     const bs = all(C, '.cel-menu .mb').map(b => b.textContent.replace(/\s+/g, ' ').trim());
     ['+1 PRETO', '−1 PRETO', '+1 AMARELO', '↻ Girar saque', '⇄ Substituir', '✎ Escalação'].forEach(x =>
       ok_(bs.some(b => b.indexOf(x) >= 0), 'faltou "' + x + '" no painel: ' + bs.join(' | ')));
-    ok_(C.document.querySelector('.cel-acoes'), 'o painel nao pode substituir a tela de marcacao');
+    ok_(C.document.querySelector('.cel-funds'), 'o painel nao pode substituir a tela de marcacao');
   });
 
   await t('corrigir placar pelo painel funciona', async () => {
@@ -195,7 +197,7 @@ function clicaTxt(w, sel, s) {
     all(C, '.cel-aviso .cel-pool button')[0].click(); await wait(110);
     const nomes = all(C, '.cel-p .pn').map(e => e.textContent.trim());
     eq(nomes, ['LUIZA', 'VINNY', 'ORELHA', 'KEL'], 'KEL tinha que entrar na posicao 4');
-    eq(all(C, '.cel-lin').length, 6, 'volta para a marcacao depois da troca');
+    eq(all(C, '.cel-fund').length, 6, 'volta para a marcacao depois da troca');
   });
 
   await t('desfazer apaga so a minha ultima acao', async () => {
@@ -214,7 +216,7 @@ function clicaTxt(w, sel, s) {
     }
     ok_(txt(C).indexOf('Set encerrado') >= 0, txt(C).slice(0, 160));
     ok_(all(C, '.cel-x').some(b => /Finalizar jogo/.test(b.textContent)), 'faltou o botao de finalizar');
-    ok_(!C.document.querySelector('.cel-acoes'), 'com o set fechado a grade de acoes sai da tela');
+    ok_(!C.document.querySelector('.cel-funds'), 'com o set fechado a grade de acoes sai da tela');
   });
 
   await t('finalizar joga o resultado na classificacao', async () => {
@@ -242,6 +244,24 @@ function clicaTxt(w, sel, s) {
     ok_(iCel > iBase, 'a regra do celular tem que vir DEPOIS da base, senao nao vale');
   });
 
+  await t('zerar o jogo devolve tudo ao estado de agendado', async () => {
+    /* nasceu de um caso real: as equipes testam o app antes de comecar e nao
+       havia como desfazer sem apagar o jogo e refazer a tabela */
+    setAt('torneio-cores/games/j2/st', 'ao_vivo');
+    setAt('torneio-cores/events/j2/-x1', { t: 'first', tid: 'tp' });
+    setAt('torneio-cores/events/j2/-x2', { t: 'lineup', tid: 'tp', ordem: ['p1','p2','p3','p4'] });
+    const Z = aparelho('?v=mesac&g=j2'); await wait(90);
+    Z.zerarJogo(); await wait(140);
+    eq(getAt('torneio-cores/games/j2/st'), 'agendada');
+    eq(getAt('torneio-cores/events/j2'), null, 'as marcacoes tem que sair junto');
+  });
+  await t('o Admin oferece Zerar so em jogo que ja comecou', async () => {
+    setAt('torneio-cores/games/j2/st', 'ao_vivo'); await wait(40);
+    const A2 = aparelho('?v=admin'); await wait(140);
+    const zerar = all(A2, 'button').filter(b => /Zerar/.test(b.textContent));
+    ok_(zerar.length >= 1, 'faltou o botao Zerar no Admin');
+    ok_(zerar.every(b => /j1|j2/.test(b.getAttribute('onclick') || '')), 'o botao tem que apontar para um jogo');
+  });
   console.log('\n' + (fail ? '✗ ' + fail + ' FALHA(S) · ' : '✓ TUDO VERDE · ') + ok + ' checagens');
   process.exit(fail ? 1 : 0);
 })();

@@ -229,7 +229,19 @@ body.celular #app{height:100dvh}
   display:flex;align-items:center;justify-content:center;padding:2px;min-height:0;
   box-shadow:0 1px 0 rgba(0,0,0,.25)}
 .cel-b:active{transform:translateY(1px)}
-.cel-acoes.trava{opacity:.35;pointer-events:none}
+/* Sem atleta escolhido a grade NAO apaga — so perde um pouco de forca. Antes
+   ficava com opacity .35 e o operador achava que a tela tinha travado. */
+.cel-acoes.semp .cel-b{filter:saturate(.5) brightness(.72)}
+.cel-acoes.trava{opacity:.4;pointer-events:none}
+/* faixa que diz em quem a proxima acao vai cair */
+.cel-quem{flex-shrink:0;display:flex;align-items:center;gap:7px;padding:0 2px;
+  font-size:12px;font-weight:800;letter-spacing:.3px;min-height:20px;line-height:1.1}
+.cel-quem b{font-size:15px;color:var(--fg)}
+.cel-quem .lb{color:var(--faint);font-size:10px;letter-spacing:1.1px}
+.cel-quem.pede{color:var(--acc)}
+.cel-court.pede .cel-p{border-color:color-mix(in srgb,var(--acc) 70%,transparent)}
+@keyframes celPisca{0%,100%{opacity:1}50%{opacity:.55}}
+.cel-quem.pede span.seta{animation:celPisca 1.3s ease-in-out infinite}
 
 /* --- faixa de baixo --- */
 .cel-bot{display:grid;grid-template-columns:1fr 1fr 1fr 46px;gap:5px;flex-shrink:0}
@@ -678,6 +690,36 @@ body.claro.telao::before{opacity:.03}
   .pod{border-color:oklch(from var(--c,#888) clamp(.42,l,.78) c h)}
   .dest{border-top-color:var(--f)}
 }
+
+/* --- miolo em passos, no padrao do scout 6x6 --- */
+.cel-sec{flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:1.1px;
+  color:var(--faint);text-transform:uppercase;padding:2px 2px 0}
+/* Altura confortavel e com teto: deixados livres, os seis botoes esticavam para
+   185px cada e a tela virava um tabuleiro. Quem cresce e o feed, embaixo. */
+.cel-funds{flex:0 0 auto;display:grid;grid-template-columns:repeat(3,1fr);
+  grid-auto-rows:minmax(56px,76px);gap:6px}
+.cel-fund{border:2px solid var(--brd);background:var(--surf);color:var(--fg);border-radius:12px;
+  padding:9px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;font-size:11px;font-weight:800;letter-spacing:.2px;cursor:pointer;line-height:1.1}
+.cel-fund .fi{font-size:20px;line-height:1;
+  filter:drop-shadow(0 0 1px rgba(255,255,255,.9)) drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+.cel-fund.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 30%,transparent);
+  box-shadow:0 4px 14px color-mix(in srgb,var(--c) 35%,transparent)}
+.cel-fund:active{transform:scale(.96)}
+.cel-outs{flex-shrink:0;display:grid;gap:6px}
+.cel-out{border:0;border-radius:12px;color:#fff;font-weight:900;font-size:15px;letter-spacing:.4px;
+  padding:15px 4px;cursor:pointer;text-transform:uppercase;box-shadow:0 4px 14px rgba(0,0,0,.28)}
+.cel-out:active{transform:scale(.95)}
+.cel-feed{flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:4px}
+.cel-fi{display:flex;align-items:center;gap:7px;background:var(--surf);border-radius:9px;
+  padding:6px 9px;font-size:12.5px;min-height:0;flex-shrink:0}
+.cel-fi b{font-weight:800}
+.cel-fi span{color:var(--faint);font-size:11px}
+.cel-fi i{margin-left:auto;font-style:normal;color:#fff;font-weight:800;font-size:11px;
+  padding:2px 8px;border-radius:6px}
+.cel-vazio{color:var(--faint);font-size:12px;padding:6px 2px}
+/* o selo de versao nao pode cair em cima dos botoes no celular */
+body.celular .stamp{display:none}
 
 /* ================= AJUSTES DE TELA PEQUENA =================
    Fica no FIM da folha de proposito: sao regras de mesma especificidade que
@@ -1629,6 +1671,7 @@ var SUBOUT=null;          // atleta que vai sair
 var ESCALACAO_ABERTA=false; // reabrir a escalacao com o jogo ja em andamento
 var _rallyVisto=-1;       // ultimo rally renderizado (para repor a selecao no sacador)
 var CELMENU=false;        // painel de baixo do modo celular
+var CELAK=null;           // fundamento escolhido no modo celular
 var _evRef=null,_evGid=null;
 var _writeErr=false;
 var _loaded={config:0,teams:0,games:0};
@@ -1651,7 +1694,7 @@ function aplicarRota(){
   QS=new URLSearchParams(location.search);
   VIEW=QS.get("v")||"home";
   GID=QS.get("g")||null;
-  SELP=null;SETUP=null;SUBPICK=false;SUBOUT=null;ESCALACAO_ABERTA=false;_rallyVisto=-1;MEUTID=null;CELMENU=false;
+  SELP=null;SETUP=null;SUBPICK=false;SUBOUT=null;ESCALACAO_ABERTA=false;_rallyVisto=-1;MEUTID=null;CELMENU=false;CELAK=null;
   watchEvents();
   render();
 }
@@ -2422,7 +2465,7 @@ function celJogo(g,meu,adv,st,meuSide,A,B){
   var h='';
 
   /* atletas em quadra */
-  h+='<div class="cel-court">';
+  h+='<div class="cel-court'+((!SELP&&!SUBPICK&&!travado)?" pede":"")+'">';
   court.forEach(function(jid,ix){
     var p=pF(meu,jid);
     var saca=st.serve&&st.serve.side===meuSide&&st.serve.jid===jid;
@@ -2435,7 +2478,16 @@ function celJogo(g,meu,adv,st,meuSide,A,B){
   });
   h+='</div>';
 
-  /* miolo */
+  /* Em quem a proxima acao vai cair. Sem esta linha, com a adversaria sacando a
+     tela abria sem ninguem marcado e sem dizer o porque. */
+  if(!travado&&!SUBPICK&&!SUBOUT){
+    var selNm=SELP?pF(meu,SELP):null;
+    h+='<div class="cel-quem'+(selNm?'':' pede')+'">'
+      +(selNm?'<span class="lb">AÇÃO EM</span><b>'+esc(selNm.nm)+'</b>'
+             :'<span class="seta">👆</span>Toque no atleta que fez a jogada')
+      +'</div>';
+  }
+
   if(SUBPICK&&!SUBOUT){
     h+=celAviso('Quem sai?','<div class="txt">Toque no atleta lá em cima.</div>'
       +'<button class="cel-x" onclick="cancelSub()">Cancelar</button>');
@@ -2459,20 +2511,41 @@ function celJogo(g,meu,adv,st,meuSide,A,B){
       '<div class="txt">Comece o jogo para liberar a marcação.</div>'
       +'<button class="cel-x" style="background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-size:15px;padding:0 18px" onclick="iniciarJogo()">▶ Iniciar jogo</button>');
   }else{
-    h+='<div class="cel-acoes'+(SELP?"":" trava")+'">';
+    /* Mesmo caminho do scout 6x6, que o Rodrigo ja conhece: primeiro o
+       FUNDAMENTO (seis botoes grandes com icone), depois so os RESULTADOS
+       daquele fundamento. Poucos botoes por vez em vez de uma parede de 22. */
+    h+='<div class="cel-sec">🎯 Fundamento'+(CELAK?' · '+esc(CORES_ACT[CELAK].l):'')+'</div>';
+    h+='<div class="cel-funds">';
     CORES_FUND.forEach(function(ak){
-      var a=CORES_ACT[ak];
-      h+='<div class="cel-lin">';
-      h+='<div class="cel-fh" style="background:'+CORES_FCOL[ak]+'"><span>'+a.l+'</span></div>';
-      h+='<div class="cel-ops n'+a.o.length+'">';
-      a.o.forEach(function(oc){
-        h+='<button class="cel-b" style="background:'+CORES_OC[oc]+'" onclick="mark(\''+ak+'\',\''+oc+'\')">'+oc+'</button>';
+      var a=CORES_ACT[ak], on=(CELAK===ak);
+      h+='<button class="cel-fund'+(on?" on":"")+'" style="--c:'+CORES_FCOL[ak]+'"'
+        +' onclick="celAk(\''+ak+'\')"><span class="fi">'+a.i+'</span>'+esc(a.l)+'</button>';
+    });
+    h+='</div>';
+
+    if(CELAK){
+      var ops=CORES_ACT[CELAK].o;
+      h+='<div class="cel-sec">✅ Resultado</div>';
+      h+='<div class="cel-outs" style="grid-template-columns:repeat('+ops.length+',1fr)">';
+      ops.forEach(function(oc){
+        h+='<button class="cel-out" style="background:'+CORES_OC[oc]+'" onclick="celMark(\''+oc+'\')">'+oc+'</button>';
       });
-      h+='</div></div>';
+      h+='</div>';
+    }
+
+    /* confirmacao do que ja entrou — e o que da seguranca a quem aponta */
+    h+='<div class="cel-sec">📜 Últimas ações</div><div class="cel-feed">';
+    var ult=(st.pointLog||[]).slice(-40);
+    var evs=(st.events||[]).filter(function(e){return e.t==="act";}).slice(-6).reverse();
+    if(!evs.length)h+='<div class="cel-vazio">nada marcado ainda</div>';
+    evs.forEach(function(e){
+      var t=tF(e.tid), p=t?pF(t,e.jid):null;
+      h+='<div class="cel-fi">'+corHeart(esc(t?t.cor:"#64748b"),'celp')
+        +'<b>'+esc(p?p.nm:(t?t.n:"—"))+'</b><span>'+esc(CORES_ACT[e.ak]?CORES_ACT[e.ak].l:e.ak)+'</span>'
+        +'<i style="background:'+(CORES_OC[e.oc]||"#556070")+'">'+esc(e.oc)+'</i></div>';
     });
     h+='</div>';
   }
-
   /* faixa de baixo */
   h+='<div class="cel-bot">';
   h+='<button class="cel-x nos"'+(travado?" disabled":"")+' onclick="marcarPontoNos()">+ '+esc(meu.n)+'</button>';
@@ -2484,6 +2557,24 @@ function celJogo(g,meu,adv,st,meuSide,A,B){
 }
 
 /* --------- painel de baixo --------- */
+function celAk(ak){ CELAK=(CELAK===ak?null:ak); render(); }
+function celMark(oc){ var ak=CELAK; CELAK=null; mark(ak,oc); }
+/* Zerar: o jogo volta a AGENDADO sem escalacao e sem ponto. Nasceu porque as
+   equipes testam o app antes de comecar e nao havia como desfazer o teste
+   sem apagar o jogo e refazer a tabela. */
+function zerarJogo(gid){
+  gid=gid||GID; var g=D.games[gid]; if(!g){toast("Jogo não encontrado","err");return;}
+  var n=Object.keys(D.events[gid]||{}).length;
+  var A=tF(g.a),B=tF(g.b), nome=(A?A.n:"?")+" × "+(B?B.n:"?");
+  if(!confirm("Zerar "+nome+"?\n\nApaga "+n+" marcação(ões) — escalação, saque e todos os pontos — e o jogo volta a AGENDADO, como se não tivesse começado.\n\nNão dá para desfazer."))return;
+  db.ref(ROOT+"/events/"+gid).remove().catch(function(){});
+  writeNode("games/"+gid+"/st","agendada").then(function(){
+    try{localStorage.removeItem("cores_tid_"+gid);}catch(e){}
+    SELP=null;SETUP=null;SUBPICK=false;SUBOUT=null;ESCALACAO_ABERTA=false;
+    _rallyVisto=-1;MEUTID=null;CELMENU=false;CELAK=null;
+    toast("Jogo zerado — pode começar de novo","ok");render();
+  });
+}
 function celAbrirMenu(){CELMENU=true;render();}
 function celFecharMenu(){CELMENU=false;render();}
 function celTrocarEquipe(){CELMENU=false;trocarEquipe();}
@@ -2509,6 +2600,7 @@ function celMenuHTML(g,st,meu,adv){
   h+='<h4>Jogo</h4><div class="lin2">';
   if(g.st!=="ao_vivo"&&!st.done)h+='<button class="mb pri" onclick="celFecharMenu();iniciarJogo()">▶ Iniciar jogo</button>';
   if(g.st==="ao_vivo")h+='<button class="mb dgr" onclick="celFecharMenu();finalizarJogo()">✓ Finalizar jogo</button>';
+  h+='<button class="mb dgr" onclick="celFecharMenu();zerarJogo()">↺ Zerar jogo</button>';
   h+='<button class="mb" onclick="celTrocarEquipe()">Trocar equipe</button>';
   h+='<button class="mb" onclick="celFecharMenu();go(\'mesa\',\'&g='+g.id+'\')">Abrir no modo grande</button>';
   h+='<button class="mb" onclick="celFecharMenu();go(\'home\')">← Jogos</button>';
@@ -2848,6 +2940,8 @@ function rAdmin(){
     h+='<div class="gc-meta" style="min-width:110px">'+(g.dt?fD(g.dt):"")+(g.tm?" "+esc(g.tm):"")+'</div>';
     h+='<span class="pill '+(g.st==="ao_vivo"?"live":(g.st==="finalizada"?"fim":"age"))+'">'+(g.st==="ao_vivo"?"AO VIVO":(g.st==="finalizada"?"FIM":"AGENDADO"))+'</span>';
     if(a&&b)h+='<button class="btn sm" onclick="go(\'mesa\',\'&g='+g.id+'\')">Mesa</button>';
+    if(g.st!=="agendada"||(D.events[g.id]&&Object.keys(D.events[g.id]).length))
+      h+='<button class="btn sm" onclick="zerarJogo(\''+g.id+'\')" title="Volta o jogo a agendado, sem escalação e sem ponto">↺ Zerar</button>';
     h+='<button class="btn dgr sm" onclick="delJogo(\''+g.id+'\')">Excluir</button>';
     h+='</div>';
   });

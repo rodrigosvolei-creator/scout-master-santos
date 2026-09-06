@@ -420,7 +420,9 @@ t('jogo ao vivo que ja bateu 21 com vantagem entra (o motor detecta o fim)', () 
 t('desempate por saldo quando os pontos empatam', () => {
   const j1 = placar('j1', 'tz', 'tg', 21, 5);    // AZUL +16
   const j2 = placar('j2', 'tv', 'tg', 21, 19);   // VERM +2
-  const S = C.coresStandings([j1.g, j2.g], [AZUL, VERM, VERDE], { j1: j1.ev, j2: j2.ev }, CFG);
+  /* sem bonus: aqui o assunto e o desempate, e o 21x5 daria um ponto extra */
+  const semBonus = Object.assign({}, CFG, { bonusAte: 0, bonusVant: 0 });
+  const S = C.coresStandings([j1.g, j2.g], [AZUL, VERM, VERDE], { j1: j1.ev, j2: j2.ev }, semBonus);
   eq(S[0].n, 'AZUL'); eq(S[1].n, 'VERMELHA');
   eq(S[0].pts, S[1].pts, 'mesmos pontos');
 });

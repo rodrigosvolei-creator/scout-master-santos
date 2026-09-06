@@ -182,7 +182,8 @@ const par = (g) => [g.a, g.b].slice().sort().join('|');
   });
 
   /* ---- o que o Rodrigo pediu: cada set conta sozinho na classificacao ---- */
-  const cfg = { setPoints: 15, vantagem: 2, emQuadra: 4, ptsVitoria: 3, ptsDerrota: 1, dedupeMs: 4000 };
+  const cfg = { setPoints: 15, vantagem: 2, emQuadra: 4, ptsVitoria: 3, ptsDerrota: 1,
+    bonusAte: 10, bonusVit: 1, bonusVant: 1, dedupeMs: 4000 };
   function jogoPronto(id, ta, tb, ptsA, ptsB, extra) {
     /* monta os eventos de um set fechado no placar pedido */
     const ev = {};
@@ -201,8 +202,9 @@ const par = (g) => [g.a, g.b].slice().sort().join('|');
     const s2 = jogoPronto('v2', A, B, 11, 15, { turno: 2, set: 2, sets: 2 });
     const S = C.coresStandings([s1.g, s2.g], TIMES, { v1: s1.ev, v2: s2.ev }, cfg);
     const a = S.find(x => x.tid === A), b = S.find(x => x.tid === B);
-    eq([a.j, a.v, a.d, a.pts], [2, 1, 1, cfg.ptsVitoria + cfg.ptsDerrota], 'equipe A');
-    eq([b.j, b.v, b.d, b.pts], [2, 1, 1, cfg.ptsVitoria + cfg.ptsDerrota], 'equipe B');
+    /* A venceu o set 1 por 15x9 (adversaria abaixo de 10): +1 de bonus */
+    eq([a.j, a.v, a.d, a.bon, a.pts], [2, 1, 1, 1, cfg.ptsVitoria + cfg.ptsDerrota + 1], 'equipe A');
+    eq([b.j, b.v, b.d, b.bon, b.pts], [2, 1, 1, 0, cfg.ptsVitoria + cfg.ptsDerrota], 'equipe B');
     eq(a.pp, 26, 'pontos pro somam os dois sets'); eq(a.pc, 24);
   });
 
@@ -212,8 +214,9 @@ const par = (g) => [g.a, g.b].slice().sort().join('|');
     const s2 = jogoPronto('w2', A, B, 15, 12, { turno: 2, set: 2, sets: 2 });
     const S = C.coresStandings([s1.g, s2.g], TIMES, { w1: s1.ev, w2: s2.ev }, cfg);
     const a = S.find(x => x.tid === A), b = S.find(x => x.tid === B);
-    eq([a.v, a.d, a.pts], [2, 0, 2 * cfg.ptsVitoria]);
-    eq([b.v, b.d, b.pts], [0, 2, 2 * cfg.ptsDerrota]);
+    /* o set 1 saiu 15x9: um bonus para A */
+    eq([a.v, a.d, a.bon, a.pts], [2, 0, 1, 2 * cfg.ptsVitoria + 1]);
+    eq([b.v, b.d, b.bon, b.pts], [0, 2, 0, 2 * cfg.ptsDerrota]);
   });
 
   await t('a ida continua na conta depois da volta', () => {

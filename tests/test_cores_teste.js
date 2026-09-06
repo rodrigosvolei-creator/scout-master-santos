@@ -149,7 +149,8 @@ const txt = w => (w.document.querySelector('#app') || w.document.body).textConte
     /* conferido pelo motor, com os mesmos dados que a tela esta usando */
     const S = R2.coresStandings(R2.gamesArr(), R2.teamsArr(), R2.D.events, R2.D.config);
     const preto = S.find(x => x.tid === 'tp');
-    eq([preto.j, preto.v, preto.pts], [1, 1, 3], 'o PRETO tem que continuar com um jogo so');
+    /* 1 a 0: a adversaria ficou abaixo de 10, entao 3 + 1 de bonus */
+    eq([preto.j, preto.v, preto.pts], [1, 1, 4], 'o PRETO tem que continuar com um jogo so');
     eq(S.reduce((a, x) => a + x.j, 0), 2, 'so o jogo de verdade entra (duas participacoes)');
   });
 

@@ -410,8 +410,10 @@ fakeDB['torneio-cores'] = {
     inc(txt(C), 'CLASSIFICAÇÃO');
     const linhas = all(C, 'table.tb tbody tr').map(tr => Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim()));
     if (linhas[0][1].indexOf('AZUL') < 0) throw new Error('AZUL deveria liderar, veio: ' + JSON.stringify(linhas[0]));
-    eq(linhas[0][linhas[0].length - 1], '3', 'vitoria vale 3');
+    /* a AZUL venceu com a adversaria abaixo de 10, entao leva 3 + 1 de bonus */
+    eq(linhas[0][linhas[0].length - 1], '4', 'vitoria 3 mais o bonus de placar');
     eq(linhas[1][linhas[1].length - 1], '1', 'derrota vale 1');
+    eq(linhas[0][linhas[0].length - 2], '+1', 'a coluna de bonus mostra de onde veio');
   });
   await t('o telao mostra o placar e a classificacao', async () => {
     const T = aparelho('?v=telao'); await wait(120);

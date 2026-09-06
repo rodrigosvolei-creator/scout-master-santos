@@ -148,14 +148,14 @@ fakeDB['torneio-cores'] = {
   console.log('\n== passo 1: qual equipe saca primeiro ==');
   await t('a tela pergunta qual EQUIPE saca (nao qual atleta)', async () => {
     inc(txt(A), 'Qual equipe saca primeiro?');
-    eq(all(A, '.teamchoice').length, 2, 'as duas equipes como opcao');
+    eq(all(A, '.teamchoice:not(.ladoch)').length, 2, 'as duas equipes como opcao');
   });
   await t('nao deixa confirmar enquanto nao escolher', async () => {
     const b = byText(A, 'button', 'Confirmar e começar');
     if (!b || !b.disabled) throw new Error('o botao de confirmar deveria estar travado');
   });
   await t('escolher AZUL marca a opcao nos DOIS aparelhos', async () => {
-    click(A, '.teamchoice', 'AZUL'); await wait();
+    click(A, '.teamchoice:not(.ladoch)', 'AZUL'); await wait();
     inc(txt(A), '✓ definido');
     eq(getAt('torneio-cores/events/j1') && Object.values(getAt('torneio-cores/events/j1'))[0].t, 'first');
   });

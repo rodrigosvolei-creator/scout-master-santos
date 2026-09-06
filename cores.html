@@ -415,6 +415,7 @@ h2.sec .sec-sub::before{content:"· "}
 .step.done .step-n{background:var(--green);color:#fff}
 .step-ok{margin-left:auto;font-size:11px;font-weight:800;color:var(--ok);letter-spacing:.5px}
 .step-hint{font-size:12px;color:var(--mute);line-height:1.55;margin-top:8px}
+.ladoch{flex:1;justify-content:center}
 .teamchoice{display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;padding:13px 18px;
   border-radius:12px;border:2px solid var(--brd);background:var(--surf-2);transition:.13s}
 .teamchoice:hover{background:var(--surf-2h)}
@@ -721,6 +722,14 @@ body.claro.telao::before{opacity:.03}
 /* o selo de versao nao pode cair em cima dos botoes no celular */
 body.celular .stamp{display:none}
 
+/* Lado da quadra: o operador precisa saber para onde olhar, e no set 2 o app
+   inverte sozinho. */
+.ladotag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:1px;
+  padding:2px 7px;border-radius:99px;vertical-align:2px;margin-left:6px;
+  color:var(--mute);border:1px solid var(--brd);background:var(--surf)}
+.cel-pl .nm small.ld{display:inline;font-size:11px;font-weight:800;margin-left:4px;
+  color:var(--mute)}
+
 /* Etiqueta do jogo: VOLTA, SET 1, SET 2. Nao e enfeite — sem ela os vinte
    cards da volta ficam iguais dois a dois e o operador abre o set errado. */
 .rot{display:inline-block;font-size:9px;font-weight:800;letter-spacing:1px;
@@ -778,7 +787,7 @@ body.celular .stamp{display:none}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js?v=2026-09-06a"></script>
+<script src="cores-core.js?v=2026-09-06b"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -819,7 +828,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-06a";
+var CORES_BUILD="2026-09-06b";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -1139,7 +1148,8 @@ function placarHTML(g,A,B,st){
     var sacador=serving&&st.serve.jid?pF(x.t,st.serve.jid):null;
     h+='<div class="mesa-side'+(mine?" mine":"")+(serving?" serving":"")+'" style="--c:'+esc(x.t.cor)+'">';
     h+=corHeart(esc(x.t.cor),'faixa lg');
-    h+='<div class="mesa-id"><div class="nm">'+esc(x.t.n)+'</div>';
+    h+='<div class="mesa-id"><div class="nm">'+esc(x.t.n)
+    +(coresLado(g,x.s)?' <span class="ladotag">'+coresLadoSeta(coresLado(g,x.s))+' '+coresLadoNome(coresLado(g,x.s))+'</span>':'')+'</div>';
     h+='<div class="sub">'+(mine?"VOCÊ MARCA":"outro operador")+'</div>';
     if(serving)h+='<div class="serve-badge">🏐 SACA'+(sacador?" · "+esc(sacador.nm):"")+'</div>';
     h+='</div>';
@@ -1173,8 +1183,21 @@ function rSetup(g,meu,adv,st,meuSide,A,B){
   h+='</div>';
 
   /* passo 2 — ordem de saque posicionada */
+  /* Lado da quadra — some quando ja esta definido para nao virar ruido. */
+  var meuLado=coresLado(g,meuSide);
+  h+='<div class="step'+(meuLado?" done":"")+'">';
+  h+='<div class="step-hd"><span class="step-n">2</span>De que lado a '+esc(meu.n)+' está?'+(meuLado?'<span class="step-ok">✓ '+coresLadoNome(meuLado)+'</span>':'')+'</div>';
+  h+='<div class="row">';
+  ["E","D"].forEach(function(l){
+    h+='<button class="teamchoice ladoch'+(meuLado===l?" on":"")+'" style="--c:'+esc(meu.cor)+'" onclick="setLado(\''+l+'\')">';
+    h+='<span style="font-size:18px">'+coresLadoSeta(l)+'</span>'+coresLadoNome(l)+'</button>';
+  });
+  h+='</div>';
+  h+='<div class="step-hint">Olhando da mesa. No próximo set o app inverte sozinho.</div>';
+  h+='</div>';
+
   h+='<div class="step'+(SETUP.length>=n?" done":"")+'">';
-  h+='<div class="step-hd"><span class="step-n">2</span>Ordem de saque da '+esc(meu.n)+(SETUP.length>=n?'<span class="step-ok">✓ completa</span>':'')+'</div>';
+  h+='<div class="step-hd"><span class="step-n">3</span>Ordem de saque da '+esc(meu.n)+(SETUP.length>=n?'<span class="step-ok">✓ completa</span>':'')+'</div>';
   h+='<div class="step-hint">Toque nos atletas na ordem em que vão sacar. Quem ficar na <b>posição 1</b> começa sacando; depois o rodízio anda sozinho.</div>';
   h+='<div class="slots">';
   for(var i=0;i<n;i++){
@@ -1228,6 +1251,60 @@ function salvarEscalacao(){
     toast("Escalação salva","ok");
   });
 }
+/* ---- LADO DA QUADRA ----
+   Fica no JOGO (games/<id>/ladoA), nao no evento: e do confronto, os dois
+   aparelhos leem o mesmo. Ao definir no set 1, o set seguinte do mesmo
+   confronto ja nasce com o lado TROCADO — que e a regra do jogo. */
+function setLado(ladoDaMinha){
+  var g=D.games[GID]; if(!g||!MEUTID)return;
+  var meuSide=(MEUTID===g.a)?"A":"B";
+  var ladoA=(meuSide==="A")?ladoDaMinha:coresLadoOposto(ladoDaMinha);
+  g.ladoA=ladoA;
+  writeNode("games/"+GID+"/ladoA",ladoA);
+  var prox=coresProximoSet(gamesArr(),g);
+  if(prox&&!prox.ladoA){
+    var inv=coresLadoOposto(ladoA);
+    prox.ladoA=inv;
+    writeNode("games/"+prox.id+"/ladoA",inv);
+    toast("Lado definido — o "+(coresRotulo(prox)||"próximo set")+" já inverte","ok");
+  }
+  render();
+}
+
+/* ---- EMENDA DO SET SEGUINTE ----
+   O operador nao deve "entrar em outro jogo": ao fechar o set 1 ele cai no
+   set 2 com a mesma equipe, a mesma escalacao, o lado ja trocado e o saque
+   invertido (quem recebeu comeca sacando). So falta tocar em Iniciar. */
+function irProximoSet(){
+  var g=D.games[GID]; if(!g){toast("Jogo não encontrado","err");return;}
+  var prox=coresProximoSet(gamesArr(),g);
+  if(!prox){toast("Não há set seguinte para este confronto","err");return;}
+  if(!MEUTID){go(VIEW,"&g="+prox.id);return;}
+  var st=calc(g);
+  var meuSide=(MEUTID===g.a)?"A":"B";
+  var ordem=(st.lineup[meuSide]||[]).slice(0,coresCfg(D.config).emQuadra);
+  var firstTid=(st.firstServeSide==="A")?g.b:g.a;   /* quem recebeu, saca */
+  try{localStorage.setItem("cores_tid_"+prox.id,MEUTID);}catch(e){}
+  var jaLa=coresComputeGame(prox,D.events[prox.id]||null,D.teams,D.config);
+  var passos=[];
+  if(!jaLa.firstServeSide&&st.firstServeSide)passos.push(pushEvent(prox.id,{t:"first",tid:firstTid}));
+  if(ordem.length&&!jaLa.lineupSet[(MEUTID===prox.a)?"A":"B"])
+    passos.push(pushEvent(prox.id,{t:"lineup",tid:MEUTID,ordem:ordem}));
+  Promise.all(passos).then(function(){
+    go(VIEW==="mesac"?"mesac":"mesa","&g="+prox.id);
+  }).catch(function(){ go(VIEW==="mesac"?"mesac":"mesa","&g="+prox.id); });
+}
+
+/* Bloco que oferece a emenda, usado na mesa e no celular. */
+function proximoSetHTML(g,classe){
+  var prox=coresProximoSet(gamesArr(),g);
+  if(!prox)return "";
+  var pronto=(prox.st==="finalizada");
+  return '<button class="'+(classe||"btn pri")+'" onclick="irProximoSet()">'
+    +(pronto?"Ver o "+esc(coresRotulo(prox)||"próximo set"):"▶ Ir para o "+esc(coresRotulo(prox)||"próximo set"))
+    +'</button>';
+}
+
 function reabrirEscalacao(){
   var g=D.games[GID];if(!g)return;
   var st=calc(g),meuSide=(MEUTID===g.a)?"A":"B";
@@ -1257,7 +1334,10 @@ function rMesaJogo(g,meu,adv,st,meuSide,A,B){
     var wt=st.winnerTid?tF(st.winnerTid):null;
     h+='<div class="banner ok"><b>Set encerrado</b> — '+(wt?esc(wt.n)+" venceu por ":"")+st.pts.A+' x '+st.pts.B+'. ';
     h+=(g.st!=="finalizada"?'Confirme para entrar na classificação.':'Jogo finalizado.')+'</div>';
-    if(g.st!=="finalizada")h+='<div class="row" style="margin-bottom:12px"><button class="btn pri" onclick="finalizarJogo()">✓ Finalizar jogo</button><button class="btn" onclick="undoLast()">↩ Desfazer última</button></div>';
+    h+='<div class="row" style="margin-bottom:12px">';
+    if(g.st!=="finalizada")h+='<button class="btn pri" onclick="finalizarJogo()">✓ Finalizar jogo</button><button class="btn" onclick="undoLast()">↩ Desfazer última</button>';
+    else h+=proximoSetHTML(g,"btn pri");
+    h+='</div>';
   }else if(g.st!=="ao_vivo"){
     h+='<div class="banner inf">Escalação pronta. <b>Inicie o jogo</b> para começar a marcar.</div>';
     h+='<div class="row" style="margin-bottom:12px"><button class="btn pri" onclick="iniciarJogo()">▶ Iniciar jogo</button><button class="btn sm" onclick="reabrirEscalacao()">✎ Mudar escalação</button><button class="btn sm" onclick="go(\'home\')">← Jogos</button></div>';
@@ -1536,10 +1616,13 @@ function celTopo(g,A,B,st,mostrarMais){
   var h='<div class="cel-top">';
   h+='<button class="cel-sair" onclick="go(\'home\')" title="Voltar aos jogos">←</button>';
   h+='<div class="cel-pl">';
-  h+='<div class="lado">'+corHeart(esc(A.cor),'celt')+'<div class="nm">'+esc(A.n)+eu(A)+'</div></div>';
+  var ldA=coresLado(g,"A"), ldB=coresLado(g,"B");
+  h+='<div class="lado">'+corHeart(esc(A.cor),'celt')+'<div class="nm">'+esc(A.n)+eu(A)
+    +(ldA?'<small class="ld">'+coresLadoSeta(ldA)+'</small>':'')+'</div></div>';
   h+='<div class="sc">'+st.pts.A+'<i>×</i>'+st.pts.B
     +(coresRotulo(g)?'<span class="rot rot-sc">'+esc(coresRotulo(g))+'</span>':'')+'</div>';
-  h+='<div class="lado dir"><div class="nm" style="text-align:right">'+esc(B.n)+eu(B)+'</div>'+corHeart(esc(B.cor),'celt')+'</div>';
+  h+='<div class="lado dir"><div class="nm" style="text-align:right">'+esc(B.n)+eu(B)
+    +(ldB?'<small class="ld">'+coresLadoSeta(ldB)+'</small>':'')+'</div>'+corHeart(esc(B.cor),'celt')+'</div>';
   h+='</div>';
   if(mostrarMais)h+='<button class="cel-mais" onclick="celAbrirMenu()" title="Mais opções">⋯</button>';
   h+='</div>';
@@ -1601,7 +1684,16 @@ function celSetup(g,meu,adv,st,meuSide,A,B){
   });
   h+='</div>';
 
-  h+='<div class="cel-tit" style="margin-top:4px">2 · Ordem de saque da '+esc(meu.n)+'</div>';
+  var meuLado=coresLado(g,meuSide);
+  h+='<div class="cel-tit" style="margin-top:4px">2 · De que lado a '+esc(meu.n)+' está?</div>';
+  h+='<div class="cel-esc">';
+  ["E","D"].forEach(function(l){
+    h+='<button class="'+(meuLado===l?"on":"")+'" onclick="setLado(\''+l+'\')">'
+      +'<span style="font-size:19px">'+coresLadoSeta(l)+'</span>'+coresLadoNome(l)+'</button>';
+  });
+  h+='</div>';
+
+  h+='<div class="cel-tit" style="margin-top:4px">3 · Ordem de saque da '+esc(meu.n)+'</div>';
   h+='<div class="cel-slots">';
   for(var i=0;i<n;i++){
     var jid=SETUP[i], p=jid?pF(meu,jid):null;
@@ -1680,7 +1772,7 @@ function celJogo(g,meu,adv,st,meuSide,A,B){
       '<div class="txt">'+(wt?esc(wt.n)+' venceu por ':'')+st.pts.A+' × '+st.pts.B+'. Confirme para entrar na classificação.</div>'
       +(g.st!=="finalizada"
         ? '<button class="cel-x" style="background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-size:15px;padding:0 18px" onclick="finalizarJogo()">✓ Finalizar jogo</button>'
-        : '<div class="txt"><b>Jogo finalizado.</b></div>')
+        : (proximoSetHTML(g,'cel-x')||'<div class="txt"><b>Jogo finalizado.</b></div>'))
       +'<button class="cel-x" onclick="undoLast()">↩ Desfazer minha última</button>');
   }else if(g.st!=="ao_vivo"){
     h+=celAviso('Escalação pronta',
@@ -1999,7 +2091,11 @@ function rTelao(){
   if(!A||!B){h+='<div class="tl-main"><div class="empty">equipes não encontradas</div></div></div>';return h;}
   var st=calc(live);
   h+='<div class="tl-main">';
-  [{t:A,s:"A"},{t:B,s:"B"}].forEach(function(x,ix){
+  /* Se o lado esta definido, o telao mostra as equipes na MESMA ordem em que
+     quem esta no ginasio as ve. Sem isso o placar fica espelhado. */
+  var duo=[{t:A,s:"A"},{t:B,s:"B"}];
+  if(coresLado(live,"A")==="D")duo.reverse();
+  duo.forEach(function(x,ix){
     if(ix===1)h+='<div class="tl-x">×</div>';
     var serving=st.serve&&st.serve.side===x.s;
     h+='<div class="tl-team">';

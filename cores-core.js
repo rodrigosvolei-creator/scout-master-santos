@@ -388,6 +388,32 @@ function coresRotulo(g) {
   return p.join(" · ");
 }
 
+/* O jogo seguinte do MESMO confronto: mesmo par, mesmo turno, set + 1.
+   E o que permite emendar o set 2 sem o operador montar tudo de novo. */
+function coresProximoSet(games, g) {
+  if (!g || !g.set) return null;
+  for (var i = 0; i < games.length; i++) {
+    var x = games[i];
+    if (!x || x.id === g.id) continue;
+    if ((x.turno || 1) !== (g.turno || 1)) continue;
+    if ((x.set || 1) !== (g.set || 1) + 1) continue;
+    if ((x.a === g.a && x.b === g.b) || (x.a === g.b && x.b === g.a)) return x;
+  }
+  return null;
+}
+
+/* Lado da quadra. `ladoA` fica no JOGO (nao no evento) porque e do confronto,
+   nao de um operador: os dois aparelhos leem o mesmo. "E" = equipe A na
+   esquerda de quem olha da mesa. */
+function coresLado(g, side) {
+  if (!g || !g.ladoA) return "";
+  var a = (g.ladoA === "D") ? "D" : "E";
+  return (side === "A") ? a : (a === "E" ? "D" : "E");
+}
+function coresLadoOposto(l) { return l === "E" ? "D" : l === "D" ? "E" : ""; }
+function coresLadoNome(l) { return l === "E" ? "ESQUERDA" : (l === "D" ? "DIREITA" : ""); }
+function coresLadoSeta(l) { return l === "E" ? "\u25C0" : (l === "D" ? "\u25B6" : ""); }
+
 function coresFase(g) { return (g && g.fase && CORES_FASES[g.fase]) ? g.fase : "class"; }
 
 /* Vencedor/perdedor de um jogo — so quando ha resultado de verdade. */
@@ -850,7 +876,9 @@ if (typeof module !== "undefined" && module.exports) {
     coresFase: coresFase, coresOutcome: coresOutcome, coresResolveGames: coresResolveGames,
     coresLadoLabel: coresLadoLabel, coresBracket: coresBracket, coresCampeao: coresCampeao,
     coresRodadas: coresRodadas, coresTabela: coresTabela, coresFolgas: coresFolgas,
-    coresRotulo: coresRotulo,
+    coresRotulo: coresRotulo, coresProximoSet: coresProximoSet,
+    coresLado: coresLado, coresLadoOposto: coresLadoOposto,
+    coresLadoNome: coresLadoNome, coresLadoSeta: coresLadoSeta,
     CORES_FUND_ABC: CORES_FUND_ABC, coresEhPonto: coresEhPonto, coresRankings: coresRankings,
     coresComputeGame: coresComputeGame, coresPlayerLine: coresPlayerLine,
     coresStandings: coresStandings, coresOrderGames: coresOrderGames

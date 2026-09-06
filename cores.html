@@ -735,6 +735,16 @@ body.celular .stamp{display:none}
 .gc-set.viva{border-color:rgba(220,38,38,.55);background:rgba(220,38,38,.10)}
 .gc-agora{font-size:9px;font-weight:800;letter-spacing:.8px;color:var(--faint)}
 
+/* Modo teste: tem que gritar. O pior cenario e alguem apontar um jogo de
+   verdade achando que esta treinando, ou o contrario. */
+.cel-teste{flex:0 0 auto;display:flex;align-items:center;padding:0 7px;border-radius:11px;
+  background:#b45309;color:#fff;font-size:9px;font-weight:900;letter-spacing:1px}
+.hd-teste{font-size:9px;font-weight:900;letter-spacing:1.4px;padding:4px 10px;
+  border-radius:99px;background:#b45309;color:#fff;align-self:center;white-space:nowrap}
+.banner.tst{background:rgba(180,83,9,.16);border:1px solid rgba(180,83,9,.5);color:#fbbf77}
+body.claro .banner.tst{color:#7a3e07}
+body.celular .hd-teste{display:none}
+
 /* ---- espaço da mesa no celular ----
    Vale so ate 620px de largura e so na tela de trabalho (body.trabalho).
    Fica no FIM da folha: sao regras de mesma especificidade que as originais
@@ -822,7 +832,7 @@ body.celular .stamp{display:none}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js?v=2026-09-06c"></script>
+<script src="cores-core.js?v=2026-09-06d"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -863,7 +873,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-06c";
+var CORES_BUILD="2026-09-06d";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -872,7 +882,10 @@ var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei
   appId:"1:377829329248:web:92360b7664cd4a2597f605"};
 firebase.initializeApp(fc);
 var db=firebase.database();
-var ROOT="torneio-cores";
+/* Modo teste: mesma pagina, canto proprio do banco. Nada do que for feito
+   aqui aparece no torneio, na classificacao ou no relatorio de verdade. */
+var TESTE=(function(){try{return new URLSearchParams(location.search).get("teste")==="1";}catch(e){return false;}})();
+var ROOT=TESTE?"torneio-cores/_teste":"torneio-cores";
 
 /* ---------- estado ---------- */
 var D={config:{},teams:{},games:{},events:{}};
@@ -902,7 +915,7 @@ function fD(d){if(!d)return"";try{return new Date(d+"T12:00:00").toLocaleDateStr
    estado carregado (recarregar a pagina no meio do torneio e caro e, num
    celular com sinal ruim, demora). */
 function go(v,extra){
-  var u="?v="+v+(extra||"");
+  var u="?v="+v+(extra||"")+(TESTE?"&teste=1":"");
   try{history.pushState({},"",u);}catch(e){location.href=u;return;}
   aplicarRota();
 }
@@ -1007,6 +1020,9 @@ function render(){
   }
   h+=rHeader();
   h+='<div class="wrap">';
+  if(TESTE)h+='<div class="banner tst"><b>MODO TESTE.</b> Este é um espaço separado para treinar o apontamento: '
+    +'os jogos, o placar, a classificação e o relatório daqui <b>não têm nenhuma relação com o torneio</b>. '
+    +'Pode marcar, errar e apagar à vontade.</div>';
   if(_writeErr)h+='<div class="banner err"><b>Sem permissão de escrita no Firebase.</b> O nó <code>/torneio-cores</code> precisa das regras — cole o conteúdo de <code>firebase-rules-cores.json</code> no console do Firebase (Realtime Database › Regras). Até lá dá pra ver, mas não dá pra marcar.</div>';
   /* Se uma secao quebrar, a tela mostra o erro em vez de congelar no
      estado anterior (foi o que aconteceu quando o navegador serviu um
@@ -1054,11 +1070,12 @@ function rHeader(){
   h+='<a href="?" class="'+(VIEW==="home"?"on":"")+'" onclick="event.preventDefault();go(\'home\')">Jogos</a>';
   h+='<a href="?v=class" class="'+(VIEW==="class"?"on":"")+'" onclick="event.preventDefault();go(\'class\')">Classificação</a>';
   h+='<a href="?v=rel" class="'+(VIEW==="rel"?"on":"")+'" onclick="event.preventDefault();go(\'rel\')">Relatório</a>';
-  h+='<a href="?v=telao" target="_blank">Telão</a>';
+  h+='<a href="?v=telao'+(TESTE?"&teste=1":"")+'" target="_blank">Telão</a>';
   /* Manual de quem aponta: pagina propria, abre em outra aba pra nao tirar
      ninguem do jogo no meio da marcacao. */
   h+='<a href="manual/" target="_blank" rel="noopener" title="Passo a passo de como marcar">Manual</a>';
   h+='<a href="?v=admin" class="'+(VIEW==="admin"?"on":"")+'" onclick="event.preventDefault();go(\'admin\')">Admin</a>';
+  if(TESTE)h+='<span class="hd-teste" title="Banco separado: nada daqui entra no torneio">MODO TESTE</span>';
   if(EM_OBRAS)h+='<span class="hd-obras" onclick="obrasSair()" title="A página está fechada ao público. Clique para sair do modo de teste.">EM OBRAS</span>';
   h+='<button class="hd-tema" onclick="trocarTema()" title="'+(TEMA==="claro"?"Mudar para o tema escuro":"Mudar para o tema claro")+'">'+(TEMA==="claro"?"\u{1F319}":"\u2600\uFE0F")+'</button>';
   h+='</div></div></div>';
@@ -1681,6 +1698,7 @@ function celTopo(g,A,B,st,mostrarMais){
     +(ldB?'<small class="ld">'+coresLadoSeta(ldB)+'</small>':'')+'</div>'+corHeart(esc(B.cor),'celt')+'</div>';
   h+='</div>';
   if(mostrarMais)h+='<button class="cel-mais" onclick="celAbrirMenu()" title="Mais opções">⋯</button>';
+  if(TESTE)h=h.replace('<div class="cel-top">','<div class="cel-top"><span class="cel-teste">TESTE</span>');
   h+='</div>';
   return h;
 }

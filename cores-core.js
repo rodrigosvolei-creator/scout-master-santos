@@ -60,6 +60,10 @@ var CORES_CFG_PADRAO = {
   emQuadra: 4,       // 4x4
   ptsVitoria: 3,
   ptsDerrota: 1,
+  /* Bonus da classificacao. bonusAte=0 desliga o primeiro, bonusVant=0 o segundo. */
+  bonusAte: 10,      // adversario ABAIXO disso: quem venceu leva bonusVit a mais
+  bonusVit: 1,
+  bonusVant: 1,      // perdeu indo a vantagem (empate em setPoints-1): leva isso a mais
   dedupeMs: 4000     // janela anti-ponto-duplo entre os 2 operadores (0 = desliga)
 };
 
@@ -753,7 +757,7 @@ function coresStandings(games, teams, evByGame, cfgIn) {
   for (i = 0; i < teams.length; i++) {
     row[teams[i].id] = {
       tid: teams[i].id, n: teams[i].n, cor: teams[i].cor, ordem: teams[i].ordem || i,
-      j: 0, v: 0, d: 0, pp: 0, pc: 0, saldo: 0, pts: 0
+      j: 0, v: 0, d: 0, pp: 0, pc: 0, saldo: 0, pts: 0, bon: 0
     };
   }
   var h2h = {};   // "a|b" -> vitorias de a sobre b
@@ -771,15 +775,28 @@ function coresStandings(games, teams, evByGame, cfgIn) {
     ra.pp += st.pts.A; ra.pc += st.pts.B;
     rb.pp += st.pts.B; rb.pc += st.pts.A;
     var wa = st.pts.A > st.pts.B;
+    var venceu = wa ? ra : rb, perdeu = wa ? rb : ra;
     if (wa) { ra.v++; rb.d++; h2h[g.a + "|" + g.b] = (h2h[g.a + "|" + g.b] || 0) + 1; }
     else { rb.v++; ra.d++; h2h[g.b + "|" + g.a] = (h2h[g.b + "|" + g.a] || 0) + 1; }
+
+    /* Bonus por placar. Os dois se excluem sozinhos: quem fica abaixo de 10 nao
+       chega ao empate da vantagem. */
+    var ptsPerdedor = Math.min(st.pts.A, st.pts.B);
+    if (cfg.bonusAte > 0 && cfg.bonusVit > 0 && ptsPerdedor < cfg.bonusAte) {
+      venceu.bon += cfg.bonusVit;
+    }
+    /* "ficou 14 a 14": o set foi para a vantagem, entao o perdedor chegou a
+       setPoints-1. Vale para qualquer set (21 -> 20). */
+    if (cfg.bonusVant > 0 && ptsPerdedor >= (cfg.setPoints - 1)) {
+      perdeu.bon += cfg.bonusVant;
+    }
   }
 
   var out = [];
   for (var k in row) {
     var r = row[k];
     r.saldo = r.pp - r.pc;
-    r.pts = r.v * cfg.ptsVitoria + r.d * cfg.ptsDerrota;
+    r.pts = r.v * cfg.ptsVitoria + r.d * cfg.ptsDerrota + r.bon;
     out.push(r);
   }
   out.sort(function (x, y) {

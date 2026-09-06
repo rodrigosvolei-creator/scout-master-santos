@@ -675,6 +675,55 @@ t('semifinal em andamento ainda nao define a final', () => {
   eq(r.find(x => x.fase === 'final').a, '');
 });
 
+/* ---- bonus por placar ---- */
+console.log('\n== bonus da classificacao ==');
+const CFGB = Object.assign({}, CFG, { setPoints: 15, bonusAte: 10, bonusVit: 1, bonusVant: 1 });
+function duelo(pa, pb, cfg) {
+  const j = jogo('bx', 'tz', 'tv', pa, pb);
+  const S = C.coresStandings([j.g], Q4, { bx: j.ev }, cfg || CFGB);
+  const a = S.find(x => x.tid === 'tz'), b = S.find(x => x.tid === 'tv');
+  return { a: [a.pts, a.bon], b: [b.pts, b.bon] };
+}
+t('vencer com a adversaria abaixo de 10 vale um ponto a mais', () => {
+  eq(duelo(15, 8), { a: [4, 1], b: [1, 0] });
+  eq(duelo(15, 0), { a: [4, 1], b: [1, 0] }, 'inclui o 15 a 0');
+});
+t('chegar a 10 ja tira o bonus de quem venceu', () => {
+  eq(duelo(15, 9), { a: [4, 1], b: [1, 0] }, '9 ainda da bonus');
+  eq(duelo(15, 10), { a: [3, 0], b: [1, 0] }, '10 nao da');
+  eq(duelo(15, 13), { a: [3, 0], b: [1, 0] });
+});
+t('perder depois de empatar em 14 vale um ponto a mais', () => {
+  eq(duelo(16, 14), { a: [3, 0], b: [2, 1] }, 'o set foi a vantagem');
+  eq(duelo(17, 15), { a: [3, 0], b: [2, 1] }, 'passou por 14 a 14');
+  eq(duelo(15, 14), { a: [3, 0], b: [2, 1] }, '15 a 14 tambem empatou em 14');
+});
+t('os dois bonus nao se acumulam no mesmo jogo', () => {
+  const r = duelo(15, 8);
+  eq(r.a[1] + r.b[1], 1, 'quem fica abaixo de 10 nao chega a vantagem');
+});
+t('o bonus vale dos dois lados da tabela', () => {
+  eq(duelo(8, 15), { a: [1, 0], b: [4, 1] });
+  eq(duelo(14, 16), { a: [2, 1], b: [3, 0] });
+});
+t('bonus desligado deixa a conta como era antes', () => {
+  const sem = Object.assign({}, CFGB, { bonusAte: 0, bonusVant: 0 });
+  eq(duelo(15, 8, sem), { a: [3, 0], b: [1, 0] });
+  eq(duelo(16, 14, sem), { a: [3, 0], b: [1, 0] });
+});
+t('o limite da vantagem acompanha o set (21 -> empate em 20)', () => {
+  const c21 = Object.assign({}, CFGB, { setPoints: 21 });
+  eq(duelo(22, 20, c21), { a: [3, 0], b: [2, 1] });
+  eq(duelo(21, 14, c21), { a: [3, 0], b: [1, 0] }, '14 nao e vantagem num set de 21');
+});
+t('varios jogos somam os bonus', () => {
+  const j1 = jogo('m1', 'tz', 'tv', 15, 5);      // AZUL vence, adv abaixo de 10
+  const j2 = jogo('m2', 'tz', 'tv', 14, 16);     // AZUL perde na vantagem
+  const S = C.coresStandings([j1.g, j2.g], Q4, { m1: j1.ev, m2: j2.ev }, CFGB);
+  const a = S.find(x => x.tid === 'tz');
+  eq([a.j, a.v, a.d, a.bon, a.pts], [2, 1, 1, 2, 6], 'vitoria 3+1 e derrota 1+1');
+});
+
 t('jogo de mata-mata NAO entra na classificacao', () => {
   const fin = jogo('fin', 'tz', 'tv', 21, 5, 'final');
   const antes = C.coresStandings(JGAMES, Q4, JEV, CFG);

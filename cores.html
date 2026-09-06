@@ -828,7 +828,7 @@ body.celular .hd-teste{display:none}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js?v=2026-09-06g"></script>
+<script src="cores-core.js?v=2026-09-06h"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -869,7 +869,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-06g";
+var CORES_BUILD="2026-09-06h";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -1969,7 +1969,9 @@ function rClass(){
   var cfg=coresCfg(D.config);
   var h='<h2 class="sec">CLASSIFICAÇÃO</h2>';
   h+='<div class="card"><div class="tscroll"><table class="tb"><thead><tr>';
-  h+='<th>#</th><th>EQUIPE</th><th>J</th><th>V</th><th>D</th><th>PP</th><th>PC</th><th>SALDO</th><th>PTS</th>';
+  var temBon=S.some(function(r){return r.bon;});
+  h+='<th>#</th><th>EQUIPE</th><th>J</th><th>V</th><th>D</th><th>PP</th><th>PC</th><th>SALDO</th>'
+    +(temBon?'<th title="Pontos de bônus por placar">BÔN</th>':'')+'<th>PTS</th>';
   h+='</tr></thead><tbody>';
   S.forEach(function(r){
     h+='<tr><td class="faint">'+r.pos+'</td>';
@@ -1978,10 +1980,19 @@ function rClass(){
     h+='<td>'+r.j+'</td><td style="color:var(--ok);font-weight:800">'+r.v+'</td><td class="faint">'+r.d+'</td>';
     h+='<td>'+r.pp+'</td><td>'+r.pc+'</td>';
     h+='<td style="color:'+(r.saldo>0?"var(--ok)":(r.saldo<0?"var(--bad)":"var(--mute)"))+'">'+(r.saldo>0?"+":"")+r.saldo+'</td>';
+    if(temBon)h+='<td style="color:'+(r.bon?"var(--acc)":"var(--faint)")+';font-weight:800">'+(r.bon?"+"+r.bon:"—")+'</td>';
     h+='<td style="font-family:\'Bebas Neue\',sans-serif;font-size:20px">'+r.pts+'</td></tr>';
   });
   h+='</tbody></table></div>';
-  h+='<div class="faint" style="font-size:11px;margin-top:12px;line-height:1.6">Vitória = '+cfg.ptsVitoria+' · Derrota = '+cfg.ptsDerrota+' · Set único até '+cfg.setPoints+' com '+cfg.vantagem+' de vantagem.<br>Desempate: pontos › saldo › pontos pró › confronto direto. Só entram jogos <b>encerrados da fase classificatória</b> — semifinal e final não mexem na tabela.</div>';
+  h+='<div class="faint" style="font-size:11px;margin-top:12px;line-height:1.6">Vitória = '+cfg.ptsVitoria+' · Derrota = '+cfg.ptsDerrota+' · Set único até '+cfg.setPoints+' com '+cfg.vantagem+' de vantagem.<br>';
+  if(cfg.bonusAte>0||cfg.bonusVant>0){
+    h+='<b>Bônus:</b> ';
+    var bs=[];
+    if(cfg.bonusAte>0)bs.push('vencer com a adversária abaixo de '+cfg.bonusAte+' pontos vale +'+cfg.bonusVit);
+    if(cfg.bonusVant>0)bs.push('perder depois de empatar em '+(cfg.setPoints-1)+' vale +'+cfg.bonusVant);
+    h+=bs.join(' · ')+'.<br>';
+  }
+  h+='Desempate: pontos › saldo › pontos pró › confronto direto. Só entram jogos <b>encerrados da fase classificatória</b> — semifinal e final não mexem na tabela.</div>';
   h+='</div>';
   h+='<h2 class="sec">RESULTADOS</h2>';
   var fin=coresOrderGames(gamesArr()).filter(function(g){return g.st==="finalizada"||calc(g).done;});
@@ -2230,6 +2241,8 @@ function rAdmin(){
   h+='<div class="fld"><span>EM QUADRA</span><input id="cf-eq" type="number" value="'+cfg.emQuadra+'"></div>';
   h+='<div class="fld"><span>PTS VITÓRIA</span><input id="cf-pv" type="number" value="'+cfg.ptsVitoria+'"></div>';
   h+='<div class="fld"><span>PTS DERROTA</span><input id="cf-pd" type="number" value="'+cfg.ptsDerrota+'"></div>';
+  h+='<div class="fld"><span>BÔNUS: ADV. ABAIXO DE</span><input id="cf-ba" type="number" value="'+cfg.bonusAte+'" title="Venceu e o adversário não chegou a este número de pontos: +1 na classificação. 0 desliga"></div>';
+  h+='<div class="fld"><span>BÔNUS: PERDER NA VANTAGEM</span><input id="cf-bv" type="number" value="'+cfg.bonusVant+'" title="Perdeu depois de empatar em '+(cfg.setPoints-1)+': ganha estes pontos. 0 desliga"></div>';
   h+='<div class="fld"><span>JANELA ANTI-DUPLO (s)</span><input id="cf-dd" type="number" step="0.5" value="'+(cfg.dedupeMs/1000)+'" title="Segundos em que a mesma jogada marcada pelos 2 operadores conta 1 ponto só"></div>';
   h+='<button class="btn pri" style="align-self:flex-end" onclick="salvarConfig()">Salvar</button>';
   h+='</div></div>';
@@ -2404,6 +2417,7 @@ function val(id){var e=document.getElementById(id);return e?e.value:"";}
 function salvarConfig(){
   var c={nome:val("cf-n"),setPoints:+val("cf-sp")||21,vantagem:+val("cf-va"),
     emQuadra:+val("cf-eq")||4,ptsVitoria:+val("cf-pv"),ptsDerrota:+val("cf-pd"),
+    bonusAte:Math.max(0,+val("cf-ba")||0),bonusVit:1,bonusVant:Math.max(0,+val("cf-bv")||0),
     dedupeMs:Math.round((parseFloat(val("cf-dd"))||0)*1000)};
   if(isNaN(c.vantagem))c.vantagem=2;
   writeNode("config",c).then(function(){toast("Configuração salva","ok");});

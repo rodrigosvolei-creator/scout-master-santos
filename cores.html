@@ -721,6 +721,14 @@ body.claro.telao::before{opacity:.03}
 /* o selo de versao nao pode cair em cima dos botoes no celular */
 body.celular .stamp{display:none}
 
+/* Etiqueta do jogo: VOLTA, SET 1, SET 2. Nao e enfeite — sem ela os vinte
+   cards da volta ficam iguais dois a dois e o operador abre o set errado. */
+.rot{display:inline-block;font-size:9px;font-weight:800;letter-spacing:1px;
+  padding:2px 7px;border-radius:99px;vertical-align:1px;
+  color:var(--acc);background:color-mix(in srgb,var(--acc) 15%,transparent);
+  border:1px solid color-mix(in srgb,var(--acc) 34%,transparent)}
+.rot-sc{display:block;margin:2px auto 0;font-size:8px;letter-spacing:.8px;padding:1px 6px}
+
 /* ================= AJUSTES DE TELA PEQUENA =================
    Fica no FIM da folha de proposito: sao regras de mesma especificidade que
    as originais e a ultima e que vale. Colocadas antes, nao pegavam. */
@@ -770,7 +778,7 @@ body.celular .stamp{display:none}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js?v=2026-09-05g"></script>
+<script src="cores-core.js?v=2026-09-06a"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -811,7 +819,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-05g";
+var CORES_BUILD="2026-09-06a";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -1057,8 +1065,11 @@ function gameCard(g){
     return lado==="A"?(faixa+txt):(txt+faixa);
   }
   var live=g.st==="ao_vivo",fim=(g.st==="finalizada");
+  var rot=coresRotulo(g);
   var h='<div class="gcard'+(live?" live":"")+'">';
-  h+='<div class="gc-vs">'+ladoHTML(A,"A",'<div class="gc-meta">'+(g.dt?fD(g.dt):"")+(g.tm?" · "+esc(g.tm):"")+'</div>')+'</div>';
+  h+='<div class="gc-vs">'+ladoHTML(A,"A",'<div class="gc-meta">'
+    +(rot?'<span class="rot">'+esc(rot)+'</span> ':'')
+    +(g.dt?fD(g.dt):"")+(g.tm?" · "+esc(g.tm):"")+'</div>')+'</div>';
   h+='<div class="gc-sc">'+st.pts.A+'<span class="faint" style="font-size:19px"> x </span>'+st.pts.B+'</div>';
   h+='<div class="gc-vs dir">';
   h+=ladoHTML(B,"B",'<div class="gc-meta">'+(live?"em andamento":(fim?"encerrado":"a jogar"))+'</div>');
@@ -1526,7 +1537,8 @@ function celTopo(g,A,B,st,mostrarMais){
   h+='<button class="cel-sair" onclick="go(\'home\')" title="Voltar aos jogos">←</button>';
   h+='<div class="cel-pl">';
   h+='<div class="lado">'+corHeart(esc(A.cor),'celt')+'<div class="nm">'+esc(A.n)+eu(A)+'</div></div>';
-  h+='<div class="sc">'+st.pts.A+'<i>×</i>'+st.pts.B+'</div>';
+  h+='<div class="sc">'+st.pts.A+'<i>×</i>'+st.pts.B
+    +(coresRotulo(g)?'<span class="rot rot-sc">'+esc(coresRotulo(g))+'</span>':'')+'</div>';
   h+='<div class="lado dir"><div class="nm" style="text-align:right">'+esc(B.n)+eu(B)+'</div>'+corHeart(esc(B.cor),'celt')+'</div>';
   h+='</div>';
   if(mostrarMais)h+='<button class="cel-mais" onclick="celAbrirMenu()" title="Mais opções">⋯</button>';
@@ -2020,6 +2032,7 @@ function rTelao(){
     h+='<div style="display:flex;align-items:center;gap:9px;padding:5px 0;font-weight:700">';
     h+=corHeart(esc(a.cor),'dot')+esc(a.n);
     h+='<span class="faint">×</span>'+corHeart(esc(b.cor),'dot')+''+esc(b.n);
+    if(coresRotulo(g))h+='<span class="rot">'+esc(coresRotulo(g))+'</span>';
     h+='<span class="faint" style="margin-left:auto;font-size:11px">'+(g.tm||fD(g.dt))+'</span></div>';
   });
   h+='</div></div></div>';
@@ -2077,6 +2090,7 @@ function rAdmin(){
   });
 
   h+=rAdminTabela(ts);
+  h+=rAdminVolta(ts);
 
   /* jogos */
   h+='<h2 class="sec">JOGOS</h2>';
@@ -2098,6 +2112,7 @@ function rAdmin(){
     var st=calc(g);
     h+='<div class="gcard"><div class="gc-vs">';
     if(coresFase(g)!=="class")h+='<span class="fasetag">'+esc(CORES_FASES[coresFase(g)].l)+'</span>';
+    if(coresRotulo(g))h+='<span class="rot">'+esc(coresRotulo(g))+'</span>';
     h+=''+corHeart(esc(a?a.cor:"#334155"),'dot')+'<b'+(a?'':' class="pend"')+'>'+esc(nomeA)+'</b>';
     h+='<span class="faint">×</span>'+corHeart(esc(b?b.cor:"#334155"),'dot')+'<b'+(b?'':' class="pend"')+'>'+esc(nomeB)+'</b>';
     h+='</div><div class="gc-sc">'+st.pts.A+'-'+st.pts.B+'</div>';
@@ -2327,6 +2342,71 @@ function rAdminTabela(ts){
   h+='<div class="faint" style="font-size:11px;margin-top:12px;line-height:1.6">A rodada é só a ordem sugerida: dá para puxar qualquer jogo para frente se uma equipe não estiver completa. O horário fica em branco e pode ser preenchido jogo a jogo.</div>';
   h+='</div>';
   return h;
+}
+
+/* ---- VOLTA (returno) ----
+   Aparece quando a ida ja existe. Cada SET vira um jogo do app: e assim que
+   "cada set conta como uma vitoria" sai de graca na classificacao, sem mexer
+   no motor de placar. */
+var VOLTASETS=2;
+function setVoltaSets(v){ VOLTASETS=(+v===1?1:2); render(); }
+
+function rAdminVolta(ts){
+  if(ts.length<2)return "";
+  var todos=gamesArr().filter(function(g){return coresFase(g)==="class";});
+  var ida=todos.filter(function(g){return (g.turno||1)===1;});
+  if(ida.length<2)return "";
+  var volta=coresTabela(ts,{turnos:2,soTurno:2,sets:VOLTASETS,dt:(new Date()).toISOString().slice(0,10),prefixo:"p",pular:todos});
+  var jaVolta=todos.filter(function(g){return g.turno===2;}).length;
+  var porEq=(ts.length-1)*VOLTASETS;
+
+  var h='<h2 class="sec">VOLTA<span class="sec-sub">os mesmos confrontos, mando invertido</span></h2>';
+  h+='<div class="card">';
+  h+='<div class="row" style="align-items:flex-end">';
+  h+='<div class="fld" style="flex:1;min-width:220px"><span>SETS POR CONFRONTO</span><select onchange="setVoltaSets(this.value)">'
+    +'<option value="1"'+(VOLTASETS===1?" selected":"")+'>1 set — como foi a ida</option>'
+    +'<option value="2"'+(VOLTASETS===2?" selected":"")+'>2 sets obrigatórios — cada set vale um resultado</option></select></div>';
+  h+='<button class="btn pri" style="align-self:flex-end"'+(volta.length?' onclick="gerarVolta()"':' disabled')+'>'
+    +(volta.length?'Gerar a volta — '+volta.length+' jogo'+(volta.length===1?'':'s'):'Volta já criada')+'</button>';
+  h+='</div>';
+
+  h+='<div class="tabres"><b>'+volta.length+'</b> jogo'+(volta.length===1?'':'s')+' a criar · '
+    +porEq+' por equipe · a ida continua valendo, a classificação só soma</div>';
+  if(jaVolta)h+='<div class="banner inf">Já existem <b>'+jaVolta+'</b> jogo(s) da volta — os que já estão criados são pulados.</div>';
+  if(VOLTASETS===2)h+='<div class="banner inf">Com 2 sets, <b>cada set é um jogo</b> na tabela: quem vencer os dois soma '
+    +(2*coresCfg(D.config).ptsVitoria)+' pontos; 1 a 1 dá '+(coresCfg(D.config).ptsVitoria+coresCfg(D.config).ptsDerrota)+' para cada.</div>';
+
+  if(volta.length){
+    h+='<div class="tabprev">';
+    var rAtual=-1;
+    volta.forEach(function(g){
+      if(g.rodada!==rAtual){rAtual=g.rodada;h+='<div class="tabrod">RODADA '+rAtual+'</div>';}
+      var a=tF(g.a),b=tF(g.b);
+      h+='<div class="tabjg">'+corHeart(esc(a?a.cor:"#64748b"),'dot')+'<b>'+esc(a?a.n:"?")+'</b>'
+        +'<span class="faint">×</span>'+corHeart(esc(b?b.cor:"#64748b"),'dot')+'<b>'+esc(b?b.n:"?")+'</b>'
+        +'<span class="tabja">'+esc(coresRotulo(g))+'</span></div>';
+    });
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function gerarVolta(){
+  var ts=teamsArr();
+  var todos=gamesArr().filter(function(g){return coresFase(g)==="class";});
+  var jogos=coresTabela(ts,{turnos:2,soTurno:2,sets:VOLTASETS,
+    dt:(new Date()).toISOString().slice(0,10),prefixo:"v"+Date.now().toString(36),pular:todos});
+  if(!jogos.length){toast("A volta já está criada","err");return;}
+  if(!confirm("Criar "+jogos.length+" jogo(s) da volta?\n\nSão os mesmos confrontos da ida com o mando invertido"
+    +(VOLTASETS===2?", em 2 sets — e cada set conta sozinho na classificação":"")
+    +".\n\nNada da ida é apagado."))return;
+  var falta=jogos.length;
+  jogos.forEach(function(g){
+    writeNode("games/"+g.id,g).then(function(){
+      falta--; if(falta===0)toast(jogos.length+" jogos da volta criados","ok");
+    });
+  });
 }
 
 function gerarTabela(){

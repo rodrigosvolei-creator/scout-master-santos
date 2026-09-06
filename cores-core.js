@@ -378,6 +378,16 @@ var CORES_FASES = {
   terceiro: { l: "3º lugar",        ordem: 2 },
   final:    { l: "Final",           ordem: 3 }
 };
+/* Como o jogo se chama fora do nome das equipes: "VOLTA · SET 2".
+   Devolve "" quando nao ha nada a dizer (ida, set unico). */
+function coresRotulo(g) {
+  if (!g) return "";
+  var p = [];
+  if (g.turno === 2) p.push("VOLTA");
+  if (g.sets > 1 && g.set) p.push("SET " + g.set);
+  return p.join(" · ");
+}
+
 function coresFase(g) { return (g && g.fase && CORES_FASES[g.fase]) ? g.fase : "class"; }
 
 /* Vencedor/perdedor de um jogo — so quando ha resultado de verdade. */
@@ -453,13 +463,23 @@ function coresRodadas(ids) {
   return rodadas;
 }
 
-/* opts: { turnos: 1|2, dt: "AAAA-MM-DD", prefixo, pular: [[a,b],...] }
-   pular = confrontos que ja existem (nas duas ordens) e nao devem ser repetidos. */
+/* opts: {
+     turnos: 1|2          quantos turnos (ida / ida e volta)
+     sets:   1|2          quantos SETS por confronto — cada set vira um jogo,
+                          entao cada um conta sozinho na classificacao
+     soTurno: 2           gera SO esse turno (usado para criar a volta depois)
+     dt, prefixo
+     pular: jogos que ja existem — aceita [a,b] ou o proprio jogo {a,b,turno,set}
+   }
+   A chave de "ja existe" e confronto+turno+set: sem o turno e o set, gerar a
+   volta apagaria de vista o set 2 da ida. */
 function coresTabela(teams, opts) {
   opts = opts || {};
   var ids = [];
   for (var i = 0; i < teams.length; i++) ids.push(teams[i] && teams[i].id ? teams[i].id : teams[i]);
   var turnos = (opts.turnos === 2) ? 2 : 1;
+  var sets = (opts.sets >= 1) ? Math.floor(opts.sets) : 1;
+  var soTurno = (opts.soTurno >= 1) ? Math.floor(opts.soTurno) : 0;
   var base = coresRodadas(ids);
   if (!base.length) return [];
 
@@ -487,24 +507,34 @@ function coresTabela(teams, opts) {
   }
 
   var ja = {};
-  var chave = function (a, b) { return a < b ? a + "|" + b : b + "|" + a; };
-  (opts.pular || []).forEach(function (p2) { ja[chave(p2[0], p2[1])] = 1; });
+  var chave = function (a, b, tu, se) {
+    return (a < b ? a + "|" + b : b + "|" + a) + "|" + (tu || 1) + "|" + (se || 1);
+  };
+  (opts.pular || []).forEach(function (p2) {
+    if (p2 && p2.a) ja[chave(p2.a, p2.b, p2.turno, p2.set)] = 1;      /* jogo inteiro */
+    else if (p2 && p2.length) ja[chave(p2[0], p2[1], 1, 1)] = 1;      /* so o par */
+  });
 
   var pref = opts.prefixo || ("t_" + Date.now().toString(36));
   var out = [], rod = 0;
-  for (var t = 0; t < turnos; t++) {
+  var tIni = soTurno ? soTurno - 1 : 0, tFim = soTurno ? soTurno : turnos;
+  for (var t = tIni; t < tFim; t++) {
     for (var k = 0; k < ordem.length; k++) {
       rod++;
       for (var ji = 0; ji < ordem[k].length; ji++) {
         var pp = ordem[k][ji];
         var a = t ? pp[1] : pp[0], b = t ? pp[0] : pp[1];   /* volta = manda o outro */
-        if (ja[chave(a, b)]) continue;
-        var nu = out.length + 1;
-        out.push({
-          id: pref + "_" + (nu < 10 ? "0" + nu : "" + nu),
-          a: a, b: b, fase: "class", st: "agendada",
-          dt: opts.dt || "", tm: "", rodada: rod, turno: t + 1
-        });
+        /* Os sets do mesmo confronto saem em sequencia: as duas equipes ja
+           estao em quadra, jogam o set 1 e emendam o set 2. */
+        for (var se = 1; se <= sets; se++) {
+          if (ja[chave(a, b, t + 1, se)]) continue;
+          var nu = out.length + 1;
+          out.push({
+            id: pref + "_" + (nu < 10 ? "0" + nu : "" + nu),
+            a: a, b: b, fase: "class", st: "agendada",
+            dt: opts.dt || "", tm: "", rodada: rod, turno: t + 1, set: se, sets: sets
+          });
+        }
       }
     }
   }
@@ -820,6 +850,7 @@ if (typeof module !== "undefined" && module.exports) {
     coresFase: coresFase, coresOutcome: coresOutcome, coresResolveGames: coresResolveGames,
     coresLadoLabel: coresLadoLabel, coresBracket: coresBracket, coresCampeao: coresCampeao,
     coresRodadas: coresRodadas, coresTabela: coresTabela, coresFolgas: coresFolgas,
+    coresRotulo: coresRotulo,
     CORES_FUND_ABC: CORES_FUND_ABC, coresEhPonto: coresEhPonto, coresRankings: coresRankings,
     coresComputeGame: coresComputeGame, coresPlayerLine: coresPlayerLine,
     coresStandings: coresStandings, coresOrderGames: coresOrderGames

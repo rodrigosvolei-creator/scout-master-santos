@@ -122,6 +122,112 @@ const par = (g) => [g.a, g.b].slice().sort().join('|');
     CORES.forEach(id => ok_((esq[id] || 0) >= 1 && (dir[id] || 0) >= 1, id + ' ficou sempre do mesmo lado'));
   });
 
+
+  /* ---------------- volta com 2 sets ---------------- */
+  console.log('\n== volta (returno) com 2 sets ==');
+
+  /* a ida como ela fica gravada: sem campo turno nem set (os jogos de ontem) */
+  const IDA = C.coresTabela(TIMES, { prefixo: 'ida' }).map(g => ({
+    id: g.id, a: g.a, b: g.b, dt: '2026-09-05', tm: '', st: 'finalizada'
+  }));
+
+  await t('a volta repete os 10 confrontos, com o mando invertido', () => {
+    const v = C.coresTabela(TIMES, { turnos: 2, soTurno: 2, sets: 1, pular: IDA });
+    eq(v.length, 10);
+    const parIda = {};
+    IDA.forEach(g => parIda[par(g)] = g);
+    v.forEach(g => {
+      const ida = parIda[par(g)];
+      ok_(ida, 'confronto que nao existia na ida: ' + par(g));
+      ok_(ida.a === g.b && ida.b === g.a, 'a volta tem que inverter o mando');
+      eq(g.turno, 2);
+    });
+  });
+
+  await t('2 sets por confronto = 20 jogos, com set 1 e set 2', () => {
+    const v = C.coresTabela(TIMES, { turnos: 2, soTurno: 2, sets: 2, pular: IDA });
+    eq(v.length, 20);
+    const porPar = {};
+    v.forEach(g => { porPar[par(g)] = porPar[par(g)] || []; porPar[par(g)].push(g.set); });
+    eq(Object.keys(porPar).length, 10, 'os mesmos dez confrontos');
+    Object.keys(porPar).forEach(k => eq(porPar[k].sort(), [1, 2], k));
+    v.forEach(g => { eq(g.sets, 2); eq(g.turno, 2); });
+  });
+
+  await t('os dois sets do mesmo confronto saem em sequencia', () => {
+    const v = C.coresTabela(TIMES, { turnos: 2, soTurno: 2, sets: 2, pular: IDA });
+    for (let i = 0; i < v.length; i += 2) {
+      eq(par(v[i]), par(v[i + 1]), 'jogo ' + (i + 1) + ' e ' + (i + 2) + ' deviam ser o mesmo confronto');
+      eq([v[i].set, v[i + 1].set], [1, 2]);
+    }
+  });
+
+  await t('a etiqueta do jogo diz VOLTA e o set', () => {
+    const v = C.coresTabela(TIMES, { turnos: 2, soTurno: 2, sets: 2, pular: IDA });
+    eq(C.coresRotulo(v[0]), 'VOLTA · SET 1');
+    eq(C.coresRotulo(v[1]), 'VOLTA · SET 2');
+    eq(C.coresRotulo(IDA[0]), '', 'a ida em set unico nao ganha etiqueta');
+    eq(C.coresRotulo({ turno: 2, sets: 1, set: 1 }), 'VOLTA', 'volta em set unico so diz VOLTA');
+  });
+
+  await t('gerar a volta de novo nao duplica nada', () => {
+    const v1 = C.coresTabela(TIMES, { turnos: 2, soTurno: 2, sets: 2, pular: IDA });
+    const v2 = C.coresTabela(TIMES, { turnos: 2, soTurno: 2, sets: 2, pular: IDA.concat(v1) });
+    eq(v2.length, 0);
+  });
+
+  await t('gerar a volta NAO recria a ida', () => {
+    const v = C.coresTabela(TIMES, { turnos: 2, soTurno: 2, sets: 2, pular: IDA });
+    v.forEach(g => eq(g.turno, 2, 'so pode vir jogo da volta'));
+  });
+
+  /* ---- o que o Rodrigo pediu: cada set conta sozinho na classificacao ---- */
+  const cfg = { setPoints: 15, vantagem: 2, emQuadra: 4, ptsVitoria: 3, ptsDerrota: 1, dedupeMs: 4000 };
+  function jogoPronto(id, ta, tb, ptsA, ptsB, extra) {
+    /* monta os eventos de um set fechado no placar pedido */
+    const ev = {};
+    let n = 0, r = 0;
+    const bota = (tid) => { ev['-e' + (++n)] = { t: 'act', tid: tid, ak: 'pontonos', oc: 'Ponto', rally: r++, ts: 1757000000000 + n * 20000 }; };
+    for (let i = 0; i < ptsA; i++) bota(ta);
+    for (let i = 0; i < ptsB; i++) bota(tb);
+    const g = { id: id, a: ta, b: tb, dt: '2026-09-06', tm: '', st: 'finalizada', fase: 'class' };
+    for (const k in (extra || {})) g[k] = extra[k];
+    return { g: g, ev: ev };
+  }
+
+  await t('1 set a 1: cada equipe leva uma vitoria e uma derrota', () => {
+    const A = TIMES[0].id, B = TIMES[1].id;
+    const s1 = jogoPronto('v1', A, B, 15, 9, { turno: 2, set: 1, sets: 2 });
+    const s2 = jogoPronto('v2', A, B, 11, 15, { turno: 2, set: 2, sets: 2 });
+    const S = C.coresStandings([s1.g, s2.g], TIMES, { v1: s1.ev, v2: s2.ev }, cfg);
+    const a = S.find(x => x.tid === A), b = S.find(x => x.tid === B);
+    eq([a.j, a.v, a.d, a.pts], [2, 1, 1, cfg.ptsVitoria + cfg.ptsDerrota], 'equipe A');
+    eq([b.j, b.v, b.d, b.pts], [2, 1, 1, cfg.ptsVitoria + cfg.ptsDerrota], 'equipe B');
+    eq(a.pp, 26, 'pontos pro somam os dois sets'); eq(a.pc, 24);
+  });
+
+  await t('2 sets a 0: seis pontos para quem levou os dois', () => {
+    const A = TIMES[0].id, B = TIMES[1].id;
+    const s1 = jogoPronto('w1', A, B, 15, 9, { turno: 2, set: 1, sets: 2 });
+    const s2 = jogoPronto('w2', A, B, 15, 12, { turno: 2, set: 2, sets: 2 });
+    const S = C.coresStandings([s1.g, s2.g], TIMES, { w1: s1.ev, w2: s2.ev }, cfg);
+    const a = S.find(x => x.tid === A), b = S.find(x => x.tid === B);
+    eq([a.v, a.d, a.pts], [2, 0, 2 * cfg.ptsVitoria]);
+    eq([b.v, b.d, b.pts], [0, 2, 2 * cfg.ptsDerrota]);
+  });
+
+  await t('a ida continua na conta depois da volta', () => {
+    const A = TIMES[0].id, B = TIMES[1].id;
+    const ida = jogoPronto('i1', A, B, 15, 10, {});                       /* ontem */
+    const s1 = jogoPronto('v1', B, A, 15, 9, { turno: 2, set: 1, sets: 2 });
+    const s2 = jogoPronto('v2', B, A, 11, 15, { turno: 2, set: 2, sets: 2 });
+    const S = C.coresStandings([ida.g, s1.g, s2.g], TIMES,
+      { i1: ida.ev, v1: s1.ev, v2: s2.ev }, cfg);
+    const a = S.find(x => x.tid === A);
+    eq([a.j, a.v, a.d], [3, 2, 1], 'a vitoria de ontem tem que continuar valendo');
+    eq(a.pts, 2 * cfg.ptsVitoria + cfg.ptsDerrota);
+  });
+
   /* ---------------- tela do Admin ---------------- */
   console.log('\n== admin, na tela ==');
 

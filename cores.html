@@ -722,6 +722,41 @@ body.claro.telao::before{opacity:.03}
 /* o selo de versao nao pode cair em cima dos botoes no celular */
 body.celular .stamp{display:none}
 
+/* Placar por set no card do confronto. Nao e enfeite: e o que deixa dois sets
+   caberem num card so, sem dois botoes concorrendo. */
+.gc-sets{display:flex;gap:8px;align-items:center}
+.gc-set{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:66px;
+  padding:5px 8px;border-radius:10px;border:1px solid var(--brd);background:var(--surf)}
+.gc-set-lb{font-size:8.5px;font-weight:800;letter-spacing:1px;color:var(--faint)}
+.gc-set-pl{font-family:var(--num);font-size:21px;letter-spacing:.5px;
+  font-variant-numeric:tabular-nums;line-height:1}
+.gc-set.agora{border-color:color-mix(in srgb,var(--acc) 55%,transparent)}
+.gc-set.agora .gc-set-lb{color:var(--acc)}
+.gc-set.viva{border-color:rgba(220,38,38,.55);background:rgba(220,38,38,.10)}
+.gc-agora{font-size:9px;font-weight:800;letter-spacing:.8px;color:var(--faint)}
+
+/* ---- espaço da mesa no celular ----
+   Vale so ate 620px de largura e so na tela de trabalho (body.trabalho).
+   Fica no FIM da folha: sao regras de mesma especificidade que as originais
+   e a ultima e a que vale. */
+@media (max-width:620px){
+  /* 1) o cabecalho do site sai da mesa: sao 123px que o operador nao usa
+     enquanto marca. A navegacao continua no "← Jogos" da barra de baixo. */
+  body.trabalho .hd{display:none}
+
+  /* 2) a barra de correcao vira uma linha so, deslizando de lado: 198px em
+     quatro linhas viravam 58px. Todos os botoes continuam alcancaveis. */
+  body.trabalho .ctrls{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
+    gap:6px;padding:8px 10px;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none}
+  body.trabalho .ctrls::-webkit-scrollbar{display:none}
+  body.trabalho .ctrls>*{flex:0 0 auto;white-space:nowrap}
+  body.trabalho .ctrls .btn{padding:9px 13px}
+
+  /* com o espaco de volta, os fundamentos cabem em duas colunas */
+  body.trabalho .fgrid{grid-template-columns:repeat(2,1fr)}
+}
+
 /* Lado da quadra: o operador precisa saber para onde olhar, e no set 2 o app
    inverte sozinho. */
 .ladotag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:1px;
@@ -787,7 +822,7 @@ body.celular .stamp{display:none}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js?v=2026-09-06b"></script>
+<script src="cores-core.js?v=2026-09-06c"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -828,7 +863,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-06b";
+var CORES_BUILD="2026-09-06c";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -1032,7 +1067,9 @@ function rHeader(){
 
 /* ---------------- HOME: mural de jogos ---------------- */
 function rHome(){
-  var gs=coresOrderGames(gamesRes());
+  /* Grupos, nao jogos: dois sets do mesmo confronto sao UM card. */
+  var grupos=coresGrupos(gamesRes(),D.events,D.teams,D.config);
+  var gs=grupos.map(function(gr){return gr.atual;});
   var h='';
   if(!_loaded.games)return h+'<div class="empty">carregando…</div>';
   if(!gs.length){
@@ -1045,11 +1082,11 @@ function rHome(){
   var temMata=false;
   for(var i=0;i<gs.length;i++)if(coresFase(gs[i])!=="class")temMata=true;
   ["class","semi","terceiro","final"].forEach(function(f){
-    var daFase=gs.filter(function(x){return coresFase(x)===f;});
+    var daFase=grupos.filter(function(gr){return coresFase(gr.atual)===f;});
     if(!daFase.length)return;
     h+='<h2 class="sec">'+(f==="class"?"JOGOS":CORES_FASES[f].l.toUpperCase())
       +(f==="class"&&temMata?'<span class="sec-sub">fase classificatória</span>':'')+'</h2>';
-    daFase.forEach(function(x){h+=gameCard(x);});
+    daFase.forEach(function(gr){h+=gameCard(gr.atual,gr);});
   });
   var camp=coresCampeao(gamesArr(),D.events,D.teams,D.config);
   if(camp&&tF(camp)){
@@ -1060,9 +1097,12 @@ function rHome(){
   }
   return h;
 }
-function gameCard(g){
+function gameCard(g,grupo){
   var A=tF(g.a),B=tF(g.b);
   var st=calc(g);
+  /* Com 2 sets o card e do CONFRONTO: mostra os dois placares e abre sempre o
+     set que esta valendo. Ninguem consegue clicar no set 2 antes da hora. */
+  var multi=(grupo&&grupo.sets>1);
   /* Jogo de mata-mata que ainda espera resultado mostra "Vencedor Semifinal 1". */
   /* Faixa de cor no lugar do escudo com iniciais: o nome ja esta escrito ao
      lado, entao a sigla so repetia. A cor continua identificando a equipe. */
@@ -1074,21 +1114,37 @@ function gameCard(g){
     return lado==="A"?(faixa+txt):(txt+faixa);
   }
   var live=g.st==="ao_vivo",fim=(g.st==="finalizada");
-  var rot=coresRotulo(g);
+  var rot=multi?"":coresRotulo(g);
   var h='<div class="gcard'+(live?" live":"")+'">';
   h+='<div class="gc-vs">'+ladoHTML(A,"A",'<div class="gc-meta">'
     +(rot?'<span class="rot">'+esc(rot)+'</span> ':'')
     +(g.dt?fD(g.dt):"")+(g.tm?" · "+esc(g.tm):"")+'</div>')+'</div>';
-  h+='<div class="gc-sc">'+st.pts.A+'<span class="faint" style="font-size:19px"> x </span>'+st.pts.B+'</div>';
+  if(multi){
+    h+='<div class="gc-sets">';
+    grupo.jogos.forEach(function(j){
+      var sj=calc(j);
+      var jogado=(j.st==="finalizada"||j.st==="ao_vivo"||sj.pts.A||sj.pts.B);
+      h+='<div class="gc-set'+(j.st==="ao_vivo"?" viva":"")+(j.id===g.id&&!grupo.fechado?" agora":"")+'">'
+        +'<span class="gc-set-lb">SET '+(j.set||1)+'</span>'
+        +'<span class="gc-set-pl">'+(jogado?(sj.pts.A+' x '+sj.pts.B):'—')+'</span></div>';
+    });
+    h+='</div>';
+  }else{
+    h+='<div class="gc-sc">'+st.pts.A+'<span class="faint" style="font-size:19px"> x </span>'+st.pts.B+'</div>';
+  }
   h+='<div class="gc-vs dir">';
   h+=ladoHTML(B,"B",'<div class="gc-meta">'+(live?"em andamento":(fim?"encerrado":"a jogar"))+'</div>');
   h+='</div>';
   h+='<div class="gc-act">';
-  h+='<span class="pill '+(live?"live":(fim?"fim":"age"))+'">'+(live?"AO VIVO":(fim?"FIM":"AGENDADO"))+'</span>';
+  var todoFim=multi?grupo.fechado:fim;
+  var algumVivo=multi?grupo.jogos.some(function(j){return j.st==="ao_vivo";}):live;
+  h+='<span class="pill '+(algumVivo?"live":(todoFim?"fim":"age"))+'">'
+    +(algumVivo?"AO VIVO":(todoFim?"FIM":"AGENDADO"))+'</span>';
+  if(multi&&!todoFim)h+='<span class="gc-agora">jogando o set '+(g.set||1)+'</span>';
   if(A&&B){
-    h+='<button class="btn sm pri" onclick="go(\'mesa\',\'&g='+g.id+'\')">'+(fim?"Ver":"Marcar")+'</button>';
+    h+='<button class="btn sm pri" onclick="go(\'mesa\',\'&g='+g.id+'\')">'+(todoFim?"Ver":"Marcar")+'</button>';
     /* Tela propria de celular: cabe inteira, nao rola durante a marcacao. */
-    if(!fim)h+='<button class="btn sm cel-cta" onclick="go(\'mesac\',\'&g='+g.id+'\')" title="Tela de marcação que cabe no celular">Marcar celular</button>';
+    if(!todoFim)h+='<button class="btn sm cel-cta" onclick="go(\'mesac\',\'&g='+g.id+'\')" title="Tela de marcação que cabe no celular">Marcar celular</button>';
   }
   else h+='<span class="faint" style="font-size:10px;text-align:right;line-height:1.3">aguardando<br>o resultado</span>';
   h+='</div></div>';

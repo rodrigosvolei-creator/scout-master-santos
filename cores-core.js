@@ -390,6 +390,46 @@ function coresRotulo(g) {
 
 /* O jogo seguinte do MESMO confronto: mesmo par, mesmo turno, set + 1.
    E o que permite emendar o set 2 sem o operador montar tudo de novo. */
+/* Agrupa os sets do mesmo confronto (mesmo par, turno e fase) em um item so.
+   Devolve [{ chave, jogos:[set1,set2], atual, fechado }] na ordem do mural:
+   `atual` e o primeiro set que ainda nao terminou — e o unico que o operador
+   pode abrir. Jogo de set unico vira um grupo de um. */
+function coresGrupos(games, evByGame, teamsById, cfgIn) {
+  var mapa = {}, grupos = [];
+  (games || []).forEach(function (g) {
+    if (!g) return;
+    var k;
+    if (g.sets > 1 && g.set) {
+      var par = (g.a < g.b) ? g.a + "|" + g.b : g.b + "|" + g.a;
+      k = par + "|" + (g.turno || 1) + "|" + coresFase(g);
+    } else k = "u|" + g.id;
+    if (mapa[k] == null) { mapa[k] = grupos.length; grupos.push({ chave: k, jogos: [] }); }
+    grupos[mapa[k]].jogos.push(g);
+  });
+
+  grupos.forEach(function (gr) {
+    gr.jogos.sort(function (a, b) { return (a.set || 1) - (b.set || 1); });
+    var aberto = null;
+    for (var i = 0; i < gr.jogos.length; i++) {
+      var g = gr.jogos[i];
+      var st = coresComputeGame(g, (evByGame && evByGame[g.id]) || null, teamsById, cfgIn);
+      if (g.st !== "finalizada" && !(st.done && g.st !== "ao_vivo")) { aberto = g; break; }
+      if (g.st !== "finalizada") { aberto = g; break; }
+    }
+    gr.atual = aberto || gr.jogos[gr.jogos.length - 1];
+    gr.fechado = !aberto;
+    gr.sets = gr.jogos.length;
+  });
+
+  /* a ordem do mural e a do jogo que esta valendo agora em cada confronto */
+  var rep = grupos.map(function (gr) { return gr.atual; });
+  var ordenados = coresOrderGames(rep);
+  var pos = {};
+  ordenados.forEach(function (g, i) { pos[g.id] = i; });
+  grupos.sort(function (x, y) { return pos[x.atual.id] - pos[y.atual.id]; });
+  return grupos;
+}
+
 function coresProximoSet(games, g) {
   if (!g || !g.set) return null;
   for (var i = 0; i < games.length; i++) {
@@ -876,7 +916,7 @@ if (typeof module !== "undefined" && module.exports) {
     coresFase: coresFase, coresOutcome: coresOutcome, coresResolveGames: coresResolveGames,
     coresLadoLabel: coresLadoLabel, coresBracket: coresBracket, coresCampeao: coresCampeao,
     coresRodadas: coresRodadas, coresTabela: coresTabela, coresFolgas: coresFolgas,
-    coresRotulo: coresRotulo, coresProximoSet: coresProximoSet,
+    coresRotulo: coresRotulo, coresProximoSet: coresProximoSet, coresGrupos: coresGrupos,
     coresLado: coresLado, coresLadoOposto: coresLadoOposto,
     coresLadoNome: coresLadoNome, coresLadoSeta: coresLadoSeta,
     CORES_FUND_ABC: CORES_FUND_ABC, coresEhPonto: coresEhPonto, coresRankings: coresRankings,

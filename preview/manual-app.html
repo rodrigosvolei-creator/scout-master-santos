@@ -415,6 +415,7 @@ h2.sec .sec-sub::before{content:"· "}
 .step.done .step-n{background:var(--green);color:#fff}
 .step-ok{margin-left:auto;font-size:11px;font-weight:800;color:var(--ok);letter-spacing:.5px}
 .step-hint{font-size:12px;color:var(--mute);line-height:1.55;margin-top:8px}
+.ladoch{flex:1;justify-content:center}
 .teamchoice{display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;padding:13px 18px;
   border-radius:12px;border:2px solid var(--brd);background:var(--surf-2);transition:.13s}
 .teamchoice:hover{background:var(--surf-2h)}
@@ -721,6 +722,57 @@ body.claro.telao::before{opacity:.03}
 /* o selo de versao nao pode cair em cima dos botoes no celular */
 body.celular .stamp{display:none}
 
+/* Placar por set no card do confronto. Nao e enfeite: e o que deixa dois sets
+   caberem num card so, sem dois botoes concorrendo. */
+.gc-sets{display:flex;gap:8px;align-items:center}
+.gc-set{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:66px;
+  padding:5px 8px;border-radius:10px;border:1px solid var(--brd);background:var(--surf)}
+.gc-set-lb{font-size:8.5px;font-weight:800;letter-spacing:1px;color:var(--faint)}
+.gc-set-pl{font-family:var(--num);font-size:21px;letter-spacing:.5px;
+  font-variant-numeric:tabular-nums;line-height:1}
+.gc-set.agora{border-color:color-mix(in srgb,var(--acc) 55%,transparent)}
+.gc-set.agora .gc-set-lb{color:var(--acc)}
+.gc-set.viva{border-color:rgba(220,38,38,.55);background:rgba(220,38,38,.10)}
+.gc-agora{font-size:9px;font-weight:800;letter-spacing:.8px;color:var(--faint)}
+
+/* ---- espaço da mesa no celular ----
+   Vale so ate 620px de largura e so na tela de trabalho (body.trabalho).
+   Fica no FIM da folha: sao regras de mesma especificidade que as originais
+   e a ultima e a que vale. */
+@media (max-width:620px){
+  /* 1) o cabecalho do site sai da mesa: sao 123px que o operador nao usa
+     enquanto marca. A navegacao continua no "← Jogos" da barra de baixo. */
+  body.trabalho .hd{display:none}
+
+  /* 2) a barra de correcao vira uma linha so, deslizando de lado: 198px em
+     quatro linhas viravam 58px. Todos os botoes continuam alcancaveis. */
+  body.trabalho .ctrls{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
+    gap:6px;padding:8px 10px;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none}
+  body.trabalho .ctrls::-webkit-scrollbar{display:none}
+  body.trabalho .ctrls>*{flex:0 0 auto;white-space:nowrap}
+  body.trabalho .ctrls .btn{padding:9px 13px}
+
+  /* com o espaco de volta, os fundamentos cabem em duas colunas */
+  body.trabalho .fgrid{grid-template-columns:repeat(2,1fr)}
+}
+
+/* Lado da quadra: o operador precisa saber para onde olhar, e no set 2 o app
+   inverte sozinho. */
+.ladotag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:1px;
+  padding:2px 7px;border-radius:99px;vertical-align:2px;margin-left:6px;
+  color:var(--mute);border:1px solid var(--brd);background:var(--surf)}
+.cel-pl .nm small.ld{display:inline;font-size:11px;font-weight:800;margin-left:4px;
+  color:var(--mute)}
+
+/* Etiqueta do jogo: VOLTA, SET 1, SET 2. Nao e enfeite — sem ela os vinte
+   cards da volta ficam iguais dois a dois e o operador abre o set errado. */
+.rot{display:inline-block;font-size:9px;font-weight:800;letter-spacing:1px;
+  padding:2px 7px;border-radius:99px;vertical-align:1px;
+  color:var(--acc);background:color-mix(in srgb,var(--acc) 15%,transparent);
+  border:1px solid color-mix(in srgb,var(--acc) 34%,transparent)}
+.rot-sc{display:block;margin:2px auto 0;font-size:8px;letter-spacing:.8px;padding:1px 6px}
+
 /* ================= AJUSTES DE TELA PEQUENA =================
    Fica no FIM da folha de proposito: sao regras de mesma especificidade que
    as originais e a ultima e que vale. Colocadas antes, nao pegavam. */
@@ -763,7 +815,7 @@ body.celular .stamp{display:none}
   .cel-x{font-size:11px}
 }
 </style>
-<script>(function(){var DBV={"torneio-cores":{"config":{"nome":"Mini Minis - Cores","setPoints":21,"vantagem":2,"emQuadra":4,"ptsVitoria":3,"ptsDerrota":1,"dedupeMs":4000},"teams":{"c_azul":{"id":"c_azul","n":"AZUL","cor":"#2563eb","ordem":0,"players":[{"id":"az1","nm":"RODRIGO","nu":""},{"id":"az2","nm":"REGIS","nu":""},{"id":"az3","nm":"LU","nu":""},{"id":"az4","nm":"LOBATO","nu":""},{"id":"az5","nm":"POLY","nu":""}]},"c_amarelo":{"id":"c_amarelo","n":"AMARELO","cor":"#eab308","ordem":1,"players":[{"id":"am1","nm":"BRUNA","nu":""},{"id":"am2","nm":"JOAO","nu":""},{"id":"am3","nm":"ADAL","nu":""},{"id":"am4","nm":"ANGEL","nu":""},{"id":"am5","nm":"GI","nu":""}]},"c_cinza":{"id":"c_cinza","n":"CINZA","cor":"#6b7280","ordem":2,"players":[{"id":"cz1","nm":"MOTTA","nu":""},{"id":"cz2","nm":"MIKA","nu":""},{"id":"cz3","nm":"IANNAE","nu":""},{"id":"cz4","nm":"JOICE","nu":""},{"id":"cz5","nm":"CLAUDIO","nu":""}]},"c_branco":{"id":"c_branco","n":"BRANCO","cor":"#f8fafc","ordem":3,"players":[{"id":"br1","nm":"GEO","nu":""},{"id":"br2","nm":"FUBA","nu":""},{"id":"br3","nm":"BOLINA","nu":""},{"id":"br4","nm":"MICHELE","nu":""},{"id":"br5","nm":"BILA","nu":""}]},"c_preto":{"id":"c_preto","n":"PRETO","cor":"#111827","ordem":4,"players":[{"id":"pr1","nm":"LUIZA","nu":""},{"id":"pr2","nm":"VINNY","nu":""},{"id":"pr3","nm":"ORELHA","nu":""},{"id":"pr4","nm":"JOSE","nu":""},{"id":"pr5","nm":"KEL","nu":""}]}},"games":{"demo_01":{"id":"demo_01","a":"c_preto","b":"c_amarelo","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":1,"turno":1},"demo_02":{"id":"demo_02","a":"c_cinza","b":"c_branco","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":1,"turno":1},"demo_03":{"id":"demo_03","a":"c_azul","b":"c_preto","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":2,"turno":1},"demo_04":{"id":"demo_04","a":"c_amarelo","b":"c_cinza","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":2,"turno":1},"demo_05":{"id":"demo_05","a":"c_branco","b":"c_azul","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":3,"turno":1},"demo_06":{"id":"demo_06","a":"c_cinza","b":"c_preto","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":3,"turno":1},"demo_07":{"id":"demo_07","a":"c_branco","b":"c_amarelo","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":4,"turno":1},"demo_08":{"id":"demo_08","a":"c_azul","b":"c_cinza","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":4,"turno":1},"demo_09":{"id":"demo_09","a":"c_preto","b":"c_branco","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":5,"turno":1},"demo_10":{"id":"demo_10","a":"c_amarelo","b":"c_azul","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":5,"turno":1}},"events":{}}};var LS=[],seq=0;
+<script>(function(){var DBV={"torneio-cores":{"config":{"nome":"Mini Minis - Cores","setPoints":21,"vantagem":2,"emQuadra":4,"ptsVitoria":3,"ptsDerrota":1,"dedupeMs":4000},"teams":{"c_azul":{"id":"c_azul","n":"AZUL","cor":"#2563eb","ordem":0,"players":[{"id":"az1","nm":"RODRIGO","nu":""},{"id":"az2","nm":"REGIS","nu":""},{"id":"az3","nm":"LU","nu":""},{"id":"az4","nm":"LOBATO","nu":""},{"id":"az5","nm":"POLY","nu":""}]},"c_amarelo":{"id":"c_amarelo","n":"AMARELO","cor":"#eab308","ordem":1,"players":[{"id":"am1","nm":"BRUNA","nu":""},{"id":"am2","nm":"JOAO","nu":""},{"id":"am3","nm":"ADAL","nu":""},{"id":"am4","nm":"ANGEL","nu":""},{"id":"am5","nm":"GI","nu":""}]},"c_cinza":{"id":"c_cinza","n":"CINZA","cor":"#6b7280","ordem":2,"players":[{"id":"cz1","nm":"MOTTA","nu":""},{"id":"cz2","nm":"MIKA","nu":""},{"id":"cz3","nm":"IANNAE","nu":""},{"id":"cz4","nm":"JOICE","nu":""},{"id":"cz5","nm":"CLAUDIO","nu":""}]},"c_branco":{"id":"c_branco","n":"BRANCO","cor":"#f8fafc","ordem":3,"players":[{"id":"br1","nm":"GEO","nu":""},{"id":"br2","nm":"FUBA","nu":""},{"id":"br3","nm":"BOLINA","nu":""},{"id":"br4","nm":"MICHELE","nu":""},{"id":"br5","nm":"BILA","nu":""}]},"c_preto":{"id":"c_preto","n":"PRETO","cor":"#111827","ordem":4,"players":[{"id":"pr1","nm":"LUIZA","nu":""},{"id":"pr2","nm":"VINNY","nu":""},{"id":"pr3","nm":"ORELHA","nu":""},{"id":"pr4","nm":"JOSE","nu":""},{"id":"pr5","nm":"KEL","nu":""}]}},"games":{"demo_01":{"id":"demo_01","a":"c_preto","b":"c_amarelo","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":1,"turno":1,"set":1,"sets":1},"demo_02":{"id":"demo_02","a":"c_cinza","b":"c_branco","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":1,"turno":1,"set":1,"sets":1},"demo_03":{"id":"demo_03","a":"c_azul","b":"c_preto","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":2,"turno":1,"set":1,"sets":1},"demo_04":{"id":"demo_04","a":"c_amarelo","b":"c_cinza","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":2,"turno":1,"set":1,"sets":1},"demo_05":{"id":"demo_05","a":"c_branco","b":"c_azul","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":3,"turno":1,"set":1,"sets":1},"demo_06":{"id":"demo_06","a":"c_cinza","b":"c_preto","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":3,"turno":1,"set":1,"sets":1},"demo_07":{"id":"demo_07","a":"c_branco","b":"c_amarelo","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":4,"turno":1,"set":1,"sets":1},"demo_08":{"id":"demo_08","a":"c_azul","b":"c_cinza","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":4,"turno":1,"set":1,"sets":1},"demo_09":{"id":"demo_09","a":"c_preto","b":"c_branco","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":5,"turno":1,"set":1,"sets":1},"demo_10":{"id":"demo_10","a":"c_amarelo","b":"c_azul","fase":"class","st":"agendada","dt":"2026-09-05","tm":"","rodada":5,"turno":1,"set":1,"sets":1}},"events":{}}};var LS=[],seq=0;
 function P(p){return String(p).split('/').filter(Boolean);}
 function get(p){var c=DBV,a=P(p);for(var i=0;i<a.length;i++){if(c==null)return null;c=c[a[i]];}return c===undefined?null:c;}
 function set(p,v){var a=P(p),c=DBV;for(var i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object')c[a[i]]={};c=c[a[i]];}
@@ -1159,6 +1211,82 @@ var CORES_FASES = {
   terceiro: { l: "3º lugar",        ordem: 2 },
   final:    { l: "Final",           ordem: 3 }
 };
+/* Como o jogo se chama fora do nome das equipes: "VOLTA · SET 2".
+   Devolve "" quando nao ha nada a dizer (ida, set unico). */
+function coresRotulo(g) {
+  if (!g) return "";
+  var p = [];
+  if (g.turno === 2) p.push("VOLTA");
+  if (g.sets > 1 && g.set) p.push("SET " + g.set);
+  return p.join(" · ");
+}
+
+/* O jogo seguinte do MESMO confronto: mesmo par, mesmo turno, set + 1.
+   E o que permite emendar o set 2 sem o operador montar tudo de novo. */
+/* Agrupa os sets do mesmo confronto (mesmo par, turno e fase) em um item so.
+   Devolve [{ chave, jogos:[set1,set2], atual, fechado }] na ordem do mural:
+   `atual` e o primeiro set que ainda nao terminou — e o unico que o operador
+   pode abrir. Jogo de set unico vira um grupo de um. */
+function coresGrupos(games, evByGame, teamsById, cfgIn) {
+  var mapa = {}, grupos = [];
+  (games || []).forEach(function (g) {
+    if (!g) return;
+    var k;
+    if (g.sets > 1 && g.set) {
+      var par = (g.a < g.b) ? g.a + "|" + g.b : g.b + "|" + g.a;
+      k = par + "|" + (g.turno || 1) + "|" + coresFase(g);
+    } else k = "u|" + g.id;
+    if (mapa[k] == null) { mapa[k] = grupos.length; grupos.push({ chave: k, jogos: [] }); }
+    grupos[mapa[k]].jogos.push(g);
+  });
+
+  grupos.forEach(function (gr) {
+    gr.jogos.sort(function (a, b) { return (a.set || 1) - (b.set || 1); });
+    var aberto = null;
+    for (var i = 0; i < gr.jogos.length; i++) {
+      var g = gr.jogos[i];
+      var st = coresComputeGame(g, (evByGame && evByGame[g.id]) || null, teamsById, cfgIn);
+      if (g.st !== "finalizada" && !(st.done && g.st !== "ao_vivo")) { aberto = g; break; }
+      if (g.st !== "finalizada") { aberto = g; break; }
+    }
+    gr.atual = aberto || gr.jogos[gr.jogos.length - 1];
+    gr.fechado = !aberto;
+    gr.sets = gr.jogos.length;
+  });
+
+  /* a ordem do mural e a do jogo que esta valendo agora em cada confronto */
+  var rep = grupos.map(function (gr) { return gr.atual; });
+  var ordenados = coresOrderGames(rep);
+  var pos = {};
+  ordenados.forEach(function (g, i) { pos[g.id] = i; });
+  grupos.sort(function (x, y) { return pos[x.atual.id] - pos[y.atual.id]; });
+  return grupos;
+}
+
+function coresProximoSet(games, g) {
+  if (!g || !g.set) return null;
+  for (var i = 0; i < games.length; i++) {
+    var x = games[i];
+    if (!x || x.id === g.id) continue;
+    if ((x.turno || 1) !== (g.turno || 1)) continue;
+    if ((x.set || 1) !== (g.set || 1) + 1) continue;
+    if ((x.a === g.a && x.b === g.b) || (x.a === g.b && x.b === g.a)) return x;
+  }
+  return null;
+}
+
+/* Lado da quadra. `ladoA` fica no JOGO (nao no evento) porque e do confronto,
+   nao de um operador: os dois aparelhos leem o mesmo. "E" = equipe A na
+   esquerda de quem olha da mesa. */
+function coresLado(g, side) {
+  if (!g || !g.ladoA) return "";
+  var a = (g.ladoA === "D") ? "D" : "E";
+  return (side === "A") ? a : (a === "E" ? "D" : "E");
+}
+function coresLadoOposto(l) { return l === "E" ? "D" : l === "D" ? "E" : ""; }
+function coresLadoNome(l) { return l === "E" ? "ESQUERDA" : (l === "D" ? "DIREITA" : ""); }
+function coresLadoSeta(l) { return l === "E" ? "\u25C0" : (l === "D" ? "\u25B6" : ""); }
+
 function coresFase(g) { return (g && g.fase && CORES_FASES[g.fase]) ? g.fase : "class"; }
 
 /* Vencedor/perdedor de um jogo — so quando ha resultado de verdade. */
@@ -1234,13 +1362,23 @@ function coresRodadas(ids) {
   return rodadas;
 }
 
-/* opts: { turnos: 1|2, dt: "AAAA-MM-DD", prefixo, pular: [[a,b],...] }
-   pular = confrontos que ja existem (nas duas ordens) e nao devem ser repetidos. */
+/* opts: {
+     turnos: 1|2          quantos turnos (ida / ida e volta)
+     sets:   1|2          quantos SETS por confronto — cada set vira um jogo,
+                          entao cada um conta sozinho na classificacao
+     soTurno: 2           gera SO esse turno (usado para criar a volta depois)
+     dt, prefixo
+     pular: jogos que ja existem — aceita [a,b] ou o proprio jogo {a,b,turno,set}
+   }
+   A chave de "ja existe" e confronto+turno+set: sem o turno e o set, gerar a
+   volta apagaria de vista o set 2 da ida. */
 function coresTabela(teams, opts) {
   opts = opts || {};
   var ids = [];
   for (var i = 0; i < teams.length; i++) ids.push(teams[i] && teams[i].id ? teams[i].id : teams[i]);
   var turnos = (opts.turnos === 2) ? 2 : 1;
+  var sets = (opts.sets >= 1) ? Math.floor(opts.sets) : 1;
+  var soTurno = (opts.soTurno >= 1) ? Math.floor(opts.soTurno) : 0;
   var base = coresRodadas(ids);
   if (!base.length) return [];
 
@@ -1268,24 +1406,34 @@ function coresTabela(teams, opts) {
   }
 
   var ja = {};
-  var chave = function (a, b) { return a < b ? a + "|" + b : b + "|" + a; };
-  (opts.pular || []).forEach(function (p2) { ja[chave(p2[0], p2[1])] = 1; });
+  var chave = function (a, b, tu, se) {
+    return (a < b ? a + "|" + b : b + "|" + a) + "|" + (tu || 1) + "|" + (se || 1);
+  };
+  (opts.pular || []).forEach(function (p2) {
+    if (p2 && p2.a) ja[chave(p2.a, p2.b, p2.turno, p2.set)] = 1;      /* jogo inteiro */
+    else if (p2 && p2.length) ja[chave(p2[0], p2[1], 1, 1)] = 1;      /* so o par */
+  });
 
   var pref = opts.prefixo || ("t_" + Date.now().toString(36));
   var out = [], rod = 0;
-  for (var t = 0; t < turnos; t++) {
+  var tIni = soTurno ? soTurno - 1 : 0, tFim = soTurno ? soTurno : turnos;
+  for (var t = tIni; t < tFim; t++) {
     for (var k = 0; k < ordem.length; k++) {
       rod++;
       for (var ji = 0; ji < ordem[k].length; ji++) {
         var pp = ordem[k][ji];
         var a = t ? pp[1] : pp[0], b = t ? pp[0] : pp[1];   /* volta = manda o outro */
-        if (ja[chave(a, b)]) continue;
-        var nu = out.length + 1;
-        out.push({
-          id: pref + "_" + (nu < 10 ? "0" + nu : "" + nu),
-          a: a, b: b, fase: "class", st: "agendada",
-          dt: opts.dt || "", tm: "", rodada: rod, turno: t + 1
-        });
+        /* Os sets do mesmo confronto saem em sequencia: as duas equipes ja
+           estao em quadra, jogam o set 1 e emendam o set 2. */
+        for (var se = 1; se <= sets; se++) {
+          if (ja[chave(a, b, t + 1, se)]) continue;
+          var nu = out.length + 1;
+          out.push({
+            id: pref + "_" + (nu < 10 ? "0" + nu : "" + nu),
+            a: a, b: b, fase: "class", st: "agendada",
+            dt: opts.dt || "", tm: "", rodada: rod, turno: t + 1, set: se, sets: sets
+          });
+        }
       }
     }
   }
@@ -1601,6 +1749,9 @@ if (typeof module !== "undefined" && module.exports) {
     coresFase: coresFase, coresOutcome: coresOutcome, coresResolveGames: coresResolveGames,
     coresLadoLabel: coresLadoLabel, coresBracket: coresBracket, coresCampeao: coresCampeao,
     coresRodadas: coresRodadas, coresTabela: coresTabela, coresFolgas: coresFolgas,
+    coresRotulo: coresRotulo, coresProximoSet: coresProximoSet, coresGrupos: coresGrupos,
+    coresLado: coresLado, coresLadoOposto: coresLadoOposto,
+    coresLadoNome: coresLadoNome, coresLadoSeta: coresLadoSeta,
     CORES_FUND_ABC: CORES_FUND_ABC, coresEhPonto: coresEhPonto, coresRankings: coresRankings,
     coresComputeGame: coresComputeGame, coresPlayerLine: coresPlayerLine,
     coresStandings: coresStandings, coresOrderGames: coresOrderGames
@@ -1647,7 +1798,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-05f";
+var CORES_BUILD="2026-09-06b";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -1851,7 +2002,9 @@ function rHeader(){
 
 /* ---------------- HOME: mural de jogos ---------------- */
 function rHome(){
-  var gs=coresOrderGames(gamesRes());
+  /* Grupos, nao jogos: dois sets do mesmo confronto sao UM card. */
+  var grupos=coresGrupos(gamesRes(),D.events,D.teams,D.config);
+  var gs=grupos.map(function(gr){return gr.atual;});
   var h='';
   if(!_loaded.games)return h+'<div class="empty">carregando…</div>';
   if(!gs.length){
@@ -1864,11 +2017,11 @@ function rHome(){
   var temMata=false;
   for(var i=0;i<gs.length;i++)if(coresFase(gs[i])!=="class")temMata=true;
   ["class","semi","terceiro","final"].forEach(function(f){
-    var daFase=gs.filter(function(x){return coresFase(x)===f;});
+    var daFase=grupos.filter(function(gr){return coresFase(gr.atual)===f;});
     if(!daFase.length)return;
     h+='<h2 class="sec">'+(f==="class"?"JOGOS":CORES_FASES[f].l.toUpperCase())
       +(f==="class"&&temMata?'<span class="sec-sub">fase classificatória</span>':'')+'</h2>';
-    daFase.forEach(function(x){h+=gameCard(x);});
+    daFase.forEach(function(gr){h+=gameCard(gr.atual,gr);});
   });
   var camp=coresCampeao(gamesArr(),D.events,D.teams,D.config);
   if(camp&&tF(camp)){
@@ -1879,9 +2032,12 @@ function rHome(){
   }
   return h;
 }
-function gameCard(g){
+function gameCard(g,grupo){
   var A=tF(g.a),B=tF(g.b);
   var st=calc(g);
+  /* Com 2 sets o card e do CONFRONTO: mostra os dois placares e abre sempre o
+     set que esta valendo. Ninguem consegue clicar no set 2 antes da hora. */
+  var multi=(grupo&&grupo.sets>1);
   /* Jogo de mata-mata que ainda espera resultado mostra "Vencedor Semifinal 1". */
   /* Faixa de cor no lugar do escudo com iniciais: o nome ja esta escrito ao
      lado, entao a sigla so repetia. A cor continua identificando a equipe. */
@@ -1893,18 +2049,37 @@ function gameCard(g){
     return lado==="A"?(faixa+txt):(txt+faixa);
   }
   var live=g.st==="ao_vivo",fim=(g.st==="finalizada");
+  var rot=multi?"":coresRotulo(g);
   var h='<div class="gcard'+(live?" live":"")+'">';
-  h+='<div class="gc-vs">'+ladoHTML(A,"A",'<div class="gc-meta">'+(g.dt?fD(g.dt):"")+(g.tm?" · "+esc(g.tm):"")+'</div>')+'</div>';
-  h+='<div class="gc-sc">'+st.pts.A+'<span class="faint" style="font-size:19px"> x </span>'+st.pts.B+'</div>';
+  h+='<div class="gc-vs">'+ladoHTML(A,"A",'<div class="gc-meta">'
+    +(rot?'<span class="rot">'+esc(rot)+'</span> ':'')
+    +(g.dt?fD(g.dt):"")+(g.tm?" · "+esc(g.tm):"")+'</div>')+'</div>';
+  if(multi){
+    h+='<div class="gc-sets">';
+    grupo.jogos.forEach(function(j){
+      var sj=calc(j);
+      var jogado=(j.st==="finalizada"||j.st==="ao_vivo"||sj.pts.A||sj.pts.B);
+      h+='<div class="gc-set'+(j.st==="ao_vivo"?" viva":"")+(j.id===g.id&&!grupo.fechado?" agora":"")+'">'
+        +'<span class="gc-set-lb">SET '+(j.set||1)+'</span>'
+        +'<span class="gc-set-pl">'+(jogado?(sj.pts.A+' x '+sj.pts.B):'—')+'</span></div>';
+    });
+    h+='</div>';
+  }else{
+    h+='<div class="gc-sc">'+st.pts.A+'<span class="faint" style="font-size:19px"> x </span>'+st.pts.B+'</div>';
+  }
   h+='<div class="gc-vs dir">';
   h+=ladoHTML(B,"B",'<div class="gc-meta">'+(live?"em andamento":(fim?"encerrado":"a jogar"))+'</div>');
   h+='</div>';
   h+='<div class="gc-act">';
-  h+='<span class="pill '+(live?"live":(fim?"fim":"age"))+'">'+(live?"AO VIVO":(fim?"FIM":"AGENDADO"))+'</span>';
+  var todoFim=multi?grupo.fechado:fim;
+  var algumVivo=multi?grupo.jogos.some(function(j){return j.st==="ao_vivo";}):live;
+  h+='<span class="pill '+(algumVivo?"live":(todoFim?"fim":"age"))+'">'
+    +(algumVivo?"AO VIVO":(todoFim?"FIM":"AGENDADO"))+'</span>';
+  if(multi&&!todoFim)h+='<span class="gc-agora">jogando o set '+(g.set||1)+'</span>';
   if(A&&B){
-    h+='<button class="btn sm pri" onclick="go(\'mesa\',\'&g='+g.id+'\')">'+(fim?"Ver":"Marcar")+'</button>';
+    h+='<button class="btn sm pri" onclick="go(\'mesa\',\'&g='+g.id+'\')">'+(todoFim?"Ver":"Marcar")+'</button>';
     /* Tela propria de celular: cabe inteira, nao rola durante a marcacao. */
-    if(!fim)h+='<button class="btn sm cel-cta" onclick="go(\'mesac\',\'&g='+g.id+'\')" title="Tela de marcação que cabe no celular">Marcar celular</button>';
+    if(!todoFim)h+='<button class="btn sm cel-cta" onclick="go(\'mesac\',\'&g='+g.id+'\')" title="Tela de marcação que cabe no celular">Marcar celular</button>';
   }
   else h+='<span class="faint" style="font-size:10px;text-align:right;line-height:1.3">aguardando<br>o resultado</span>';
   h+='</div></div>';
@@ -1964,7 +2139,8 @@ function placarHTML(g,A,B,st){
     var sacador=serving&&st.serve.jid?pF(x.t,st.serve.jid):null;
     h+='<div class="mesa-side'+(mine?" mine":"")+(serving?" serving":"")+'" style="--c:'+esc(x.t.cor)+'">';
     h+=corHeart(esc(x.t.cor),'faixa lg');
-    h+='<div class="mesa-id"><div class="nm">'+esc(x.t.n)+'</div>';
+    h+='<div class="mesa-id"><div class="nm">'+esc(x.t.n)
+    +(coresLado(g,x.s)?' <span class="ladotag">'+coresLadoSeta(coresLado(g,x.s))+' '+coresLadoNome(coresLado(g,x.s))+'</span>':'')+'</div>';
     h+='<div class="sub">'+(mine?"VOCÊ MARCA":"outro operador")+'</div>';
     if(serving)h+='<div class="serve-badge">🏐 SACA'+(sacador?" · "+esc(sacador.nm):"")+'</div>';
     h+='</div>';
@@ -1998,8 +2174,21 @@ function rSetup(g,meu,adv,st,meuSide,A,B){
   h+='</div>';
 
   /* passo 2 — ordem de saque posicionada */
+  /* Lado da quadra — some quando ja esta definido para nao virar ruido. */
+  var meuLado=coresLado(g,meuSide);
+  h+='<div class="step'+(meuLado?" done":"")+'">';
+  h+='<div class="step-hd"><span class="step-n">2</span>De que lado a '+esc(meu.n)+' está?'+(meuLado?'<span class="step-ok">✓ '+coresLadoNome(meuLado)+'</span>':'')+'</div>';
+  h+='<div class="row">';
+  ["E","D"].forEach(function(l){
+    h+='<button class="teamchoice ladoch'+(meuLado===l?" on":"")+'" style="--c:'+esc(meu.cor)+'" onclick="setLado(\''+l+'\')">';
+    h+='<span style="font-size:18px">'+coresLadoSeta(l)+'</span>'+coresLadoNome(l)+'</button>';
+  });
+  h+='</div>';
+  h+='<div class="step-hint">Olhando da mesa. No próximo set o app inverte sozinho.</div>';
+  h+='</div>';
+
   h+='<div class="step'+(SETUP.length>=n?" done":"")+'">';
-  h+='<div class="step-hd"><span class="step-n">2</span>Ordem de saque da '+esc(meu.n)+(SETUP.length>=n?'<span class="step-ok">✓ completa</span>':'')+'</div>';
+  h+='<div class="step-hd"><span class="step-n">3</span>Ordem de saque da '+esc(meu.n)+(SETUP.length>=n?'<span class="step-ok">✓ completa</span>':'')+'</div>';
   h+='<div class="step-hint">Toque nos atletas na ordem em que vão sacar. Quem ficar na <b>posição 1</b> começa sacando; depois o rodízio anda sozinho.</div>';
   h+='<div class="slots">';
   for(var i=0;i<n;i++){
@@ -2053,6 +2242,60 @@ function salvarEscalacao(){
     toast("Escalação salva","ok");
   });
 }
+/* ---- LADO DA QUADRA ----
+   Fica no JOGO (games/<id>/ladoA), nao no evento: e do confronto, os dois
+   aparelhos leem o mesmo. Ao definir no set 1, o set seguinte do mesmo
+   confronto ja nasce com o lado TROCADO — que e a regra do jogo. */
+function setLado(ladoDaMinha){
+  var g=D.games[GID]; if(!g||!MEUTID)return;
+  var meuSide=(MEUTID===g.a)?"A":"B";
+  var ladoA=(meuSide==="A")?ladoDaMinha:coresLadoOposto(ladoDaMinha);
+  g.ladoA=ladoA;
+  writeNode("games/"+GID+"/ladoA",ladoA);
+  var prox=coresProximoSet(gamesArr(),g);
+  if(prox&&!prox.ladoA){
+    var inv=coresLadoOposto(ladoA);
+    prox.ladoA=inv;
+    writeNode("games/"+prox.id+"/ladoA",inv);
+    toast("Lado definido — o "+(coresRotulo(prox)||"próximo set")+" já inverte","ok");
+  }
+  render();
+}
+
+/* ---- EMENDA DO SET SEGUINTE ----
+   O operador nao deve "entrar em outro jogo": ao fechar o set 1 ele cai no
+   set 2 com a mesma equipe, a mesma escalacao, o lado ja trocado e o saque
+   invertido (quem recebeu comeca sacando). So falta tocar em Iniciar. */
+function irProximoSet(){
+  var g=D.games[GID]; if(!g){toast("Jogo não encontrado","err");return;}
+  var prox=coresProximoSet(gamesArr(),g);
+  if(!prox){toast("Não há set seguinte para este confronto","err");return;}
+  if(!MEUTID){go(VIEW,"&g="+prox.id);return;}
+  var st=calc(g);
+  var meuSide=(MEUTID===g.a)?"A":"B";
+  var ordem=(st.lineup[meuSide]||[]).slice(0,coresCfg(D.config).emQuadra);
+  var firstTid=(st.firstServeSide==="A")?g.b:g.a;   /* quem recebeu, saca */
+  try{localStorage.setItem("cores_tid_"+prox.id,MEUTID);}catch(e){}
+  var jaLa=coresComputeGame(prox,D.events[prox.id]||null,D.teams,D.config);
+  var passos=[];
+  if(!jaLa.firstServeSide&&st.firstServeSide)passos.push(pushEvent(prox.id,{t:"first",tid:firstTid}));
+  if(ordem.length&&!jaLa.lineupSet[(MEUTID===prox.a)?"A":"B"])
+    passos.push(pushEvent(prox.id,{t:"lineup",tid:MEUTID,ordem:ordem}));
+  Promise.all(passos).then(function(){
+    go(VIEW==="mesac"?"mesac":"mesa","&g="+prox.id);
+  }).catch(function(){ go(VIEW==="mesac"?"mesac":"mesa","&g="+prox.id); });
+}
+
+/* Bloco que oferece a emenda, usado na mesa e no celular. */
+function proximoSetHTML(g,classe){
+  var prox=coresProximoSet(gamesArr(),g);
+  if(!prox)return "";
+  var pronto=(prox.st==="finalizada");
+  return '<button class="'+(classe||"btn pri")+'" onclick="irProximoSet()">'
+    +(pronto?"Ver o "+esc(coresRotulo(prox)||"próximo set"):"▶ Ir para o "+esc(coresRotulo(prox)||"próximo set"))
+    +'</button>';
+}
+
 function reabrirEscalacao(){
   var g=D.games[GID];if(!g)return;
   var st=calc(g),meuSide=(MEUTID===g.a)?"A":"B";
@@ -2082,7 +2325,10 @@ function rMesaJogo(g,meu,adv,st,meuSide,A,B){
     var wt=st.winnerTid?tF(st.winnerTid):null;
     h+='<div class="banner ok"><b>Set encerrado</b> — '+(wt?esc(wt.n)+" venceu por ":"")+st.pts.A+' x '+st.pts.B+'. ';
     h+=(g.st!=="finalizada"?'Confirme para entrar na classificação.':'Jogo finalizado.')+'</div>';
-    if(g.st!=="finalizada")h+='<div class="row" style="margin-bottom:12px"><button class="btn pri" onclick="finalizarJogo()">✓ Finalizar jogo</button><button class="btn" onclick="undoLast()">↩ Desfazer última</button></div>';
+    h+='<div class="row" style="margin-bottom:12px">';
+    if(g.st!=="finalizada")h+='<button class="btn pri" onclick="finalizarJogo()">✓ Finalizar jogo</button><button class="btn" onclick="undoLast()">↩ Desfazer última</button>';
+    else h+=proximoSetHTML(g,"btn pri");
+    h+='</div>';
   }else if(g.st!=="ao_vivo"){
     h+='<div class="banner inf">Escalação pronta. <b>Inicie o jogo</b> para começar a marcar.</div>';
     h+='<div class="row" style="margin-bottom:12px"><button class="btn pri" onclick="iniciarJogo()">▶ Iniciar jogo</button><button class="btn sm" onclick="reabrirEscalacao()">✎ Mudar escalação</button><button class="btn sm" onclick="go(\'home\')">← Jogos</button></div>';
@@ -2361,9 +2607,13 @@ function celTopo(g,A,B,st,mostrarMais){
   var h='<div class="cel-top">';
   h+='<button class="cel-sair" onclick="go(\'home\')" title="Voltar aos jogos">←</button>';
   h+='<div class="cel-pl">';
-  h+='<div class="lado">'+corHeart(esc(A.cor),'celt')+'<div class="nm">'+esc(A.n)+eu(A)+'</div></div>';
-  h+='<div class="sc">'+st.pts.A+'<i>×</i>'+st.pts.B+'</div>';
-  h+='<div class="lado dir"><div class="nm" style="text-align:right">'+esc(B.n)+eu(B)+'</div>'+corHeart(esc(B.cor),'celt')+'</div>';
+  var ldA=coresLado(g,"A"), ldB=coresLado(g,"B");
+  h+='<div class="lado">'+corHeart(esc(A.cor),'celt')+'<div class="nm">'+esc(A.n)+eu(A)
+    +(ldA?'<small class="ld">'+coresLadoSeta(ldA)+'</small>':'')+'</div></div>';
+  h+='<div class="sc">'+st.pts.A+'<i>×</i>'+st.pts.B
+    +(coresRotulo(g)?'<span class="rot rot-sc">'+esc(coresRotulo(g))+'</span>':'')+'</div>';
+  h+='<div class="lado dir"><div class="nm" style="text-align:right">'+esc(B.n)+eu(B)
+    +(ldB?'<small class="ld">'+coresLadoSeta(ldB)+'</small>':'')+'</div>'+corHeart(esc(B.cor),'celt')+'</div>';
   h+='</div>';
   if(mostrarMais)h+='<button class="cel-mais" onclick="celAbrirMenu()" title="Mais opções">⋯</button>';
   h+='</div>';
@@ -2425,7 +2675,16 @@ function celSetup(g,meu,adv,st,meuSide,A,B){
   });
   h+='</div>';
 
-  h+='<div class="cel-tit" style="margin-top:4px">2 · Ordem de saque da '+esc(meu.n)+'</div>';
+  var meuLado=coresLado(g,meuSide);
+  h+='<div class="cel-tit" style="margin-top:4px">2 · De que lado a '+esc(meu.n)+' está?</div>';
+  h+='<div class="cel-esc">';
+  ["E","D"].forEach(function(l){
+    h+='<button class="'+(meuLado===l?"on":"")+'" onclick="setLado(\''+l+'\')">'
+      +'<span style="font-size:19px">'+coresLadoSeta(l)+'</span>'+coresLadoNome(l)+'</button>';
+  });
+  h+='</div>';
+
+  h+='<div class="cel-tit" style="margin-top:4px">3 · Ordem de saque da '+esc(meu.n)+'</div>';
   h+='<div class="cel-slots">';
   for(var i=0;i<n;i++){
     var jid=SETUP[i], p=jid?pF(meu,jid):null;
@@ -2504,7 +2763,7 @@ function celJogo(g,meu,adv,st,meuSide,A,B){
       '<div class="txt">'+(wt?esc(wt.n)+' venceu por ':'')+st.pts.A+' × '+st.pts.B+'. Confirme para entrar na classificação.</div>'
       +(g.st!=="finalizada"
         ? '<button class="cel-x" style="background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-size:15px;padding:0 18px" onclick="finalizarJogo()">✓ Finalizar jogo</button>'
-        : '<div class="txt"><b>Jogo finalizado.</b></div>')
+        : (proximoSetHTML(g,'cel-x')||'<div class="txt"><b>Jogo finalizado.</b></div>'))
       +'<button class="cel-x" onclick="undoLast()">↩ Desfazer minha última</button>');
   }else if(g.st!=="ao_vivo"){
     h+=celAviso('Escalação pronta',
@@ -2823,7 +3082,11 @@ function rTelao(){
   if(!A||!B){h+='<div class="tl-main"><div class="empty">equipes não encontradas</div></div></div>';return h;}
   var st=calc(live);
   h+='<div class="tl-main">';
-  [{t:A,s:"A"},{t:B,s:"B"}].forEach(function(x,ix){
+  /* Se o lado esta definido, o telao mostra as equipes na MESMA ordem em que
+     quem esta no ginasio as ve. Sem isso o placar fica espelhado. */
+  var duo=[{t:A,s:"A"},{t:B,s:"B"}];
+  if(coresLado(live,"A")==="D")duo.reverse();
+  duo.forEach(function(x,ix){
     if(ix===1)h+='<div class="tl-x">×</div>';
     var serving=st.serve&&st.serve.side===x.s;
     h+='<div class="tl-team">';
@@ -2856,6 +3119,7 @@ function rTelao(){
     h+='<div style="display:flex;align-items:center;gap:9px;padding:5px 0;font-weight:700">';
     h+=corHeart(esc(a.cor),'dot')+esc(a.n);
     h+='<span class="faint">×</span>'+corHeart(esc(b.cor),'dot')+''+esc(b.n);
+    if(coresRotulo(g))h+='<span class="rot">'+esc(coresRotulo(g))+'</span>';
     h+='<span class="faint" style="margin-left:auto;font-size:11px">'+(g.tm||fD(g.dt))+'</span></div>';
   });
   h+='</div></div></div>';
@@ -2913,6 +3177,7 @@ function rAdmin(){
   });
 
   h+=rAdminTabela(ts);
+  h+=rAdminVolta(ts);
 
   /* jogos */
   h+='<h2 class="sec">JOGOS</h2>';
@@ -2934,6 +3199,7 @@ function rAdmin(){
     var st=calc(g);
     h+='<div class="gcard"><div class="gc-vs">';
     if(coresFase(g)!=="class")h+='<span class="fasetag">'+esc(CORES_FASES[coresFase(g)].l)+'</span>';
+    if(coresRotulo(g))h+='<span class="rot">'+esc(coresRotulo(g))+'</span>';
     h+=''+corHeart(esc(a?a.cor:"#334155"),'dot')+'<b'+(a?'':' class="pend"')+'>'+esc(nomeA)+'</b>';
     h+='<span class="faint">×</span>'+corHeart(esc(b?b.cor:"#334155"),'dot')+'<b'+(b?'':' class="pend"')+'>'+esc(nomeB)+'</b>';
     h+='</div><div class="gc-sc">'+st.pts.A+'-'+st.pts.B+'</div>';
@@ -3163,6 +3429,71 @@ function rAdminTabela(ts){
   h+='<div class="faint" style="font-size:11px;margin-top:12px;line-height:1.6">A rodada é só a ordem sugerida: dá para puxar qualquer jogo para frente se uma equipe não estiver completa. O horário fica em branco e pode ser preenchido jogo a jogo.</div>';
   h+='</div>';
   return h;
+}
+
+/* ---- VOLTA (returno) ----
+   Aparece quando a ida ja existe. Cada SET vira um jogo do app: e assim que
+   "cada set conta como uma vitoria" sai de graca na classificacao, sem mexer
+   no motor de placar. */
+var VOLTASETS=2;
+function setVoltaSets(v){ VOLTASETS=(+v===1?1:2); render(); }
+
+function rAdminVolta(ts){
+  if(ts.length<2)return "";
+  var todos=gamesArr().filter(function(g){return coresFase(g)==="class";});
+  var ida=todos.filter(function(g){return (g.turno||1)===1;});
+  if(ida.length<2)return "";
+  var volta=coresTabela(ts,{turnos:2,soTurno:2,sets:VOLTASETS,dt:(new Date()).toISOString().slice(0,10),prefixo:"p",pular:todos});
+  var jaVolta=todos.filter(function(g){return g.turno===2;}).length;
+  var porEq=(ts.length-1)*VOLTASETS;
+
+  var h='<h2 class="sec">VOLTA<span class="sec-sub">os mesmos confrontos, mando invertido</span></h2>';
+  h+='<div class="card">';
+  h+='<div class="row" style="align-items:flex-end">';
+  h+='<div class="fld" style="flex:1;min-width:220px"><span>SETS POR CONFRONTO</span><select onchange="setVoltaSets(this.value)">'
+    +'<option value="1"'+(VOLTASETS===1?" selected":"")+'>1 set — como foi a ida</option>'
+    +'<option value="2"'+(VOLTASETS===2?" selected":"")+'>2 sets obrigatórios — cada set vale um resultado</option></select></div>';
+  h+='<button class="btn pri" style="align-self:flex-end"'+(volta.length?' onclick="gerarVolta()"':' disabled')+'>'
+    +(volta.length?'Gerar a volta — '+volta.length+' jogo'+(volta.length===1?'':'s'):'Volta já criada')+'</button>';
+  h+='</div>';
+
+  h+='<div class="tabres"><b>'+volta.length+'</b> jogo'+(volta.length===1?'':'s')+' a criar · '
+    +porEq+' por equipe · a ida continua valendo, a classificação só soma</div>';
+  if(jaVolta)h+='<div class="banner inf">Já existem <b>'+jaVolta+'</b> jogo(s) da volta — os que já estão criados são pulados.</div>';
+  if(VOLTASETS===2)h+='<div class="banner inf">Com 2 sets, <b>cada set é um jogo</b> na tabela: quem vencer os dois soma '
+    +(2*coresCfg(D.config).ptsVitoria)+' pontos; 1 a 1 dá '+(coresCfg(D.config).ptsVitoria+coresCfg(D.config).ptsDerrota)+' para cada.</div>';
+
+  if(volta.length){
+    h+='<div class="tabprev">';
+    var rAtual=-1;
+    volta.forEach(function(g){
+      if(g.rodada!==rAtual){rAtual=g.rodada;h+='<div class="tabrod">RODADA '+rAtual+'</div>';}
+      var a=tF(g.a),b=tF(g.b);
+      h+='<div class="tabjg">'+corHeart(esc(a?a.cor:"#64748b"),'dot')+'<b>'+esc(a?a.n:"?")+'</b>'
+        +'<span class="faint">×</span>'+corHeart(esc(b?b.cor:"#64748b"),'dot')+'<b>'+esc(b?b.n:"?")+'</b>'
+        +'<span class="tabja">'+esc(coresRotulo(g))+'</span></div>';
+    });
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function gerarVolta(){
+  var ts=teamsArr();
+  var todos=gamesArr().filter(function(g){return coresFase(g)==="class";});
+  var jogos=coresTabela(ts,{turnos:2,soTurno:2,sets:VOLTASETS,
+    dt:(new Date()).toISOString().slice(0,10),prefixo:"v"+Date.now().toString(36),pular:todos});
+  if(!jogos.length){toast("A volta já está criada","err");return;}
+  if(!confirm("Criar "+jogos.length+" jogo(s) da volta?\n\nSão os mesmos confrontos da ida com o mando invertido"
+    +(VOLTASETS===2?", em 2 sets — e cada set conta sozinho na classificação":"")
+    +".\n\nNada da ida é apagado."))return;
+  var falta=jogos.length;
+  jogos.forEach(function(g){
+    writeNode("games/"+g.id,g).then(function(){
+      falta--; if(falta===0)toast(jogos.length+" jogos da volta criados","ok");
+    });
+  });
 }
 
 function gerarTabela(){

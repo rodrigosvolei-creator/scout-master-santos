@@ -711,6 +711,30 @@ body.claro.telao::before{opacity:.03}
 /* o selo de versao nao pode cair em cima dos botoes no celular */
 body.celular .stamp{display:none}
 
+/* --- ficha de partida no relatorio --- */
+.pcard{border:1px solid var(--brd);border-radius:14px;padding:15px 17px;margin-bottom:11px;background:var(--card)}
+.pc-hd{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-bottom:11px;border-bottom:1px solid var(--linha)}
+.pc-n{font-size:12px;font-weight:900;color:var(--faint);min-width:18px}
+.pc-vs{display:flex;align-items:center;gap:9px;font-size:15px;flex:1;min-width:230px}
+.pc-pl{font-family:var(--num);font-size:24px;letter-spacing:1px;font-variant-numeric:tabular-nums;padding:0 4px}
+.pc-pl i{font-style:normal;font-size:14px;color:var(--faint);padding:0 3px}
+.pc-meta{display:flex;align-items:center;gap:9px;font-size:11px;color:var(--faint);flex-wrap:wrap}
+.pc-venc{font-weight:700;color:var(--mute)}
+.pc-pts{display:grid;gap:5px;margin-top:11px}
+.pc-lin{display:flex;align-items:center;gap:9px;font-size:13.5px}
+.pc-lin b{font-weight:800;min-width:78px}
+.pc-base{color:var(--mute);font-weight:700}
+.pc-base small,.pc-bon small{font-weight:500;color:var(--faint);font-size:11px}
+.pc-bon{color:var(--faint);font-weight:700}
+.pc-bon.tem{color:var(--acc)}
+.pc-tot{margin-left:auto;font-family:var(--num);font-size:21px;letter-spacing:1px}
+.pc-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:11px;
+  padding-top:10px;border-top:1px solid var(--linha)}
+.pc-lb{font-size:9px;font-weight:800;letter-spacing:1.2px;color:var(--faint)}
+.pc-at{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+  background:var(--surf);border-radius:9px;padding:4px 9px}
+.pc-at b{font-family:var(--num);font-size:15px;letter-spacing:.5px;color:var(--ok)}
+
 /* Melhor de 3: o placar de SETS e o que decide, entao vem antes dos sets. */
 .gc-bo{display:flex;flex-direction:column;align-items:center;gap:1px;
   font-size:8.5px;font-weight:800;letter-spacing:.8px;color:var(--faint);text-transform:uppercase}
@@ -828,7 +852,7 @@ body.celular .hd-teste{display:none}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js?v=2026-09-06h"></script>
+<script src="cores-core.js?v=2026-09-06i"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -869,7 +893,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-06h";
+var CORES_BUILD="2026-09-06i";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -2025,7 +2049,10 @@ function rRelatorio(){
   h+='</div>';
 
   var R=coresRankings(gamesArr(),ts,D.events,D.config,{gameId:REL_JOGO||null});
-  if(!R.temDado)return h+'<div class="empty">Nenhuma ação neste recorte.</div>';
+  /* Sem ação marcada nao ha ranking — mas as fichas de partida (placar e a
+     conta dos pontos) continuam valendo, entao a tela nao volta vazia. */
+  if(!R.temDado)return h+'<div class="empty">Nenhuma ação marcada neste recorte.</div>'
+    +(REL_JOGO?"":rPartidas(ts));
 
   /* ---- maiores pontuadores ---- */
   h+='<h2 class="sec">MAIORES PONTUADORAS<span class="sec-sub">ace, ataque e bloqueio que fecharam o rally</span></h2>';
@@ -2137,6 +2164,76 @@ function rRelatorio(){
   h+='<b>Pontos</b> = ace + ataque que fechou + bloqueio que fechou (ponto vindo de erro do adversário não é creditado a ninguém).<br>';
   h+='<b>% A</b> na recepção, levantamento e defesa; no saque é % de ace, no ataque e no bloqueio é % de ponto.';
   h+='</div></div>';
+  if(!REL_JOGO)h+=rPartidas(ts);
+  return h;
+}
+
+/* ---------- ficha de cada partida ----------
+   O que o Rodrigo pediu: "mostrando cada um, e qual ponto". Cada jogo
+   encerrado vira uma ficha com o placar, quanto cada equipe levou na
+   classificacao e de onde veio o bonus. */
+function pontosDoJogo(g,st){
+  var cfg=coresCfg(D.config);
+  var aVenceu=st.pts.A>st.pts.B;
+  function linha(tid,meus,deles,venceu){
+    var base=venceu?cfg.ptsVitoria:cfg.ptsDerrota, bon=0, motivo="";
+    if(venceu&&cfg.bonusAte>0&&deles<cfg.bonusAte){
+      bon=cfg.bonusVit; motivo="adversária abaixo de "+cfg.bonusAte;
+    }
+    if(!venceu&&cfg.bonusVant>0&&meus>=(cfg.setPoints-1)){
+      bon=cfg.bonusVant; motivo="empatou em "+(cfg.setPoints-1);
+    }
+    return {tid:tid,base:base,bon:bon,motivo:motivo,total:base+bon,venceu:venceu};
+  }
+  return [linha(g.a,st.pts.A,st.pts.B,aVenceu),linha(g.b,st.pts.B,st.pts.A,!aVenceu)];
+}
+
+function rPartidas(ts){
+  var fin=gamesArr().filter(function(g){return g.st==="finalizada"&&tF(g.a)&&tF(g.b);});
+  if(!fin.length)return "";
+  fin.sort(function(a,b){
+    return ((a.turno||1)-(b.turno||1))||((a.rodada||0)-(b.rodada||0))||(a.id<b.id?-1:1);
+  });
+  var h='<h2 class="sec">PARTIDA A PARTIDA<span class="sec-sub">'+fin.length+' jogo'+(fin.length===1?'':'s')+' encerrado'+(fin.length===1?'':'s')+'</span></h2>';
+  fin.forEach(function(g,ix){
+    var A=tF(g.a),B=tF(g.b),st=calc(g);
+    var pts=pontosDoJogo(g,st);
+    var venc=(st.pts.A>st.pts.B)?A:B;
+    var rot=coresRotulo(g);
+    h+='<div class="pcard">';
+    h+='<div class="pc-hd"><span class="pc-n">'+(ix+1)+'</span>';
+    h+='<span class="pc-vs">'+corHeart(esc(A.cor),'dot')+'<b>'+esc(A.n)+'</b>';
+    h+='<span class="pc-pl">'+st.pts.A+'<i>×</i>'+st.pts.B+'</span>';
+    h+=corHeart(esc(B.cor),'dot')+'<b>'+esc(B.n)+'</b></span>';
+    h+='<span class="pc-meta">'+(rot?'<span class="rot">'+esc(rot)+'</span>':'')
+      +(g.dt?'<span>'+fD(g.dt)+'</span>':'')+'<span class="pc-venc">venceu '+esc(venc.n)+'</span></span>';
+    h+='</div>';
+    h+='<div class="pc-pts">';
+    pts.forEach(function(p){
+      var t=tF(p.tid);
+      h+='<div class="pc-lin">'+corHeart(esc(t.cor),'dot')+'<b>'+esc(t.n)+'</b>';
+      h+='<span class="pc-base">'+p.base+' <small>'+(p.venceu?'vitória':'derrota')+'</small></span>';
+      h+='<span class="pc-bon'+(p.bon?' tem':'')+'">'+(p.bon?'+'+p.bon:'—')
+        +(p.motivo?' <small>'+esc(p.motivo)+'</small>':'')+'</span>';
+      h+='<span class="pc-tot">'+p.total+'</span></div>';
+    });
+    h+='</div>';
+    /* quem pontuou neste jogo */
+    var R=coresRankings(gamesArr(),ts,D.events,D.config,{gameId:g.id,minAcoes:1});
+    var quem=(R.geral||[]).filter(function(L){return L.pontos>0;})
+      .sort(function(x,y){return y.pontos-x.pontos;}).slice(0,6);
+    if(quem.length){
+      h+='<div class="pc-top"><span class="pc-lb">PONTUARAM</span>';
+      quem.forEach(function(L){
+        h+='<span class="pc-at">'+corHeart(esc(L.cor),'dot')+esc(L.nm)+'<b>'+L.pontos+'</b></span>';
+      });
+      h+='</div>';
+    }else{
+      h+='<div class="pc-top"><span class="faint" style="font-size:12px">Sem ações marcadas — o placar foi ajustado pelos botões de ponto.</span></div>';
+    }
+    h+='<div class="row" style="margin-top:10px"><button class="btn sm" onclick="relJogo(\''+g.id+'\')">Ver o relatório deste jogo</button></div>';
+    h+='</div>';
+  });
   return h;
 }
 function relJogo(gid){REL_JOGO=gid||"";render();}

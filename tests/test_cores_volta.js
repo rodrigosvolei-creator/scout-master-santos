@@ -176,6 +176,37 @@ function clicaTxt(w, sel, s) {
     eq(getAt('torneio-cores/games/s2/st'), 'agendada');
   });
 
+  console.log('\n== relatório partida a partida ==');
+
+  await t('a ficha da partida mostra o placar e a conta dos pontos', async () => {
+    const R = aparelho('?v=rel'); await wait(200);
+    ok_(/PARTIDA A PARTIDA/.test(txt(R)), 'faltou a seção | ' + txt(R).slice(0, 160));
+    const fichas = all(R, '.pcard');
+    ok_(fichas.length >= 1, 'nenhuma ficha para o jogo encerrado');
+    const f = fichas[0].textContent.replace(/\s+/g, ' ');
+    ok_(/AMARELO/.test(f) && /PRETO/.test(f), f.slice(0, 120));
+    ok_(/venceu/.test(f), 'faltou dizer quem venceu | ' + f.slice(0, 120));
+    ok_(/vitória/.test(f) && /derrota/.test(f), 'faltou a conta dos pontos | ' + f.slice(0, 160));
+  });
+
+  await t('o bônus aparece na ficha com o motivo', async () => {
+    const R = aparelho('?v=rel'); await wait(200);
+    const f = all(R, '.pcard')[0].textContent.replace(/\s+/g, ' ');
+    /* o set 1 fechou 15 a 0: a adversária ficou abaixo de 10 */
+    ok_(/\+1/.test(f), 'faltou o bônus | ' + f.slice(0, 200));
+    ok_(/adversária abaixo de 10/.test(f), 'faltou o motivo | ' + f.slice(0, 200));
+    const tot = all(R, '.pcard .pc-tot').map(e => e.textContent.trim());
+    eq(tot, ['4', '1'], 'vitória 3+1 e derrota 1');
+  });
+
+  await t('a ficha só aparece no recorte do torneio inteiro', async () => {
+    const R = aparelho('?v=rel'); await wait(200);
+    R.relJogo('s1'); await wait(120);
+    ok_(!/PARTIDA A PARTIDA/.test(txt(R)), 'com um jogo escolhido a seção sai de cena');
+    R.relJogo(''); await wait(120);
+    ok_(/PARTIDA A PARTIDA/.test(txt(R)), 'e volta ao escolher o torneio inteiro');
+  });
+
   console.log('\n== telao ==');
 
   await t('o telao mostra as equipes na ordem da quadra', async () => {

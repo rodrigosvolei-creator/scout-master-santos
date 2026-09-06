@@ -387,6 +387,11 @@ function coresRotulo(g) {
   if (g.sets > 1 && g.set) p.push("SET " + g.set);
   return p.join(" · ");
 }
+/* "melhor de 3" para o operador saber que o 3o set pode nem acontecer */
+function coresFormato(g) {
+  if (!g || !(g.sets > 1)) return "";
+  return (g.conf ? "melhor de " : "") + g.sets + " sets";
+}
 
 /* O jogo seguinte do MESMO confronto: mesmo par, mesmo turno, set + 1.
    E o que permite emendar o set 2 sem o operador montar tudo de novo. */
@@ -399,7 +404,8 @@ function coresGrupos(games, evByGame, teamsById, cfgIn) {
   (games || []).forEach(function (g) {
     if (!g) return;
     var k;
-    if (g.sets > 1 && g.set) {
+    if (g.conf) k = "c|" + g.conf;                       /* mata-mata: o confronto manda */
+    else if (g.sets > 1 && g.set) {
       var par = (g.a < g.b) ? g.a + "|" + g.b : g.b + "|" + g.a;
       k = par + "|" + (g.turno || 1) + "|" + coresFase(g);
     } else k = "u|" + g.id;
@@ -409,16 +415,15 @@ function coresGrupos(games, evByGame, teamsById, cfgIn) {
 
   grupos.forEach(function (gr) {
     gr.jogos.sort(function (a, b) { return (a.set || 1) - (b.set || 1); });
-    var aberto = null;
-    for (var i = 0; i < gr.jogos.length; i++) {
-      var g = gr.jogos[i];
-      var st = coresComputeGame(g, (evByGame && evByGame[g.id]) || null, teamsById, cfgIn);
-      if (g.st !== "finalizada" && !(st.done && g.st !== "ao_vivo")) { aberto = g; break; }
-      if (g.st !== "finalizada") { aberto = g; break; }
-    }
+    /* Em melhor de 3 o confronto acaba em 2 sets: o terceiro nao chega a abrir. */
+    var c = coresConfronto(gr.jogos, evByGame, teamsById, cfgIn);
+    gr.conf = c;
+    gr.melhorDe = (gr.jogos[0] && gr.jogos[0].conf) ? c.total : 0;
+    var aberto = c.decidido ? null : c.atual;
     gr.atual = aberto || gr.jogos[gr.jogos.length - 1];
     gr.fechado = !aberto;
     gr.sets = gr.jogos.length;
+    gr.placarSets = c.sets;
   });
 
   /* a ordem do mural e a do jogo que esta valendo agora em cada confronto */
@@ -430,13 +435,54 @@ function coresGrupos(games, evByGame, teamsById, cfgIn) {
   return grupos;
 }
 
+/* Um CONFRONTO e o conjunto de sets entre as duas mesmas equipes no
+   mata-mata (campo `conf`). Devolve quantos sets cada uma fez, quem venceu
+   quando alguem chega a maioria, e qual set esta em aberto.
+   Em melhor de 3, 2 sets decidem e o terceiro nao chega a ser jogado. */
+function coresConfronto(jogos, evByGame, teamsById, cfgIn) {
+  var cfg = coresCfg(cfgIn);
+  var ord = (jogos || []).slice().sort(function (a, b) { return (a.set || 1) - (b.set || 1); });
+  if (!ord.length) return null;
+  var total = ord[0].sets || ord.length;
+  var precisa = Math.floor(total / 2) + 1;          /* bo3 -> 2, set unico -> 1 */
+  var sets = {}, aberto = null;
+  for (var i = 0; i < ord.length; i++) {
+    var oc = coresOutcome(ord[i], evByGame, teamsById, cfg);
+    if (oc) { sets[oc.win] = (sets[oc.win] || 0) + 1; }
+    else if (!aberto) aberto = ord[i];
+  }
+  var win = null;
+  for (var t in sets) if (sets[t] >= precisa) win = t;
+  var lose = win ? (win === ord[0].a ? ord[0].b : ord[0].a) : null;
+  return {
+    id: ord[0].conf || ord[0].id, jogos: ord, total: total, precisa: precisa,
+    sets: sets, win: win, lose: lose, decidido: !!win,
+    atual: win ? null : aberto            /* decidido: o set restante nao se joga */
+  };
+}
+
+/* Junta os jogos por confronto. Jogo sem `conf` e um confronto de um so. */
+function coresPorConfronto(games, evByGame, teamsById, cfgIn) {
+  var mapa = {}, ordem = [];
+  (games || []).forEach(function (g) {
+    if (!g) return;
+    var k = g.conf || g.id;
+    if (!mapa[k]) { mapa[k] = []; ordem.push(k); }
+    mapa[k].push(g);
+  });
+  var out = {};
+  ordem.forEach(function (k) { out[k] = coresConfronto(mapa[k], evByGame, teamsById, cfgIn); });
+  return out;
+}
+
 function coresProximoSet(games, g) {
   if (!g || !g.set) return null;
   for (var i = 0; i < games.length; i++) {
     var x = games[i];
     if (!x || x.id === g.id) continue;
-    if ((x.turno || 1) !== (g.turno || 1)) continue;
     if ((x.set || 1) !== (g.set || 1) + 1) continue;
+    if (g.conf || x.conf) { if (x.conf === g.conf) return x; continue; }
+    if ((x.turno || 1) !== (g.turno || 1)) continue;
     if ((x.a === g.a && x.b === g.b) || (x.a === g.b && x.b === g.a)) return x;
   }
   return null;
@@ -477,12 +523,20 @@ function coresResolveGames(games, evByGame, teamsById, cfgIn) {
   }
   for (var passo = 0; passo < 4; passo++) {
     var mudou = false;
+    var confs = coresPorConfronto(out, evByGame, teamsById, cfg);
     for (i = 0; i < out.length; i++) {
       var g = out[i];
       ["A", "B"].forEach(function (lado) {
         var campo = lado === "A" ? "a" : "b", src = g["src" + lado];
-        if (g[campo] || !src || !src.from) return;
-        var oc = coresOutcome(byId[src.from], evByGame, teamsById, cfg);
+        if (g[campo] || !src) return;
+        var oc = null;
+        if (src.fromConf) {
+          /* melhor de 3: quem espera uma semifinal espera o CONFRONTO inteiro */
+          var c = confs[src.fromConf];
+          if (c && c.decidido) oc = { win: c.win, lose: c.lose };
+        } else if (src.from) {
+          oc = coresOutcome(byId[src.from], evByGame, teamsById, cfg);
+        }
         if (!oc) return;
         g[campo] = (src.tipo === "lose") ? oc.lose : oc.win;
         mudou = true;
@@ -627,14 +681,24 @@ function coresFolgas(teams, jogos) {
 /* Monta os jogos da fase final a partir da classificacao.
    modo: "final" (1o x 2o) | "semi" (1o x 4o e 2o x 3o + final)
    com3o: inclui a disputa de 3o lugar (so no modo semi).
-   Devolve os jogos prontos para gravar — nao grava nada. */
+   base.sets: quantos sets por confronto (3 = melhor de 3, o padrao do mata-mata).
+   Cada set e um jogo, todos com o mesmo `conf`; quem depende de um confronto
+   usa srcA/srcB com `fromConf`. Devolve os jogos prontos — nao grava nada. */
 function coresBracket(standings, modo, com3o, base) {
   base = base || {};
+  var nSets = (base.sets >= 1) ? Math.floor(base.sets) : 3;
+  /* cada confronto vira nSets jogos, todos com o mesmo `conf` */
   var mk = function (id, fase, extra) {
-    var g = { id: id, a: "", b: "", fase: fase, st: "agendada",
-              dt: base.dt || "", tm: "", ordem: CORES_FASES[fase].ordem };
-    for (var k in extra) g[k] = extra[k];
-    return g;
+    var fora = [];
+    for (var se = 1; se <= nSets; se++) {
+      var g = { id: id + (nSets > 1 ? "_s" + se : ""), a: "", b: "", fase: fase,
+                st: "agendada", dt: base.dt || "", tm: "",
+                ordem: CORES_FASES[fase].ordem, conf: id };
+      if (nSets > 1) { g.set = se; g.sets = nSets; }
+      for (var k in extra) g[k] = extra[k];
+      fora.push(g);
+    }
+    return fora;
   };
   var pos = function (i) { return standings[i] ? standings[i].tid : ""; };
   var nome = function (i) { return standings[i] ? standings[i].n : (i + 1) + "º colocado"; };
@@ -642,23 +706,23 @@ function coresBracket(standings, modo, com3o, base) {
 
   if (modo === "final") {
     if (standings.length < 2) return [];
-    return [mk(pref + "_fin", "final", {
+    return mk(pref + "_fin", "final", {
       a: pos(0), b: pos(1), labelA: nome(0), labelB: nome(1), tm: base.tmFinal || ""
-    })];
+    });
   }
   if (modo === "semi") {
     if (standings.length < 4) return [];
-    var s1 = mk(pref + "_sf1", "semi", { a: pos(0), b: pos(3), labelA: nome(0), labelB: nome(3), tm: base.tmSemi || "" });
-    var s2 = mk(pref + "_sf2", "semi", { a: pos(1), b: pos(2), labelA: nome(1), labelB: nome(2), tm: base.tmSemi || "" });
-    var jogos = [s1, s2];
+    var c1 = pref + "_sf1", c2 = pref + "_sf2";
+    var jogos = mk(c1, "semi", { a: pos(0), b: pos(3), labelA: nome(0), labelB: nome(3), tm: base.tmSemi || "" })
+      .concat(mk(c2, "semi", { a: pos(1), b: pos(2), labelA: nome(1), labelB: nome(2), tm: base.tmSemi || "" }));
     if (com3o) {
-      jogos.push(mk(pref + "_3o", "terceiro", {
-        srcA: { from: s1.id, tipo: "lose" }, srcB: { from: s2.id, tipo: "lose" },
+      jogos = jogos.concat(mk(pref + "_3o", "terceiro", {
+        srcA: { fromConf: c1, tipo: "lose" }, srcB: { fromConf: c2, tipo: "lose" },
         labelA: "Perdedor Semifinal 1", labelB: "Perdedor Semifinal 2", tm: base.tm3o || ""
       }));
     }
-    jogos.push(mk(pref + "_fin", "final", {
-      srcA: { from: s1.id, tipo: "win" }, srcB: { from: s2.id, tipo: "win" },
+    jogos = jogos.concat(mk(pref + "_fin", "final", {
+      srcA: { fromConf: c1, tipo: "win" }, srcB: { fromConf: c2, tipo: "win" },
       labelA: "Vencedor Semifinal 1", labelB: "Vencedor Semifinal 2", tm: base.tmFinal || ""
     }));
     return jogos;
@@ -669,12 +733,11 @@ function coresBracket(standings, modo, com3o, base) {
 /* Campeao do torneio: vencedor da final, quando houver. */
 function coresCampeao(games, evByGame, teamsById, cfgIn) {
   var gs = coresResolveGames(games, evByGame, teamsById, cfgIn);
-  for (var i = 0; i < gs.length; i++) {
-    if (coresFase(gs[i]) !== "final") continue;
-    var oc = coresOutcome(gs[i], evByGame, teamsById, coresCfg(cfgIn));
-    if (oc) return oc.win;
-  }
-  return null;
+  var finais = gs.filter(function (g) { return coresFase(g) === "final"; });
+  if (!finais.length) return null;
+  /* melhor de 3: campea e quem leva o CONFRONTO, nao um set */
+  var c = coresConfronto(finais, evByGame, teamsById, cfgIn);
+  return (c && c.decidido) ? c.win : null;
 }
 
 /* ==========================================================================
@@ -917,6 +980,8 @@ if (typeof module !== "undefined" && module.exports) {
     coresLadoLabel: coresLadoLabel, coresBracket: coresBracket, coresCampeao: coresCampeao,
     coresRodadas: coresRodadas, coresTabela: coresTabela, coresFolgas: coresFolgas,
     coresRotulo: coresRotulo, coresProximoSet: coresProximoSet, coresGrupos: coresGrupos,
+    coresConfronto: coresConfronto, coresPorConfronto: coresPorConfronto,
+    coresFormato: coresFormato,
     coresLado: coresLado, coresLadoOposto: coresLadoOposto,
     coresLadoNome: coresLadoNome, coresLadoSeta: coresLadoSeta,
     CORES_FUND_ABC: CORES_FUND_ABC, coresEhPonto: coresEhPonto, coresRankings: coresRankings,

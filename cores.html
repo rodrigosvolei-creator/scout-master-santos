@@ -711,6 +711,13 @@ body.claro.telao::before{opacity:.03}
 /* o selo de versao nao pode cair em cima dos botoes no celular */
 body.celular .stamp{display:none}
 
+/* Melhor de 3: o placar de SETS e o que decide, entao vem antes dos sets. */
+.gc-bo{display:flex;flex-direction:column;align-items:center;gap:1px;
+  font-size:8.5px;font-weight:800;letter-spacing:.8px;color:var(--faint);text-transform:uppercase}
+.gc-bo b{font-family:var(--num);font-size:23px;letter-spacing:1px;color:var(--fg);line-height:1}
+.gc-set.morto{opacity:.32}
+.gc-set.morto .gc-set-pl{font-size:15px}
+
 /* Placar por set no card do confronto. Nao e enfeite: e o que deixa dois sets
    caberem num card so, sem dois botoes concorrendo. */
 .gc-sets{display:flex;gap:8px;align-items:center}
@@ -821,7 +828,7 @@ body.celular .hd-teste{display:none}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js?v=2026-09-06e"></script>
+<script src="cores-core.js?v=2026-09-06f"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -862,7 +869,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-06e";
+var CORES_BUILD="2026-09-06f";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -954,17 +961,21 @@ function onWriteErr(e){
 function boot(){
   db.ref(ROOT+"/config").on("value",function(s){D.config=s.val()||{};_loaded.config=1;render();});
   db.ref(ROOT+"/teams").on("value",function(s){D.teams=s.val()||{};_loaded.teams=1;render();});
-  db.ref(ROOT+"/games").on("value",function(s){D.games=s.val()||{};_loaded.games=1;render();});
+  db.ref(ROOT+"/games").on("value",function(s){D.games=s.val()||{};_loaded.games=1;watchEvents();render();});
   watchEvents();
 }
 /* Eventos: na mesa escuta so o jogo aberto; no telao/classificacao escuta tudo. */
 function watchEvents(){
-  if((VIEW==="mesa"||VIEW==="mesac")&&GID){
+  /* Melhor de 3: o que decide e o placar de SETS, entao a mesa precisa dos
+     eventos dos outros sets do mesmo confronto. Ai escuta tudo. */
+  var _g=GID?D.games[GID]:null;
+  var _tudo=!!(_g&&_g.conf);
+  if((VIEW==="mesa"||VIEW==="mesac")&&GID&&!_tudo){
     if(_evGid===GID)return;
     if(_evRef)_evRef.off();
     _evGid=GID;_evRef=db.ref(ROOT+"/events/"+GID);
     _evRef.on("value",function(s){D.events[GID]=s.val()||{};render();});
-  }else if(VIEW==="class"||VIEW==="telao"||VIEW==="home"||VIEW==="admin"||VIEW==="rel"){
+  }else if(_tudo||VIEW==="class"||VIEW==="telao"||VIEW==="home"||VIEW==="admin"||VIEW==="rel"){
     if(_evGid==="*")return;
     if(_evRef)_evRef.off();
     _evGid="*";_evRef=db.ref(ROOT+"/events");
@@ -1126,11 +1137,14 @@ function gameCard(g,grupo){
     +(rot?'<span class="rot">'+esc(rot)+'</span> ':'')
     +(g.dt?fD(g.dt):"")+(g.tm?" · "+esc(g.tm):"")+'</div>')+'</div>';
   if(multi){
+    var ps=grupo.placarSets||{};
+    if(grupo.melhorDe)h+='<div class="gc-bo">melhor de '+grupo.melhorDe+'<b>'+(ps[g.a]||0)+'-'+(ps[g.b]||0)+'</b></div>';
     h+='<div class="gc-sets">';
     grupo.jogos.forEach(function(j){
       var sj=calc(j);
       var jogado=(j.st==="finalizada"||j.st==="ao_vivo"||sj.pts.A||sj.pts.B);
-      h+='<div class="gc-set'+(j.st==="ao_vivo"?" viva":"")+(j.id===g.id&&!grupo.fechado?" agora":"")+'">'
+      var morto=(grupo.fechado&&!jogado);
+      h+='<div class="gc-set'+(j.st==="ao_vivo"?" viva":"")+(j.id===g.id&&!grupo.fechado?" agora":"")+(morto?" morto":"")+'">'
         +'<span class="gc-set-lb">SET '+(j.set||1)+'</span>'
         +'<span class="gc-set-pl">'+(jogado?(sj.pts.A+' x '+sj.pts.B):'—')+'</span></div>';
     });
@@ -1361,6 +1375,13 @@ function irProximoSet(){
 function proximoSetHTML(g,classe){
   var prox=coresProximoSet(gamesArr(),g);
   if(!prox)return "";
+  /* melhor de 3: se o confronto ja esta decidido, o set seguinte nao se joga */
+  if(g.conf){
+    var meus=gamesArr().filter(function(x){return x.conf===g.conf;});
+    var c=coresConfronto(meus,D.events,D.teams,D.config);
+    if(c&&c.decidido)return '<div class="txt"><b>Confronto encerrado</b> — '
+      +esc((tF(c.win)||{}).n||'')+' venceu por '+(c.sets[c.win]||0)+' a '+(c.sets[c.lose]||0)+' em sets.</div>';
+  }
   var pronto=(prox.st==="finalizada");
   return '<button class="'+(classe||"btn pri")+'" onclick="irProximoSet()">'
     +(pronto?"Ver o "+esc(coresRotulo(prox)||"próximo set"):"▶ Ir para o "+esc(coresRotulo(prox)||"próximo set"))
@@ -2297,9 +2318,12 @@ function rAdminFaseFinal(){
   if(mata.length){
     h+='<div class="card"><div class="row" style="align-items:flex-start">';
     h+='<div style="flex:1;min-width:220px"><b>Fase final já criada</b><div class="faint" style="font-size:12px;margin-top:6px;line-height:1.6">';
+    var vistos={};
     mata.forEach(function(g){
+      var k=g.conf||g.id; if(vistos[k])return; vistos[k]=1;
       var gr=gRes(g.id)||g;
-      h+='· '+esc(CORES_FASES[coresFase(g)].l)+': '+esc(coresLadoLabel(gr,"A",D.teams))+' × '+esc(coresLadoLabel(gr,"B",D.teams))+'<br>';
+      h+='· '+esc(CORES_FASES[coresFase(g)].l)+': '+esc(coresLadoLabel(gr,"A",D.teams))+' × '+esc(coresLadoLabel(gr,"B",D.teams))
+        +(g.sets>1?' <span class="faint">(melhor de '+g.sets+')</span>':'')+'<br>';
     });
     h+='</div></div>';
     h+='<button class="btn dgr" onclick="apagarFaseFinal()">Apagar e refazer</button>';
@@ -2326,14 +2350,14 @@ function rAdminFaseFinal(){
   h+='<div class="faint" style="font-size:11px;font-weight:800;letter-spacing:1.2px;margin-bottom:8px">COMO VAI SER?</div>';
   h+='<div class="fasegrid">';
   h+='<button class="faseopt" onclick="gerarFaseFinal(\'final\',false)">'
-    +'<b>Final direta</b><span>1º × 2º · um jogo só</span>'
+    +'<b>Final direta</b><span>1º × 2º · melhor de 3 sets</span>'
     +'<i>'+esc(S[0]?S[0].n:"1º")+' × '+esc(S[1]?S[1].n:"2º")+'</i></button>';
   var pode4=(ts.length>=4&&S.length>=4&&comJogo.length>=4);
   h+='<button class="faseopt'+(pode4?"":" off")+'"'+(pode4?' onclick="gerarFaseFinal(\'semi\',false)"':' disabled')+'>'
-    +'<b>Semifinais + final</b><span>1º×4º e 2º×3º</span>'
+    +'<b>Semifinais + final</b><span>1º×4º e 2º×3º · melhor de 3</span>'
     +'<i>'+(pode4?esc(S[0].n)+' × '+esc(S[3].n)+' · '+esc(S[1].n)+' × '+esc(S[2].n):"precisa de 4 equipes com jogo")+'</i></button>';
   h+='<button class="faseopt'+(pode4?"":" off")+'"'+(pode4?' onclick="gerarFaseFinal(\'semi\',true)"':' disabled')+'>'
-    +'<b>Semifinais + 3º lugar + final</b><span>com disputa de terceiro</span>'
+    +'<b>Semifinais + 3º lugar + final</b><span>com disputa de terceiro · melhor de 3</span>'
     +'<i>'+(pode4?"4 jogos":"precisa de 4 equipes com jogo")+'</i></button>';
   h+='</div>';
   h+='<div class="faint" style="font-size:11px;margin-top:12px;line-height:1.6">A final nasce como “vencedor da semifinal 1 × vencedor da semifinal 2” e as equipes entram sozinhas quando as semis terminarem. Jogos de fase final <b>não</b> entram na tabela de classificação.</div>';
@@ -2346,8 +2370,11 @@ function gerarFaseFinal(modo,com3o){
   var hoje=(new Date()).toISOString().slice(0,10);
   var jogos=coresBracket(S,modo,com3o,{dt:hoje,prefixo:"f_"+Date.now().toString(36)});
   if(!jogos.length){toast("Não deu para montar — faltam equipes classificadas","err");return;}
-  var nomes=jogos.map(function(g){return CORES_FASES[g.fase].l;}).join(", ");
-  if(!confirm("Criar "+jogos.length+" jogo(s): "+nomes+"?"))return;
+  var confs={}; jogos.forEach(function(g){confs[g.conf||g.id]=CORES_FASES[g.fase].l;});
+  var nomes=Object.keys(confs).map(function(k){return confs[k];}).join(", ");
+  var bo=(jogos[0]&&jogos[0].sets>1)?" em melhor de "+jogos[0].sets+" sets":"";
+  if(!confirm("Criar "+Object.keys(confs).length+" confronto(s)"+bo+": "+nomes+"?\n\n"
+    +jogos.length+" jogos no total — um por set. O terceiro só é jogado se ficar 1 a 1."))return;
   var falta=jogos.length;
   jogos.forEach(function(g){
     writeNode("games/"+g.id,g).then(function(){

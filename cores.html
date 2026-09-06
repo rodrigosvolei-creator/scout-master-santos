@@ -828,7 +828,7 @@ body.celular .hd-teste{display:none}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js?v=2026-09-06f"></script>
+<script src="cores-core.js?v=2026-09-06g"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -869,7 +869,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-06f";
+var CORES_BUILD="2026-09-06g";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -1218,7 +1218,11 @@ function rEscolhaEquipe(g,A,B){
 /* Placar do topo — o mesmo nos dois aparelhos. */
 function placarHTML(g,A,B,st){
   var h='<div class="mesa-top">';
-  [{t:A,s:"A"},{t:B,s:"B"}].forEach(function(x){
+  /* Na ordem da QUADRA: quem está à esquerda aparece à esquerda. Sem isso o
+     card dizia "▶ DIREITA" do lado esquerdo da tela. */
+  var duo=[{t:A,s:"A"},{t:B,s:"B"}];
+  if(coresLado(g,"A")==="D")duo.reverse();
+  duo.forEach(function(x){
     var mine=(x.t.id===MEUTID);
     var serving=st.serve&&st.serve.side===x.s;
     var sacador=serving&&st.serve.jid?pF(x.t,st.serve.jid):null;
@@ -1699,13 +1703,17 @@ function celTopo(g,A,B,st,mostrarMais){
   var h='<div class="cel-top">';
   h+='<button class="cel-sair" onclick="go(\'home\')" title="Voltar aos jogos">←</button>';
   h+='<div class="cel-pl">';
-  var ldA=coresLado(g,"A"), ldB=coresLado(g,"B");
-  h+='<div class="lado">'+corHeart(esc(A.cor),'celt')+'<div class="nm">'+esc(A.n)+eu(A)
-    +(ldA?'<small class="ld">'+coresLadoSeta(ldA)+'</small>':'')+'</div></div>';
-  h+='<div class="sc">'+st.pts.A+'<i>×</i>'+st.pts.B
+  /* mesma regra da mesa: a tela segue a quadra */
+  var esqSide=(coresLado(g,"A")==="D")?"B":"A";
+  var dirSide=(esqSide==="A")?"B":"A";
+  var eqT=(esqSide==="A")?A:B, drT=(dirSide==="A")?A:B;
+  var ldE=coresLado(g,esqSide), ldD=coresLado(g,dirSide);
+  h+='<div class="lado">'+corHeart(esc(eqT.cor),'celt')+'<div class="nm">'+esc(eqT.n)+eu(eqT)
+    +(ldE?'<small class="ld">'+coresLadoSeta(ldE)+'</small>':'')+'</div></div>';
+  h+='<div class="sc">'+st.pts[esqSide]+'<i>×</i>'+st.pts[dirSide]
     +(coresRotulo(g)?'<span class="rot rot-sc">'+esc(coresRotulo(g))+'</span>':'')+'</div>';
-  h+='<div class="lado dir"><div class="nm" style="text-align:right">'+esc(B.n)+eu(B)
-    +(ldB?'<small class="ld">'+coresLadoSeta(ldB)+'</small>':'')+'</div>'+corHeart(esc(B.cor),'celt')+'</div>';
+  h+='<div class="lado dir"><div class="nm" style="text-align:right">'+esc(drT.n)+eu(drT)
+    +(ldD?'<small class="ld">'+coresLadoSeta(ldD)+'</small>':'')+'</div>'+corHeart(esc(drT.cor),'celt')+'</div>';
   h+='</div>';
   if(mostrarMais)h+='<button class="cel-mais" onclick="celAbrirMenu()" title="Mais opções">⋯</button>';
   if(TESTE)h=h.replace('<div class="cel-top">','<div class="cel-top"><span class="cel-teste">TESTE</span>');

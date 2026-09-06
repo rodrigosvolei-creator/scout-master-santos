@@ -107,6 +107,25 @@ function clicaTxt(w, sel, s) {
     ok_(tags.join(' ').indexOf('ESQUERDA') >= 0 && tags.join(' ').indexOf('DIREITA') >= 0, tags.join(' | '));
   });
 
+  await t('o placar aparece na ORDEM DA QUADRA, não na ordem do jogo', () => {
+    /* AMARELO (equipe A) escolheu a ESQUERDA: tem que estar no card da esquerda */
+    let nomes = all(M, '.mesa-side .nm').map(e => e.textContent.replace(/[◀▶]/g, '').replace(/\s+/g, ' ').trim());
+    eq(nomes.map(n => n.split(' ')[0]), ['AMARELO', 'PRETO'], 'com ladoA=E a ordem e a do jogo');
+    const lados = all(M, '.mesa-side .ladotag').map(e => e.textContent.replace(/\s+/g, ' ').trim());
+    ok_(/ESQUERDA/.test(lados[0]) && /DIREITA/.test(lados[1]),
+      'o card da esquerda tem que dizer ESQUERDA | ' + lados.join(' | '));
+  });
+
+  await t('trocando o lado, os cards trocam de posicao', async () => {
+    clicaTxt(M, '.ladoch', 'DIREITA'); await wait(90);
+    const nomes = all(M, '.mesa-side .nm').map(e => e.textContent.replace(/[◀▶]/g, '').replace(/\s+/g, ' ').trim().split(' ')[0]);
+    eq(nomes, ['PRETO', 'AMARELO'], 'AMARELO foi para a direita, entao aparece a direita');
+    const lados = all(M, '.mesa-side .ladotag').map(e => e.textContent.replace(/\s+/g, ' ').trim());
+    ok_(/ESQUERDA/.test(lados[0]) && /DIREITA/.test(lados[1]), lados.join(' | '));
+    clicaTxt(M, '.ladoch', 'ESQUERDA'); await wait(90);   /* devolve para seguir o teste */
+    eq(getAt('torneio-cores/games/s1/ladoA'), 'E');
+  });
+
   console.log('\n== emenda do set 2 ==');
 
   await t('monta o set 1 e joga ate fechar', async () => {

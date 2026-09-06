@@ -692,33 +692,22 @@ body.claro.telao::before{opacity:.03}
   .dest{border-top-color:var(--f)}
 }
 
-/* --- miolo em passos, no padrao do scout 6x6 --- */
-.cel-sec{flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:1.1px;
-  color:var(--faint);text-transform:uppercase;padding:2px 2px 0}
-/* Altura confortavel e com teto: deixados livres, os seis botoes esticavam para
-   185px cada e a tela virava um tabuleiro. Quem cresce e o feed, embaixo. */
-.cel-funds{flex:0 0 auto;display:grid;grid-template-columns:repeat(3,1fr);
-  grid-auto-rows:minmax(56px,76px);gap:6px}
-.cel-fund{border:2px solid var(--brd);background:var(--surf);color:var(--fg);border-radius:12px;
-  padding:9px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:2px;font-size:11px;font-weight:800;letter-spacing:.2px;cursor:pointer;line-height:1.1}
-.cel-fund .fi{font-size:20px;line-height:1;
-  filter:drop-shadow(0 0 1px rgba(255,255,255,.9)) drop-shadow(0 1px 2px rgba(0,0,0,.5))}
-.cel-fund.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 30%,transparent);
-  box-shadow:0 4px 14px color-mix(in srgb,var(--c) 35%,transparent)}
-.cel-fund:active{transform:scale(.96)}
-.cel-outs{flex-shrink:0;display:grid;gap:6px}
-.cel-out{border:0;border-radius:12px;color:#fff;font-weight:900;font-size:15px;letter-spacing:.4px;
-  padding:15px 4px;cursor:pointer;text-transform:uppercase;box-shadow:0 4px 14px rgba(0,0,0,.28)}
-.cel-out:active{transform:scale(.95)}
-.cel-feed{flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:4px}
-.cel-fi{display:flex;align-items:center;gap:7px;background:var(--surf);border-radius:9px;
-  padding:6px 9px;font-size:12.5px;min-height:0;flex-shrink:0}
-.cel-fi b{font-weight:800}
-.cel-fi span{color:var(--faint);font-size:11px}
-.cel-fi i{margin-left:auto;font-style:normal;color:#fff;font-weight:800;font-size:11px;
-  padding:2px 8px;border-radius:6px}
-.cel-vazio{color:var(--faint);font-size:12px;padding:6px 2px}
+/* --- grade de 2 toques: uma linha por fundamento --- */
+.cel-acoes{flex:1 1 auto;min-height:0;display:grid;grid-template-rows:repeat(6,1fr);gap:5px}
+.cel-lin{display:grid;grid-template-columns:70px 1fr;gap:5px;min-height:0}
+.cel-fh{border-radius:10px;display:flex;align-items:center;justify-content:center;gap:3px;
+  font-size:10px;font-weight:800;letter-spacing:.2px;text-align:center;line-height:1.05;
+  padding:2px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.cel-fh .ico{margin:0;font-size:12px}
+.cel-ops{display:grid;gap:5px;min-height:0}
+.cel-ops.n3{grid-template-columns:repeat(3,1fr)}
+.cel-ops.n4{grid-template-columns:repeat(4,1fr)}
+.cel-b{border:0;border-radius:10px;color:#fff;font-weight:800;font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:2px;min-height:0;
+  box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.cel-b:active{transform:translateY(1px)}
+.cel-acoes.semp .cel-b{filter:saturate(.5) brightness(.72)}
+.cel-feed{flex:0 0 auto;max-height:26%;overflow:hidden;display:flex;flex-direction:column;gap:4px}
 /* o selo de versao nao pode cair em cima dos botoes no celular */
 body.celular .stamp{display:none}
 
@@ -832,7 +821,7 @@ body.celular .hd-teste{display:none}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js?v=2026-09-06d"></script>
+<script src="cores-core.js?v=2026-09-06e"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -873,7 +862,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-06d";
+var CORES_BUILD="2026-09-06e";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -1853,40 +1842,34 @@ function celJogo(g,meu,adv,st,meuSide,A,B){
       '<div class="txt">Comece o jogo para liberar a marcação.</div>'
       +'<button class="cel-x" style="background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-size:15px;padding:0 18px" onclick="iniciarJogo()">▶ Iniciar jogo</button>');
   }else{
-    /* Mesmo caminho do scout 6x6, que o Rodrigo ja conhece: primeiro o
-       FUNDAMENTO (seis botoes grandes com icone), depois so os RESULTADOS
-       daquele fundamento. Poucos botoes por vez em vez de uma parede de 22. */
-    h+='<div class="cel-sec">🎯 Fundamento'+(CELAK?' · '+esc(CORES_ACT[CELAK].l):'')+'</div>';
-    h+='<div class="cel-funds">';
+    /* DOIS TOQUES: o atleta la em cima e o botao da acao aqui. Fundamento e
+       resultado no MESMO toque — num rally nao ha tempo para tres. Cada linha
+       e um fundamento: rotulo colorido a esquerda, resultados a direita. */
+    h+='<div class="cel-acoes'+(SELP?"":" semp")+'">';
     CORES_FUND.forEach(function(ak){
-      var a=CORES_ACT[ak], on=(CELAK===ak);
-      h+='<button class="cel-fund'+(on?" on":"")+'" style="--c:'+CORES_FCOL[ak]+'"'
-        +' onclick="celAk(\''+ak+'\')"><span class="fi">'+a.i+'</span>'+esc(a.l)+'</button>';
+      var a=CORES_ACT[ak];
+      h+='<div class="cel-lin">';
+      h+='<div class="cel-fh" style="background:'+CORES_FCOL[ak]+'"><span class="ico">'+a.i+'</span>'+esc(a.l)+'</div>';
+      h+='<div class="cel-ops n'+a.o.length+'">';
+      a.o.forEach(function(oc){
+        h+='<button class="cel-b" style="background:'+CORES_OC[oc]+'" onclick="mark(\''+ak+'\',\''+oc+'\')">'+oc+'</button>';
+      });
+      h+='</div></div>';
     });
     h+='</div>';
 
-    if(CELAK){
-      var ops=CORES_ACT[CELAK].o;
-      h+='<div class="cel-sec">✅ Resultado</div>';
-      h+='<div class="cel-outs" style="grid-template-columns:repeat('+ops.length+',1fr)">';
-      ops.forEach(function(oc){
-        h+='<button class="cel-out" style="background:'+CORES_OC[oc]+'" onclick="celMark(\''+oc+'\')">'+oc+'</button>';
+    /* as ultimas acoes so entram se sobrar tela — a grade vem primeiro */
+    var evs=(st.events||[]).filter(function(e){return e.t==="act";}).slice(-3).reverse();
+    if(evs.length){
+      h+='<div class="cel-feed">';
+      evs.forEach(function(e){
+        var t=tF(e.tid), p=t?pF(t,e.jid):null;
+        h+='<div class="cel-fi">'+corHeart(esc(t?t.cor:"#64748b"),'celp')
+          +'<b>'+esc(p?p.nm:(t?t.n:"—"))+'</b><span>'+esc(CORES_ACT[e.ak]?CORES_ACT[e.ak].l:e.ak)+'</span>'
+          +'<i style="background:'+(CORES_OC[e.oc]||"#556070")+'">'+esc(e.oc)+'</i></div>';
       });
       h+='</div>';
     }
-
-    /* confirmacao do que ja entrou — e o que da seguranca a quem aponta */
-    h+='<div class="cel-sec">📜 Últimas ações</div><div class="cel-feed">';
-    var ult=(st.pointLog||[]).slice(-40);
-    var evs=(st.events||[]).filter(function(e){return e.t==="act";}).slice(-6).reverse();
-    if(!evs.length)h+='<div class="cel-vazio">nada marcado ainda</div>';
-    evs.forEach(function(e){
-      var t=tF(e.tid), p=t?pF(t,e.jid):null;
-      h+='<div class="cel-fi">'+corHeart(esc(t?t.cor:"#64748b"),'celp')
-        +'<b>'+esc(p?p.nm:(t?t.n:"—"))+'</b><span>'+esc(CORES_ACT[e.ak]?CORES_ACT[e.ak].l:e.ak)+'</span>'
-        +'<i style="background:'+(CORES_OC[e.oc]||"#556070")+'">'+esc(e.oc)+'</i></div>';
-    });
-    h+='</div>';
   }
   /* faixa de baixo */
   h+='<div class="cel-bot">';
@@ -1899,8 +1882,6 @@ function celJogo(g,meu,adv,st,meuSide,A,B){
 }
 
 /* --------- painel de baixo --------- */
-function celAk(ak){ CELAK=(CELAK===ak?null:ak); render(); }
-function celMark(oc){ var ak=CELAK; CELAK=null; mark(ak,oc); }
 /* Zerar: o jogo volta a AGENDADO sem escalacao e sem ponto. Nasceu porque as
    equipes testam o app antes de comecar e nao havia como desfazer o teste
    sem apagar o jogo e refazer a tabela. */

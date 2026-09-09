@@ -852,7 +852,7 @@ body.celular .hd-teste{display:none}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="cores-core.js?v=2026-09-06i"></script>
+<script src="cores-core.js?v=2026-09-09a"></script>
 <script>
 /* ============================================================================
    RS-SCOUT · MINI MINIS - CORES — modulo ISOLADO
@@ -893,7 +893,7 @@ function obrasSair(){
   location.href="?";
 }
 var CORES_NOME_PADRAO="Mini Minis - Cores";
-var CORES_BUILD="2026-09-06i";
+var CORES_BUILD="2026-09-09a";
 document.getElementById("stamp").textContent="cores "+CORES_BUILD;
 
 var fc={apiKey:"AIzaSyDsZk3a11EJy5jfQzkMZyN4EGx-scaXg7o",authDomain:"scola-volei.firebaseapp.com",
@@ -2098,15 +2098,20 @@ function rRelatorio(){
       h+='<div class="dest-fund"><span class="ico">'+d.F.icone+'</span>'+esc(d.F.label)+'</div>';
       h+='<div class="dest-nm">'+esc(d.x.nm)+'</div>';
       h+='<div class="dest-eq">'+corHeart(esc(d.x.cor),'dot')+''+esc(d.x.equipe)+'</div>';
-      h+='<div class="dest-pct">'+d.x.pct+'<small>%</small></div>';
-      h+='<div class="dest-lb">'+esc(d.F.rotulo)+' · '+(d.F.abc?(d.x.A+'A de '+d.x.n):(d.x.acertos+' de '+d.x.n))+'</div>';
+      if(d.ak==="saque"){
+        h+='<div class="dest-pct">'+d.x.qtd+'</div>';
+        h+='<div class="dest-lb">ace'+(d.x.qtd===1?'':'s')+(d.x.erros?' · '+d.x.erros+' erro'+(d.x.erros===1?'':'s'):'')+'</div>';
+      }else{
+        h+='<div class="dest-pct">'+d.x.pct+'<small>%</small></div>';
+        h+='<div class="dest-lb">'+esc(d.F.rotulo)+' · '+(d.F.abc?(d.x.A+'A de '+d.x.n):(d.x.acertos+' de '+d.x.n))+'</div>';
+      }
       h+='</div>';
     });
     h+='</div>';
   }
 
   /* ---- por fundamento ---- */
-  h+='<h2 class="sec">RANKING POR FUNDAMENTO<span class="sec-sub">mínimo de '+R.minAcoes+' ações para entrar</span></h2>';
+  h+='<h2 class="sec">RANKING POR FUNDAMENTO<span class="sec-sub">mínimo de '+R.minAcoes+' ações para entrar · no saque, quantidade de aces</span></h2>';
   h+='<div class="relgrid">';
   CORES_FUND.forEach(function(ak){
     var F=R.fundamentos[ak];
@@ -2127,13 +2132,18 @@ function rRelatorio(){
     }else if(!F.ranking.length){
       h+='<div class="faint" style="font-size:12px">Sem ações marcadas.</div>';
     }else{
+      /* No saque a barra e proporcional a quem mais deu ace, nao a 100%. */
+      var topo=(ak==="saque")?Math.max.apply(null,F.ranking.map(function(x){return x.qtd;})):100;
       F.ranking.slice(0,5).forEach(function(x,i){
         h+='<div class="relrow"><span class="relpos">'+(i+1)+'</span>';
         h+=corHeart(esc(x.cor),'dot');
         h+='<span class="relnm">'+esc(x.nm)+'</span>';
-        h+='<span class="relbar"><i style="width:'+Math.max(2,x.pct)+'%;background:'+CORES_FCOL[ak]+'"></i></span>';
-        h+='<b class="relpct">'+x.pct+'%</b>';
-        h+='<span class="reldet">'+(F.abc?(x.A+'A de '+x.n):(x.acertos+' de '+x.n))+'</span>';
+        var larg=(ak==="saque")?(topo?Math.round(x.qtd*100/topo):0):x.pct;
+        h+='<span class="relbar"><i style="width:'+Math.max(2,larg)+'%;background:'+CORES_FCOL[ak]+'"></i></span>';
+        h+='<b class="relpct">'+((ak==="saque")?x.qtd:(x.pct+'%'))+'</b>';
+        h+='<span class="reldet">'+(ak==="saque"
+              ?('ace'+(x.qtd===1?'':'s')+(x.erros?' · '+x.erros+' erro'+(x.erros===1?'':'s'):''))
+              :(F.abc?(x.A+'A de '+x.n):(x.acertos+' de '+x.n)))+'</span>';
         h+='</div>';
       });
     }
@@ -2162,7 +2172,8 @@ function rRelatorio(){
   h+='</tbody></table></div>';
   h+='<div class="faint" style="font-size:11px;margin-top:12px;line-height:1.6">';
   h+='<b>Pontos</b> = ace + ataque que fechou + bloqueio que fechou (ponto vindo de erro do adversário não é creditado a ninguém).<br>';
-  h+='<b>% A</b> na recepção, levantamento e defesa; no saque é % de ace, no ataque e no bloqueio é % de ponto.';
+  h+='<b>% A</b> na recepção, levantamento e defesa; no ataque e no bloqueio é % de ponto.<br>';
+  h+='<b>Saque</b> conta <b>quantidade de aces</b>, não percentual: o saque só costuma ser marcado quando decide o rally, então o total de saques registrados não representa quantos a atleta deu.';
   h+='</div></div>';
   if(!REL_JOGO)h+=rPartidas(ts);
   return h;

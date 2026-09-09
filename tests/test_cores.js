@@ -822,12 +822,33 @@ t('o minimo de acoes e ajustavel', () => {
   eq(R1.fundamentos.recepcao.ranking[0].nm, 'EDU', 'com minimo 1, o 100% de uma acao lidera');
   eq(R1.fundamentos.recepcao.poucos.length, 0);
 });
-t('fundamento sem A/B/C usa a metrica certa: saque=ace, ataque/bloqueio=ponto', () => {
-  eq(R.fundamentos.saque.abc, false);
-  eq(R.fundamentos.saque.rotulo, '% ace');
+t('ataque e bloqueio usam % de ponto', () => {
   eq(R.fundamentos.ataque.rotulo, '% ponto');
   /* ANA: 3 pontos em 5 ataques = 60% · FE: 5 em 10 = 50% */
   eq(R.fundamentos.ataque.ranking.map(x => [x.nm, x.pct]), [['ANA', 60], ['FE', 50]]);
+});
+t('SAQUE conta ace, nao percentual', () => {
+  /* O saque so vai para o app quando decide o rally: quem saca 20 vezes e faz
+     3 aces pode ter 4 saques registrados e virar "75%". Ace e quantidade. */
+  const F = R.fundamentos.saque;
+  eq(F.abc, false);
+  eq(F.rotulo, 'aces');
+  eq(F.ranking.map(x => x.pct), F.ranking.map(() => null), 'saque nao tem percentual');
+  eq(F.ranking.map(x => x.qtd - x.acertos), F.ranking.map(() => 0), 'a quantidade e o numero de aces');
+  eq(F.poucos.length, 0, 'sem minimo de acoes: 2 aces sao 2 aces');
+});
+t('o ranking de saque vem do maior numero de aces', () => {
+  const ev = mkEv([].concat(
+    A('tz', 'z1', 'saque', 'Ace', 2),
+    A('tz', 'z1', 'saque', 'Erro', 1),
+    A('tz', 'z2', 'saque', 'Ace', 1),
+    A('tz', 'z3', 'saque', 'Cont', 4)
+  ));
+  const g = { id: 'sq', a: 'tz', b: 'tv', st: 'finalizada' };
+  const r = C.coresRankings([g], RT, { sq: ev }, CFG, {});
+  const rk = r.fundamentos.saque.ranking;
+  eq(rk.map(x => [x.nm, x.qtd]), [['ANA', 2], ['BIA', 1]], 'quem so deu Cont fica de fora');
+  eq(rk[0].erros, 1, 'o erro aparece ao lado, sem virar denominador');
 });
 t('a tabela geral traz acoes, pontos e erros por atleta', () => {
   const ana = R.geral.find(x => x.nm === 'ANA');

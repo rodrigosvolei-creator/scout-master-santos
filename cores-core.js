@@ -900,6 +900,12 @@ function coresRankings(games, teams, evByGame, cfgIn, opts) {
   }
 
   function ordena(arr, chave) {
+    /* por quantidade: mais aces primeiro, menos erros depois */
+    if (chave === "qtd") {
+      return arr.slice().sort(function (a, b) {
+        return (b.qtd - a.qtd) || (a.erros - b.erros) || String(a.nm).localeCompare(String(b.nm));
+      });
+    }
     arr.sort(function (a, b) {
       if (b[chave] !== a[chave]) return b[chave] - a[chave];
       if (b.acoes !== a.acoes) return b.acoes - a.acoes;     /* mais volume desempata */
@@ -931,9 +937,13 @@ function coresRankings(games, teams, evByGame, cfgIn, opts) {
         item.pct = Math.round(f.A * 100 / f.n);          /* % de A sobre o total */
         item.rotulo = "% A";
       } else if (ak === "saque") {
+        /* Ace nao tem percentual: e quantidade. O saque so vai para o app
+           quando decide o rally, entao o total de saques marcados nao
+           representa quantos a atleta deu — dividir por ele mente. */
         item.acertos = f.Ace; item.emJogo = f.Cont;
-        item.pct = Math.round(f.Ace * 100 / f.n);
-        item.rotulo = "% ace";
+        item.qtd = f.Ace;
+        item.pct = null;
+        item.rotulo = "aces";
       } else if (ak === "ataque") {
         item.acertos = f.Ponto; item.bloqueados = f.Bloq;
         item.pct = Math.round(f.Ponto * 100 / f.n);
@@ -949,8 +959,12 @@ function coresRankings(games, teams, evByGame, cfgIn, opts) {
       label: CORES_ACT[ak].l, icone: CORES_ACT[ak].i, abc: abc,
       rotulo: lista.length ? lista[0].rotulo : (abc ? "% A" : "%"),
       /* o ranking de % exige um minimo de acoes; quem tem menos aparece a parte */
-      ranking: ordena(lista.filter(function (x) { return x.n >= minAcoes; }), "pct"),
-      poucos: lista.filter(function (x) { return x.n < minAcoes; })
+      /* o saque ordena por QUANTIDADE de ace e nao exige minimo de acoes:
+         quem deu 2 aces deu 2 aces, tenha marcado 2 ou 20 saques. */
+      ranking: (ak === "saque")
+        ? ordena(lista.filter(function (x) { return x.qtd > 0; }), "qtd")
+        : ordena(lista.filter(function (x) { return x.n >= minAcoes; }), "pct"),
+      poucos: (ak === "saque") ? [] : lista.filter(function (x) { return x.n < minAcoes; })
     };
   });
 

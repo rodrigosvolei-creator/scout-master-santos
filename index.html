@@ -1223,7 +1223,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-13a - relatorio geral: tabela acoes/positivas/erros por fundamento, celular (placar vertical, KPIs 2x2, coluna do atleta fixa), PDF sem cortar card (fluxo de bloco) e CSS do overlay escopado certo";
+var APP_BUILD="2026-09-13b - relatorio geral: tabela acoes/positivas/erros por fundamento (modelo novo, padrao) com o modelo anterior disponivel no botao da tabela; celular (placar vertical, KPIs 2x2, coluna do atleta fixa); PDF sem cortar card; CSS do overlay escopado certo";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -8057,7 +8057,9 @@ function _repCSS(){
   +'.rk{display:inline-flex;align-items:center;gap:9px}'
   +'.medal{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-family:var(--fx);font-size:12px;flex:none}.m1{background:linear-gradient(135deg,#ffd75e,var(--gold));color:#3a2c00}.m2{background:linear-gradient(135deg,#dbe2ec,var(--silver));color:#2a3444}.m3{background:linear-gradient(135deg,#e0a86a,var(--bronze));color:#fff}'
   +'.pos{width:22px;text-align:center;color:var(--faint);font-size:13px;flex:none}'
-  +'.aez{color:var(--faint);font-weight:600}'
+  +'.aeg{color:var(--good-d)}.aeb{color:var(--bad)}.aez{color:var(--faint);font-weight:600}.ae .s,.tot .s{color:var(--faint);font-weight:400;margin:0 1px}'
+  +'.tot{font-family:var(--fd);font-weight:800;font-size:14px}'
+  +'.card-hd .tag-btn{margin-left:8px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;font-family:inherit;text-transform:none;letter-spacing:.2px;font-weight:600}.card-hd .tag-btn:hover{background:rgba(255,255,255,.2)}'
   +'.apv{display:flex;align-items:center;gap:5px;justify-content:center;min-width:72px}.apv .mini{width:32px;height:6px;border-radius:4px;background:var(--line);overflow:hidden;flex:none}.apv .mini i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--good),var(--good-d))}.apv .pc{font-family:var(--fd);font-weight:800;font-size:13px;min-width:34px;text-align:right}.apv.low .mini i{background:linear-gradient(90deg,#e6a52a,var(--bad))}'
   /* tops */
   +'.tops{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}'
@@ -8142,6 +8144,21 @@ function _short(pid,gid){var pf=pFind(pid,gid);if(!pf)return "#"+pid;var f=(pf.n
 // celula "acoes · positivas · erros" da tabela geral (traço quando nao teve acao). Serve pro
 // fundamento (bf) e pro total do atleta (p) — os dois tem n/pos/err.
 function _c3(x){if(!x||!x.n)return '<span class="aez">—</span>';return '<span class="c3"><b class="n">'+x.n+'</b><b class="'+(x.pos>0?"p":"z")+'">'+x.pos+'</b><b class="'+(x.err>0?"e":"z")+'">'+x.err+'</b></span>';}
+// celula do MODELO ANTERIOR: positivas/erros (traço quando o fundamento nao teve acao)
+function _aeV(bf){if(!bf||!bf.n)return '<span class="aez">—</span>';var p=bf.pos,e=bf.err;return '<span class="'+(p>0?"aeg":"aez")+'">'+p+'</span><span class="s">/</span><span class="'+(e>0?"aeb":"aez")+'">'+e+'</span>';}
+// MODELO da tabela geral: 'novo' (acoes · positivas · erros, padrao) ou 'anterior' (positivas/erros
+// + coluna Acoes). Rodrigo (13/09/2026): "deixe como modelo novo, mas deixe o atual disponivel".
+// Preferencia por aparelho (localStorage); o botao na faixa da tabela alterna e reabre o relatorio.
+var REP_MODEL_KEY="rs_rep_model", _repReopen=null;
+function repModel(){try{var m=localStorage.getItem(REP_MODEL_KEY);return m==="anterior"?"anterior":"novo";}catch(e){return "novo";}}
+function setRepModel(m){try{if(m==="anterior")localStorage.setItem(REP_MODEL_KEY,"anterior");else localStorage.removeItem(REP_MODEL_KEY);}catch(e){}}
+function toggleRepModel(){
+  setRepModel(repModel()==="anterior"?"novo":"anterior");
+  if(typeof _repReopen!=="function")return;
+  var doc=document.getElementById("pdfOverlay-doc"), st=doc?doc.scrollTop:0;
+  _repReopen(); // reabre o mesmo relatorio no outro modelo
+  doc=document.getElementById("pdfOverlay-doc"); if(doc)doc.scrollTop=st;
+}
 // ===== RELATORIO DE TIME (partida) =====
 // Miolo do relatorio de time (KPIs + tabela geral + tops + destaques + focos + metodo),
 // reusado pelo relatorio de UM jogo (reportTeamHTML) e pelo CONSOLIDADO do torneio
@@ -8173,8 +8190,14 @@ function _reportCoreHTML(agg, opts){
   // como "14 acoes e 0 erros" quando eram 19 acoes, 14 pontos e 5 bolas em jogo — o volume
   // sumia. Mesma leitura da tabela do relatorio individual (Acoes / Pos. / Erro); o Total e a
   // soma dos fundamentos no mesmo formato (a coluna "Acoes" solta entrou nele).
+  var model=opts.model||repModel(), old=(model==="anterior");
   var thF=function(lbl){return '<th class="f"><div class="fh">'+lbl+'</div><div class="c3 sub"><span>aç</span><span class="p">pos</span><span class="e">err</span></div></th>';};
-  h+='<div class="card tcard"><div class="card-hd"><span class="h-ic">'+_ic("i-users")+'</span><h3>Tabela geral — '+esc(teamName)+'</h3><span class="tag">ações · positivas · erros</span></div><div class="card-bd tb"><div class="tscroll-hint">deslize a tabela para o lado →</div><div class="tscroll"><table class="tg"><thead><tr><th class="l">Atleta</th>'+thF("Ataque")+thF("Bloq.")+thF("Saque")+thF("Passe")+thF("Defesa")+thF("Levant.")+thF("Total")+'<th class="f"><div class="fh">Aprov.</div><div class="sub">pos ÷ (pos+err)</div></th></tr></thead><tbody>';
+  // botao que alterna o modelo (some no PDF: .no-print)
+  var swBtn='<button type="button" class="tag tag-btn no-print" onclick="toggleRepModel()" title="Alternar o formato da tabela geral">'+(old?"ver modelo novo":"ver modelo anterior")+'</button>';
+  h+='<div class="card tcard"><div class="card-hd"><span class="h-ic">'+_ic("i-users")+'</span><h3>Tabela geral — '+esc(teamName)+'</h3><span class="tag">'+(old?"acertos / erros por fundamento":"ações · positivas · erros")+'</span>'+swBtn+'</div><div class="card-bd tb"><div class="tscroll-hint">deslize a tabela para o lado →</div><div class="tscroll"><table class="tg"><thead><tr><th class="l">Atleta</th>';
+  if(old)h+='<th>Ataque</th><th>Bloq.</th><th>Saque</th><th>Passe</th><th>Defesa</th><th>Levant.</th><th>Ações</th><th>Total</th><th>Aprov.</th>';
+  else h+=thF("Ataque")+thF("Bloq.")+thF("Saque")+thF("Passe")+thF("Defesa")+thF("Levant.")+thF("Total")+'<th class="f"><div class="fh">Aprov.</div><div class="sub">pos ÷ (pos+err)</div></th>';
+  h+='</tr></thead><tbody>';
   var _fOrd=["ataque","bloqueio","saque","recepcao","defesa","levantamento"];
   for(var i=0;i<players.length;i++){
     var p=players[i], medaled=(i<3&&p.pos>0);
@@ -8183,12 +8206,20 @@ function _reportCoreHTML(agg, opts){
     var nm=esc(sn(p.pid));
     var cell=clickable?('<span class="rk" style="cursor:pointer" onclick="exPlayerReport(\''+gidOf(p.pid)+'\',\''+p.pid+'\')" title="Ver relatório individual">'+rk+nm+'</span>'):('<span class="rk">'+rk+nm+'</span>');
     h+='<tr class="'+(medaled?"top":"")+'"><td class="l">'+cell+'</td>';
-    for(var fo=0;fo<_fOrd.length;fo++)h+='<td class="f">'+_c3(p.byF[_fOrd[fo]])+'</td>';
-    h+='<td class="f">'+_c3(p)+'</td>';
-    h+='<td class="f"><div class="apv'+apLow+'"><div class="mini"><i style="width:'+(p.aprov||0)+'%"></i></div><span class="pc">'+(p.aprov==null?"–":p.aprov+"%")+'</span></div></td></tr>';
+    var apv='<div class="apv'+apLow+'"><div class="mini"><i style="width:'+(p.aprov||0)+'%"></i></div><span class="pc">'+(p.aprov==null?"–":p.aprov+"%")+'</span></div>';
+    if(old){
+      for(var fa=0;fa<_fOrd.length;fa++)h+='<td>'+_aeV(p.byF[_fOrd[fa]])+'</td>';
+      h+='<td class="mut" style="font-weight:800">'+p.n+'</td>';
+      h+='<td><span class="tot"><b class="'+(p.pos>0?"aeg":"aez")+'">'+p.pos+'</b><span class="s">/</span><b class="'+(p.err>0?"aeb":"aez")+'">'+p.err+'</b></span></td>';
+      h+='<td>'+apv+'</td></tr>';
+    }else{
+      for(var fo=0;fo<_fOrd.length;fo++)h+='<td class="f">'+_c3(p.byF[_fOrd[fo]])+'</td>';
+      h+='<td class="f">'+_c3(p)+'</td>';
+      h+='<td class="f">'+apv+'</td></tr>';
+    }
   }
   h+='</tbody></table></div>';
-  h+='<div class="tlegend"><b>aç</b> ações · <b class="p">pos</b> positivas pela régua · <b class="e">err</b> erros. A diferença são ações neutras: bola em jogo no ataque e no bloqueio, ataque bloqueado, passe/levantamento/defesa B ou C.</div>';
+  if(!old)h+='<div class="tlegend"><b>aç</b> ações · <b class="p">pos</b> positivas pela régua · <b class="e">err</b> erros. A diferença são ações neutras: bola em jogo no ataque e no bloqueio, ataque bloqueado, passe/levantamento/defesa B ou C.</div>';
   h+='</div></div>';
   // TOPS
   function topBy(fn){var a=[];for(var k=0;k<players.length;k++){var v=fn(players[k]);if(v>0)a.push({who:sn(players[k].pid),v:v});}a.sort(function(x,y){return y.v-x.v;});return a.slice(0,3);}
@@ -8248,6 +8279,7 @@ function exTeamReport(gid){
   var g=gF(gid);
   if(!g||!g.act||!g.act.length){alert("Este jogo ainda não tem ações registradas.");return;}
   var te=(g.tid&&typeof tF==="function")?tF(g.tid):null;
+  _repReopen=function(){exTeamReport(gid);};
   openPdfOverlay(reportTeamHTML(g),"Relatório — "+(te?te.n:"")+" vs "+(g.opp||""));
 }
 // ===== RELATORIO CONSOLIDADO DO TORNEIO (soma de todos os jogos com scout) =====
@@ -8319,6 +8351,7 @@ function exTournamentReport(torId){
   var games=_tourGames(torId);
   if(!games.length){alert("Nenhum jogo com scout registrado neste torneio ainda.");return;}
   var tor=(typeof tFnd==="function")?tFnd(torId):null;
+  _repReopen=function(){exTournamentReport(torId);};
   openPdfOverlay(reportTournamentHTML(torId),"Relatório — "+(tor?tor.n:"Torneio"));
 }
 // ===== RELATORIO INDIVIDUAL (player-card) =====

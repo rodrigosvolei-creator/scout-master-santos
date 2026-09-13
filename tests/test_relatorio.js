@@ -96,6 +96,19 @@ setTimeout(()=>{
   var c3=w._c3({n:19,pos:14,err:0});
   chk(c3.indexOf('>19<')>=0 && c3.indexOf('class="p">14<')>=0 && c3.indexOf('class="z">0<')>=0,'_c3: 19 acoes / 14 pos / 0 err (zero apagado)');
   chk(w._c3(null).indexOf('—')>=0 && w._c3({n:0,pos:0,err:0}).indexOf('—')>=0,'_c3: sem acao = traço');
+  // MODELO: novo e o padrao; o anterior (pos/erro + coluna Acoes) segue disponivel pelo botao da tabela
+  chk(typeof w.repModel==='function' && w.repModel()==='novo','modelo padrao = novo');
+  chk(htm.indexOf('class="tag tag-btn no-print" onclick="toggleRepModel()"')>=0 && htm.indexOf('ver modelo anterior')>=0,'time: botao "ver modelo anterior" na faixa da tabela (no-print: some no PDF)');
+  w.setRepModel('anterior');
+  var hOld=w.reportTeamHTML(g);
+  chk(w.repModel()==='anterior','setRepModel(anterior) persiste (localStorage)');
+  chk(hOld.indexOf('>Ações<')>=0 && hOld.indexOf('acertos / erros por fundamento')>=0 && hOld.indexOf('class="tot"')>=0,'modelo anterior: coluna Acoes + celulas pos/erro + Total pos/erro (igual ao 27e)');
+  chk(hOld.indexOf('<span class="aeg">5</span><span class="s">/</span><span class="aeb">1</span>')>=0,'modelo anterior: ataque do a1 = 5/1');
+  chk(hOld.indexOf('ver modelo novo')>=0 && hOld.indexOf('class="tlegend"')<0 && hOld.indexOf('<span>aç</span>')<0,'modelo anterior: botao volta pro novo; sem legenda/sub-rotulos do novo');
+  chk(hOld.indexOf('class="hero-in team"')>=0,'modelo anterior: hero/celular/print iguais (so a tabela muda)');
+  w.setRepModel('novo');
+  chk(w.repModel()==='novo' && w.reportTeamHTML(g).indexOf('<span>aç</span>')>=0,'setRepModel(novo) volta ao padrao');
+  chk(typeof w.toggleRepModel==='function','toggleRepModel existe');
   // HERO em grid "placar": parciais FORA do bloco dos sets (no celular viram uma faixa propria)
   chk(htm.indexOf('class="hero-in team"')>=0,'time: hero-in.team (grid placar)');
   chk(/<div class="side r">[\s\S]*?<\/div><div class="parc">/.test(htm) && !/<div class="score">[\s\S]*?class="parc"[\s\S]*?<\/div><div class="side r">/.test(htm),'time: .parc e irmao do placar (depois do adversario), nao filho de .score');
@@ -113,6 +126,17 @@ setTimeout(()=>{
   var ov=w.document.getElementById('pdfOverlay');
   var nBreaks=ov?(ov.innerHTML.match(/page-break-before:always/g)||[]).length:-1;
   chk(nBreaks===2,'exAllPlayerReports: 3 atletas = 2 quebras de pagina (1 por atleta) (deu '+nBreaks+')');
+  if(w.closePdfOverlay)w.closePdfOverlay();
+  // TOGGLE de verdade: abre o relatorio, clica no botao, o overlay reabre no modelo anterior (e volta)
+  w.exTeamReport('g1');
+  var ovDoc=w.document.getElementById('pdfOverlay-doc');
+  chk(ovDoc && ovDoc.innerHTML.indexOf('<span>aç</span>')>=0,'overlay abre no modelo novo');
+  w.toggleRepModel();
+  ovDoc=w.document.getElementById('pdfOverlay-doc');
+  chk(ovDoc && ovDoc.innerHTML.indexOf('>Ações<')>=0 && w.repModel()==='anterior','toggle: overlay reaberto no modelo anterior');
+  w.toggleRepModel();
+  ovDoc=w.document.getElementById('pdfOverlay-doc');
+  chk(ovDoc && ovDoc.innerHTML.indexOf('<span>aç</span>')>=0 && w.repModel()==='novo','toggle de novo: volta ao modelo novo');
   if(w.closePdfOverlay)w.closePdfOverlay();
 
   // ---- HTML INDIVIDUAL (atacante) ----

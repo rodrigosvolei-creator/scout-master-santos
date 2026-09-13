@@ -59,7 +59,7 @@ setTimeout(function(){
   chk(h.indexOf('Taça Teste')>=0,'hero mostra o nome do torneio');
   chk(/>2<\/span>[\s\S]*?×[\s\S]*?>1<\/span>/.test(h),'hero: 2 × 1 (vitorias × derrotas)');
   chk(h.indexOf('3 jogos')>=0,'hero: 3 jogos');
-  chk(h.indexOf('4 × 2 sets')>=0,'hero: 4 × 2 sets (soma dos sets)');
+  chk(/class="parc"><span class="plb">Sets<\/span>4 × 2<span class="pls"> sets<\/span>/.test(h),'hero: 4 × 2 sets (soma dos sets; .parc fora do .score, rotulo "Sets" so no celular)');
 
   // 3) JOGOS DO TORNEIO: lista os 3 com resultado
   chk(/vs Alfa/.test(h)&&/vs Beta/.test(h)&&/vs Gama/.test(h),'lista os 3 jogos (Alfa/Beta/Gama)');

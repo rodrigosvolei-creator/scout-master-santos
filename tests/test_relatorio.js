@@ -12,8 +12,8 @@ global.firebaseMock={initializeApp:()=>{},database:()=>({ref:makeRef}),auth:()=>
 function pushN(arr,n,pid,ak,oc,set){for(let i=0;i<n;i++)arr.push({id:pid+ak+oc+set+i,pid:pid,ak:ak,oc:oc,set:set});}
 function levA(n,oc){const a=[];for(let i=0;i<n;i++)a.push({id:'lev'+oc+i,pid:'a5',ak:'levantamento',oc:oc,set:1});return a;}
 const act=[];
-// a1 atacante: ataque 5 Ponto +1 Erro; bloqueio 1 Ponto  -> pos6 err1 pontos6
-pushN(act,5,'a1','ataque','Ponto',1);pushN(act,1,'a1','ataque','Erro',1);pushN(act,1,'a1','bloqueio','Ponto',2);
+// a1 atacante: ataque 5 Ponto +1 Erro +2 Cont (neutros); bloqueio 1 Ponto  -> pos6 err1 pontos6, 9 acoes
+pushN(act,5,'a1','ataque','Ponto',1);pushN(act,1,'a1','ataque','Erro',1);pushN(act,2,'a1','ataque','Cont',1);pushN(act,1,'a1','bloqueio','Ponto',2);
 // a8 libero: recepcao 4A 2B 1Erro; defesa 2A            -> pos6 err1 pontos0 (offN=0)
 pushN(act,4,'a8','recepcao','A',1);pushN(act,2,'a8','recepcao','B',1);pushN(act,1,'a8','recepcao','Erro',2);pushN(act,2,'a8','defesa','A',2);
 // a3 central: bloqueio 2 Ponto +1 Erro; ataque 1 Ponto   -> pos3 err1 pontos3
@@ -86,7 +86,19 @@ setTimeout(()=>{
   // tabela compacta com TODOS os fundamentos (colunas)
   chk(htm.indexOf('table class="tg"')>=0,'time: tabela geral compacta');
   chk(htm.indexOf('>Saque<')>=0 && htm.indexOf('>Defesa<')>=0 && htm.indexOf('>Levant.<')>=0,'time: colunas de saque/defesa/levant (antes faltavam)');
-  chk(htm.indexOf('>Ações<')>=0,'time: coluna Ações (volume total — acertos+erros+neutros)');
+  // CELULA = ACOES · POSITIVAS · ERROS (Rodrigo: "14/0" parecia 14 acoes e 0 erros; eram 19 acoes,
+  // 14 pontos e 5 continuidade). a1 ataque: 8 acoes (5 Ponto + 1 Erro + 2 Cont), 5 pos, 1 err.
+  chk(htm.indexOf('<span>aç</span><span class="p">pos</span><span class="e">err</span>')>=0,'time: cabecalho de cada fundamento traz "aç · pos · err"');
+  chk(htm.indexOf('<b class="n">8</b><b class="p">5</b><b class="e">1</b>')>=0,'time: celula do ataque do a1 = 8 acoes · 5 positivas · 1 erro (os 2 Cont entram no volume)');
+  chk(htm.indexOf('<b class="n">9</b><b class="p">6</b><b class="e">1</b>')>=0,'time: coluna Total do a1 no mesmo formato = 9 acoes · 6 pos · 1 err');
+  chk(htm.indexOf('>Ações<')<0 && htm.indexOf('acertos / erros por fundamento')<0,'time: coluna "Acoes" solta e o rotulo antigo sairam (o volume esta em cada fundamento)');
+  chk(htm.indexOf('class="tlegend"')>=0 && htm.indexOf('ações neutras')>=0,'time: legenda explica aç/pos/err e o que e neutro');
+  var c3=w._c3({n:19,pos:14,err:0});
+  chk(c3.indexOf('>19<')>=0 && c3.indexOf('class="p">14<')>=0 && c3.indexOf('class="z">0<')>=0,'_c3: 19 acoes / 14 pos / 0 err (zero apagado)');
+  chk(w._c3(null).indexOf('—')>=0 && w._c3({n:0,pos:0,err:0}).indexOf('—')>=0,'_c3: sem acao = traço');
+  // HERO em grid "placar": parciais FORA do bloco dos sets (no celular viram uma faixa propria)
+  chk(htm.indexOf('class="hero-in team"')>=0,'time: hero-in.team (grid placar)');
+  chk(/<div class="side r">[\s\S]*?<\/div><div class="parc">/.test(htm) && !/<div class="score">[\s\S]*?class="parc"[\s\S]*?<\/div><div class="side r">/.test(htm),'time: .parc e irmao do placar (depois do adversario), nao filho de .score');
   // a3 central: 3 acertos + 1 erro + 0 neutros = 4 acoes (bloqueio 2P+1E, ataque 1P)
   chk(P.a3.n===4,'a3: total de acoes = 4 (bate com pos3+err1, sem neutros aqui)');
   // ranking por aproveitamento (%): Mikael/Igor 86% antes de Caio 75%
@@ -99,7 +111,7 @@ setTimeout(()=>{
   chk(typeof w.exAllPlayerReports==='function','exAllPlayerReports existe');
   w.exAllPlayerReports('g1');
   var ov=w.document.getElementById('pdfOverlay');
-  var nBreaks=ov?(ov.innerHTML.match(/page-break-before/g)||[]).length:-1;
+  var nBreaks=ov?(ov.innerHTML.match(/page-break-before:always/g)||[]).length:-1;
   chk(nBreaks===2,'exAllPlayerReports: 3 atletas = 2 quebras de pagina (1 por atleta) (deu '+nBreaks+')');
   if(w.closePdfOverlay)w.closePdfOverlay();
 
@@ -159,8 +171,25 @@ setTimeout(()=>{
   var pcss=w._repCSS(); var pblock=pcss.slice(pcss.indexOf('@media print'));
   chk(/186mm/.test(pblock),'print: largura travada no A4 (nao estoura a direita / corta a coluna Aprov.)');
   chk(/\.tscroll\{overflow:visible/.test(pblock),'print: tabela sem scroll (scroll no papel = corte)');
-  chk(/\.kpis,\.tops,\.dest\{grid-template-columns:repeat\(2/.test(pblock),'print: layout compacto 2 colunas (KPIs nao estouram a folha)');
-  chk(/\.tops[^}]*\{[^}]*break-inside:avoid|,\.tops,[^}]*break-inside:avoid/.test(pblock) || pblock.indexOf('.tops,.dest,.foot2')>=0,'print: blocos de grid inteiros por pagina (nao corta card na virada)');
+  // FLUXO DE BLOCO no papel: o WebKit (iPhone) ignora break-inside:avoid em filho de flex/grid — os
+  // cards partiam na virada (cabecalho do "Top Passe" numa folha, corpo na outra).
+  chk(/\.report\{display:block\}/.test(pblock),'print: .report vira bloco (era flex -> Safari nao respeitava break-inside)');
+  chk(/\.kpis,\.tops,\.dest,\.grid2,\.foot2\{display:block\}/.test(pblock),'print: grids de cards viram bloco');
+  chk(/\.kpi,\.top-card,\.dcard,\.grid2>\*,\.foot2>\*\{display:inline-block;width:48\.5%/.test(pblock),'print: cards em linhas de inline-block (2 por linha, linha nao parte)');
+  chk(/\.hero-in\.team\{grid-template-columns:1fr auto 1fr;grid-template-areas:"home score away"/.test(pblock),'print: hero volta ao placar horizontal mesmo se a @media de celular disparar');
+  chk(/\.card\.tcard\{break-inside:auto/.test(pblock) && /table\.tg thead,table\.tif thead\{display:table-header-group\}/.test(pblock),'print: tabela geral longa quebra entre linhas e repete o cabecalho');
+  chk(html.indexOf('@page{size:A4;margin:1cm}')>=0,'print overlay: folha A4');
+  // ESCOPO DO CSS NO OVERLAY: a 1a regra de cada bloco @media tem que ser prefixada (senao perde
+  // pra regra base prefixada e o celular ignora o @media inteiro — KPIs 4 numa linha)
+  w.exTeamReport('g1');
+  var ovs=w.document.querySelector('#pdfOverlay style'), sc=ovs?ovs.textContent:'';
+  var mob=sc.slice(sc.indexOf('@media(max-width:760px){')+'@media(max-width:760px){'.length, sc.indexOf('@media(max-width:760px){')+90);
+  var prt=sc.slice(sc.indexOf('@media print{')+'@media print{'.length, sc.indexOf('@media print{')+60);
+  chk(/^\s*#pdfOverlay-doc /.test(mob),'overlay: 1a regra do @media(max-width) prefixada (deu "'+mob.slice(0,40)+'")');
+  chk(/^\s*#pdfOverlay-doc /.test(prt),'overlay: 1a regra do @media print prefixada');
+  chk(sc.indexOf('#pdfOverlay-doc @media')<0 && sc.indexOf('#pdfOverlay-doc from')<0,'overlay: preludes @media/@page/keyframes nao sao prefixados');
+  if(w.closePdfOverlay)w.closePdfOverlay();
+  chk(/\.hero,\.kpi,\.card,\.top-card,\.dcard,\.method[^{]*\{break-inside:avoid;page-break-inside:avoid\}/.test(pblock),'print: cada card inteiro na pagina (nao corta card na virada)');
   chk(html.indexOf('html,body{background:#fff!important}')>=0,'print overlay: forca fundo branco (nao vaza o tema escuro do app)');
 
   console.log('\n=== test_relatorio: '+ok+' OK, '+ko+' FAIL ===');

@@ -9,7 +9,8 @@
       "athletes":    { ".read": true, ".write": "auth != null" },
       "tournaments": { ".read": true, ".write": "auth != null" },
       "invites":     { ".read": true, ".write": "auth != null" },
-      "users":       { ".read": "auth != null", ".write": "auth != null" }
+      "users":       { ".read": "auth != null", ".write": "auth != null" },
+      "trainings":   { ".read": "auth != null", ".write": "auth != null" }
     }
   }
 }

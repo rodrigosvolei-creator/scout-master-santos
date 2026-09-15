@@ -1332,7 +1332,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
+var APP_BUILD="2026-09-15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -2125,10 +2125,18 @@ db.ref("torneio-master-santos/invites").on("value", function(snap){
 // nao array por indice — evita replicar a divida C1 dos jogos (grava no indice errado se
 // a ordem do array mudar). Le como array local (D.trainings) pra reusar os mesmos padroes
 // de listagem/filtro do resto do app; a escrita (saveTraining) usa a CHAVE, nunca o indice.
+// Regra do RTDB: trainings e read/write "auth != null" (firebase-rules.json). Sem a regra
+// aplicada no console o Firebase NEGA a leitura em silencio — _trnReadErr faz a aba avisar.
+var _trnReadErr=null;
 db.ref("torneio-master-santos/trainings").on("value", function(snap){
   var v = snap.val();
   D.trainings = v ? Object.values(v) : [];
   _dataLoaded.trainings = true;
+  _trnReadErr=null;
+  if(appStarted) render();
+}, function(err){
+  _trnReadErr=(err&&(err.code||err.message))||"erro";
+  console.warn("[treinos] leitura negada:",_trnReadErr);
   if(appStarted) render();
 });
 
@@ -7880,6 +7888,7 @@ function _trnAthleteByTaid(tr,taid){var l=tr.athletes||[];for(var i=0;i<l.length
 function rTrn(){
   // Toda a aba vive num painel claro (.trn-light) — tela de registro/analise, nao de jogo.
   var h='<div class="trn-light">';
+  if(_trnReadErr)h+='<div class="cd" style="background:#fee2e2;border:1px solid #fecaca;color:#991b1b;font-size:12px;box-shadow:none">⚠️ O banco está negando acesso ao nó <b>trainings</b> ('+esc(_trnReadErr)+'). Nada do que for feito aqui será salvo até aplicar a regra de <code>trainings</code> do <code>firebase-rules.json</code> no console do Firebase (Realtime Database → Regras).</div>';
   if(!selTrn)return h+_rTrnList()+'</div>';
   var tr=trF(selTrn);
   if(!tr){selTrn=null;return h+_rTrnList()+'</div>';}

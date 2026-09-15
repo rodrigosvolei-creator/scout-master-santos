@@ -10,7 +10,8 @@ const listeners = {};
 function getAt(p){const a=p.split('/');let c=fakeDB;for(const k of a){if(c==null)return null;c=c[k];}return c===undefined?null:c;}
 function setAt(p,v){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object')c[a[i]]={};c=c[a[i]];}c[a[a.length-1]]=JSON.parse(JSON.stringify(v));}
 function delAt(p){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c==null)return;c=c[a[i]];}if(c)delete c[a[a.length-1]];}
-function makeRef(p){return{_path:p,on:function(e,cb){listeners[p]=cb;},once:function(){return Promise.resolve({val:()=>getAt(p)});},set:function(v){setAt(p,v);return Promise.resolve();},update:function(){return Promise.resolve();},remove:function(){delAt(p);return Promise.resolve();}};}
+function makeRef(p){return{_path:p,on:function(e,cb){listeners[p]=cb;},once:function(){return Promise.resolve({val:()=>getAt(p)});},set:function(v){setAt(p,v);return Promise.resolve();},update:function(obj){for(const k in obj){if(obj[k]===null)delAt(p+'/'+k);else setAt(p+'/'+k,obj[k]);}return Promise.resolve();},remove:function(){delAt(p);return Promise.resolve();}};}
+function fireTrainings(){const path='torneio-master-santos/trainings';if(listeners[path])listeners[path]({val:()=>getAt(path)});}
 global.firebaseMock={initializeApp:()=>{},database:()=>({ref:makeRef}),auth:()=>({onAuthStateChanged:function(cb){setTimeout(()=>cb({uid:'tester',email:'rodrigosvolei@gmail.com',displayName:'Tester'}),0);},signInWithPopup:()=>Promise.resolve(),signOut:()=>Promise.resolve()})};
 
 const seed = {
@@ -48,7 +49,7 @@ const w = dom.window;
 let ok=0, ko=0;
 function chk(c,m){if(c){ok++;console.log('OK   '+m);}else{ko++;console.log('FAIL '+m);}}
 
-setTimeout(()=>{
+setTimeout(async ()=>{
   try {
     ['teams','games','tournaments','athletes','invites','trainings'].forEach(k=>{
       const path='torneio-master-santos/'+k;
@@ -265,6 +266,54 @@ setTimeout(()=>{
     w.toggleTrnTablet();
     chk(!w.isTrnTablet() && !w.document.querySelector('.trn-tab') && !w.document.body.classList.contains('trn-tablet'), 'tablet: desligar volta ao layout celular e tira body.trn-tablet');
 
+    // 14b. MULTI-OPERADOR: cada marcacao vai pro proprio no marks/{mid}; a escrita de outro
+    // aparelho chegando no meio NAO e apagada; undo so tira a marcacao deste aparelho.
+    (async function(){})(); // (as escritas granulares sao promises; o mock resolve na hora)
+    await new Promise(r=>setTimeout(r,20));
+    var dbTr=getAt('torneio-master-santos/trainings/'+tr.id);
+    chk(dbTr && !Array.isArray(dbTr.marks) && typeof dbTr.marks==='object', 'RTDB: marks e OBJETO chaveado (marks/{mid}), nao array');
+    chk(dbTr && !Array.isArray(dbTr.athletes) && typeof dbTr.athletes==='object' && Object.keys(dbTr.athletes).length===tr.athletes.length, 'RTDB: athletes e OBJETO chaveado por taid');
+    var nMarksDb=Object.keys(dbTr.marks||{}).length;
+    chk(nMarksDb===tr.marks.length, 'RTDB: mesmo numero de marcacoes que o estado local ('+nMarksDb+')');
+    // outro aparelho grava uma marcacao direto no banco (sem passar por este app)
+    var outroId='m_outro_'+Date.now();
+    setAt('torneio-master-santos/trainings/'+tr.id+'/marks/'+outroId,{id:outroId,taid:biaTaid,fund:'saque',nota:'ace',ts:Date.now()+1,dev:'dev_OUTRO'});
+    fireTrainings(); // listener recebe o estado do banco (como no ar)
+    tr=w.trF(tr.id);
+    chk(tr.marks.some(function(m){return m.id===outroId;}), 'marcacao do OUTRO aparelho aparece aqui via listener');
+    var antes=Object.keys(getAt('torneio-master-santos/trainings/'+tr.id+'/marks')).length;
+    w.trnAtivo=biaTaid; w.trnFund='ataque'; w.markTreino(tr.id,'ponto');
+    await new Promise(r=>setTimeout(r,20));
+    var depois=Object.keys(getAt('torneio-master-santos/trainings/'+tr.id+'/marks')).length;
+    chk(depois===antes+1 && !!getAt('torneio-master-santos/trainings/'+tr.id+'/marks/'+outroId), 'marcar aqui NAO apaga a marcacao do outro aparelho (antes '+antes+' -> '+depois+')');
+    // undo: a ultima do banco e a minha (ponto); desfaz a minha, a do outro fica
+    tr=w.trF(tr.id);
+    var minhaId=tr.marks[tr.marks.length-1].id;
+    w.undoTreinoMark(tr.id);
+    await new Promise(r=>setTimeout(r,20));
+    tr=w.trF(tr.id);
+    chk(tr.marks.some(function(m){return m.id===outroId;}) && !tr.marks.some(function(m){return m.id===minhaId;}) && !getAt('torneio-master-santos/trainings/'+tr.id+'/marks/'+minhaId), 'undo: tira SO a minha ultima marcacao (local e banco); a do outro aparelho fica');
+    chk(!!getAt('torneio-master-santos/trainings/'+tr.id+'/marks/'+outroId), 'undo: no banco a marcacao do outro continua');
+    // agora a ultima do banco e a do OUTRO -> undo aqui nao pode tirar
+    var toasts2=[]; var _t=w.toast; w.toast=function(m){toasts2.push(m);};
+    var nAntes=tr.marks.length;
+    w.undoTreinoMark(tr.id);
+    w.toast=_t;
+    tr=w.trF(tr.id);
+    chk(tr.marks.length===nAntes-1 || toasts2.some(function(t){return /outro aparelho/.test(t);}), 'undo com a ultima sendo do outro: desfaz a minha anterior (ou avisa se nao ha minha)');
+    chk(tr.marks.some(function(m){return m.id===outroId;}), 'undo nunca remove a marcacao do outro aparelho');
+    // formato antigo (array) e convertido na 1a escrita
+    var legacyId='tr_legacy';
+    setAt('torneio-master-santos/trainings/'+legacyId,{id:legacyId,dt:'2026-09-14',tid:'trs',status:'open',athletes:[{taid:'ta_L1',nome:'Leg',linkedAid:null}],marks:[{taid:'ta_L1',fund:'saque',nota:'ace',ts:1}]});
+    fireTrainings();
+    var lg=w.trF(legacyId);
+    chk(!!lg && lg._legacy===true && lg.athletes.length===1 && lg.marks.length===1, 'treino no formato antigo (arrays) e lido e marcado _legacy');
+    w.selTrn=legacyId; w.trnAtivo='ta_L1'; w.trnFund='saque'; w.markTreino(legacyId,'bom');
+    await new Promise(r=>setTimeout(r,20));
+    var lgDb=getAt('torneio-master-santos/trainings/'+legacyId);
+    chk(!Array.isArray(lgDb.marks) && Object.keys(lgDb.marks).length===2 && !Array.isArray(lgDb.athletes) && !!lgDb.athletes['ta_L1'], 'legacy: 1a escrita converte athletes/marks pra chaveado e grava a nova marcacao (2 no banco)');
+    w.selTrn=tr.id;
+
     // 15. Excluir treino criado errado: confirma, some do estado local E do RTDB (trainings/{id})
     chk(w.document.body.innerHTML.indexOf('categorias de base')<0, 'aviso "categorias de base" removido');
     w.trnSub='atletas'; w.render();
@@ -273,9 +322,9 @@ setTimeout(()=>{
     w.deleteTraining(trId);
     chk(!!w.document.getElementById('rsConfirm') && !!w.trF(trId), 'excluir: pede confirmacao (ainda existe)');
     w.document.getElementById('rsConfirmOk').onclick();
-    chk(!w.trF(trId) && w.D.trainings.length===0, 'excluir confirmado: some do estado local');
+    chk(!w.trF(trId) && !w.D.trainings.some(function(t){return t.id===trId;}), 'excluir confirmado: some do estado local');
     chk(getAt('torneio-master-santos/trainings/'+trId)===null, 'excluir confirmado: no trainings/{id} removido do RTDB');
-    chk(w.selTrn===null && w.document.body.innerHTML.indexOf('Nenhum treino cadastrado')>=0, 'excluir: volta pra lista vazia');
+    chk(w.selTrn===null && w.document.body.innerHTML.indexOf('Novo Treino')>=0 && w.document.body.innerHTML.indexOf('10/09/2026')<0, 'excluir: volta pra lista, sem o treino excluido');
 
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK TREINOS APROVADO':'FAIL TREINOS REPROVADO');

@@ -212,24 +212,29 @@ body.rs-shell.trn-clean::after{display:none}
 .trn-chip.on{animation:trnPulse .45s ease-out}
 /* ===== Modo tablet (landscape, 1 toque): atletas | fundamento x nota | feed ===== */
 body.trn-tablet .app-header,body.trn-tablet .app-tabs{display:none}
-body.trn-tablet .app-content{padding-top:6px}
-.trn-tab{display:grid;grid-template-columns:260px 1fr 230px;gap:10px;align-items:start}
-@media(max-width:860px){.trn-tab{grid-template-columns:1fr}}
-.trn-tab .col{background:var(--tl-surface);border:1px solid var(--tl-line);border-radius:12px;padding:10px;box-shadow:0 1px 2px rgba(14,37,76,.05)}
-.trn-tab .col-h{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--tl-muted);margin-bottom:8px}
-/* 2 colunas de atletas (17 no elenco cabem sem rolar em 700px de altura) */
-.trn-tab .athlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:6px;max-height:calc(100vh - 120px);overflow-y:auto}
-.trn-tab .ath{display:flex;align-items:center;justify-content:space-between;gap:4px;width:100%;text-align:left;border:1px solid var(--tl-line);background:var(--tl-surface);color:var(--tl-ink);border-radius:10px;padding:9px 8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;min-width:0;-webkit-tap-highlight-color:transparent}
+/* Tablet: solta a trava de largura do shell (1200px) e usa a tela inteira; tamanhos escalam
+   pela altura/largura da tela (clamp) pra encher um tablet de 10" sem virar botao de celular. */
+body.trn-tablet .app-content{padding:8px 10px;max-width:none;min-height:0}
+body.trn-tablet .trn-light{padding:10px 12px}
+.trn-tab{display:grid;grid-template-columns:minmax(230px,24%) 1fr minmax(220px,20%);gap:10px;align-items:stretch;min-height:calc(100vh - 92px)}
+@media(max-width:860px){.trn-tab{grid-template-columns:1fr;min-height:0}}
+.trn-tab .col{background:var(--tl-surface);border:1px solid var(--tl-line);border-radius:12px;padding:12px;box-shadow:0 1px 2px rgba(14,37,76,.05);display:flex;flex-direction:column;min-height:0}
+.trn-tab .col-h{font-size:clamp(10px,1.1vw,12px);font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--tl-muted);margin-bottom:8px}
+/* 2 colunas de atletas (16 no elenco cabem sem rolar) */
+.trn-tab .athlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;align-content:start;flex:1;min-height:0;overflow-y:auto}
+.trn-tab .ath{display:flex;align-items:center;justify-content:space-between;gap:4px;width:100%;text-align:left;border:1px solid var(--tl-line);background:var(--tl-surface);color:var(--tl-ink);border-radius:10px;padding:clamp(9px,1.4vh,14px) 10px;font-size:clamp(12.5px,1.25vw,16px);font-weight:700;cursor:pointer;font-family:inherit;min-width:0;-webkit-tap-highlight-color:transparent}
 .trn-tab .ath>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.trn-tab .ath small{color:var(--tl-muted);font-weight:700;font-size:10.5px;flex:none}
+.trn-tab .ath small{color:var(--tl-muted);font-weight:700;font-size:clamp(10.5px,1vw,13px);flex:none}
 .trn-tab .ath.on{background:var(--tl-navy);color:#fff;border-color:var(--tl-navy);animation:trnPulse .45s ease-out}.trn-tab .ath.on small{color:#c7d3ea}
-.trn-tab .frow{display:grid;grid-template-columns:110px repeat(4,1fr);gap:6px;align-items:stretch;margin-bottom:6px}
-.trn-tab .fh{display:flex;flex-direction:column;justify-content:center;border-radius:10px;padding:6px 10px;color:#fff;font-weight:800;font-size:13px}
+/* centro: 4 linhas que dividem a altura por igual */
+.trn-tab .fgrid{display:grid;grid-template-rows:repeat(4,1fr);gap:8px;flex:1;min-height:0}
+.trn-tab .frow{display:grid;grid-template-columns:minmax(110px,16%) repeat(4,1fr);gap:8px;align-items:stretch;min-height:64px}
+.trn-tab .fh{display:flex;flex-direction:column;justify-content:center;border-radius:12px;padding:6px 12px;color:#fff;font-weight:800;font-size:clamp(13px,1.4vw,18px)}
 .trn-tab .fh small{font-size:10px;font-weight:700;opacity:.85}
-.trn-tab .trn-nota{min-height:58px;font-size:14px}
-@media(max-width:600px){.trn-tab .frow{grid-template-columns:1fr 1fr}.trn-tab .fh{grid-column:1/-1;flex-direction:row;align-items:center;gap:8px;padding:6px 10px}}
-.trn-tab .feed{display:flex;flex-direction:column;gap:4px;max-height:52vh;overflow-y:auto}
-.trn-tab .fi{display:flex;align-items:center;gap:6px;font-size:11.5px;padding:6px 8px;border-radius:8px;background:var(--tl-surf2)}
+.trn-tab .trn-nota{height:100%;min-height:64px;font-size:clamp(14px,1.6vw,21px)}
+@media(max-width:600px){.trn-tab .fgrid{display:block}.trn-tab .frow{grid-template-columns:1fr 1fr;margin-bottom:8px}.trn-tab .fh{grid-column:1/-1;flex-direction:row;align-items:center;gap:8px;padding:6px 10px}.trn-tab .trn-nota{min-height:56px;font-size:15px}}
+.trn-tab .feed{display:flex;flex-direction:column;gap:5px;flex:1;min-height:0;overflow-y:auto}
+.trn-tab .fi{display:flex;align-items:center;gap:6px;font-size:clamp(11.5px,1.05vw,14px);padding:7px 9px;border-radius:8px;background:var(--tl-surf2)}
 .trn-tab .fi .dot{width:8px;height:8px;border-radius:50%;flex:none}
 .trn-tab .fi b{color:var(--tl-ink);white-space:nowrap}.trn-tab .fi span{color:var(--tl-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .trn-tab .fi.last{background:#e8f6ee;outline:1px solid #bfe4cf}
@@ -1332,7 +1337,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
+var APP_BUILD="2026-09-15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -2128,9 +2133,27 @@ db.ref("torneio-master-santos/invites").on("value", function(snap){
 // Regra do RTDB: trainings e read/write "auth != null" (firebase-rules.json). Sem a regra
 // aplicada no console o Firebase NEGA a leitura em silencio — _trnReadErr faz a aba avisar.
 var _trnReadErr=null;
+// MULTI-OPERADOR: no banco, athletes e marks sao OBJETOS chaveados (athletes/{taid},
+// marks/{mid}) e cada marcacao e gravada SOZINHA no seu no — 2+ aparelhos marcando ao mesmo
+// tempo nunca se sobrescrevem (set do array inteiro = ultimo que grava apaga o do outro).
+// Localmente o app trabalha com arrays (normalizados aqui). Treino gravado no formato antigo
+// (array) e marcado _legacy e convertido na primeira escrita (_trnKeyedFix).
+function _trnNormalize(raw){
+  if(!raw)return null;
+  // copia rasa: nunca mexe no objeto do snapshot
+  var tr={};for(var k in raw){if(raw.hasOwnProperty(k))tr[k]=raw[k];}
+  var legacy=false;
+  if(Array.isArray(tr.athletes)){legacy=true;tr.athletes=tr.athletes.filter(Boolean).slice();}
+  else tr.athletes=tr.athletes?Object.values(tr.athletes):[];
+  if(Array.isArray(tr.marks)){legacy=true;tr.marks=tr.marks.filter(Boolean).map(function(m,i){var c={};for(var q in m)c[q]=m[q];if(!c.id)c.id=String(i);return c;});}
+  else{var src=tr.marks||{},ks=Object.keys(src);tr.marks=ks.map(function(k){var m=src[k];if(!m||typeof m!=="object")return null;var c={};for(var q in m)c[q]=m[q];c.id=k;return c;}).filter(Boolean);}
+  tr.marks.sort(function(a,b){return (a.ts||0)-(b.ts||0);});
+  tr._legacy=legacy;
+  return tr;
+}
 db.ref("torneio-master-santos/trainings").on("value", function(snap){
   var v = snap.val();
-  D.trainings = v ? Object.values(v) : [];
+  D.trainings = v ? Object.values(v).map(_trnNormalize).filter(Boolean) : [];
   _dataLoaded.trainings = true;
   _trnReadErr=null;
   if(appStarted) render();
@@ -2200,12 +2223,37 @@ function saveGame(g){
   return db.ref("torneio-master-santos/games/"+idx).set(g);
 }
 function trF(id){if(!D||!D.trainings)return null;for(var i=0;i<D.trainings.length;i++){if(D.trainings[i].id===id)return D.trainings[i];}return null;}
-// Salva UM treino, chaveado pelo proprio id (nunca por indice — ver comentario do listener acima).
+function _trnRef(trId,sub){return db.ref("torneio-master-santos/trainings/"+trId+(sub?"/"+sub:""));}
+function _trnKeyBy(arr,key,prefix){var o={};(arr||[]).forEach(function(x){if(!x)return;if(!x[key])x[key]=uid(prefix);o[x[key]]=x;});return o;}
+// Salva o treino INTEIRO (athletes/marks convertidos p/ objetos chaveados). So pra CRIAR o
+// treino — no dia a dia usar as escritas granulares (_trnWriteMark/_trnWriteAthlete/...),
+// senao dois operadores se sobrescrevem.
 function saveTraining(tr){
   if(!currentUser)return Promise.reject(new Error("login_necessario"));
   if(!tr||!tr.id)return Promise.reject(new Error("Treino invalido"));
-  return db.ref("torneio-master-santos/trainings/"+tr.id).set(tr);
+  var out={};for(var k in tr){if(k==="_legacy"||!tr.hasOwnProperty(k))continue;out[k]=tr[k];}
+  out.athletes=_trnKeyBy(tr.athletes,"taid","ta_");
+  out.marks=_trnKeyBy(tr.marks,"id","m_");
+  tr._legacy=false;
+  return _trnRef(tr.id).set(out);
 }
+// Treino gravado no formato antigo (arrays): converte UMA vez pra chaveado antes de qualquer
+// escrita granular (senao marks/0, marks/1 e marks/m_x conviveriam no mesmo no).
+function _trnKeyedFix(tr){
+  if(!tr._legacy)return Promise.resolve();
+  (tr.marks||[]).forEach(function(m){if(!m.id||/^\d+$/.test(m.id))m.id=uid("m_");});
+  tr._legacy=false;
+  return _trnRef(tr.id).update({athletes:_trnKeyBy(tr.athletes,"taid","ta_"),marks:_trnKeyBy(tr.marks,"id","m_")});
+}
+function _trnErr(e){toast("Erro ao salvar: "+(e&&(e.code||e.message)||e),"error");}
+function _trnWriteMark(tr,m){return _trnKeyedFix(tr).then(function(){return _trnRef(tr.id,"marks/"+m.id).set(m);}).catch(_trnErr);}
+function _trnRemoveMark(tr,mid){return _trnKeyedFix(tr).then(function(){return _trnRef(tr.id,"marks/"+mid).remove();}).catch(_trnErr);}
+function _trnWriteAthlete(tr,a){return _trnKeyedFix(tr).then(function(){return _trnRef(tr.id,"athletes/"+a.taid).set(a);}).catch(_trnErr);}
+function _trnRemoveAthlete(tr,taid,markIds){return _trnKeyedFix(tr).then(function(){var up={};up["athletes/"+taid]=null;(markIds||[]).forEach(function(id){up["marks/"+id]=null;});return _trnRef(tr.id).update(up);}).catch(_trnErr);}
+function _trnUpdateMeta(tr,fields){return _trnRef(tr.id).update(fields).catch(_trnErr);}
+// Identidade do APARELHO (nao do login: os 2 operadores usam a mesma conta "Mesa"). Serve pro
+// "desfazer" tirar so a propria marcacao, nunca a do colega.
+function _trnDev(){try{var d=localStorage.getItem("rs_trn_dev");if(!d){d=uid("dev_");localStorage.setItem("rs_trn_dev",d);}return d;}catch(e){return "dev_x";}}
 // Persiste UM jogo (granular) com aviso de falha de REDE. Preferir a save() nos fluxos
 // de scout AO VIVO: grava so games/{idx} (nao reescreve o array inteiro -> nao apaga o
 // trabalho de outro dispositivo que edita OUTRO jogo) e nao depende do guard _dataLoaded.
@@ -8013,18 +8061,20 @@ function toggleTrnCadastroAthlete(trId,aid){
   var existing=_trnAthleteByLinked(tr,aid);
   if(existing){removeTrnAthlete(trId,existing.taid);return;}
   var ath=aFind(aid);
-  tr.athletes.push({taid:uid("ta_"),nome:ath?ath.nm:aid,linkedAid:aid});
-  saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+  var novo={taid:uid("ta_"),nome:ath?ath.nm:aid,linkedAid:aid};
+  tr.athletes.push(novo);
+  _trnWriteAthlete(tr,novo);
   render();
 }
 function removeTrnAthlete(trId,taid){
   var tr=trF(trId);if(!tr)return;
   var n=(tr.marks||[]).filter(function(m){return m.taid===taid;}).length;
   function doRemove(){
+    var ids=(tr.marks||[]).filter(function(m){return m.taid===taid;}).map(function(m){return m.id;});
     tr.athletes=(tr.athletes||[]).filter(function(a){return a.taid!==taid;});
     if(n)tr.marks=(tr.marks||[]).filter(function(m){return m.taid!==taid;});
     if(trnAtivo===taid)trnAtivo=null;
-    saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+    _trnRemoveAthlete(tr,taid,ids);
     render();
   }
   if(n>0){
@@ -8048,16 +8098,17 @@ function addTrnPastedNames(trId){
   if(!parts.length){toast("Cole ao menos um nome","error");return;}
   if(!tr.athletes)tr.athletes=[];
   var existing={};tr.athletes.forEach(function(a){existing[a.nome.toLowerCase()]=true;});
-  var added=0,skipped=0;
+  var added=0,skipped=0,novos=[];
   for(var i=0;i<parts.length;i++){
     var nm=parts[i].nome,key=nm.toLowerCase();
     if(existing[key]){skipped++;continue;}
     existing[key]=true;
-    tr.athletes.push({taid:uid("ta_"),nome:nm,linkedAid:null});
+    var novo={taid:uid("ta_"),nome:nm,linkedAid:null};
+    tr.athletes.push(novo);novos.push(novo);
     added++;
   }
   if(added){
-    saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+    _trnKeyedFix(tr).then(function(){var up={};novos.forEach(function(a){up["athletes/"+a.taid]=a;});return _trnRef(tr.id).update(up);}).catch(_trnErr);
     if(ta)ta.value="";
   }
   toast(added+" atleta"+(added===1?"":"s")+" adicionado"+(added===1?"":"s")+(skipped?" · "+skipped+" ignorado(s) (já na lista)":""),added?"ok":"error");
@@ -8117,10 +8168,11 @@ function markTreino(trId,nota,fund){
   if(tr.status==="closed"){toast("Treino finalizado — reabra para marcar","error");return;}
   if(!trnAtivo){toast("Selecione um atleta primeiro","error");return;}
   if(!tr.marks)tr.marks=[];
-  tr.marks.push({taid:trnAtivo,fund:fund,nota:nota,ts:Date.now()});
+  var m={id:uid("m_"),taid:trnAtivo,fund:fund,nota:nota,ts:Date.now(),dev:_trnDev()};
+  tr.marks.push(m);
   trnFlash={fund:fund,nota:nota,t:Date.now()};
   if(navigator.vibrate)navigator.vibrate(30);
-  saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+  _trnWriteMark(tr,m);
   render();
 }
 // Modo tablet do treino: preferencia do aparelho (localStorage), NUNCA por largura de tela.
@@ -8140,7 +8192,7 @@ function rTrnMarcarTablet(tr){
   for(var i=0;i<athletes.length;i++){var a=athletes[i];h+='<button class="ath'+(trnAtivo===a.taid?" on":"")+'" onclick="setTrnAtivo(\''+a.taid+'\')"><span>'+_trnAthLabel(a)+'</span><small>'+(cnt[a.taid]||0)+'</small></button>';}
   h+='</div></div>';
   // coluna 2: fundamento x nota (1 toque grava)
-  h+='<div class="col"><div class="col-h">2 · Fundamento + resultado — 1 toque grava</div>';
+  h+='<div class="col"><div class="col-h">2 · Fundamento + resultado — 1 toque grava</div><div class="fgrid">';
   var dis=tr.status==="closed"?" disabled":"";
   for(var fi=0;fi<TFUND_ORDER.length;fi++){
     var fk=TFUND_ORDER[fi],f=TFUND[fk];
@@ -8148,7 +8200,7 @@ function rTrnMarcarTablet(tr){
     for(var oi=0;oi<f.opts.length;oi++){var op=f.opts[oi];h+='<button class="trn-nota'+_trnFlashCls(fk,op[0])+'" style="background:'+_tfundColor(fk,op[0])+'"'+dis+' onclick="markTreino(\''+tr.id+'\',\''+op[0]+'\',\''+fk+'\')">'+esc(op[1])+'</button>';}
     h+='</div>';
   }
-  h+='</div>';
+  h+='</div></div>';
   // coluna 3: contador + feed + desfazer
   h+='<div class="col"><div class="rw" style="justify-content:space-between;align-items:flex-end;margin-bottom:8px"><div><div class="big">'+marks.length+'</div><div class="col-h" style="margin:2px 0 0">ações</div></div>';
   h+='<button class="bt bg bsm" onclick="undoTreinoMark(\''+tr.id+'\')"'+(marks.length?'':' disabled')+'>↩ Desfazer</button></div>';
@@ -8164,20 +8216,24 @@ function rTrnMarcarTablet(tr){
 }
 function undoTreinoMark(trId){
   var tr=trF(trId);if(!tr||!tr.marks||!tr.marks.length)return;
-  tr.marks.pop();
-  saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+  // Desfaz a ULTIMA marcacao DESTE aparelho (a do colega no outro tablet fica).
+  var me=_trnDev(),idx=-1;
+  for(var i=tr.marks.length-1;i>=0;i--){if(!tr.marks[i].dev||tr.marks[i].dev===me){idx=i;break;}}
+  if(idx<0){toast("A última marcação foi de outro aparelho — desfaça por lá","error");return;}
+  var gone=tr.marks.splice(idx,1)[0];
+  _trnRemoveMark(tr,gone.id);
   render();
 }
 function finalizarTreino(trId){
   var tr=trF(trId);if(!tr)return;
   tr.status="closed";
-  saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+  _trnUpdateMeta(tr,{status:"closed"});
   toast("Treino finalizado","ok");render();
 }
 function reabrirTreino(trId){
   var tr=trF(trId);if(!tr)return;
   tr.status="open";
-  saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+  _trnUpdateMeta(tr,{status:"open"});
   toast("Treino reaberto","ok");render();
 }
 

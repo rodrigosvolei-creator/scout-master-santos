@@ -1332,7 +1332,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
+var APP_BUILD="2026-09-15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -7885,7 +7885,7 @@ function rTrn(){
   if(!tr){selTrn=null;return h+_rTrnList()+'</div>';}
   if(trnSub==="marcar"&&isTrnTablet())return h+rTrnMarcarTablet(tr)+'</div>';
   var te=tr.tid?tF(tr.tid):null;
-  h+='<div class="rw" style="justify-content:space-between;align-items:center;margin-bottom:12px"><button class="bt bg bsm" onclick="fecharTreino()">← Treinos</button>';
+  h+='<div class="rw" style="justify-content:space-between;align-items:center;margin-bottom:12px"><div class="rw" style="gap:6px"><button class="bt bg bsm" onclick="fecharTreino()">← Treinos</button><button class="bt bg bsm" title="Excluir este treino" onclick="deleteTraining(\''+tr.id+'\')">\u{1F5D1} Excluir</button></div>';
   h+='<div style="text-align:right"><div style="font-weight:800;font-size:14px;color:var(--tl-navy)">'+esc(te?te.n:"Avulso")+'</div><div class="trn-muted" style="font-size:11px">'+fD(tr.dt)+(tr.loc?' · '+esc(tr.loc):'')+'</div></div></div>';
   h+='<div class="stb"><button class="'+(trnSub==="atletas"?"on":"")+'" onclick="trnSub=\'atletas\';render()">\u{1F465} Atletas</button><button class="'+(trnSub==="marcar"?"on":"")+'" onclick="trnSub=\'marcar\';render()">✍️ Marcar</button><button class="'+(trnSub==="resumo"?"on":"")+'" onclick="trnSub=\'resumo\';render()">\u{1F4CA} Resumo</button></div>';
   if(trnSub==="marcar")h+=rTrnMarcar(tr);
@@ -7911,6 +7911,18 @@ function _rTrnList(){
   return h;
 }
 function fecharTreino(){selTrn=null;trnSub="atletas";trnAtivo=null;render();}
+// Excluir treino criado errado. Confirma (avisa se tem marcacoes) e remove o no trainings/{id}.
+function deleteTraining(trId){
+  var tr=trF(trId);if(!tr)return;
+  var n=(tr.marks||[]).length,te=tr.tid?tF(tr.tid):null;
+  confirmModal({title:"Excluir treino",body:"Excluir o treino de <b>"+fD(tr.dt)+"</b>"+(te?" ("+esc(te.n)+")":"")+(n?" com <b>"+n+"</b> marcação"+(n===1?"":"ões")+" registrada"+(n===1?"":"s"):"")+"? Não dá pra desfazer.",confirmLabel:"Excluir",confirmStyle:"bd",onConfirm:function(){
+    if(!currentUser){toast("Faça login para excluir","error");return;}
+    D.trainings=(D.trainings||[]).filter(function(t){return t.id!==trId;});
+    db.ref("torneio-master-santos/trainings/"+trId).remove().catch(function(e){toast("Erro ao excluir: "+e.message,"error");});
+    toast("Treino excluído","ok");
+    if(selTrn===trId)fecharTreino();else render();
+  }});
+}
 function abrirTreino(id){var tr=trF(id);if(!tr)return;selTrn=id;trnAtivo=null;trnSub=(tr.athletes&&tr.athletes.length)?"marcar":"atletas";render();}
 function openNovoTreino(){
   var todayStr=new Date().toISOString().slice(0,10);
@@ -7949,7 +7961,7 @@ function criarTreino(vals){
 
 // --- Sub-aba Atletas: seleciona do cadastro (busca+toggle) ou cola nomes ---
 function rTrnAtletas(tr){
-  var h='<div class="cd" style="background:#fff7df;border:1px solid #f3dc9a;color:#7a5200;font-size:11.5px;padding:10px 12px;box-shadow:none">\u{1F4A1} A lista de atletas do treino é independente do cadastro oficial de jogo — dá pra incluir quem está em teste ou de categorias de base.</div>';
+  var h='';
   h+='<div class="cd"><div class="trn-h">\u{1F465} Selecionar do cadastro</div>';
   h+='<input id="trn-ath-q" type="text" placeholder="Buscar atleta..." oninput="renderTrnAthList(\''+tr.id+'\')" style="width:100%;margin-bottom:8px">';
   h+='<div id="trn-ath-list" style="max-height:260px;overflow-y:auto;border:1px solid var(--tl-line);border-radius:10px">'+_trnAthListInner(tr.id)+'</div></div>';

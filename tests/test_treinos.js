@@ -9,7 +9,8 @@ const fakeDB = {};
 const listeners = {};
 function getAt(p){const a=p.split('/');let c=fakeDB;for(const k of a){if(c==null)return null;c=c[k];}return c===undefined?null:c;}
 function setAt(p,v){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object')c[a[i]]={};c=c[a[i]];}c[a[a.length-1]]=JSON.parse(JSON.stringify(v));}
-function makeRef(p){return{_path:p,on:function(e,cb){listeners[p]=cb;},once:function(){return Promise.resolve({val:()=>getAt(p)});},set:function(v){setAt(p,v);return Promise.resolve();},update:function(){return Promise.resolve();}};}
+function delAt(p){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c==null)return;c=c[a[i]];}if(c)delete c[a[a.length-1]];}
+function makeRef(p){return{_path:p,on:function(e,cb){listeners[p]=cb;},once:function(){return Promise.resolve({val:()=>getAt(p)});},set:function(v){setAt(p,v);return Promise.resolve();},update:function(){return Promise.resolve();},remove:function(){delAt(p);return Promise.resolve();}};}
 global.firebaseMock={initializeApp:()=>{},database:()=>({ref:makeRef}),auth:()=>({onAuthStateChanged:function(cb){setTimeout(()=>cb({uid:'tester',email:'rodrigosvolei@gmail.com',displayName:'Tester'}),0);},signInWithPopup:()=>Promise.resolve(),signOut:()=>Promise.resolve()})};
 
 const seed = {
@@ -263,6 +264,18 @@ setTimeout(()=>{
     chk(w.document.querySelector('.trn-tab .feed .fi.last') && w.document.querySelector('.trn-tab .feed .fi.last').textContent.indexOf('Perfeito')>=0, 'tablet: feed mostra a ultima marcacao em destaque');
     w.toggleTrnTablet();
     chk(!w.isTrnTablet() && !w.document.querySelector('.trn-tab') && !w.document.body.classList.contains('trn-tablet'), 'tablet: desligar volta ao layout celular e tira body.trn-tablet');
+
+    // 15. Excluir treino criado errado: confirma, some do estado local E do RTDB (trainings/{id})
+    chk(w.document.body.innerHTML.indexOf('categorias de base')<0, 'aviso "categorias de base" removido');
+    w.trnSub='atletas'; w.render();
+    chk(!!w.document.querySelector('[onclick^="deleteTraining"]'), 'botao Excluir no cabecalho do treino');
+    var trId=tr.id;
+    w.deleteTraining(trId);
+    chk(!!w.document.getElementById('rsConfirm') && !!w.trF(trId), 'excluir: pede confirmacao (ainda existe)');
+    w.document.getElementById('rsConfirmOk').onclick();
+    chk(!w.trF(trId) && w.D.trainings.length===0, 'excluir confirmado: some do estado local');
+    chk(getAt('torneio-master-santos/trainings/'+trId)===null, 'excluir confirmado: no trainings/{id} removido do RTDB');
+    chk(w.selTrn===null && w.document.body.innerHTML.indexOf('Nenhum treino cadastrado')>=0, 'excluir: volta pra lista vazia');
 
     console.log('\n=== '+ok+' ok, '+ko+' falhas ===');
     console.log(ko===0?'OK TREINOS APROVADO':'FAIL TREINOS REPROVADO');

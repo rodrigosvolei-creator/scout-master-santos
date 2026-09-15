@@ -149,6 +149,115 @@ body.rs-shell::after{
   background-image:var(--rs-watermark);background-size:contain;background-repeat:no-repeat;background-position:center;
   opacity:.07;pointer-events:none;z-index:0
 }
+body.rs-shell.trn-clean::after{display:none}
+/* ===== Treinos: painel CLARO (tela de analise/registro) dentro do shell escuro. Tokens
+   proprios (--tl-*) e overrides com o mesmo prefixo body.rs-shell .app-content que o tema
+   escuro usa, senao o escuro ganha por especificidade. ===== */
+.trn-light{--tl-surface:#fff;--tl-surf2:#eef2f8;--tl-line:#d6dee9;--tl-ink:#14223b;--tl-muted:#5c6a82;--tl-navy:#0e254c;background:#e9edf3;border-radius:16px;padding:14px;color:var(--tl-ink);position:relative;z-index:1}
+.trn-light .cd,body.rs-shell .app-content .trn-light .cd{background:var(--tl-surface);border:1px solid var(--tl-line);color:var(--tl-ink);box-shadow:0 1px 2px rgba(14,37,76,.05),0 6px 18px rgba(14,37,76,.07)}
+.trn-light .stb,body.rs-shell .app-content .trn-light .stb{background:transparent;padding:0}
+.trn-light .stb button,body.rs-shell .app-content .trn-light .stb button{background:var(--tl-surface);color:var(--tl-muted);border:1px solid var(--tl-line);border-radius:10px}
+.trn-light .stb button:hover,body.rs-shell .app-content .trn-light .stb button:hover{background:var(--tl-surf2);color:var(--tl-ink)}
+.trn-light .stb button.on,body.rs-shell .app-content .trn-light .stb button.on{background:var(--tl-navy);color:#fff;border-color:var(--tl-navy)}
+.trn-light .bt.bg,body.rs-shell .app-content .trn-light .bt.bg{background:var(--tl-surface);color:var(--tl-ink);border:1px solid var(--tl-line)}
+.trn-light .bt.bg:hover,body.rs-shell .app-content .trn-light .bt.bg:hover{background:var(--tl-surf2)}
+.trn-light input,.trn-light textarea,.trn-light select,body.rs-shell .app-content .trn-light input,body.rs-shell .app-content .trn-light textarea,body.rs-shell .app-content .trn-light select{background:var(--tl-surface);color:var(--tl-ink);border:1px solid var(--tl-line);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px}
+.trn-light .trn-muted{color:var(--tl-muted)}
+.trn-light input::placeholder,.trn-light textarea::placeholder,body.rs-shell .app-content .trn-light input::placeholder,body.rs-shell .app-content .trn-light textarea::placeholder{color:#94a3b8;opacity:1}
+.trn-light .trn-h{font-weight:800;font-size:13px;color:var(--tl-navy);margin-bottom:8px}
+.trn-light .lu-row,body.rs-shell .app-content .trn-light .lu-row{border-bottom:1px solid var(--tl-line);color:var(--tl-ink)}
+.trn-light .lu-row:hover{background:var(--tl-surf2)}
+.trn-light .lu-row.on{background:#e8f6ee}
+.trn-card{cursor:pointer;transition:transform .1s,box-shadow .1s}.trn-card:hover{transform:translateY(-1px)}
+.trn-pill{font-size:10px;font-weight:800;padding:3px 9px;border-radius:999px;letter-spacing:.4px}
+/* chips de atleta (marcar) */
+.trn-chip{border:1px solid var(--tl-line);background:var(--tl-surface);color:var(--tl-ink);border-radius:999px;padding:9px 15px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.trn-chip:hover{background:var(--tl-surf2)}
+.trn-chip.on{background:var(--tl-navy);color:#fff;border-color:var(--tl-navy);box-shadow:0 4px 12px rgba(14,37,76,.3)}
+/* celular com elenco grande (16+): chips compactos e o card fundamento+resultado GRUDADO no
+   rodape da tela — escolhe o atleta em cima e marca embaixo sem rolar */
+@media(max-width:600px){
+  .trn-chip{padding:7px 10px;font-size:12px}
+  .trn-light .trn-act{position:sticky;bottom:6px;z-index:3;box-shadow:0 -6px 24px rgba(14,37,76,.18),0 6px 18px rgba(14,37,76,.12)}
+  .trn-light .trn-act .stb{margin-bottom:8px}.trn-light .trn-act .stb button{padding:8px 0;font-size:11px}
+  .trn-light .trn-act .trn-nota{min-height:54px;font-size:14px}
+}
+/* botoes de nota (marcar): texto centralizado, alvo grande de toque */
+.trn-nota{border:none;border-radius:12px;min-height:64px;padding:12px 8px;font-size:15px;font-weight:800;color:#fff;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;text-align:center;box-shadow:0 3px 10px rgba(14,37,76,.18);transition:transform .08s;-webkit-tap-highlight-color:transparent}
+.trn-nota:active{transform:scale(.97)}
+.trn-nota:disabled{opacity:.45;cursor:not-allowed}
+/* tabela de analise (resumo): 1 coluna por NOTA de cada fundamento, como planilha de scout */
+.trn-tbl-wrap{background:var(--tl-surface);border:1px solid var(--tl-line);border-radius:12px;overflow-x:auto;margin-bottom:10px}
+.trn-tbl{width:100%;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}
+.trn-tbl thead tr.h1{background:var(--tl-navy)}
+.trn-tbl thead tr.h1 th{color:#fff;padding:7px 6px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;text-align:center;white-space:nowrap}
+.trn-tbl thead tr.h2{background:var(--tl-surf2)}
+.trn-tbl thead tr.h2 th{color:var(--tl-muted);padding:5px 4px;font-size:9.5px;font-weight:800;text-align:center;white-space:nowrap;border-bottom:2px solid var(--tl-line)}
+.trn-tbl th.l,.trn-tbl td.l{text-align:left;padding-left:12px;position:sticky;left:0;z-index:1;background:inherit}
+.trn-tbl th.f,.trn-tbl td.f{border-left:1px solid var(--tl-line)}
+.trn-tbl thead tr.h1 th.f{border-left:1px solid rgba(255,255,255,.18)}
+.trn-tbl tbody tr{background:var(--tl-surface)}
+.trn-tbl tbody tr:nth-child(even){background:#f6f8fb}
+.trn-tbl tbody td{padding:7px 4px;text-align:center;border-bottom:1px solid var(--tl-line);color:var(--tl-ink);font-weight:700;white-space:nowrap;min-width:30px}
+.trn-tbl tbody td.l{font-weight:800;color:var(--tl-navy);font-size:12.5px}
+.trn-tbl td.z{color:#c3ccd9;font-weight:600}
+.trn-tbl th.t,.trn-tbl td.t{background:#eef2f8;font-weight:900}
+.trn-tbl tbody tr:nth-child(even) td.t{background:#e6ebf3}
+/* feedback de toque: borda viva + piscar no botao tocado / atleta escolhido */
+.trn-nota{border:2px solid rgba(255,255,255,.35)}
+.trn-nota:hover{border-color:rgba(255,255,255,.8)}
+@keyframes trnFlash{0%{box-shadow:0 0 0 0 rgba(14,37,76,.55);transform:scale(1.05);filter:brightness(1.3)}100%{box-shadow:0 0 0 14px rgba(14,37,76,0);transform:scale(1);filter:brightness(1)}}
+.trn-nota.flash{animation:trnFlash .5s ease-out;border-color:#fff}
+@keyframes trnPulse{0%{box-shadow:0 0 0 0 rgba(14,37,76,.5)}100%{box-shadow:0 0 0 10px rgba(14,37,76,0)}}
+.trn-chip.on{animation:trnPulse .45s ease-out}
+/* ===== Modo tablet (landscape, 1 toque): atletas | fundamento x nota | feed ===== */
+body.trn-tablet .app-header,body.trn-tablet .app-tabs{display:none}
+body.trn-tablet .app-content{padding-top:6px}
+.trn-tab{display:grid;grid-template-columns:260px 1fr 230px;gap:10px;align-items:start}
+@media(max-width:860px){.trn-tab{grid-template-columns:1fr}}
+.trn-tab .col{background:var(--tl-surface);border:1px solid var(--tl-line);border-radius:12px;padding:10px;box-shadow:0 1px 2px rgba(14,37,76,.05)}
+.trn-tab .col-h{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--tl-muted);margin-bottom:8px}
+/* 2 colunas de atletas (17 no elenco cabem sem rolar em 700px de altura) */
+.trn-tab .athlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:6px;max-height:calc(100vh - 120px);overflow-y:auto}
+.trn-tab .ath{display:flex;align-items:center;justify-content:space-between;gap:4px;width:100%;text-align:left;border:1px solid var(--tl-line);background:var(--tl-surface);color:var(--tl-ink);border-radius:10px;padding:9px 8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;min-width:0;-webkit-tap-highlight-color:transparent}
+.trn-tab .ath>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trn-tab .ath small{color:var(--tl-muted);font-weight:700;font-size:10.5px;flex:none}
+.trn-tab .ath.on{background:var(--tl-navy);color:#fff;border-color:var(--tl-navy);animation:trnPulse .45s ease-out}.trn-tab .ath.on small{color:#c7d3ea}
+.trn-tab .frow{display:grid;grid-template-columns:110px repeat(4,1fr);gap:6px;align-items:stretch;margin-bottom:6px}
+.trn-tab .fh{display:flex;flex-direction:column;justify-content:center;border-radius:10px;padding:6px 10px;color:#fff;font-weight:800;font-size:13px}
+.trn-tab .fh small{font-size:10px;font-weight:700;opacity:.85}
+.trn-tab .trn-nota{min-height:58px;font-size:14px}
+@media(max-width:600px){.trn-tab .frow{grid-template-columns:1fr 1fr}.trn-tab .fh{grid-column:1/-1;flex-direction:row;align-items:center;gap:8px;padding:6px 10px}}
+.trn-tab .feed{display:flex;flex-direction:column;gap:4px;max-height:52vh;overflow-y:auto}
+.trn-tab .fi{display:flex;align-items:center;gap:6px;font-size:11.5px;padding:6px 8px;border-radius:8px;background:var(--tl-surf2)}
+.trn-tab .fi .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.trn-tab .fi b{color:var(--tl-ink);white-space:nowrap}.trn-tab .fi span{color:var(--tl-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.trn-tab .fi.last{background:#e8f6ee;outline:1px solid #bfe4cf}
+.trn-tab .big{font-size:30px;font-weight:900;color:var(--tl-navy);line-height:1}
+.trn-pct{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:5px;display:inline-block}
+.trn-ap{font-size:14px;font-weight:900;padding:3px 9px;border-radius:6px;display:inline-block}
+.trn-legend{font-size:10.5px;color:var(--tl-muted);line-height:1.5}.trn-legend b{color:var(--tl-ink)}
+/* resumo no celular: cards por atleta (a planilha larga fica so em tela >= 641px) */
+.trn-cards{display:none}
+@media(max-width:640px){.trn-tbl-desk{display:none}.trn-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}}
+.trn-pc{background:var(--tl-surface);border:1px solid var(--tl-line);border-radius:12px;padding:10px 12px;box-shadow:0 1px 2px rgba(14,37,76,.05),0 6px 18px rgba(14,37,76,.07)}
+.trn-pc .hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.trn-pc .hd b{font-size:15px;color:var(--tl-navy)}.trn-pc .hd small{color:var(--tl-muted);font-weight:700;font-size:11px}
+.trn-pc .hd .bt{padding:5px 8px}
+.trn-pc .fr{display:grid;grid-template-columns:66px repeat(4,1fr) 26px 46px;gap:3px;align-items:center;padding:6px 0;border-top:1px solid var(--tl-line)}
+.trn-pc .fr .fn{font-size:11px;font-weight:800;color:var(--tl-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trn-pc .fr .nc{text-align:center;line-height:1.1}
+.trn-pc .fr .nc i{display:block;font-style:normal;font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.2px}
+.trn-pc .fr .nc b{font-size:14px;font-weight:900;color:var(--tl-ink)}.trn-pc .fr .nc b.z{color:#c3ccd9;font-weight:600}
+.trn-pc .fr .tot{text-align:center;font-weight:900;font-size:12px;color:var(--tl-muted);background:var(--tl-surf2);border-radius:5px;padding:3px 0}
+.trn-pc .fr .pct{text-align:right}.trn-pc .fr .z{color:#c3ccd9}
+/* o shell escuro pinta th/td (body.rs-shell .app-content td) — devolve as cores claras na planilha */
+body.rs-shell .app-content .trn-tbl th,body.rs-shell .app-content .trn-tbl td{border-color:var(--tl-line)}
+body.rs-shell .app-content .trn-tbl tbody td{color:var(--tl-ink)}
+body.rs-shell .app-content .trn-tbl tbody td.l{color:var(--tl-navy)}
+body.rs-shell .app-content .trn-tbl td.z{color:#c3ccd9}
+body.rs-shell .app-content .trn-tbl thead tr.h1 th{color:#fff}
+body.rs-shell .app-content .trn-tbl thead tr.h2 th{color:var(--tl-muted)}
 /* Mobile: as marcas d'agua fixas grandes (48-72vw, top:54%) ficam "soltas no meio" da tela
    pequena — no celular a logo semitransparente flutua sobre o conteudo. Esconder no mobile. */
 @media(max-width:640px){
@@ -1223,7 +1332,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-13b - relatorio geral: tabela acoes/positivas/erros por fundamento (modelo novo, padrao) com o modelo anterior disponivel no botao da tabela; celular (placar vertical, KPIs 2x2, coluna do atleta fixa); PDF sem cortar card; CSS do overlay escopado certo";
+var APP_BUILD="2026-09-15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -1232,6 +1341,25 @@ var ACT={saque:{l:"Saque",i:"\u{1F3D0}",o:["Ace","Erro","Cont"]},recepcao:{l:"Re
 var OC={Ace:"#059669",Ponto:"#059669",A:"#059669",B:"#d97706",Cont:"#64748b",C:"#ea580c",Bloq:"#ea580c",Erro:"#dc2626"};
 // Cor por fundamento (cabecalho dos grupos no modo tablet). Igual ao mockup.
 var FCOL={saque:"#2563eb",recepcao:"#059669",levantamento:"#7c3aed",ataque:"#dc2626",bloqueio:"#ea580c",defesa:"#0891b2"};
+// ===== MODULO DE TREINOS: escala por fundamento (nota isolada, sem rally/set) =====
+// CONTA SIMPLES (Rodrigo): aproveitamento = acoes SEM erro / total. So a nota "bad" e
+// negativa; neutro/regular/bloqueado/defendido contam como acerto. "good" e so a cor
+// verde (qualidade alta) nos botoes/cabecalhos — nao entra na conta.
+var TFUND={
+  saque:{l:"Saque",i:"\u{1F3D0}",opts:[["ace","Ace","Ace"],["bom","Bom","Bom"],["neutro","Neutro","Neu"],["erro","Erro","Erro"]],good:["ace","bom"],bad:["erro"]},
+  recepcao:{l:"Recepção",i:"\u{1F932}",opts:[["3","Perfeito","Perf"],["2","Bom","Bom"],["1","Regular","Reg"],["0","Erro","Erro"]],good:["3","2"],bad:["0"]},
+  levantamento:{l:"Levant.",i:"\u{1F446}",opts:[["perfeito","Perfeito","Perf"],["bom","Bom","Bom"],["forcado","Forçado","Forç"],["erro","Erro","Erro"]],good:["perfeito","bom"],bad:["erro"]},
+  // Ataque bloqueado e negativo pra quem atacou (Rodrigo).
+  ataque:{l:"Ataque",i:"\u{1F4A5}",opts:[["ponto","Ponto","Pto"],["bloqueado","Bloqueado","Bloq"],["defendido","Defendido","Def"],["erro","Erro","Erro"]],good:["ponto"],bad:["bloqueado","erro"]}
+};
+var TFUND_ORDER=["saque","recepcao","levantamento","ataque"];
+function _tfundLabel(fund,nota){var f=TFUND[fund];if(!f)return nota;for(var i=0;i<f.opts.length;i++)if(f.opts[i][0]===nota)return f.opts[i][1];return nota;}
+function _tfundShort(fund,nota){var f=TFUND[fund];if(!f)return nota;for(var i=0;i<f.opts.length;i++)if(f.opts[i][0]===nota)return f.opts[i][2]||f.opts[i][1];return nota;}
+function _tfundIsErr(fund,nota){var f=TFUND[fund];return !!f&&f.bad.indexOf(nota)>=0;}
+// Legenda da regua (tabela / PDF).
+function _tfundRegua(){return "ações sem erro ÷ total do fundamento. Descontam: Erro em todos e Bloqueado no ataque; Neutro, Regular e Defendido contam como acerto";}
+// Cor por nota (unica fonte — usada nos botoes de marcar, no resumo e no PDF, pra nunca desalinhar).
+function _tfundColor(fund,nota){var f=TFUND[fund];if(!f)return"#64748b";if(f.good.indexOf(nota)>=0)return"#059669";if(f.bad.indexOf(nota)>=0)return"#dc2626";return"#64748b";}
 var IT=[{id:"tf",n:"FEM RS-VOLEIBOL 30+",c:"#db2777",p:[],logo:"rs"},{id:"tm",n:"MASC 1\u00baMAIO/RS 35+",c:"#2563eb",p:[],logo:"rs"}];
 function getD(){return{teams:JSON.parse(JSON.stringify(IT)),games:[],tournaments:[],athletes:[]};}
 function fD(d){if(!d)return"A Definir";try{return new Date(d+"T12:00:00").toLocaleDateString("pt-BR")}catch(e){return d;}}
@@ -1426,6 +1554,9 @@ function rFilters(teamVar,gameVar,onTeamChange,onGameChange){
 }
 
 var D=null,tab="torneios",subTab="teams",statView="overview",selAthl=null,selTor=null,gFiltSet="all";
+// Estado da aba Treinos: selTrn=id do treino aberto; trnSub=sub-aba (atletas/marcar/resumo);
+// trnAtivo=taid do atleta selecionado p/ marcar; trnFund=fundamento armado na tela de marcar.
+var selTrn=null,trnSub="atletas",trnAtivo=null,trnFund="saque";
 // Filtros separados por sub-aba (cada uma tem seu próprio par Equipe/Jogo)
 // Stats: começa SEM filtro selecionado — força usuário a escolher antes de ver dados
 // Decisão: mostrar dashboard limpo até filtro ser aplicado (evita poluição visual)
@@ -1934,20 +2065,21 @@ function getBrand(token){
 
 // === LEITURA: separada por filho (compatível com Security Rules granulares) ===
 // Cada filho tem .read próprio. Lemos paralelamente e montamos D.
-var _dataLoaded = {teams:false, games:false, tournaments:false, athletes:false, invites:false};
+var _dataLoaded = {teams:false, games:false, tournaments:false, athletes:false, invites:false, trainings:false};
 function _checkAllLoaded(){
   if(_dataLoaded.teams && _dataLoaded.games && _dataLoaded.tournaments && _dataLoaded.athletes && _dataLoaded.invites){
     if(appStarted) render();
   }
 }
 function _initD(){
-  if(!D) D = {tournaments:[], games:[], teams:[], athletes:[], users:{}, invites:{}};
+  if(!D) D = {tournaments:[], games:[], teams:[], athletes:[], users:{}, invites:{}, trainings:[]};
   if(!D.tournaments) D.tournaments=[];
   if(!D.games) D.games=[];
   if(!D.teams) D.teams=[];
   if(!D.athletes) D.athletes=[];
   if(!D.users) D.users={};
   if(!D.invites) D.invites={};
+  if(!D.trainings) D.trainings=[];
 }
 // Seguranca XSS: o RTDB e ABERTO p/ escrita — um "logo" malicioso (ex: x" onerror=...)
 // gravado por REST cairia cru dentro de src="..." e executaria JS no telao/cards/mesa.
@@ -1987,6 +2119,16 @@ db.ref("torneio-master-santos/invites").on("value", function(snap){
   var v = snap.val();
   D.invites = v || {};
   _dataLoaded.invites = true;
+  if(appStarted) render();
+});
+// Treinos: node novo, guardado OBJETO chaveado por id (torneio-master-santos/trainings/{id}),
+// nao array por indice — evita replicar a divida C1 dos jogos (grava no indice errado se
+// a ordem do array mudar). Le como array local (D.trainings) pra reusar os mesmos padroes
+// de listagem/filtro do resto do app; a escrita (saveTraining) usa a CHAVE, nunca o indice.
+db.ref("torneio-master-santos/trainings").on("value", function(snap){
+  var v = snap.val();
+  D.trainings = v ? Object.values(v) : [];
+  _dataLoaded.trainings = true;
   if(appStarted) render();
 });
 
@@ -2048,6 +2190,13 @@ function saveGame(g){
   var idx=-1;for(var i=0;i<D.games.length;i++)if(D.games[i].id===g.id){idx=i;break;}
   if(idx<0)return Promise.reject(new Error("Jogo nao existe no estado local"));
   return db.ref("torneio-master-santos/games/"+idx).set(g);
+}
+function trF(id){if(!D||!D.trainings)return null;for(var i=0;i<D.trainings.length;i++){if(D.trainings[i].id===id)return D.trainings[i];}return null;}
+// Salva UM treino, chaveado pelo proprio id (nunca por indice — ver comentario do listener acima).
+function saveTraining(tr){
+  if(!currentUser)return Promise.reject(new Error("login_necessario"));
+  if(!tr||!tr.id)return Promise.reject(new Error("Treino invalido"));
+  return db.ref("torneio-master-santos/trainings/"+tr.id).set(tr);
 }
 // Persiste UM jogo (granular) com aviso de falha de REDE. Preferir a save() nos fluxos
 // de scout AO VIVO: grava so games/{idx} (nao reescreve o array inteiro -> nao apaga o
@@ -2220,7 +2369,14 @@ function setTab(t){
   if(t==="stats"&&!currentUser){
     openLoginModal();return;
   }
-  if(t!=="torneios")selTor=null;tab=t;render();}
+  // Treinos: mesma regua de acesso do Scout de jogo (coordenador/scouter/admin)
+  if(t==="treinos"){
+    if(!currentUser){openLoginModal();return;}
+    if(!isScouter){toast("Acesso exclusivo para a comissão técnica","error");return;}
+  }
+  if(t!=="torneios")selTor=null;
+  if(t!=="treinos"){selTrn=null;trnSub="atletas";trnAtivo=null;}
+  tab=t;render();}
 function setSubTab(t){subTab=t;render();}
 // Setters dos filtros — trocar Equipe reseta Jogo automaticamente (encadeamento)
 function setOvTeam(v){gOvTeam=v;gOvGame=(v==="none")?"none":"all";render();}
@@ -4047,6 +4203,11 @@ var _naLanding = showLanding && !currentUser;
 try{document.body.classList.toggle('rs-shell',!torneioMode&&!signupMode&&!_naLanding&&!telaoMode);}catch(e){}
 // Modo tablet ativo num jogo ao vivo: esconde header/tabs pra tela limpa (landscape).
 try{document.body.classList.toggle('rs-tablet',!torneioMode&&!signupMode&&!_naLanding&&!telaoMode&&tab==='scout'&&!!S.aid&&isTabletMode()&&(function(){var g=gF(S.aid);return !!(g&&g.st==='live'&&!g.locked&&!g.tidB);})());}catch(e){}
+// Treinos: tela de analise/relatorio (fundo claro proprio) — a marca d'agua do leao do shell
+// escuro nao combina com o card claro de dados. Some so nesta aba.
+try{document.body.classList.toggle('trn-clean',tab==='treinos');}catch(e){}
+// Modo tablet do treino: esconde header/tabs pra tela limpa (mesma ideia do rs-tablet do jogo).
+try{document.body.classList.toggle('trn-tablet',tab==='treinos'&&!!selTrn&&trnSub==='marcar'&&isTrnTablet());}catch(e){}
 // Rodape da versao (#buildStamp): so na tela de LOGIN/landing (sem login logado). No app some.
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.style.display=currentUser?"none":"";}catch(e){}
 // AUTO fim de set/jogo: apos renderizar um jogo ao vivo, checa se o set fechou -> modal automatico.
@@ -4135,6 +4296,7 @@ h+='</div></div>';
 var nv=[["scout","\uD83D\uDCCB","Scout"],["torneios","\uD83C\uDFC6","Torneios"],["agenda","\uD83D\uDCC5","Agenda"]];
 // Stats: visível pra atletas e papéis acima, e admin sempre vê
 if(isAtleta||isScouter||isAdmin)nv.push(["stats","\uD83D\uDCCA","Stats"]);
+if(isScouter)nv.push(["treinos","\u{1F3CB}\uFE0F","Treinos"]);
 // Meu Perfil: pra atletas vinculadas
 if(isAtleta&&userProfile&&userProfile.athleteId)nv.push(["perfil","\u{1F464}","Eu"]);
 // Config: só admin/coord
@@ -4143,7 +4305,7 @@ if(isCoord)nv.push(["config","\u2699\uFE0F","Config"]);
 // Eu/Config conforme papel. As abas antigas (Scout/Agenda/Stats) ficam ocultas
 // da navegacao — o scout segue acessivel pelo fluxo Torneios -> jogo -> scout.
 // Filtro aplicado sobre o nv montado acima (roteamento e funcoes preservados).
-nv=nv.filter(function(n){return n[0]==="torneios"||n[0]==="perfil"||n[0]==="config";});
+nv=nv.filter(function(n){return n[0]==="torneios"||n[0]==="treinos"||n[0]==="perfil"||n[0]==="config";});
 h+='<div class="app-tabs"><div class="app-tabs-inner">';
 for(var i=0;i<nv.length;i++){var n=nv[i];h+='<button class="'+(tab===n[0]?"on":"")+'" onclick="setTab(\''+n[0]+'\')"><span class="tabi">'+n[1]+'</span><span class="tabl">'+n[2]+'</span></button>';}
 h+='</div></div>';
@@ -4155,6 +4317,7 @@ else if(tab==="scout")h+=rSct();
 else if(tab==="torneios")h+=rTor();
 else if(tab==="agenda")h+=rAge();
 else if(tab==="stats")h+=rSts();
+else if(tab==="treinos")h+=rTrn();
 else if(tab==="perfil")h+=rPerfilAtleta();
 h+='</div>';
 
@@ -7704,6 +7867,500 @@ function exG(id){var g=gF(id);var te=tF(g.tid);if(!g||!g.act||!g.act.length){ale
 function exAll(){var fin=[];if(D.games)for(var i=0;i<D.games.length;i++){if(!torneioMode&&isSpecialGame(D.games[i]))continue;if(D.games[i].act&&D.games[i].act.length&&(D.games[i].st==="live"||D.games[i].st==="done"))fin.push(D.games[i]);}if(!fin.length){alert("Sem dados");return;}var t="\u{1F3D0} *RS-SCOUT \u2014 RELAT\u00d3RIO*\n"+fin.length+" jogos\n\n";for(var i=0;i<fin.length;i++){var g=fin[i];var te=tF(g.tid);t+="*"+(te?te.n:"")+" vs "+g.opp+"* \u00b7 "+(g.dt?fD(g.dt):"")+"\n";if(g.ss){var sc=[];for(var j=0;j<g.ss.length;j++)sc.push(g.ss[j].u+"-"+g.ss[j].t);t+="Sets: "+sc.join("/")+"\n";}t+="\n";}window.open("https://wa.me/?text="+encodeURIComponent(t),"_blank");}
 function exPDF(){var ph=buildPDFhtml();var blob=new Blob([ph],{type:"text/html"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.target="_blank";a.click();URL.revokeObjectURL(url);}
 function buildPDFhtml(){var ph="<html><head><meta charset=\"UTF-8\"><title>RS-Scout 2026<\/title><style>*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Helvetica,Arial,sans-serif;padding:30px;color:#1e293b;max-width:800px;margin:0 auto}h1{color:#0f172a;border-bottom:3px solid #2563eb;padding-bottom:8px;margin-bottom:16px}h2{color:#2563eb;margin:18px 0 8px}table{width:100%;border-collapse:collapse;margin:10px 0}th{background:#f0f4f8;text-align:left;padding:8px 10px;font-size:11px;font-weight:700;color:#64748b;border:1px solid #e2e8f0}td{padding:8px 10px;border:1px solid #e2e8f0;font-size:12px}.ft{margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;display:flex;justify-content:space-between}<\/style><\/head><body>";ph+="<h1>\u{1F3D0} RS-Scout 2026<\/h1>";var fin=[];if(D.games)for(var i=0;i<D.games.length;i++){if(D.games[i].act&&D.games[i].act.length&&(D.games[i].st==="live"||D.games[i].st==="done"))fin.push(D.games[i]);}ph+="<p>"+fin.length+" jogos<\/p>";for(var gi=0;gi<fin.length;gi++){var g=fin[gi];var te=tF(g.tid);ph+="<h2>"+(te?esc(te.n):"")+" vs "+esc(g.opp)+" \u2014 "+(g.dt?fD(g.dt):"")+"<\/h2>";if(g.ss){var sc=[];for(var j=0;j<g.ss.length;j++)sc.push(g.ss[j].u+"-"+g.ss[j].t);ph+="<p><b>Sets:<\/b> "+sc.join(" / ")+"<\/p>";}var ps={};for(var i=0;i<g.act.length;i++){var a=g.act[i];if(!ps[a.pid])ps[a.pid]={n:0,b:{}};ps[a.pid].n++;if(!ps[a.pid].b[a.ak])ps[a.pid].b[a.ak]={n:0,o:{}};ps[a.pid].b[a.ak].n++;if(!ps[a.pid].b[a.ak].o[a.oc])ps[a.pid].b[a.ak].o[a.oc]=0;ps[a.pid].b[a.ak].o[a.oc]++;}ph+="<table><tr><th>Atleta<\/th><th>A\u00e7\u00f5es<\/th><th>Detalhes<\/th><\/tr>";var pids=Object.keys(ps);for(var pi=0;pi<pids.length;pi++){var pid=pids[pi],s=ps[pid];var pf=pFind(pid,g.id);if(!pf)continue;var det="";var bks=Object.keys(s.b);for(var bi=0;bi<bks.length;bi++){var ak=bks[bi];var d=s.b[ak];det+=(ACT[ak]?ACT[ak].l:ak)+": "+d.n+"x (";var oks=Object.keys(d.o);for(var oi=0;oi<oks.length;oi++){det+=oks[oi]+":"+d.o[oks[oi]];if(oi<oks.length-1)det+=", ";}det+=") ";}ph+="<tr><td><b>#"+pf.nu+" "+esc(pf.nm)+"<\/b><\/td><td>"+s.n+"<\/td><td>"+det+"<\/td><\/tr>";}ph+="<\/table>";}ph+="<div class=ft><span>RS-Scout 2026<\/span><span>"+new Date().toLocaleString("pt-BR")+"<\/span><\/div><\/body><\/html>";return ph;}
+// ============================================================================
+// ===== MODULO DE TREINOS ===================================================
+// Aba separada do Scout de jogo: registro rapido de repeticoes por atleta em
+// treino (atleta+fundamento+nota isolados, sem rally/set/placar). Node proprio
+// no RTDB (trainings/{id}, chaveado por id — ver saveTraining/trF acima).
+// ============================================================================
+function _trnAthLabel(a){return esc(a?a.nome:"?");}
+function _trnAthleteByLinked(tr,aid){var l=tr.athletes||[];for(var i=0;i<l.length;i++){if(l[i].linkedAid===aid)return l[i];}return null;}
+function _trnAthleteByTaid(tr,taid){var l=tr.athletes||[];for(var i=0;i<l.length;i++){if(l[i].taid===taid)return l[i];}return null;}
+
+function rTrn(){
+  // Toda a aba vive num painel claro (.trn-light) — tela de registro/analise, nao de jogo.
+  var h='<div class="trn-light">';
+  if(!selTrn)return h+_rTrnList()+'</div>';
+  var tr=trF(selTrn);
+  if(!tr){selTrn=null;return h+_rTrnList()+'</div>';}
+  if(trnSub==="marcar"&&isTrnTablet())return h+rTrnMarcarTablet(tr)+'</div>';
+  var te=tr.tid?tF(tr.tid):null;
+  h+='<div class="rw" style="justify-content:space-between;align-items:center;margin-bottom:12px"><button class="bt bg bsm" onclick="fecharTreino()">← Treinos</button>';
+  h+='<div style="text-align:right"><div style="font-weight:800;font-size:14px;color:var(--tl-navy)">'+esc(te?te.n:"Avulso")+'</div><div class="trn-muted" style="font-size:11px">'+fD(tr.dt)+(tr.loc?' · '+esc(tr.loc):'')+'</div></div></div>';
+  h+='<div class="stb"><button class="'+(trnSub==="atletas"?"on":"")+'" onclick="trnSub=\'atletas\';render()">\u{1F465} Atletas</button><button class="'+(trnSub==="marcar"?"on":"")+'" onclick="trnSub=\'marcar\';render()">✍️ Marcar</button><button class="'+(trnSub==="resumo"?"on":"")+'" onclick="trnSub=\'resumo\';render()">\u{1F4CA} Resumo</button></div>';
+  if(trnSub==="marcar")h+=rTrnMarcar(tr);
+  else if(trnSub==="resumo")h+=rTrnResumo(tr);
+  else h+=rTrnAtletas(tr);
+  return h+'</div>';
+}
+function _rTrnList(){
+  var list=(D.trainings||[]).slice().sort(function(a,b){return (b.dt||"").localeCompare(a.dt||"")||(b.createdAt||0)-(a.createdAt||0);});
+  var h='<div class="rw" style="justify-content:space-between;align-items:center;margin-bottom:12px"><span class="trn-muted" style="font-size:12px;font-weight:800">'+list.length+' treino'+(list.length===1?"":"s")+'</span><button class="bt bp" onclick="openNovoTreino()">➕ Novo Treino</button></div>';
+  if(!list.length)h+='<div class="cd trn-muted" style="text-align:center;padding:30px">Nenhum treino cadastrado ainda.</div>';
+  for(var i=0;i<list.length;i++){
+    var tr=list[i];
+    var te=tr.tid?tF(tr.tid):null;
+    var n=(tr.marks||[]).length;
+    var na=(tr.athletes||[]).length;
+    h+='<div class="cd trn-card" onclick="abrirTreino(\''+tr.id+'\')"><div class="rw" style="justify-content:space-between;align-items:center">';
+    h+='<div><div style="font-weight:800;font-size:14px;color:var(--tl-navy)">'+fD(tr.dt)+' · '+esc(te?te.n:"Avulso")+'</div>';
+    h+='<div class="trn-muted" style="font-size:11px;margin-top:2px">'+(tr.loc?esc(tr.loc)+' · ':"")+na+' atleta'+(na===1?"":"s")+' · '+n+' ações</div></div>';
+    h+='<span class="trn-pill" style="'+(tr.status==="closed"?"background:#e2e8f0;color:#64748b":"background:#e0f2e8;color:#0b7a3d")+'">'+(tr.status==="closed"?"FINALIZADO":"ABERTO")+'</span>';
+    h+='</div></div>';
+  }
+  return h;
+}
+function fecharTreino(){selTrn=null;trnSub="atletas";trnAtivo=null;render();}
+function abrirTreino(id){var tr=trF(id);if(!tr)return;selTrn=id;trnAtivo=null;trnSub=(tr.athletes&&tr.athletes.length)?"marcar":"atletas";render();}
+function openNovoTreino(){
+  var todayStr=new Date().toISOString().slice(0,10);
+  var teams=(D.teams||[]).slice().sort(function(a,b){return (a.n||"").localeCompare(b.n||"");});
+  var teamOpts='<option value="">— avulso / sem equipe —</option>';
+  for(var i=0;i<teams.length;i++)teamOpts+='<option value="'+esc(teams[i].id)+'">'+esc(teams[i].n)+'</option>';
+  var body='<div style="display:flex;flex-direction:column;gap:10px;text-align:left">';
+  body+='<label style="font-size:11px;font-weight:700;color:var(--gray)">Data<br><input id="trn-new-dt" type="date" value="'+todayStr+'" style="width:100%;margin-top:3px"></label>';
+  body+='<label style="font-size:11px;font-weight:700;color:var(--gray)">Equipe<br><select id="trn-new-tid" style="width:100%;margin-top:3px">'+teamOpts+'</select></label>';
+  body+='<label style="font-size:11px;font-weight:700;color:var(--gray)">Local (opcional)<br><input id="trn-new-loc" type="text" placeholder="Ginásio..." style="width:100%;margin-top:3px"></label>';
+  body+='<label style="font-size:11px;font-weight:700;color:var(--gray)">Observações (opcional)<br><textarea id="trn-new-obs" rows="2" style="width:100%;margin-top:3px"></textarea></label>';
+  body+='</div>';
+  confirmModal({title:"Novo Treino",body:body,confirmLabel:"Criar",onConfirm:function(){}});
+  // confirmModal FECHA o modal antes de chamar onConfirm — os inputs somem do DOM e a
+  // leitura da data falhava ("Informe a data"). Le os campos ANTES de fechar.
+  var okBtn=document.getElementById("rsConfirmOk");
+  if(okBtn)okBtn.onclick=function(){var vals=_readNovoTreino();closeConfirmModal();criarTreino(vals);};
+}
+function _readNovoTreino(){
+  var dtEl=document.getElementById("trn-new-dt"),tidEl=document.getElementById("trn-new-tid"),locEl=document.getElementById("trn-new-loc"),obsEl=document.getElementById("trn-new-obs");
+  return {dt:dtEl?dtEl.value:"",tid:(tidEl&&tidEl.value)?tidEl.value:null,loc:locEl?locEl.value.trim():"",obs:obsEl?obsEl.value.trim():""};
+}
+function criarTreino(vals){
+  if(!currentUser){toast("Faça login para criar um treino","error");return;}
+  vals=vals||_readNovoTreino();
+  var dt=vals.dt;
+  if(!dt){toast("Informe a data do treino","error");openNovoTreino();return;}
+  var tr={id:uid("tr_"),dt:dt,tid:vals.tid,loc:vals.loc,obs:vals.obs,status:"open",athletes:[],marks:[],createdBy:currentUser.email||currentUser.uid,createdAt:Date.now()};
+  if(!D.trainings)D.trainings=[];
+  D.trainings.push(tr);
+  saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+  selTrn=tr.id;trnSub="atletas";trnAtivo=null;
+  toast("Treino criado","ok");
+  render();
+}
+
+// --- Sub-aba Atletas: seleciona do cadastro (busca+toggle) ou cola nomes ---
+function rTrnAtletas(tr){
+  var h='<div class="cd" style="background:#fff7df;border:1px solid #f3dc9a;color:#7a5200;font-size:11.5px;padding:10px 12px;box-shadow:none">\u{1F4A1} A lista de atletas do treino é independente do cadastro oficial de jogo — dá pra incluir quem está em teste ou de categorias de base.</div>';
+  h+='<div class="cd"><div class="trn-h">\u{1F465} Selecionar do cadastro</div>';
+  h+='<input id="trn-ath-q" type="text" placeholder="Buscar atleta..." oninput="renderTrnAthList(\''+tr.id+'\')" style="width:100%;margin-bottom:8px">';
+  h+='<div id="trn-ath-list" style="max-height:260px;overflow-y:auto;border:1px solid var(--tl-line);border-radius:10px">'+_trnAthListInner(tr.id)+'</div></div>';
+  h+='<div class="cd"><div class="trn-h">✍️ Colar lista de nomes</div>';
+  h+='<div class="trn-muted" style="font-size:11px;margin-bottom:8px">Um nome por linha (ou separados por vírgula). Cria atletas só para este treino.</div>';
+  h+='<textarea id="trn-paste-names" rows="3" placeholder="Maria Silva&#10;João Pedro&#10;Ana Costa, Fernanda Lima" style="width:100%;margin-bottom:8px"></textarea>';
+  h+='<button class="bt bp" onclick="addTrnPastedNames(\''+tr.id+'\')">➕ Adicionar</button></div>';
+  var avulsos=(tr.athletes||[]).filter(function(a){return !a.linkedAid;});
+  if(avulsos.length){
+    h+='<div class="cd"><div class="trn-h">Avulsos deste treino ('+avulsos.length+')</div>';
+    for(var i=0;i<avulsos.length;i++){
+      var a=avulsos[i];
+      h+='<div class="rw" style="justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--tl-line)"><span style="font-size:13px;font-weight:700">'+_trnAthLabel(a)+'</span><button class="bt bg bsm" onclick="removeTrnAthlete(\''+tr.id+'\',\''+a.taid+'\')">✕</button></div>';
+    }
+    h+='</div>';
+  }
+  var total=(tr.athletes||[]).length;
+  h+='<button class="bt bs" style="width:100%"'+(total?"":" disabled")+' onclick="trnSub=\'marcar\';render()">▶ Ir para Marcação ('+total+' atleta'+(total===1?"":"s")+')</button>';
+  return h;
+}
+function renderTrnAthList(trId){var c=document.getElementById("trn-ath-list");if(c)c.innerHTML=_trnAthListInner(trId);}
+function _trnAthListInner(trId){
+  var tr=trF(trId);if(!tr)return"";
+  var qEl=document.getElementById("trn-ath-q");
+  var qn=(qEl?qEl.value:"").trim().toLowerCase();
+  var pool=(D.athletes||[]).slice().sort(function(a,b){return (a.nm||"").localeCompare(b.nm||"");});
+  if(qn)pool=pool.filter(function(a){return (a.nm||"").toLowerCase().indexOf(qn)>=0;});
+  if(!pool.length)return '<div style="padding:14px;text-align:center;color:var(--gray);font-size:12px">Nenhum atleta encontrado.</div>';
+  var h='';
+  for(var i=0;i<pool.length;i++){
+    var a=pool[i];
+    var on=!!_trnAthleteByLinked(tr,a.aid);
+    h+='<div class="lu-row'+(on?" on":"")+'" onclick="toggleTrnCadastroAthlete(\''+tr.id+'\',\''+a.aid+'\')"><div class="lu-toggle"><span class="lu-toggle-check">✓</span></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">'+esc(a.nm)+'</div>'+(a.po?'<div class="trn-muted" style="font-size:10.5px">'+esc(a.po)+'</div>':"")+'</div></div>';
+  }
+  return h;
+}
+function toggleTrnCadastroAthlete(trId,aid){
+  var tr=trF(trId);if(!tr)return;
+  if(!tr.athletes)tr.athletes=[];
+  var existing=_trnAthleteByLinked(tr,aid);
+  if(existing){removeTrnAthlete(trId,existing.taid);return;}
+  var ath=aFind(aid);
+  tr.athletes.push({taid:uid("ta_"),nome:ath?ath.nm:aid,linkedAid:aid});
+  saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+  render();
+}
+function removeTrnAthlete(trId,taid){
+  var tr=trF(trId);if(!tr)return;
+  var n=(tr.marks||[]).filter(function(m){return m.taid===taid;}).length;
+  function doRemove(){
+    tr.athletes=(tr.athletes||[]).filter(function(a){return a.taid!==taid;});
+    if(n)tr.marks=(tr.marks||[]).filter(function(m){return m.taid!==taid;});
+    if(trnAtivo===taid)trnAtivo=null;
+    saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+    render();
+  }
+  if(n>0){
+    confirmModal({title:"Remover atleta",body:"Este atleta tem <b>"+n+"</b> marcação"+(n===1?"":"ões")+" registrada"+(n===1?"":"s")+" neste treino. Remover também vai apagar essas marcações.",confirmLabel:"Remover mesmo assim",confirmStyle:"bd",onConfirm:doRemove});
+  } else doRemove();
+}
+// Linha colada do WhatsApp: "✅12-Régis", "17 - Orelha", "7. Toy", "Wash". Tira emoji/bullet
+// e a numeracao da frente — so o nome entra (Rodrigo: o numero da lista nao importa).
+function _trnParseName(s){
+  s=String(s||"").replace(/^[\s✅☑✔✓•●▪⭐\u{1F44D}\-–—*#\.]+/u,"").trim();
+  var m=s.match(/^\d{1,2}\s*[-–—.:)]?\s*(.+)$/);
+  if(m&&m[1])s=m[1].trim();
+  s=s.replace(/[\s✅☑✔✓]+$/u,"").trim();
+  return s?{nome:s}:null;
+}
+function addTrnPastedNames(trId){
+  var tr=trF(trId);if(!tr)return;
+  var ta=document.getElementById("trn-paste-names");
+  var raw=ta?ta.value:"";
+  var parts=raw.split(/[\n,]/).map(_trnParseName).filter(function(p){return p&&p.nome;});
+  if(!parts.length){toast("Cole ao menos um nome","error");return;}
+  if(!tr.athletes)tr.athletes=[];
+  var existing={};tr.athletes.forEach(function(a){existing[a.nome.toLowerCase()]=true;});
+  var added=0,skipped=0;
+  for(var i=0;i<parts.length;i++){
+    var nm=parts[i].nome,key=nm.toLowerCase();
+    if(existing[key]){skipped++;continue;}
+    existing[key]=true;
+    tr.athletes.push({taid:uid("ta_"),nome:nm,linkedAid:null});
+    added++;
+  }
+  if(added){
+    saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+    if(ta)ta.value="";
+  }
+  toast(added+" atleta"+(added===1?"":"s")+" adicionado"+(added===1?"":"s")+(skipped?" · "+skipped+" ignorado(s) (já na lista)":""),added?"ok":"error");
+  render();
+}
+
+// --- Sub-aba Marcar: atleta ativo + fundamento + nota, 1 toque grava ---
+function rTrnMarcar(tr){
+  var h='';
+  if(tr.status==="closed")h+='<div class="cd" style="background:#fee2e2;border:1px solid #fecaca;color:#991b1b;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px">\u{1F512} Treino finalizado — marcação bloqueada.<button class="bt bg bsm" onclick="reabrirTreino(\''+tr.id+'\')">Reabrir</button></div>';
+  var n=(tr.marks||[]).length;
+  h+='<div class="rw" style="justify-content:space-between;align-items:center;margin-bottom:10px">';
+  h+='<span class="trn-muted" style="font-size:12px;font-weight:800">'+n+' ações registradas</span>';
+  h+='<div class="rw" style="gap:6px"><button class="bt bg bsm" onclick="toggleTrnTablet()" title="Layout landscape: atleta | fundamento x nota | feed, 1 toque grava">\u{1F4BB} Modo tablet</button><button class="bt bg bsm" onclick="trnSub=\'resumo\';render()">\u{1F4CA} Ver consolidado</button></div>';
+  h+='</div>';
+  var athletes=tr.athletes||[];
+  if(!athletes.length){h+='<div class="cd trn-muted" style="text-align:center;font-size:12px">Nenhum atleta neste treino ainda. Volte em "Atletas".</div>';return h;}
+  var ativo=trnAtivo?_trnAthleteByTaid(tr,trnAtivo):null;
+  h+='<div class="cd" style="padding:12px 14px"><div class="trn-h" style="margin-bottom:8px">1. Atleta'+(ativo?' · <span style="color:#0b7a3d">'+esc(ativo.nome)+'</span>':' <span class="trn-muted" style="font-weight:600">— toque em quem vai executar</span>')+'</div>';
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
+  for(var i=0;i<athletes.length;i++){
+    var a=athletes[i];
+    h+='<button class="trn-chip'+(trnAtivo===a.taid?" on":"")+'" onclick="setTrnAtivo(\''+a.taid+'\')">'+_trnAthLabel(a)+'</button>';
+  }
+  h+='</div></div>';
+  h+='<div class="cd trn-act" style="padding:12px 14px"><div class="trn-h" style="margin-bottom:8px">2. Fundamento</div>';
+  h+='<div class="stb" style="margin-bottom:12px">';
+  for(var i=0;i<TFUND_ORDER.length;i++){
+    var fk=TFUND_ORDER[i],f=TFUND[fk];
+    h+='<button class="'+(trnFund===fk?"on":"")+'" onclick="trnFund=\''+fk+'\';render()">'+f.i+' '+f.l+'</button>';
+  }
+  h+='</div>';
+  var cf=TFUND[trnFund];
+  h+='<div class="trn-h" style="margin-bottom:8px">3. Resultado</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px">';
+  for(var i=0;i<cf.opts.length;i++){
+    var op=cf.opts[i];
+    h+='<button class="trn-nota'+_trnFlashCls(trnFund,op[0])+'" style="background:'+_tfundColor(trnFund,op[0])+'"'+(tr.status==="closed"?" disabled":"")+' onclick="markTreino(\''+tr.id+'\',\''+op[0]+'\')">'+esc(op[1])+'</button>';
+  }
+  h+='</div></div>';
+  var marks=tr.marks||[];
+  if(marks.length){
+    var last=marks[marks.length-1];
+    var lastA=_trnAthleteByTaid(tr,last.taid);
+    h+='<div class="rw" style="justify-content:space-between;align-items:center"><span class="trn-muted" style="font-size:11.5px">Última: <b style="color:var(--tl-ink)">'+esc(lastA?lastA.nome:"?")+'</b> · '+TFUND[last.fund].l+' · <b style="color:'+_tfundColor(last.fund,last.nota)+'">'+esc(_tfundLabel(last.fund,last.nota))+'</b></span><button class="bt bg bsm" onclick="undoTreinoMark(\''+tr.id+'\')">↩ Desfazer</button></div>';
+  }
+  return h;
+}
+function setTrnAtivo(taid){trnAtivo=taid;if(navigator.vibrate)navigator.vibrate(15);render();}
+// Ultimo botao tocado (pra piscar no re-render). {fund,nota,t}
+var trnFlash=null;
+function _trnFlashCls(fund,nota){return (trnFlash&&trnFlash.fund===fund&&trnFlash.nota===nota&&(Date.now()-trnFlash.t)<800)?" flash":"";}
+// fund opcional: o modo tablet passa o fundamento junto (botao combinado); o celular usa trnFund.
+function markTreino(trId,nota,fund){
+  var tr=trF(trId);if(!tr)return;
+  fund=fund||trnFund;
+  if(tr.status==="closed"){toast("Treino finalizado — reabra para marcar","error");return;}
+  if(!trnAtivo){toast("Selecione um atleta primeiro","error");return;}
+  if(!tr.marks)tr.marks=[];
+  tr.marks.push({taid:trnAtivo,fund:fund,nota:nota,ts:Date.now()});
+  trnFlash={fund:fund,nota:nota,t:Date.now()};
+  if(navigator.vibrate)navigator.vibrate(30);
+  saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+  render();
+}
+// Modo tablet do treino: preferencia do aparelho (localStorage), NUNCA por largura de tela.
+function isTrnTablet(){try{return localStorage.getItem("rs_trn_tablet")==="1";}catch(e){return false;}}
+function toggleTrnTablet(){try{localStorage.setItem("rs_trn_tablet",isTrnTablet()?"0":"1");}catch(e){}render();}
+function rTrnMarcarTablet(tr){
+  var te=tr.tid?tF(tr.tid):null,marks=tr.marks||[],athletes=tr.athletes||[];
+  var h='<div class="rw" style="justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px">';
+  h+='<div class="rw" style="align-items:center;gap:8px"><button class="bt bg bsm" onclick="fecharTreino()">← Treinos</button><div><div style="font-weight:800;font-size:13px;color:var(--tl-navy)">'+esc(te?te.n:"Avulso")+'</div><div class="trn-muted" style="font-size:10.5px">'+fD(tr.dt)+(tr.loc?' · '+esc(tr.loc):'')+'</div></div></div>';
+  h+='<div class="rw" style="gap:6px"><button class="bt bg bsm" onclick="trnSub=\'atletas\';render()">\u{1F465} Atletas</button><button class="bt bg bsm" onclick="trnSub=\'resumo\';render()">\u{1F4CA} Resumo</button><button class="bt bp bsm" onclick="toggleTrnTablet()" title="Voltar ao modo celular">\u{1F4F1} Modo celular</button></div></div>';
+  if(tr.status==="closed")h+='<div class="cd" style="background:#fee2e2;border:1px solid #fecaca;color:#991b1b;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px">\u{1F512} Treino finalizado — marcação bloqueada.<button class="bt bg bsm" onclick="reabrirTreino(\''+tr.id+'\')">Reabrir</button></div>';
+  if(!athletes.length)return h+'<div class="cd trn-muted" style="text-align:center;font-size:12px">Nenhum atleta neste treino ainda. Volte em "Atletas".</div>';
+  var cnt={};for(var i=0;i<marks.length;i++)cnt[marks[i].taid]=(cnt[marks[i].taid]||0)+1;
+  h+='<div class="trn-tab">';
+  // coluna 1: atletas
+  h+='<div class="col"><div class="col-h">1 · Atleta</div><div class="athlist">';
+  for(var i=0;i<athletes.length;i++){var a=athletes[i];h+='<button class="ath'+(trnAtivo===a.taid?" on":"")+'" onclick="setTrnAtivo(\''+a.taid+'\')"><span>'+_trnAthLabel(a)+'</span><small>'+(cnt[a.taid]||0)+'</small></button>';}
+  h+='</div></div>';
+  // coluna 2: fundamento x nota (1 toque grava)
+  h+='<div class="col"><div class="col-h">2 · Fundamento + resultado — 1 toque grava</div>';
+  var dis=tr.status==="closed"?" disabled":"";
+  for(var fi=0;fi<TFUND_ORDER.length;fi++){
+    var fk=TFUND_ORDER[fi],f=TFUND[fk];
+    h+='<div class="frow"><div class="fh" style="background:'+(FCOL[fk]||"#334155")+'">'+f.i+' '+f.l+'</div>';
+    for(var oi=0;oi<f.opts.length;oi++){var op=f.opts[oi];h+='<button class="trn-nota'+_trnFlashCls(fk,op[0])+'" style="background:'+_tfundColor(fk,op[0])+'"'+dis+' onclick="markTreino(\''+tr.id+'\',\''+op[0]+'\',\''+fk+'\')">'+esc(op[1])+'</button>';}
+    h+='</div>';
+  }
+  h+='</div>';
+  // coluna 3: contador + feed + desfazer
+  h+='<div class="col"><div class="rw" style="justify-content:space-between;align-items:flex-end;margin-bottom:8px"><div><div class="big">'+marks.length+'</div><div class="col-h" style="margin:2px 0 0">ações</div></div>';
+  h+='<button class="bt bg bsm" onclick="undoTreinoMark(\''+tr.id+'\')"'+(marks.length?'':' disabled')+'>↩ Desfazer</button></div>';
+  h+='<div class="feed">';
+  if(!marks.length)h+='<div class="trn-muted" style="font-size:11px">Nenhuma marcação ainda.</div>';
+  for(var k=marks.length-1;k>=Math.max(0,marks.length-12);k--){
+    var m=marks[k],ma=_trnAthleteByTaid(tr,m.taid);
+    h+='<div class="fi'+(k===marks.length-1?" last":"")+'"><span class="dot" style="background:'+_tfundColor(m.fund,m.nota)+'"></span><b>'+esc(ma?ma.nome:"?")+'</b><span>'+(TFUND[m.fund]?TFUND[m.fund].l:m.fund)+' · '+esc(_tfundLabel(m.fund,m.nota))+'</span></div>';
+  }
+  h+='</div></div>';
+  h+='</div>';
+  return h;
+}
+function undoTreinoMark(trId){
+  var tr=trF(trId);if(!tr||!tr.marks||!tr.marks.length)return;
+  tr.marks.pop();
+  saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+  render();
+}
+function finalizarTreino(trId){
+  var tr=trF(trId);if(!tr)return;
+  tr.status="closed";
+  saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+  toast("Treino finalizado","ok");render();
+}
+function reabrirTreino(trId){
+  var tr=trF(trId);if(!tr)return;
+  tr.status="open";
+  saveTraining(tr).catch(function(e){toast("Erro ao salvar: "+e.message,"error");});
+  toast("Treino reaberto","ok");render();
+}
+
+// --- Sub-aba Resumo: consolidado A QUALQUER MOMENTO (nao exige finalizar) ---
+function trnAgg(tr){
+  var P={},ord=[],marks=tr.marks||[];
+  for(var i=0;i<marks.length;i++){
+    var m=marks[i];
+    if(!P[m.taid]){P[m.taid]={taid:m.taid,n:0,good:0,byF:{}};ord.push(m.taid);}
+    var p=P[m.taid],isGood=!_tfundIsErr(m.fund,m.nota),isErr=!isGood;
+    p.n++;if(isGood)p.good++;if(isErr)p.err=(p.err||0)+1;
+    if(!p.byF[m.fund])p.byF[m.fund]={n:0,good:0,err:0,o:{}};
+    var bf=p.byF[m.fund];bf.n++;if(isGood)bf.good++;else bf.err++;
+    bf.o[m.nota]=(bf.o[m.nota]||0)+1;
+  }
+  var players=[];
+  for(var j=0;j<ord.length;j++){
+    var q=P[ord[j]];
+    q.aprov=q.n?Math.round(q.good/q.n*100):0;
+    var a=_trnAthleteByTaid(tr,q.taid);
+    q.nome=a?a.nome:"?";
+    players.push(q);
+  }
+  players.sort(function(a,b){return b.n-a.n;});
+  return players;
+}
+// Resumo no CELULAR: 1 card por atleta (nome · acoes · %) com uma linha por fundamento
+// (as 4 notas, total, %). A planilha larga so aparece em tela grande (CSS troca por largura).
+function _rTrnResumoCards(tr,players){
+  var h='<div class="trn-cards">';
+  for(var i=0;i<players.length;i++){
+    var p=players[i];
+    h+='<div class="trn-pc"><div class="hd"><div><b>'+esc(p.nome)+'</b><small> · '+p.n+' ações</small></div><span class="trn-ap" style="color:'+_aprovColor(p.aprov)+';background:'+_aprovBg(p.aprov)+'">'+p.aprov+'%</span><button class="bt bg bsm" title="PDF individual" onclick="exTreinoAthletePDF(\''+tr.id+'\',\''+p.taid+'\')">\u{1F4C4}</button></div>';
+    for(var fi=0;fi<TFUND_ORDER.length;fi++){
+      var fk=TFUND_ORDER[fi],f=TFUND[fk],bf=p.byF[fk];
+      h+='<div class="fr"><span class="fn">'+f.i+' '+(fk==="recepcao"?"Recep.":f.l)+'</span>';
+      for(var oi=0;oi<f.opts.length;oi++){var c=bf?(bf.o[f.opts[oi][0]]||0):0;h+='<span class="nc"><i style="color:'+_tfundColor(fk,f.opts[oi][0])+'">'+esc(f.opts[oi][2]||f.opts[oi][1])+'</i><b'+(c?'':' class="z"')+'>'+c+'</b></span>';}
+      if(bf&&bf.n){var fA=Math.round(bf.good/bf.n*100);h+='<span class="tot">'+bf.n+'</span><span class="pct"><span class="trn-pct" style="color:'+_aprovColor(fA)+';background:'+_aprovBg(fA)+'">'+fA+'%</span></span>';}
+      else h+='<span class="tot z">0</span><span class="pct z">—</span>';
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+  return h+'</div>';
+}
+// Cor do % de aproveitamento — usada na tabela de analise E no PDF geral (mesma regua).
+function _aprovColor(pct){return pct>=60?"#0b7a3d":pct>=40?"#b45309":"#b91c1c";}
+function _aprovBg(pct){return pct>=60?"#e0f2e8":pct>=40?"#fef3c7":"#fbe3e4";}
+function rTrnResumo(tr){
+  var players=trnAgg(tr);
+  var h='<div class="rw" style="justify-content:space-between;align-items:center;margin-bottom:10px">';
+  h+='<span class="trn-muted" style="font-size:12px;font-weight:800">'+(tr.marks||[]).length+' ações · '+players.length+' atleta'+(players.length===1?"":"s")+' com marcações</span>';
+  h+='<button class="bt bp bsm" onclick="exTreinoResumoPDF(\''+tr.id+'\')">\u{1F4C4} PDF geral</button>';
+  h+='</div>';
+  if(!players.length){h+='<div class="cd trn-muted" style="text-align:center;font-size:12px">Nenhuma marcação registrada ainda.</div>';}
+  else{
+    // Planilha de scout: cada fundamento abre em 1 coluna POR NOTA (Ace/Bom/Neu/Erro...) + %.
+    // Um "3/5" escondia a distribuicao — em scout a contagem de cada nota e o dado.
+    h+=_rTrnResumoCards(tr,players);
+    h+='<div class="trn-tbl-desk"><div class="trn-muted" style="font-size:10px;margin-bottom:4px">deslize a tabela para o lado →</div>';
+    h+='<div class="trn-tbl-wrap"><table class="trn-tbl"><thead>';
+    h+='<tr class="h1"><th class="l" rowspan="2">Atleta</th><th rowspan="2">Ações</th><th rowspan="2">Aprov.</th>';
+    for(var fi=0;fi<TFUND_ORDER.length;fi++){var f0=TFUND[TFUND_ORDER[fi]];h+='<th class="f" colspan="'+(f0.opts.length+2)+'">'+f0.i+' '+f0.l+'</th>';}
+    h+='<th rowspan="2"></th></tr><tr class="h2">';
+    for(var fi=0;fi<TFUND_ORDER.length;fi++){
+      var fk0=TFUND_ORDER[fi],f1=TFUND[fk0];
+      for(var oi=0;oi<f1.opts.length;oi++)h+='<th'+(oi===0?' class="f"':'')+' style="color:'+_tfundColor(fk0,f1.opts[oi][0])+'" title="'+esc(f1.opts[oi][1])+'">'+esc(f1.opts[oi][2]||f1.opts[oi][1])+'</th>';
+      h+='<th class="t">Tot</th><th>%</th>';
+    }
+    h+='</tr></thead><tbody>';
+    for(var i=0;i<players.length;i++){
+      var p=players[i];
+      h+='<tr><td class="l">'+_trnAthLabel(p)+'</td><td>'+p.n+'</td>';
+      h+='<td><span class="trn-ap" style="color:'+_aprovColor(p.aprov)+';background:'+_aprovBg(p.aprov)+'">'+p.aprov+'%</span></td>';
+      for(var fi=0;fi<TFUND_ORDER.length;fi++){
+        var fk=TFUND_ORDER[fi],f2=TFUND[fk],bf=p.byF[fk];
+        for(var oi=0;oi<f2.opts.length;oi++){
+          var c=bf?(bf.o[f2.opts[oi][0]]||0):0;
+          h+='<td class="'+(oi===0?'f ':'')+(c?'':'z')+'">'+c+'</td>';
+        }
+        if(bf&&bf.n){var fAprov=Math.round(bf.good/bf.n*100);h+='<td class="t">'+bf.n+'</td><td><span class="trn-pct" style="color:'+_aprovColor(fAprov)+';background:'+_aprovBg(fAprov)+'">'+fAprov+'%</span></td>';}
+        else h+='<td class="t z">0</td><td class="z">—</td>';
+      }
+      h+='<td><button class="bt bg bsm" title="PDF individual" onclick="exTreinoAthletePDF(\''+tr.id+'\',\''+p.taid+'\')">\u{1F4C4}</button></td></tr>';
+    }
+    h+='</tbody></table></div></div>';
+    h+='<div class="trn-legend" style="margin-bottom:14px"><b>Aprov.</b> = '+esc(_tfundRegua())+'.</div>';
+  }
+  h+='<div class="rw">';
+  if(tr.status==="closed")h+='<button class="bt bg" onclick="reabrirTreino(\''+tr.id+'\')">\u{1F513} Reabrir treino</button>';
+  else h+='<button class="bt bg" onclick="finalizarTreino(\''+tr.id+'\')">\u{1F512} Finalizar treino</button>';
+  h+='</div>';
+  return h;
+}
+
+// --- PDF (client-side, mesmo mecanismo do relatorio de jogo: openPdfOverlay) ---
+function _trnPdfCSS(){
+  return "*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}"
+    +"body{font-family:Helvetica,Arial,sans-serif;color:#1e293b;background:#fff;font-size:12px;line-height:1.4}"
+    +".wrap{max-width:780px;margin:0 auto;padding:26px}"
+    +".hd{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1d4ed8;padding-bottom:14px;margin-bottom:4px}"
+    +".hd-team{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}"
+    +".hd-team .nm{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;text-align:center;max-width:220px}"
+    +".hd-mid{text-align:center;padding:0 12px}"
+    +".hd-mid .score{font-size:34px;font-weight:900;color:#1d4ed8;line-height:1}"
+    +".hd-mid .lbl{font-size:9px;color:#94a3b8;letter-spacing:1px;font-weight:700;margin-top:2px}"
+    +".meta{text-align:center;font-size:11px;color:#64748b;margin:10px 0 18px}"
+    +".cards{display:flex;gap:10px;margin-bottom:20px}"
+    +".kpi{flex:1;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:10px;padding:11px;text-align:center}"
+    +".kpi .v{font-size:22px;font-weight:900;color:#0f172a}"
+    +".kpi .k{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-top:2px}"
+    +"h2{font-size:14px;color:#0f172a;border-left:4px solid #1d4ed8;padding-left:9px;margin:22px 0 10px}"
+    +"table.at{width:100%;border-collapse:collapse;margin-bottom:6px}"
+    +"table.at th{background:#1e293b;color:#fff;font-size:9px;text-transform:uppercase;letter-spacing:.5px;padding:7px 8px;text-align:left;font-weight:700}"
+    +"table.at th.c{text-align:center}"
+    +"table.at td{border:1px solid #e2e8f0;padding:7px 8px;vertical-align:middle}"
+    +"table.at td.c{text-align:center}"
+    +"table.at td.nome{font-weight:700;width:150px}"
+    +"table.at td.pts{font-weight:900;color:#1d4ed8}"
+    +"table.at tbody tr:nth-child(even){background:#f8fafc}"
+    +".fundrow{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:2px 0}"
+    +".fundname{font-weight:700;font-size:10px;min-width:74px}"
+    +".fundname small{color:#94a3b8;font-weight:600}"
+    +".chip{display:inline-block;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px}"
+    +".eff{margin-left:auto;font-weight:800;color:#1d4ed8;font-size:10px;background:#eff6ff;border-radius:5px;padding:1px 6px}"
+    +".ft{margin-top:24px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between}"
+    +"table.sc{font-size:10px;font-variant-numeric:tabular-nums}table.sc th,table.sc td{padding:5px 3px}table.sc td.nome{width:auto;white-space:nowrap}"
+    +"table.sc tr.h2 th{background:#eef2f8;color:#5c6a82;font-size:8.5px;text-transform:none;letter-spacing:0;text-align:center;border-bottom:2px solid #d6dee9}"
+    +"table.sc th.f,table.sc td.f{border-left:2px solid #cbd5e1}table.sc td{font-weight:700}table.sc td.z{color:#c3ccd9;font-weight:600}"
+    +".pc{display:inline-block;font-weight:800;font-size:9.5px;padding:1px 6px;border-radius:4px}"
+    +"table.sc th.t,table.sc td.t{background:#f1f5f9;font-weight:900}"
+    +"table.ind td{padding:7px 6px}table.ind .nl{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}table.ind .nv{font-size:14px;font-weight:900;margin-top:1px}table.ind .nv.z{color:#c3ccd9;font-weight:600}"
+    +".lg{font-size:9px;color:#64748b;margin-top:8px;line-height:1.5}.lg b{color:#1e293b}"
+    +"@media print{body{font-size:11px}.wrap{padding:0;max-width:100%}h2{page-break-after:avoid}table.at{page-break-inside:auto}table.at tr{page-break-inside:avoid}table.sc{font-size:9px}}";
+}
+function exTreinoAthletePDF(trId,taid){
+  var tr=trF(trId);if(!tr){alert("Treino não encontrado.");return;}
+  var a=_trnAthleteByTaid(tr,taid);if(!a){alert("Atleta não encontrado neste treino.");return;}
+  var marks=(tr.marks||[]).filter(function(m){return m.taid===taid;});
+  if(!marks.length){alert("Este atleta ainda não tem marcações neste treino.");return;}
+  // Mesma agregacao/regua do resumo (trnAgg) — so filtra a atleta.
+  var p=null,agg=trnAgg(tr);for(var i=0;i<agg.length;i++)if(agg[i].taid===taid)p=agg[i];
+  if(!p){alert("Sem dados para esta atleta.");return;}
+  var totN=p.n,totGood=p.good,totErr=p.err||0,aprov=p.aprov;
+  var te=tr.tid?tF(tr.tid):null;
+  var ph="<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>"+esc(a.nome)+" - Treino</title><style>"+_trnPdfCSS()+"</style></head><body><div class=wrap>";
+  ph+="<div class=hd><div class=hd-team><div class=nm style=\"font-size:16px\">"+esc(a.nome)+"</div></div><div class=hd-mid><div class=score style=\"font-size:22px;color:"+_aprovColor(aprov)+"\">"+aprov+"%</div><div class=lbl>APROVEITAMENTO</div></div><div class=hd-team><div class=nm>"+esc(te?te.n:"Avulso")+"</div></div></div>";
+  ph+="<div class=meta>"+fD(tr.dt)+(tr.loc?" · "+esc(tr.loc):"")+"</div>";
+  ph+="<div class=cards><div class=kpi><div class=v>"+totN+"</div><div class=k>Ações</div></div><div class=kpi><div class=v style=\"color:#059669\">"+totGood+"</div><div class=k>Acertos</div></div><div class=kpi><div class=v style=\"color:#dc2626\">"+totErr+"</div><div class=k>Erros</div></div></div>";
+  // Planilha individual: 1 linha por fundamento; colunas = as 4 notas (rotulo em cima, contagem
+  // embaixo, ja que cada fundamento tem as suas), Total e %. Mesmo visual do PDF geral.
+  ph+="<h2>Detalhamento por fundamento</h2><table class=\"at sc ind\"><thead><tr><th>Fundamento</th><th class=c colspan=4>Notas</th><th class=c>Total</th><th class=c>Aprov.</th></tr></thead><tbody>";
+  for(var fi=0;fi<TFUND_ORDER.length;fi++){
+    var fk=TFUND_ORDER[fi],f2=TFUND[fk],bf=p.byF[fk];
+    ph+="<tr><td class=nome>"+f2.i+" "+f2.l+"</td>";
+    for(var oi=0;oi<f2.opts.length;oi++){
+      var c=bf?(bf.o[f2.opts[oi][0]]||0):0;
+      ph+="<td class=\"c"+(oi===0?" f":"")+"\"><div class=nl style=\"color:"+_tfundColor(fk,f2.opts[oi][0])+"\">"+esc(f2.opts[oi][1])+"</div><div class=\"nv"+(c?"":" z")+"\">"+c+"</div></td>";
+    }
+    if(bf&&bf.n){var fAprov=Math.round(bf.good/bf.n*100);ph+="<td class=\"c f\"><b>"+bf.n+"</b></td><td class=c><span class=pc style=\"color:"+_aprovColor(fAprov)+";background:"+_aprovBg(fAprov)+"\">"+fAprov+"%</span></td>";}
+    else ph+="<td class=\"c f z\">0</td><td class=\"c z\">—</td>";
+    ph+="</tr>";
+  }
+  ph+="</tbody></table>";
+  ph+="<div class=lg><b>Aprov.</b> = "+esc(_tfundRegua())+".</div>";
+  ph+="<div class=ft><span>RS-Scout · Treinos</span><span>Gerado em "+new Date().toLocaleString("pt-BR")+"</span></div></div></body></html>";
+  openPdfOverlay(ph,"Treino - "+a.nome);
+}
+function exTreinoResumoPDF(trId){
+  var tr=trF(trId);if(!tr){alert("Treino não encontrado.");return;}
+  var players=trnAgg(tr);
+  if(!players.length){alert("Este treino ainda não tem marcações.");return;}
+  var te=tr.tid?tF(tr.tid):null;
+  var ph="<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Treino "+fD(tr.dt)+"</title><style>"+_trnPdfCSS()+"</style></head><body><div class=wrap>";
+  ph+="<div class=hd><div class=hd-team><div class=nm style=\"font-size:16px\">"+esc(te?te.n:"Avulso")+"</div></div><div class=hd-mid><div class=score style=\"font-size:20px\">"+(tr.marks||[]).length+"</div><div class=lbl>AÇÕES</div></div><div class=hd-team><div class=nm>"+fD(tr.dt)+"</div></div></div>";
+  ph+="<div class=meta>"+(tr.loc?esc(tr.loc):"")+"</div>";
+  // Mesma planilha da tela: 1 coluna por nota de cada fundamento + % (cabecalho em 2 linhas).
+  ph+="<h2>Resumo por atleta</h2><table class=\"at sc\"><thead><tr><th rowspan=2>Atleta</th><th class=c rowspan=2>Ações</th><th class=c rowspan=2>Aprov.</th>";
+  for(var fi=0;fi<TFUND_ORDER.length;fi++){var f0=TFUND[TFUND_ORDER[fi]];ph+="<th class=\"c f\" colspan="+(f0.opts.length+2)+">"+f0.l+"</th>";}
+  ph+="</tr><tr class=h2>";
+  for(var fi=0;fi<TFUND_ORDER.length;fi++){
+    var fk0=TFUND_ORDER[fi],f1=TFUND[fk0];
+    for(var oi=0;oi<f1.opts.length;oi++)ph+="<th class=\"c"+(oi===0?" f":"")+"\" style=\"color:"+_tfundColor(fk0,f1.opts[oi][0])+"\">"+esc(f1.opts[oi][2]||f1.opts[oi][1])+"</th>";
+    ph+="<th class=\"c t\">Tot</th><th class=c>%</th>";
+  }
+  ph+="</tr></thead><tbody>";
+  for(var i=0;i<players.length;i++){
+    var p=players[i];
+    ph+="<tr><td class=nome>"+esc(p.nome)+"</td><td class=c>"+p.n+"</td><td class=c><span class=pc style=\"color:"+_aprovColor(p.aprov)+";background:"+_aprovBg(p.aprov)+"\">"+p.aprov+"%</span></td>";
+    for(var fi=0;fi<TFUND_ORDER.length;fi++){
+      var fk=TFUND_ORDER[fi],f2=TFUND[fk],bf=p.byF[fk];
+      for(var oi=0;oi<f2.opts.length;oi++){var c=bf?(bf.o[f2.opts[oi][0]]||0):0;ph+="<td class=\"c"+(oi===0?" f":"")+(c?"":" z")+"\">"+c+"</td>";}
+      if(bf&&bf.n){var fAprov=Math.round(bf.good/bf.n*100);ph+="<td class=\"c t\">"+bf.n+"</td><td class=c><span class=pc style=\"color:"+_aprovColor(fAprov)+";background:"+_aprovBg(fAprov)+"\">"+fAprov+"%</span></td>";}
+      else ph+="<td class=\"c t z\">0</td><td class=\"c z\">—</td>";
+    }
+    ph+="</tr>";
+  }
+  ph+="</tbody></table>";
+  ph+="<div class=lg><b>Aprov.</b> = "+esc(_tfundRegua())+".</div>";
+  ph+="<div class=ft><span>RS-Scout · Treinos</span><span>Gerado em "+new Date().toLocaleString("pt-BR")+"</span></div></div></body></html>";
+  openPdfOverlay(ph,"Resumo do treino - "+fD(tr.dt));
+}
+// ===== FIM MODULO DE TREINOS ================================================
+
 function exGamePDF(gid){
   var g=gF(gid);
   if(!g||!g.act||!g.act.length){alert("Este jogo ainda nao tem acoes registradas.");return;}

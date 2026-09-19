@@ -81,6 +81,15 @@
    torneio-master-santos-export.json`, 18/09 21:03, fora do repo) ou converter de volta com
    script. Por isso o jogo de teste primeiro (passo 3).
 
+## Mencionado na conversa, mas NÃO combinado/planejado (não fazer sem pedir de novo)
+
+- **Comando de voz** (Web Speech API) no RS-SCOUT: só foi levantado como possibilidade ("dá
+  pra portar quase direto do ASV Scout, é JS puro, sem framework") — nunca virou plano, nunca
+  foi confirmado como algo a fazer. Se o usuário quiser, é um item novo e separado do C2
+  (feature nova, não correção de bug); não misturar no mesmo commit.
+- **C3 (multi-tenant / SaaS)** — citado no REVIEW_SCOUT.md como o maior bloco de trabalho pra
+  virar produto comercial; não discutido em profundidade, não está planejado.
+
 ## Antes de rodar qualquer script em produção
 
 O backup de 18/09 21:03 existe (fora do repo). Esta sessão **não escreveu nada** no banco

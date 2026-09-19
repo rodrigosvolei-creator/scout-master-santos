@@ -90,7 +90,7 @@ Lidos com `.on("value")` (tempo real → re-render). **No banco**, desde 18/09/2
 passa cada jogo por `_gmNormalize` (act → array em ordem cronológica; sq → array + `sqk` com as
 chaves alinhadas; jogo ainda no formato antigo ganha `_legacy=true`). Escrita no jogo ao vivo é
 **granular** via `_gmUpdate(gm, up)` = `update()` multi-caminho só com o que mudou (ação nova,
-`increment(±1)` no contador, entrada do sq, `court/{set}`, `ss/{n}`, `st`…); jogo `_legacy`
+`increment(±1)` no contador, entrada do sq, `ss/{n}`, `st`…); jogo `_legacy`
 é convertido **junto com a 1ª escrita** (`_gmFixPaths`: apaga `act/0..n-1`, grava `act/{aid}`;
 idem sq), sem migração em lote. `saveGame(g)` (jogo inteiro, serializado por `_gmSerialize`)
 fica só pra criar/editar jogo e repetir escalação; `save()` serializa todos os jogos do mesmo
@@ -101,11 +101,22 @@ jeito. Campos internos (`_legacy`, `_actN`, `sqk`, `_sqN`) nunca vão pro banco.
 > **migração keyed-by-id** (`games/{id}` em vez de `games/{idx}`) — pendente (ver §11).
 > O C2 (acima) não mexeu nisso: `_gmRef` ainda resolve o índice pela lista local.
 
-> **Limite conhecido do C2:** `court/{set}` (posições/rotação) é gravado inteiro — é uma máquina
-> de estado; se 2 aparelhos rotacionam com estado velho, o último grava (corrige-se com a
-> rotação manual). Contadores podem ficar negativos se 2 aparelhos desfazem o mesmo ponto
-> (visível na tela, corrige com "+"). Versões **misturadas** do app (um tablet ainda no build
-> antigo) reintroduzem o bug: o antigo grava o jogo inteiro em array por cima. Recarregar todos.
+> **Quadra (courtMode) é DERIVADA:** `court/{set}` guarda só a **base** (escalação declarada ou
+> última edição manual: rodar, líbero, substituição) + `after` = chave do último ponto do `sq`
+> já aplicado nela. O estado atual = base + replay (`courtApplyPoint`) dos pontos com chave >
+> `after` (`_courtDerive`, no listener). **Ponto não grava a quadra** — 2 tablets rodando com
+> estado velho convergem quando o `sq` completo chega. Consequência: "−" manual e `undo` tiram
+> a entrada do `sq` e a rotação volta sozinha nos 2 aparelhos (antes o "−" não desfazia rotação;
+> agora a quadra segue a sequência de pontos). `undo` só regrava a base se uma edição manual
+> posterior já tinha "assado" o ponto nela (restaura o snapshot de antes do ponto, como antes).
+> Base do formato antigo (sem `after`) já tem todos os pontos legados aplicados: `after` é
+> inferido = última chave sintética do set e pinado no banco na conversão (`_courtAfterFix`).
+
+> **Limites conhecidos do C2:** contadores podem ficar negativos se 2 aparelhos desfazem o
+> mesmo ponto (visível na tela, corrige com "+"). Duas edições manuais de quadra simultâneas:
+> a última grava (é coordenação humana). Versões **misturadas** do app (um tablet ainda no
+> build antigo) reintroduzem o bug: o antigo grava o jogo inteiro em array por cima. Recarregar
+> todos os aparelhos após o Redeploy.
 
 ---
 
@@ -125,7 +136,8 @@ jeito. Campos internos (`_legacy`, `_actN`, `sqk`, `_sqN`) nunca vão pro banco.
 ### Modo Quadra (`courtMode`, opt-in por jogo)
 Posicionamento 1–6 (`cs.pos`), rotação automática no side-out, quem saca (`serving`),
 substituição, líbero. Setup obriga escalar os 6 (quadra **inicia vazia**), bloqueia líbero
-na frente (P2/P3/P4) e exige escolher quem saca.
+na frente (P2/P3/P4) e exige escolher quem saca. Estado atual é **derivado** (base + replay do
+`sq`, ver §4) — só escalar/rodar manual/líbero/substituição gravam `court/{set}`.
 
 ### Modo Tablet (landscape, 1 toque)
 Tela dedicada `rSctTablet` (ativada por **botão/localStorage**, nunca por largura de tela).
@@ -239,7 +251,7 @@ houve incidente real de 249 ações perdidas).
   "grava no jogo errado". Precisa backup + autorização + validação com dados de produção.
   Próximo passo depois que o C2 (escrita granular, 18/09/2026) estiver estável em produção.
 - **C2 — validar em produção:** depois do Redeploy, recarregar TODOS os tablets (build
-  `2026-09-18a` no rodapé) e testar com 2 aparelhos num jogo de teste antes do jogo real.
+  `2026-09-18b` no rodapé) e testar com 2 aparelhos num jogo de teste antes do jogo real.
 - **Undo pós-reload:** o histórico de undo (`S.us`) é volátil; some ao recarregar.
 - **Limpar cards legados USA/PG** do `TOURNEY_ACCESS` (senhas `usa2026`/`PG2026` ainda no
   código; com o banco fechado viraram decorativas). Antes, checar se há jogos vinculados.

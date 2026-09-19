@@ -1337,7 +1337,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
+var APP_BUILD="2026-09-18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -2223,7 +2223,7 @@ function saveGame(g){
   if(!g||!g.id||!D.games)return Promise.reject(new Error("Jogo invalido"));
   var idx=_gmIdx(g);
   if(idx<0)return Promise.reject(new Error("Jogo nao existe no estado local"));
-  var out=_gmSerialize(g); g._legacy=false; delete g._actN;
+  var out=_gmSerialize(g); g._legacy=false; delete g._actN; delete g._courtAfterFix;
   return db.ref("torneio-master-santos/games/"+idx).set(out);
 }
 // ===== ESCRITA GRANULAR NO JOGO (C2: 2+ aparelhos marcando o MESMO jogo) =====
@@ -2235,8 +2235,12 @@ function saveGame(g){
 //     da ladder/PDF nao perde entrada quando os dois marcam;
 //   - ss/{i}/u e .t sobem com ServerValue.increment — o servidor SOMA, nao "grava o valor
 //     local" (conta certo com 2 aparelhos e ao re-enviar escritas feitas offline);
-//   - quadra (court/{set}), set novo (ss/{n}), status etc. vao em update() multi-caminho so
-//     com o que mudou.
+//   - a QUADRA e DERIVADA: court/{set} guarda so a BASE (escalacao declarada / ultima edicao
+//     manual) + `after` = chave do ultimo ponto do sq ja aplicado nela; o estado atual e a base
+//     com o replay (courtApplyPoint) dos pontos do sq depois de `after`. Ponto NAO grava a
+//     quadra — 2 aparelhos com estado velho convergem pro mesmo resultado quando o sq chega.
+//     So escalar/rodar manual/libero/substituicao gravam uma base nova (re-base).
+//   - set novo (ss/{n}), status etc. vao em update() multi-caminho so com o que mudou.
 // Localmente o app segue com ARRAYS (gm.act, ss[i].sq) — _gmNormalize converte no listener;
 // ss[i].sqk guarda as chaves alinhadas com sq. Jogo no formato antigo (arrays) e marcado
 // _legacy e convertido JUNTO com a 1a escrita granular (_gmFixPaths), sem migracao em lote —
@@ -2280,6 +2284,21 @@ function _gmNormalize(raw){
       return c;
     });
   }
+  // quadra: base do banco -> estado atual (replay do sq). Base do formato antigo (sem `after`)
+  // foi gravada junto com o sq pelo build antigo, entao ja tem todos os pontos legados aplicados:
+  // after = ultima chave sintetica do set (e _gmFixPaths grava isso no banco na conversao).
+  if(g.court&&typeof g.court==="object"){
+    var rc=g.court,nc={};
+    for(var ck in rc){
+      if(!rc.hasOwnProperty(ck))continue;var base=rc[ck];if(!base||typeof base!=="object")continue;
+      var sn=parseInt(ck,10),st=(sn>0&&Array.isArray(g.ss))?g.ss[sn-1]:null;
+      var after=base.after||null,inferred=false;
+      if(!after&&st&&st._sqN&&st.sqk&&st.sqk.length){after=st.sqk[st.sqk.length-1];inferred=true;}
+      if(inferred){if(!g._courtAfterFix)g._courtAfterFix={};g._courtAfterFix[ck]=after;}
+      nc[ck]=_courtDerive(base,after,st);
+    }
+    g.court=nc;
+  }
   g._legacy=legacy;
   return g;
 }
@@ -2291,10 +2310,32 @@ function _sqKeys(st){
   return st.sqk;
 }
 function _gmSqKeyed(st){var ks=_sqKeys(st),o={};for(var i=0;i<st.sq.length;i++)o[ks[i]]=st.sq[i];return o;}
+// chave do ultimo ponto conhecido do set (null se nao ha pontos)
+function _sqLastKey(gm,setNum){var st=gm&&gm.ss&&gm.ss[setNum-1];if(!st||!st.sq||!st.sq.length)return null;var ks=_sqKeys(st);return ks[ks.length-1]||null;}
+// Estado ATUAL da quadra de um set = base + replay dos pontos do sq com chave > after.
+// Campos internos no objeto local: after (ate onde este estado aplicou — vira o `after` da
+// base se for gravado numa edicao manual), _baseAfter (o after da base no banco).
+function _courtDerive(base,after,st){
+  if(!base||typeof base!=="object")return base;
+  var cs={pos:Array.isArray(base.pos)?base.pos.slice():base.pos,serving:base.serving,libPair:base.libPair?{lib:base.libPair.lib,out:base.libPair.out}:null};
+  var ks=(st&&st.sq&&st.sq.length)?_sqKeys(st):[];
+  var start=0;if(after){while(start<ks.length&&ks[start]<=after)start++;}
+  if(cs.pos&&cs.pos.length){for(var j=start;j<ks.length;j++){cs=courtApplyPoint(cs,st.sq[j]==="u"?"us":"them");}}
+  cs.after=ks.length?ks[ks.length-1]:null;
+  cs._baseAfter=after||null;
+  return cs;
+}
+// Quadra no FORMATO DO BANCO (so pos/serving/libPair/after; sem campos internos, sem undefined)
+function _gmCourtOut(cs){
+  if(!cs||typeof cs!=="object")return cs;
+  var o={};if(cs.pos!==undefined)o.pos=cs.pos;if(cs.serving!==undefined)o.serving=cs.serving;
+  o.libPair=cs.libPair?{lib:cs.libPair.lib,out:cs.libPair.out}:null;o.after=cs.after||null;
+  return o;
+}
 // Copia do jogo no FORMATO DO BANCO (act/sq chaveados, sem os campos internos _legacy/_actN/sqk/_sqN).
 function _gmSerialize(g){
   if(!g||typeof g!=="object")return g;
-  var out={};for(var k in g){if(k==="_legacy"||k==="_actN"||!g.hasOwnProperty(k))continue;out[k]=g[k];}
+  var out={};for(var k in g){if(k==="_legacy"||k==="_actN"||k==="_courtAfterFix"||!g.hasOwnProperty(k))continue;out[k]=g[k];}
   if(Array.isArray(g.act))out.act=_gmActKeyed(g.act);
   if(Array.isArray(g.ss))out.ss=g.ss.map(function(st){
     if(!st||typeof st!=="object")return st;
@@ -2302,6 +2343,7 @@ function _gmSerialize(g){
     if(Array.isArray(st.sq))c.sq=_gmSqKeyed(st);
     return c;
   });
+  if(g.court&&typeof g.court==="object"){var oc={};for(var ck in g.court){if(!g.court.hasOwnProperty(ck))continue;var cs=g.court[ck];if(cs&&typeof cs==="object")oc[ck]=_gmCourtOut(cs);}out.court=oc;}
   return out;
 }
 // Jogo no formato antigo: caminhos que convertem act (array -> act/{aid}) e sq (array ->
@@ -2320,6 +2362,8 @@ function _gmFixPaths(g){
     var sk=_gmSqKeyed(st);for(var q in sk)up["ss/"+i+"/sq/"+q]=sk[q];
     delete st._sqN;
   }
+  // quadra legada: grava o `after` inferido (todos os pontos legados ja aplicados na base)
+  if(g._courtAfterFix){for(var ck in g._courtAfterFix)up["court/"+ck+"/after"]=g._courtAfterFix[ck];delete g._courtAfterFix;}
   g._legacy=false;delete g._actN;
   return up;
 }
@@ -2366,8 +2410,9 @@ function _gmUpdate(gm,up){
   // o SDK LANCA (sincrono) em erro de validacao — nao pode derrubar o rcO no meio da marcacao
   try{return ref.update(merged).catch(_gmSaveErr);}catch(e){_gmSaveErr(e);return Promise.resolve();}
 }
-// Grava so a quadra de UM set (court/{set}) — escalar, rodar, libero, substituicao.
-function _gmUpdateCourt(gm,setKey,cs){var up={};up["court/"+setKey]=cs||null;return _gmUpdate(gm,up);}
+// Grava a BASE da quadra de UM set (court/{set}) — escalar, rodar manual, libero, substituicao.
+// O estado local (derivado) ja tem `after` = ultimo ponto conhecido, entao vira a base nova.
+function _gmUpdateCourt(gm,setKey,cs){var up={};up["court/"+setKey]=cs?_gmCourtOut(cs):null;return _gmUpdate(gm,up);}
 // Identidade do APARELHO (a mesma do treino): carimba a acao (a.dev) pra saber de qual tablet
 // veio. O "desfazer" do jogo ja e por aparelho (pilha S.us e local) — so tira o que ESTE gravou.
 function _gmDev(){return _trnDev();}
@@ -7207,8 +7252,11 @@ function courtRegisterPoint(side){
   var k=String(S.cs); var cs=gm.court[k];
   if(!cs||!cs.pos)return null;
   // snapshot completo (inclui libPair) pra o undo restaurar tudo
-  var snap={pos:cs.pos.slice(),serving:cs.serving,libPair:cs.libPair?{lib:cs.libPair.lib,out:cs.libPair.out}:null};
+  var snap={pos:cs.pos.slice(),serving:cs.serving,libPair:cs.libPair?{lib:cs.libPair.lib,out:cs.libPair.out}:null,after:cs.after||null,_baseAfter:cs._baseAfter||null};
   var next=courtApplyPoint(cs, side==="u"?"us":"them");
+  // C2: a quadra e derivada da base + sq — o ponto NAO grava court/{set}. Este estado local ja
+  // aplicou ate o ponto que acabou de entrar no sq (_sqPush roda antes).
+  next.after=_sqLastKey(gm,S.cs);next._baseAfter=cs._baseAfter||null;
   gm.court[k]=next;
   // Frente C: se rotacionamos (recuperamos o saque), a proxima jogada e nosso saque do P1.
   _courtPreServe=(next.serving==="us" && next.pos.join(",")!==snap.pos.join(",")) ? next.pos[0] : null;
@@ -7357,7 +7405,8 @@ function courtConfirmSetup(){
   if(_COURT_FRONT.some(function(i){var a=_courtDraft.pos[i];var p=a?_gpFind(_gp,a):null;return p&&_isLibero(p);})){if(typeof toast==='function')toast("Líbero não pode iniciar na frente (P2/P3/P4)","error");return;}
   if(!gm.court)gm.court={};
   var _cset=_courtDraft.set;
-  gm.court[_cset]={pos:_courtDraft.pos.slice(),serving:_courtDraft.serving,libPair:null};
+  // base nova: pontos ja marcados neste set (se houver) NAO rodam a escalacao recem-declarada
+  gm.court[_cset]={pos:_courtDraft.pos.slice(),serving:_courtDraft.serving,libPair:null,after:_sqLastKey(gm,parseInt(_cset,10)||S.cs)};
   _courtDraft=null;
   _gmUpdateCourt(gm,_cset,gm.court[_cset]);
   render();
@@ -7576,8 +7625,7 @@ if(gm.tidB && a.side==="B" && scSide) scSide=(scSide==="u")?"t":"u"; // lado B: 
 var up={},sqk=null;up["act/"+a.id]=a;
 if(scSide&&gm.ss&&gm.ss[S.cs-1]){if(scSide==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;sqk=_sqPush(gm,scSide);up["ss/"+(S.cs-1)+"/"+scSide]=_inc(1);if(sqk)up["ss/"+(S.cs-1)+"/sq/"+sqk]=scSide;}
 // Q2: rotacao automatica (no-op fora do modo quadra). Guarda snapshot pra o undo reverter.
-var _courtSnap=scSide?courtRegisterPoint(scSide):null;
-if(_courtSnap)up["court/"+S.cs]=gm.court[String(S.cs)];
+var _courtSnap=scSide?courtRegisterPoint(scSide):null; // quadra derivada do sq: nada a gravar
 S.us.push({a:a,sc:scSide,sqk:sqk,court:_courtSnap});if(!gm.act)gm.act=[];gm.act.push(a);S.sa=null;
 courtApplyPreserve(); // Frente C: pre-seleciona sacador+saque se rotacionou
 if(navigator.vibrate)navigator.vibrate(40);
@@ -7919,7 +7967,7 @@ function rSctTablet(gm,gp,te){
   h+='</div>';
   return h;
 }
-function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(setIsOver(gm,S.cs)){_setEndBlock();return;}who=(who==="u")?"u":"t";var si=S.cs-1,up={};if(who==="u")gm.ss[si].u++;else gm.ss[si].t++;var sqk=_sqPush(gm,who);up["ss/"+si+"/"+who]=_inc(1);if(sqk)up["ss/"+si+"/sq/"+sqk]=who;var _snap=courtRegisterPoint(who);if(_snap)up["court/"+S.cs]=gm.court[String(S.cs)];S.us.push({manual:true,sc:who,set:S.cs,sqk:sqk,court:_snap});courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");_gmUpdate(gm,up);render();}
+function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(setIsOver(gm,S.cs)){_setEndBlock();return;}who=(who==="u")?"u":"t";var si=S.cs-1,up={};if(who==="u")gm.ss[si].u++;else gm.ss[si].t++;var sqk=_sqPush(gm,who);up["ss/"+si+"/"+who]=_inc(1);if(sqk)up["ss/"+si+"/sq/"+sqk]=who;var _snap=courtRegisterPoint(who);S.us.push({manual:true,sc:who,set:S.cs,sqk:sqk,court:_snap});courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");_gmUpdate(gm,up);render();}
 // Ponto do NOSSO time por ERRO DO ADVERSARIO (saque na rede, ataque fora, etc). Independe de
 // marcar a acao da outra equipe: 1 toque sobe o placar (sem precisar do +/-), roda a quadra
 // (side-out) e registra na estatistica como {pid:null, ak:"erroadv"} -> conta nos "pontos
@@ -7931,7 +7979,6 @@ function scErrAdv(){
   var si=S.cs-1,up={};up["act/"+a.id]=a;
   gm.ss[si].u++;var sqk=_sqPush(gm,"u");up["ss/"+si+"/u"]=_inc(1);if(sqk)up["ss/"+si+"/sq/"+sqk]="u";
   var _snap=courtRegisterPoint("u");
-  if(_snap)up["court/"+S.cs]=gm.court[String(S.cs)];
   S.us.push({a:a,sc:"u",sqk:sqk,court:_snap});
   if(!gm.act)gm.act=[];gm.act.push(a);
   courtApplyPreserve();
@@ -7949,8 +7996,10 @@ if(l.a&&gm.act){gm.act=gm.act.filter(function(a){return a.id!==l.a.id;});up["act
 if(l.sc&&gm.ss&&gm.ss[si]){var s=gm.ss[si];if(l.sc==="u"&&s.u>0){s.u--;up["ss/"+si+"/u"]=_inc(-1);}else if(l.sc==="t"&&s.t>0){s.t--;up["ss/"+si+"/t"]=_inc(-1);}
   // tira do sq a entrada DESTE ponto (chave guardada na pilha); sem chave, a ultima do lado
   var k=_sqRemoveKey(gm,si,l.sqk)||_sqPopSide(gm,si,l.sc);if(k)up["ss/"+si+"/sq/"+k]=null;}
-// Q2: reverte a rotacao da quadra (restaura o snapshot guardado no momento do ponto)
-if(l.court&&gm.courtMode&&gm.court){gm.court[String(setN)]=l.court;up["court/"+setN]=l.court;}
+// Q2: reverte a rotacao da quadra. Como a quadra e derivada do sq, tirar a entrada ja desfaz a
+// rotacao nos 2 aparelhos; so grava a base se uma edicao manual depois deste ponto ja o "assou"
+// nela (base.after >= chave do ponto) — ai restaura o snapshot de antes do ponto, como antes.
+if(l.court&&gm.courtMode&&gm.court){var cur=gm.court[String(setN)];var baked=!!(cur&&cur._baseAfter&&l.sqk&&cur._baseAfter>=l.sqk);gm.court[String(setN)]=l.court;if(baked)up["court/"+setN]=_gmCourtOut(l.court);}
 _gmUpdate(gm,up);render();}
 // ===== FORMATO DA PARTIDA + FIM DE SET (regras do volei) =====
 // g.format: "bo3" (melhor de 3, set 3 = tie 15) | "bo5" (melhor de 5, set 5 = tie 15)

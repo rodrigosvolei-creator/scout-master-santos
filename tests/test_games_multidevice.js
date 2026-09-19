@@ -61,7 +61,11 @@ const seed = { 'torneio-master-santos': {
     // g2: FORMATO ANTIGO (act array, sq array) ja ao vivo — como todos os jogos de producao hoje
     {id:'g2',torId:'tRS',tid:'trs',opp:'Legado FC',st:'live',lineup:[1,2,3,4,5,6,7].map(i=>({aid:'a'+i,nu:i})),
      act:[{id:'aL1',pid:'a1',ak:'ataque',oc:'Ponto',set:1,ts:5},{id:'aL2',pid:'a2',ak:'saque',oc:'Ace',set:1,ts:9},{id:'aL3',pid:'a1',ak:'ataque',oc:'Erro',set:1,ts:14}],
-     ss:[{u:2,t:1,sq:['u','u','t']}]}
+     ss:[{u:2,t:1,sq:['u','u','t']}]},
+    // g3: legado COM quadra: base sem `after` gravada junto com o sq pelo build antigo (ja rodada)
+    {id:'g3',torId:'tRS',tid:'trs',opp:'Legado Quadra',st:'live',courtMode:true,lineup:[1,2,3,4,5,6,7].map(i=>({aid:'a'+i,nu:i})),
+     act:[{id:'aQ1',pid:'a1',ak:'ataque',oc:'Ponto',set:1,ts:3},{id:'aQ2',pid:'a2',ak:'ataque',oc:'Erro',set:1,ts:7}],
+     ss:[{u:1,t:1,sq:['u','t']}],court:{'1':{pos:['a2','a3','a4','a5','a6','a1'],serving:'them'}}}
   ],
   invites:{} } };
 Object.assign(fakeDB, JSON.parse(JSON.stringify(seed)));
@@ -213,21 +217,61 @@ const intKeys=o=>Object.keys(o||{}).filter(k=>/^\d+$/.test(k));
   wa.delLastSet(); var okBtn=wa.document.getElementById('rsConfirmOk'); if(okBtn)okBtn.onclick();
   chk(getAt(G1).ss.length===2&&wa.S.cs===2, 'delLastSet: set 3 vazio removido (ss/2=null), volta pro set 2');
 
-  console.log('\n--- 9. quadra (courtMode) granular: court/{set} ---');
+  console.log('\n--- 9. quadra DERIVADA (base + replay do sq): ponto nao grava court/{set} ---');
   wa.toggleCourtMode();
   chk(getAt(G1).courtMode===true&&wb.gF('g1').courtMode===true, 'toggleCourtMode grava so courtMode; B recebe');
   wa.render(); // cria o rascunho do set atual
   ['a1','a2','a3','a4','a5','a6'].forEach(function(aid,i){ wa.courtDraftPlace(aid); wa.courtDraftCell(i); });
+  var k0=Object.keys((getAt(G1).ss[1]||{}).sq||{}).sort().slice(-1)[0]||null; // set 2 ja tem 1 ponto: ele NAO roda a escalacao nova
   wa.courtDraftServer('them'); wa.courtConfirmSetup();
   var dc=getAt(G1);
-  chk(dc.court&&dc.court['2']&&dc.court['2'].pos.join()==='a1,a2,a3,a4,a5,a6'&&dc.court['2'].serving==='them', 'courtConfirmSetup grava court/2 (escalacao do set atual)');
+  chk(dc.court&&dc.court['2']&&dc.court['2'].pos.join()==='a1,a2,a3,a4,a5,a6'&&dc.court['2'].serving==='them'&&dc.court['2'].after===k0&&!!k0, 'courtConfirmSetup grava a BASE court/2 com after = ultimo ponto ja marcado (nao roda a escalacao recem-declarada)');
   var before=nAct(dc);
   wa.S.sp='a4'; wa.S.sa='ataque'; wa.rcO('Ponto'); // side-out: rotaciona
   var dc2=getAt(G1);
-  chk(dc2.court['2'].serving==='us'&&dc2.court['2'].pos[0]==='a2', 'ponto com side-out: rotacao gravada em court/2 junto com a acao');
-  chk(nAct(dc2)===before+1&&wb.gF('g1').court['2'].pos[0]==='a2', 'acao gravada e B recebe a quadra rodada');
+  chk(dc2.court['2'].serving==='them'&&dc2.court['2'].pos[0]==='a1'&&dc2.court['2'].after===k0, 'ponto NAO grava court/2: a base no banco continua a escalacao inicial');
+  chk(nAct(dc2)===before+1&&wa.gF('g1').court['2'].pos[0]==='a2'&&wa.gF('g1').court['2'].serving==='us', 'A: quadra derivada rodou (P1=a2, sacando)');
+  chk(wb.gF('g1').court['2'].pos[0]==='a2'&&wb.gF('g1').court['2'].serving==='us', 'B deriva a MESMA quadra rodada a partir do sq');
   wa.undo();
-  chk(getAt(G1).court['2'].pos[0]==='a1'&&getAt(G1).court['2'].serving==='them'&&nAct(getAt(G1))===before, 'undo restaura a quadra (court/2) e tira a acao');
+  chk(nAct(getAt(G1))===before&&wa.gF('g1').court['2'].pos[0]==='a1'&&wb.gF('g1').court['2'].pos[0]==='a1'&&wa.gF('g1').court['2'].serving==='them', 'undo tira a entrada do sq -> a rotacao volta nos 2 aparelhos (sem gravar quadra)');
+  // 2 TABLETS RODANDO COM ESTADO VELHO (o caso que a gravacao inteira antiga estragava):
+  // A fica suspenso vendo a escalacao inicial; B faz u,t,u (2 side-outs -> P1=a3); A, achando que
+  // o adversario ainda saca, marca u (rodaria 1x na visao dele). Antes: A gravava court com P1=a2
+  // por cima do a3 de B. Agora: o replay do sq completo da P1=a3 nos dois.
+  suspend('A');
+  wb.S.sp='a1'; wb.S.sa='ataque'; wb.rcO('Ponto'); // u: rot -> a2, us
+  wb.S.sp='a1'; wb.S.sa='ataque'; wb.rcO('Erro');  // t: them
+  wb.S.sp='a1'; wb.S.sa='ataque'; wb.rcO('Ponto'); // u: rot -> a3, us
+  chk(wb.gF('g1').court['2'].pos[0]==='a3'&&wb.gF('g1').court['2'].serving==='us', 'B: 2 side-outs -> P1=a3');
+  chk(wa.gF('g1').court['2'].pos[0]==='a1', 'A (suspenso) ainda ve a escalacao inicial');
+  wa.S.sp='a5'; wa.S.sa='ataque'; wa.rcO('Ponto'); // A grava com estado velho
+  chk(getAt(G1).court['2'].pos[0]==='a1'&&getAt(G1).court['2'].after===k0, 'A marcou com estado velho e NAO sobrescreveu a quadra no banco (base intacta)');
+  resume('A');
+  chk(wa.gF('g1').court['2'].pos[0]==='a3'&&wb.gF('g1').court['2'].pos[0]==='a3'&&wa.gF('g1').court['2'].serving==='us', 'A voltou: os 2 aparelhos convergem em P1=a3 (u,t,u,u = 2 side-outs)');
+  // "-" manual tira a ultima entrada u -> se ela tinha rodado, a quadra desroda (quadra segue o sq)
+  wb.scDn('u'); // tira o u de A (nao rodou: ja sacavamos) -> continua a3
+  chk(wb.gF('g1').court['2'].pos[0]==='a3'&&wa.gF('g1').court['2'].pos[0]==='a3', '"-" que tira um ponto sem side-out nao mexe na quadra');
+  wb.scDn('u'); // tira o 2o side-out -> volta pra a2
+  chk(wb.gF('g1').court['2'].pos[0]==='a2'&&wa.gF('g1').court['2'].pos[0]==='a2', '"-" que tira o ponto do side-out desroda a quadra nos 2 aparelhos');
+  // rotacao MANUAL = base nova (re-base): grava court/2 com after = ultimo ponto conhecido
+  wa.courtManualRotate(1);
+  var dm=getAt(G1), lastK=Object.keys(dm.ss[1].sq).sort().slice(-1)[0];
+  chk(dm.court['2'].pos[0]==='a3'&&dm.court['2'].after===lastK, 'rotacao manual grava a base nova (P1=a3) com after = ultimo ponto do sq');
+  chk(wb.gF('g1').court['2'].pos[0]==='a3', 'B deriva da base nova (nada a replayar) -> P1=a3');
+  wb.S.sp='a1'; wb.S.sa='ataque'; wb.rcO('Erro'); // t: serving -> them, sem rodar
+  chk(wa.gF('g1').court['2'].pos[0]==='a3'&&wa.gF('g1').court['2'].serving==='them'&&getAt(G1).court['2'].pos[0]==='a3', 'ponto depois da base nova replaya so o que veio depois do after');
+  var acts9=nAct(getAt(G1));
+
+  console.log('\n--- 9b. jogo LEGADO com quadra: base sem after ja tem os pontos antigos aplicados ---');
+  var l3=wa.gF('g3');
+  chk(l3.court['1'].pos[0]==='a2'&&l3.court['1'].serving==='them', 'g3 legado: quadra lida como esta (nao replaya os pontos antigos por cima)');
+  wa.openGameDayCard('g3');
+  wa.S.sp='a2'; wa.S.sa='ataque'; wa.rcO('Ponto'); // u com adversario sacando -> side-out: rot -> a3
+  var d3=getAt('torneio-master-santos/games/2');
+  chk(d3.court['1'].after==='p0000000000001'&&d3.court['1'].pos[0]==='a2', 'conversao pinou after = ultima chave legada do sq na base (pos intacta)');
+  chk(wa.gF('g3').court['1'].pos[0]==='a3'&&wa.gF('g3').court['1'].serving==='us', 'ponto novo roda a partir da base legada (P1=a3)');
+  chk(wb.gF('g3').court['1'].pos[0]==='a3', 'B deriva igual no jogo legado convertido');
+  wa.openGameDayCard('g1'); wa.S.cs=2;
 
   console.log('\n--- 10. corrigir atleta (reassignActions) e finalizar — granular ---');
   var g1a=wa.gF('g1'); var nA2=g1a.act.filter(a=>a.pid==='a2').length; var nTot=g1a.act.length;
@@ -241,9 +285,10 @@ const intKeys=o=>Object.keys(o||{}).filter(k=>/^\d+$/.test(k));
   console.log('\n--- 11. save() inteiro grava no formato do banco (sem campos internos) ---');
   wa.tab='torneios'; wa.save();
   var all=getAt('torneio-master-santos/games');
-  chk(Array.isArray(all)&&all.length===2&&all.every(g=>!Array.isArray(g.act)&&g._legacy===undefined&&g._actN===undefined), 'save(): act chaveado, sem _legacy/_actN');
+  chk(Array.isArray(all)&&all.length===3&&all.every(g=>!Array.isArray(g.act)&&g._legacy===undefined&&g._actN===undefined), 'save(): act chaveado, sem _legacy/_actN');
+  chk(all.every(g=>!g.court||Object.values(g.court).every(c=>c._baseAfter===undefined&&c._afterInferred===undefined&&('after' in c))), 'save(): quadra so com pos/serving/libPair/after (sem campos internos)');
   chk(all.every(g=>(g.ss||[]).every(s=>s.sqk===undefined&&s._sqN===undefined&&(!s.sq||!Array.isArray(s.sq)))), 'save(): sq chaveado, sem sqk/_sqN');
-  chk(nAct(all[0])===nTot&&nAct(all[1])===6, 'save(): nenhuma acao perdida na serializacao');
+  chk(nAct(all[0])===nTot&&nAct(all[1])===6&&nAct(all[2])===3, 'save(): nenhuma acao perdida na serializacao');
   var la2=wa.gF('g1');
   chk(la2&&Array.isArray(la2.act)&&la2.act.length===nTot&&Array.isArray(la2.ss[0].sq), 'depois do save() o local continua com arrays (normalizado)');
 

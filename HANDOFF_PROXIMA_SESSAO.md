@@ -64,6 +64,17 @@
    maior, toca muito mais lugares do arquivo. Registrar como próximo
    item depois que C2 estiver estável em produção.
 
+## Mencionado na conversa, mas NÃO combinado/planejado (não fazer sem pedir de novo)
+
+- **Comando de voz** (Web Speech API) no RS-SCOUT: só foi levantado como
+  possibilidade ("dá pra portar quase direto do ASV Scout, é JS puro,
+  sem framework") — nunca virou plano, nunca foi confirmado como algo a
+  fazer. Se o usuário quiser, é um item novo e separado do fix de C2
+  (feature nova, não correção de bug); não misturar no mesmo commit/PR.
+- **C3 (multi-tenant / SaaS)** — citado no REVIEW_SCOUT.md como o maior
+  bloco de trabalho pra virar produto comercial; não discutido em
+  profundidade nesta sessão, não está planejado.
+
 ## Deploy — não esquecer
 
 Coolify **não redeploya sozinho**. Depois do push, precisa apertar

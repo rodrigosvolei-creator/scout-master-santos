@@ -5,8 +5,12 @@ const html = fs.readFileSync('index.html', 'utf8');
 const fakeDB = {};
 const listeners = {};
 function getAt(p){const a=p.split('/');let c=fakeDB;for(const x of a){if(c==null)return null;c=c[x];}return c===undefined?null:c;}
-function setAt(p,v){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object')c[a[i]]={};c=c[a[i]];}c[a[a.length-1]]=JSON.parse(JSON.stringify(v));}
-function makeRef(p){return{on:(e,cb)=>{listeners[p]=cb;},once:()=>Promise.resolve({val:()=>getAt(p)}),set:v=>{setAt(p,v);return Promise.resolve();},update:()=>Promise.resolve()};}
+function setAt(p,v){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object')c[a[i]]={};else if(Array.isArray(c[a[i]])&&!/^\d+$/.test(a[i+1]))c[a[i]]=Object.assign({},c[a[i]]);c=c[a[i]];}c[a[a.length-1]]=JSON.parse(JSON.stringify(v));}
+function delAt(p){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c==null)return;c=c[a[i]];}if(c)delete c[a[a.length-1]];}
+// update() multi-caminho como no Firebase: null apaga; {".sv":{increment:n}} SOMA no valor atual
+// (e assim que o app grava o placar — C2); no que era array vira objeto ao receber chave nao-numerica.
+function updAt(base,obj){for(const k in obj){const p=base+'/'+k,v=obj[k];if(v===null)delAt(p);else if(v&&typeof v==='object'&&v['.sv']&&typeof v['.sv'].increment==='number'){const cur=getAt(p);setAt(p,(typeof cur==='number'?cur:0)+v['.sv'].increment);}else setAt(p,v);}}
+function makeRef(p){return{on:(e,cb)=>{listeners[p]=cb;},once:()=>Promise.resolve({val:()=>getAt(p)}),set:v=>{setAt(p,v);return Promise.resolve();},update:obj=>{updAt(p,obj);return Promise.resolve();},remove:()=>{delAt(p);return Promise.resolve();}};}
 
 global.firebaseMock={initializeApp:()=>{},database:()=>({ref:makeRef}),auth:()=>({onAuthStateChanged:cb=>setTimeout(()=>cb({uid:'tester',email:'rodrigosvolei@gmail.com',displayName:'Tester'}),0),signInWithPopup:()=>Promise.resolve(),signOut:()=>Promise.resolve()})};
 
@@ -111,7 +115,7 @@ setTimeout(()=>{
   const sv=getAt('torneio-master-santos/games');
   const g=Array.isArray(sv)?sv.find(x=>x&&x.id==='g1'):null;
   check('jogo gravado no banco com placar', g&&g.ss&&g.ss[0]&&typeof g.ss[0].u==='number');
-  check('acoes gravadas no banco', g&&g.act&&g.act.length>0);
+  check('acoes gravadas no banco (act chaveado por id — C2)', g&&g.act&&!Array.isArray(g.act)&&Object.keys(g.act).length>0);
 
   console.log('\n=== RESULTADO: '+pass+' ok, '+fail+' falhas ===');
   console.log(fail===0?'✅✅✅ FASE 2 APROVADA':'❌ FASE 2 REPROVADA');

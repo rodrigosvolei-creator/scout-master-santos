@@ -14,16 +14,20 @@ function getAt(path){
 function setAt(path, v){
   const parts = path.split('/');
   let cur = fakeDB;
-  for(let i=0;i<parts.length-1;i++){ if(cur[parts[i]]==null||typeof cur[parts[i]]!=='object') cur[parts[i]]={}; cur=cur[parts[i]]; }
+  for(let i=0;i<parts.length-1;i++){ if(cur[parts[i]]==null||typeof cur[parts[i]]!=='object') cur[parts[i]]={}; else if(Array.isArray(cur[parts[i]])&&!/^\d+$/.test(parts[i+1])) cur[parts[i]]=Object.assign({},cur[parts[i]]); cur=cur[parts[i]]; }
   cur[parts[parts.length-1]] = JSON.parse(JSON.stringify(v));
 }
+function delAt(p){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c==null)return;c=c[a[i]];}if(c)delete c[a[a.length-1]];}
+// update() multi-caminho como no Firebase: null apaga; {".sv":{increment:n}} SOMA no valor atual (placar — C2)
+function updAt(base,obj){for(const k in obj){const p=base+'/'+k,v=obj[k];if(v===null)delAt(p);else if(v&&typeof v==='object'&&v['.sv']&&typeof v['.sv'].increment==='number'){const cur=getAt(p);setAt(p,(typeof cur==='number'?cur:0)+v['.sv'].increment);}else setAt(p,v);}}
 function makeRef(path){
   return {
     _path: path,
     on: function(ev, cb){ listeners[path]=cb; },
     once: function(){ return Promise.resolve({ val: ()=>getAt(path) }); },
     set: function(v){ setAt(path,v); return Promise.resolve(); },
-    update: function(){ return Promise.resolve(); },
+    update: function(obj){ updAt(path,obj); return Promise.resolve(); },
+    remove: function(){ delAt(path); return Promise.resolve(); },
   };
 }
 
@@ -119,15 +123,17 @@ setTimeout(()=>{
     const savedGames = getAt('torneio-master-santos/games');
     const savedG = Array.isArray(savedGames)? savedGames.find(x=>x&&x.id==='g_usa_1') : null;
     if(savedG){
-      console.log('jogo no banco: st='+savedG.st+' ss='+JSON.stringify(savedG.ss)+' act='+(savedG.act?savedG.act.length:0));
-      const persisteOk = savedG.st==='live' && savedG.ss && savedG.ss[0] && savedG.ss[0].u===2 && savedG.act && savedG.act.length===1;
+      // C2: act no banco e OBJETO chaveado por id (act/{aid})
+      const nAct = savedG.act&&!Array.isArray(savedG.act) ? Object.keys(savedG.act).length : -1;
+      console.log('jogo no banco: st='+savedG.st+' ss='+JSON.stringify(savedG.ss)+' act='+nAct+' (chaveado)');
+      const persisteOk = savedG.st==='live' && savedG.ss && savedG.ss[0] && savedG.ss[0].u===2 && nAct===1;
       console.log(persisteOk?'✅ DADOS GRAVADOS NO BANCO (sobrevive F5)':'❌ dados NAO gravados');
     } else { console.log('❌ jogo nao encontrado no banco gravado'); }
 
     console.log('\n=== RESULTADO FINAL ===');
     const ss = w.gF('g_usa_1').ss[0];
     const ac = w.gF('g_usa_1').act;
-    const savedOk = savedG && savedG.st==='live' && savedG.ss[0].u===2 && savedG.act.length===1;
+    const savedOk = savedG && savedG.st==='live' && savedG.ss[0].u===2 && savedG.act && !Array.isArray(savedG.act) && Object.keys(savedG.act).length===1;
     const ok = ss.u===2 && ss.t===1 && ac.length===1 && typeof w.showFlash==='function' && savedOk;
     console.log(ok ? '✅✅✅ APROVADO — placar, acoes e gravacao OK' : '❌ REPROVADO');
     process.exit(ok?0:1);

@@ -1,91 +1,75 @@
-# Handoff — próxima sessão (2026-09-18, feito via ASV-SCOUT/Claude Sonnet 5)
+# Handoff — próxima sessão (2026-09-18, feito via Claude Opus 5 direto nesta pasta)
 
-> Contexto: esta sessão rodou dentro do repositório do **ASV-SCOUT** (outro
-> projeto), com o RS-SCOUT clonado à parte em `C:\dev\scout-master-santos`
-> só pra investigação. Nenhum código foi alterado aqui ainda — só leitura,
-> mais um backup do banco. Recomendação: continuar isto numa sessão nova,
-> aberta direto nesta pasta, de preferência no modelo **Opus** (mexe em
-> fluxo de dado de partida ao vivo, produção real, com uso pessoal ativo).
+> Sessão anterior (ASV-SCOUT/Sonnet) só investigou e deixou o plano do **C2**. Esta sessão
+> **implementou o C2 inteiro** (escrita granular no jogo, 2+ aparelhos no mesmo jogo), com
+> teste novo, docs atualizados e commit local. **Ainda NÃO foi feito push nem Redeploy** —
+> a correção só vale no ar depois dos passos da seção "Deploy" abaixo, que dependem do
+> Rodrigo (é a 1ª vez que o app vai escrever no formato novo no banco real).
 
-## O que já está confirmado (não precisa reinvestigar)
+## O que foi feito (não precisa reinvestigar)
 
-- **Backup do RTDB tirado em 18/09/2026 21:03**, local:
-  `C:\Users\rodri\Downloads\scola-volei-default-rtdb-torneio-master-santos-export.json`
-  (1,67 MB, 7 nós, 8 jogos — validado, JSON íntegro). **Fora do repo de
-  propósito** (dado pessoal real, não versionar).
-- **REVIEW_SCOUT.md e PROJETO_RSSCOUT.md já documentam C1/C2/C3** — leia
-  os dois primeiro, são a base de tudo.
-- **C2 (escrita concorrente no mesmo jogo) é o bug prioritário**, não C1.
-  Confirmado lendo o código de verdade (não só o documento):
-  - `saveGame(g)` (`index.html:2218`) grava `games/{idx}` = o **objeto do
-    jogo inteiro**.
-  - `rcO(oc)` (`index.html:7415`, grava cada marcação) muta `gm.act`
-    (push no array), `gm.ss[set].u/.t/.sq`, estado de quadra — tudo em
-    memória — e no final chama `saveGame(gm)`: reescreve tudo. Dois
-    aparelhos marcando o mesmo jogo quase junto = um apaga o outro.
-  - `scUp`/`scDn` (`index.html:7761`/`7778`, placar manual +/-) fazem o
-    mesmo: mutam `gm` local e chamam `saveGame(gm)` inteiro.
-- **Já existe um padrão pronto e testado pra copiar**: commit `511f1a1`
-  ("fix(treinos): multi-operador sem sobrepor", 15/09/2026, co-autoria
-  Claude Opus 5) resolveu exatamente esse problema pro módulo de
-  **Treinos** — `trainings/{id}/marks/{mid}` e `athletes/{taid}` viram
-  nós próprios em vez de arrays, com conversão preguiçosa do formato
-  antigo (`_trnKeyedFix`, só na 1ª escrita, sem precisar de migração em
-  lote) e um id de aparelho (`_trnDev()`) pra "desfazer" só tirar a
-  própria marcação. Ver `git show 511f1a1 -- index.html` pro diff
-  completo. Isso NÃO foi aplicado a `games` ainda — só a `trainings`.
-- Existe também um fix mais antigo (~3 meses, "fix: scout multi-
-  dispositivo robusto") que já tornou `saveGame` granular **entre
-  jogos diferentes** (escalar/rodar num jogo não apaga outro jogo) —
-  mas isso não resolve C2, que é sobre dois aparelhos no **mesmo** jogo.
+- **Código (`index.html`, build `2026-09-18a`)** — ver `PROJETO_RSSCOUT.md` §4 pra o modelo:
+  - `act` vira **objeto chaveado** no banco (`games/{idx}/act/{aid}`), `ss[i].sq` também
+    (`ss/{i}/sq/{k}`); placar `ss[i].u/.t` (e tempos `toU/toT`) sobem com
+    `ServerValue.increment`. Localmente o app segue com arrays (`_gmNormalize` no listener).
+  - Todo o caminho quente do scout grava via `_gmUpdate(gm, up)` = `update()` multi-caminho
+    só com o que mudou: `rcO`, `scUp`, `scDn`, `scErrAdv`, `undo`, `nxS`, `delLastSet`,
+    `resetSet`, `sctTimeoutAdd`, `enG` (finalizar), `startG`, `openG` (pendente), zerar
+    partida, `reassignActions`, `toggleLockGame` e TODA a quadra (`courtConfirmSetup`,
+    `courtManualRotate`, `courtLiberoSwap`, `courtSubDoIn`, `sctLibIn/Out`, `toggleCourtMode`,
+    `courtSetPos`, `courtRepeatFromGame`, `rSctTablet`). Nenhum `save()`/`saveGame` sobrou
+    no meio de um jogo ao vivo.
+  - Jogo no formato antigo (array) é marcado `_legacy` e **convertido junto com a 1ª escrita
+    granular** (`_gmFixPaths`, no mesmo `update()` — atômico). Sem script de migração.
+  - `saveGame`/`save()` continuam existindo pra criar/editar jogo e serializam pelo formato
+    novo (`_gmSerialize`). Campos internos (`_legacy`, `_actN`, `sqk`, `_sqN`) não vão pro banco.
+  - Ação nova: `id = uid("a")` (`a<ms>_<rand>`, sem colisão entre aparelhos) e `dev` = aparelho
+    (mesmo id de `_trnDev()`). Undo já era por aparelho (pilha `S.us` local) — só tira a própria.
+- **Testes:** `tests/test_games_multidevice.js` (novo, 53 asserções: 2 aparelhos online, aba
+  suspensa com estado velho, undo por aparelho, +/− manual, conversão do legado com 2º aparelho
+  ainda velho, sets, tempos, quadra, corrigir atleta, finalizar, `save()` inteiro). Mocks de
+  `test_multidevice`, `test_autoscore`, `test_scout` ganharam `update()` de verdade. **Suíte:
+  61/61** (o `test_cores_e2e.js` demora ~7 min; os outros 60 rodam em ~2 min).
+- **Validado contra dados reais (só leitura):** o backup de 18/09 e o banco de produção aberto
+  no navegador (sem login) — 35 jogos / 5.806 ações normalizam sem erro; 26 jogos são
+  `_legacy` (converteriam na 1ª marcação); serializar→normalizar é idempotente; ladder do PDF
+  continua "real" nos 26. Custo da normalização: ~3 ms por snapshot. Conversão do maior jogo
+  (485 ações): 1.174 caminhos / 67 KB num único `update()`.
+- **Achado nos dados reais:** 2 jogos têm 3 pares de ações a 140–170 ms fora de ordem
+  cronológica no array — assinatura do bug antigo (2 aparelhos, `set()` inteiro). Após a
+  conversão, a ordem local passa a ser cronológica (pelo instante do id). Efeito prático nulo.
+- **Docs:** `PROJETO_RSSCOUT.md` (§2, §3, §4, §5, §8, §10, §11) e `REVIEW_SCOUT.md` (C2 ✅).
 
-## Plano acordado com o usuário (escopo: só C2, não mexer em C1 agora)
+## Limites conhecidos (documentados em PROJETO §4)
 
-1. `act` deixa de ser array e vira objeto chaveado
-   (`games/{idx}/act/{aid}`), com `_gmKeyedFix` convertendo jogos
-   antigos (array) na 1ª escrita granular — mesmo molde do
-   `_trnKeyedFix`.
-2. `rcO`/`scUp`/`scDn` passam a usar `update()` multi-caminho tocando só
-   os campos que mudaram (`act/{aid}`, `ss/{set}/u`, `ss/{set}/sq`) em
-   vez de `saveGame(gm)` inteiro.
-3. Avaliar usar `firebase.database.ServerValue.increment(1)` pros
-   contadores `ss[i].u`/`.t` — deixa a contagem seguro sob concorrência
-   de verdade, não só "grava em nó separado" (o `_trn*` não precisou
-   disso porque treino não tem placar incremental, só lista de marcas).
-4. Desfazer ganha esquema de `_gmDev()` (id do aparelho) — só desfaz a
-   própria marcação, igual `undoTreinoMark`.
-5. `saveGame()` inteiro continua existindo só pra criar jogo/edição
-   estrutural grande (igual `saveTraining`), não no caminho quente.
-6. **Novo `tests/test_games_multidevice.js`**, mesmo molde do
-   `test_multidevice.js`/`test_treinos.js` (simula 2 aparelhos no mesmo
-   jogo). Rodar a suíte inteira (39/39 hoje) antes de commitar — regra
-   do projeto.
-7. **C1 (`games/{idx}` → `games/{id}`) fica de fora deste escopo** — é
-   maior, toca muito mais lugares do arquivo. Registrar como próximo
-   item depois que C2 estiver estável em produção.
+- `court/{set}` é gravado inteiro (máquina de estado): 2 aparelhos rotacionando com estado
+  velho → o último grava; corrige-se com a rotação manual.
+- `increment(-1)` em 2 aparelhos desfazendo o mesmo ponto pode deixar contador negativo
+  (visível; corrige com "+").
+- **Versões misturadas** (um tablet ainda no build antigo) reintroduzem o bug: o antigo grava
+  o jogo inteiro em array por cima. O SW é network-first pro HTML — basta recarregar.
+- C1 (`games/{idx}` → `games/{id}`) continua pendente; `_gmRef` ainda resolve o índice pela
+  lista local. Próximo item depois que o C2 estiver estável em produção.
 
-## Mencionado na conversa, mas NÃO combinado/planejado (não fazer sem pedir de novo)
+## Deploy — passo a passo (depende do Rodrigo)
 
-- **Comando de voz** (Web Speech API) no RS-SCOUT: só foi levantado como
-  possibilidade ("dá pra portar quase direto do ASV Scout, é JS puro,
-  sem framework") — nunca virou plano, nunca foi confirmado como algo a
-  fazer. Se o usuário quiser, é um item novo e separado do fix de C2
-  (feature nova, não correção de bug); não misturar no mesmo commit/PR.
-- **C3 (multi-tenant / SaaS)** — citado no REVIEW_SCOUT.md como o maior
-  bloco de trabalho pra virar produto comercial; não discutido em
-  profundidade nesta sessão, não está planejado.
-
-## Deploy — não esquecer
-
-Coolify **não redeploya sozinho**. Depois do push, precisa apertar
-**Redeploy manual** no Coolify (app `scout-master-santos`) pra a
-correção valer no ar. Bumpar `APP_BUILD` no `index.html` (rodapé
-`#buildStamp`) pra confirmar visualmente qual versão está publicada.
+1. `git push` (commit já feito na `main`). Coolify **não redeploya sozinho**: apertar
+   **Redeploy manual** no Coolify (app `scout-master-santos`).
+2. Recarregar **todos** os aparelhos e confirmar `build 2026-09-18a` no rodapé (`#buildStamp`).
+3. **Antes de jogo real:** criar um jogo de teste, iniciar, marcar com 2 aparelhos ao mesmo
+   tempo (inclusive um em background por 1 min e voltando), desfazer nos dois, +/−, novo set,
+   finalizar. Conferir no console do Firebase que `games/{idx}/act` virou objeto (chaves
+   `a...`) e `ss/0/sq` também. Depois **excluir** o jogo de teste.
+4. Só então usar num jogo de verdade. O 1º ponto marcado em cada jogo antigo faz a conversão
+   dele (é esperado ver `act` virar objeto no console).
+5. **Rollback não é só reverter o commit:** o build antigo lê `act` com `.length`/`slice` —
+   um jogo já convertido (objeto) quebraria nele. Se precisar voltar depois de jogos
+   convertidos, restaurar o backup (`C:\Users\rodri\Downloads\scola-volei-default-rtdb-
+   torneio-master-santos-export.json`, 18/09 21:03, fora do repo) ou converter de volta com
+   script. Por isso o jogo de teste primeiro (passo 3).
 
 ## Antes de rodar qualquer script em produção
 
-O usuário já autorizou o backup (feito, ver acima) mas **ainda não
-autorizou rodar migração/escrita em produção** — só o plano de código.
-Confirmar de novo antes do primeiro `set()`/`update()` granular tocar o
-banco real, e preferir testar num jogo de teste (criado e apagado
-depois) antes de confiar no fluxo com jogo real.
+O backup de 18/09 21:03 existe (fora do repo). Esta sessão **não escreveu nada** no banco
+real — só leitura. A 1ª escrita no formato novo acontece quando o build novo estiver no ar e
+alguém marcar um ponto. Confirmar com o Rodrigo antes do push/Redeploy.

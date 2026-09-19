@@ -75,11 +75,16 @@ multi-dispositivo. **Correção:** migrar para `games/{id}` (chave = id do jogo)
 inteira de bugs de índice. Precisa de: backup do RTDB + script de migração + janela fora de jogo.
 *(`saveGame` index.html:1966; leitura `gF` index.html:1198.)*
 
-**C2. Escrita concorrente no mesmo jogo (2 scouts na mesma partida).**
-Hoje cada ponto reescreve o **objeto do jogo inteiro** → "o último a salvar vence"; se dois marcam
-quase juntos, um perde. **Correção:** gravar **por ação** (`games/{id}/act` com `push`) — um log de
-eventos, cada ponto é um item imutável. Reconstrói o placar a partir das ações. É a base pra
-colaboração real (2 pessoas na mesa, telão interativo).
+**C2. Escrita concorrente no mesmo jogo (2 scouts na mesma partida).** ✅ **Corrigido em
+18/09/2026** (build `2026-09-18a`, `tests/test_games_multidevice.js`, 53 asserções).
+Era: cada ponto reescrevia o **objeto do jogo inteiro** → "o último a salvar vence"; se dois
+marcavam quase juntos (ou um voltava do background/offline com estado velho), um perdia.
+Agora: `act/{aid}` é um nó por ação, `ss/{i}/sq/{k}` idem, placar com `ServerValue.increment`,
+tudo em `update()` multi-caminho só com o que mudou (`_gmUpdate`); jogo antigo (array) é
+convertido junto com a 1ª marcação. O placar continua sendo contador (não reconstruído das
+ações — manual +/− não gera ação). Limites: `court/{set}` inteiro (rotação) e versões
+misturadas do app — ver PROJETO_RSSCOUT.md §4. A base pra colaboração real (2 na mesa) está
+posta; C1 (keyed-by-id) continua pendente e é o próximo.
 
 **C3. Multi-tenant (pré-requisito de SaaS).**
 Tudo grava em `torneio-master-santos` fixo — zero isolamento entre clientes. Pra SaaS: schema

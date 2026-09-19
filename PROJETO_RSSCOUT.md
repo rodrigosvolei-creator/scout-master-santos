@@ -30,7 +30,7 @@ Uso real: mesa de scout numa partida, muitas vezes por uma pessoa só, no tablet
   a segurança real vem das Security Rules + Auth.
 - **Auth:** Firebase Auth (Google + email/senha), perfis e papéis em `users/{uid}`.
 - **Hospedagem:** GitHub → **Coolify** (deploy **manual**, ver §7).
-- **Testes:** Node + **jsdom** com um **mock do Firebase** (sem rede). 38 arquivos.
+- **Testes:** Node + **jsdom** com um **mock do Firebase** (sem rede). 61 arquivos.
 
 Filosofia: single-file, zero dependência de runtime, tudo versionado num `index.html`.
 Fácil de servir (qualquer host estático), difícil de escalar em manutenção (arquivo gigante).
@@ -52,7 +52,7 @@ APP SCOUT/
 │   ├── launch.json       ← config do preview (dev server)
 │   └── settings.local.json
 ├── docs/                 ← docs ANTIGOS (26/05, defasados): CONTEXTO, PLANO_ADEQUACAO, SKILL
-├── tests/                ← 38 test_*.js (jsdom + mock Firebase)
+├── tests/                ← 61 test_*.js (jsdom + mock Firebase)
 ├── preview/              ← mockups e geradores de snapshot (_gen-*.cjs) — não versionar geral
 ├── legacy-usa-import/    ← import legado do torneio USA (histórico)
 └── node_modules/         ← jsdom etc.
@@ -83,20 +83,39 @@ Raiz de dados: **`torneio-master-santos/`** com 6 nós:
 `t`=adversário, `sq`=sequência de pontos), `act` (ações registradas), `lineup`, e
 `court`/`courtMode` (posicionamento em quadra, opt-in).
 
-Lidos com `.on("value")` (tempo real → re-render). Gravados de forma **granular** por
-jogo com `saveGame(g)` (grava só `games/{idx}`, leve, para o telão atualizar rápido).
+Lidos com `.on("value")` (tempo real → re-render). **No banco**, desde 18/09/2026 (C2):
+`act` é **objeto chaveado** (`games/{idx}/act/{aid}`, id = `"a"+Date.now()+"_"+rand`, com
+`dev` = aparelho que marcou) e `ss[i].sq` também (`ss/{i}/sq/{k}`, `k` ordena cronologicamente);
+`ss[i].u`/`.t`/`.toU`/`.toT` são contadores. **Localmente** o app segue com arrays: o listener
+passa cada jogo por `_gmNormalize` (act → array em ordem cronológica; sq → array + `sqk` com as
+chaves alinhadas; jogo ainda no formato antigo ganha `_legacy=true`). Escrita no jogo ao vivo é
+**granular** via `_gmUpdate(gm, up)` = `update()` multi-caminho só com o que mudou (ação nova,
+`increment(±1)` no contador, entrada do sq, `court/{set}`, `ss/{n}`, `st`…); jogo `_legacy`
+é convertido **junto com a 1ª escrita** (`_gmFixPaths`: apaga `act/0..n-1`, grava `act/{aid}`;
+idem sq), sem migração em lote. `saveGame(g)` (jogo inteiro, serializado por `_gmSerialize`)
+fica só pra criar/editar jogo e repetir escalação; `save()` serializa todos os jogos do mesmo
+jeito. Campos internos (`_legacy`, `_actN`, `sqk`, `_sqN`) nunca vão pro banco.
 
 > **Dívida técnica conhecida (C1):** jogos são indexados por **posição no array** (`games/idx`),
 > não por id. Se a ordem do array muda, uma escrita pode cair no jogo errado. O fix real é
 > **migração keyed-by-id** (`games/{id}` em vez de `games/{idx}`) — pendente (ver §11).
+> O C2 (acima) não mexeu nisso: `_gmRef` ainda resolve o índice pela lista local.
+
+> **Limite conhecido do C2:** `court/{set}` (posições/rotação) é gravado inteiro — é uma máquina
+> de estado; se 2 aparelhos rotacionam com estado velho, o último grava (corrige-se com a
+> rotação manual). Contadores podem ficar negativos se 2 aparelhos desfazem o mesmo ponto
+> (visível na tela, corrige com "+"). Versões **misturadas** do app (um tablet ainda no build
+> antigo) reintroduzem o bug: o antigo grava o jogo inteiro em array por cima. Recarregar todos.
 
 ---
 
 ## 5. Funcionalidades
 
 ### Scout (registro de ações)
-- **Por ponto:** `rcO` (registra ação+resultado), `scUp`/`scDn` (placar +/−). Grava com
-  `saveGame`. `undo` reverte ação e ponto juntos.
+- **Por ponto:** `rcO` (registra ação+resultado), `scUp`/`scDn` (placar +/−). Grava
+  **granular** (`_gmUpdate`: `act/{aid}` + `increment` no contador + entrada do sq + quadra).
+  `undo` reverte ação e ponto juntos — e é **por aparelho** (pilha `S.us` local): só tira o
+  que este aparelho marcou, nunca a ação do colega no outro tablet.
 - **Ponto automático (`autoScoreSide`):** Ace / Ataque-Ponto / Bloqueio-Ponto sobem o nosso
   placar; Saque/Ataque/Bloqueio com **Erro**, e **Recepção/Defesa com Erro**, sobem o
   adversário; Ataque **Bloqueado** = ponto adversário.
@@ -170,7 +189,8 @@ Painel `📊 AO VIVO` (`openLivePanel`) — KPIs do time e por atleta, lê `gm.a
 
 ## 8. Testes
 
-38 arquivos `tests/test_*.js`, rodados com `node tests/test_X.js` (jsdom + mock Firebase).
+61 arquivos `tests/test_*.js`, rodados com `node tests/test_X.js` (jsdom + mock Firebase).
+`test_cores_e2e.js` demora ~7 min (torneio inteiro); os demais são segundos.
 Regra do projeto: **rodar a suíte inteira antes de commitar**; mudança nova precisa de teste
 novo (ou asserção nova). Cobrem: scout, autoscore, torneios, fases A/B/C/D, quadra (setup,
 líbero, rotação, saque), tablet, modo note, PDF, gate de auth, galeria-first, minis, etc.
@@ -178,6 +198,14 @@ líbero, rotação, saque), tablet, modo note, PDF, gate de auth, galeria-first,
 > Detalhe de teste (pegadinha recorrente): o mock do `saveGame` **deep-copia** o jogo (via
 > JSON), então após um save o objeto anterior fica obsoleto — nos testes, **re-ler `gF`**
 > depois de cada save, nunca cachear a referência do jogo.
+
+> Desde o C2: o listener **repõe o estado do banco** a cada escrita — mutação local sem gravar
+> (ex: `g.st='live'` direto no objeto) **se perde** na próxima escrita granular. Nos testes,
+> usar o caminho real (`startG()`, `rcO()`…). Mock que exercita o hot path precisa de `update()`
+> multi-caminho de verdade (null apaga, `{".sv":{increment:n}}` soma) — ver
+> `test_games_multidevice.js` (2 aparelhos, aba suspensa, conversão do formato antigo) e
+> `test_multidevice.js`. Os mocks antigos com `update()` vazio continuam válidos pra testes
+> que só olham o estado local.
 
 Guard sagrado: **nunca remover o `_dataLoaded` do `save()`** (protege contra perda de dados —
 houve incidente real de 249 ações perdidas).
@@ -197,8 +225,9 @@ houve incidente real de 249 ações perdidas).
 ## 10. Convenções de código
 
 - Commit direto na `main` (sem branch/PR), autoria `rodrigosvolei@gmail.com`.
-- Hot path de scout: `rcO`/`scUp`/`scDn` → `saveGame` (leve). Evitar `save()` (reescreve os
-  4 nós, pesado) fora de operações estruturais.
+- Hot path de scout: `rcO`/`scUp`/`scDn`/`undo`/sets/quadra → `_gmUpdate` (granular, C2).
+  `saveGame` só pra criar/editar jogo. Evitar `save()` (reescreve os 4 nós, pesado) fora de
+  operações estruturais — **nunca** no meio de um jogo ao vivo.
 - Torneios standalone isolados do app principal por `isSpecialTour/isSpecialTeam/isSpecialGame`.
 - Rótulos/cores de fundamentos: `ACT`, `OC` (outcome), `FCOL` (fundamento).
 
@@ -208,6 +237,9 @@ houve incidente real de 249 ações perdidas).
 
 - **Migração keyed-by-id (C1):** trocar `games/{idx}` por `games/{id}` — fix real do bug
   "grava no jogo errado". Precisa backup + autorização + validação com dados de produção.
+  Próximo passo depois que o C2 (escrita granular, 18/09/2026) estiver estável em produção.
+- **C2 — validar em produção:** depois do Redeploy, recarregar TODOS os tablets (build
+  `2026-09-18a` no rodapé) e testar com 2 aparelhos num jogo de teste antes do jogo real.
 - **Undo pós-reload:** o histórico de undo (`S.us`) é volátil; some ao recarregar.
 - **Limpar cards legados USA/PG** do `TOURNEY_ACCESS` (senhas `usa2026`/`PG2026` ainda no
   código; com o banco fechado viraram decorativas). Antes, checar se há jogos vinculados.

@@ -1337,7 +1337,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
+var APP_BUILD="2026-09-18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -2101,9 +2101,11 @@ db.ref("torneio-master-santos/teams").on("value", function(snap){
   _dataLoaded.teams = true;
   if(appStarted) render();
 });
+// games: no banco, act e ss[i].sq sao OBJETOS chaveados (ou arrays, no formato antigo);
+// _gmNormalize devolve arrays locais — ver bloco "ESCRITA GRANULAR NO JOGO (C2)" abaixo.
 db.ref("torneio-master-santos/games").on("value", function(snap){
   var v = snap.val();
-  D.games = Array.isArray(v) ? v : (v ? Object.values(v) : []);
+  D.games = (Array.isArray(v) ? v : (v ? Object.values(v) : [])).map(_gmNormalize);
   D.games.forEach(function(g){ if(g&&g.oppLogoData)g.oppLogoData=clnLogo(g.oppLogoData); });
   _dataLoaded.games = true;
   if(appStarted) render();
@@ -2174,7 +2176,7 @@ function _resyncGames(){
     if(typeof db==="undefined"||!db||!_dataLoaded.games)return;
     db.ref("torneio-master-santos/games").once("value").then(function(snap){
       var v=snap.val();
-      D.games = Array.isArray(v) ? v : (v ? Object.values(v) : []);
+      D.games = (Array.isArray(v) ? v : (v ? Object.values(v) : [])).map(_gmNormalize);
       D.games.forEach(function(g){ if(g&&g.oppLogoData)g.oppLogoData=clnLogo(g.oppLogoData); });
       if(appStarted) render();
     }).catch(function(){ if(appStarted) render(); });
@@ -2209,19 +2211,166 @@ function save(){
   if(D.athletes && !Array.isArray(D.athletes)){console.error("[save] D.athletes nao e array");return false;}
   // Escrever cada filho. .catch silencia (permissão negada por rule é OK pra papéis sem acesso).
   if(D.teams) db.ref("torneio-master-santos/teams").set(D.teams).catch(function(e){console.warn("save teams:",e.code||e.message);});
-  if(D.games) db.ref("torneio-master-santos/games").set(D.games).catch(function(e){console.warn("save games:",e.code||e.message);});
+  if(D.games) db.ref("torneio-master-santos/games").set(D.games.map(_gmSerialize)).catch(function(e){console.warn("save games:",e.code||e.message);});
   if(D.tournaments) db.ref("torneio-master-santos/tournaments").set(D.tournaments).catch(function(e){console.warn("save tournaments:",e.code||e.message);});
   if(D.athletes) db.ref("torneio-master-santos/athletes").set(D.athletes).catch(function(e){console.warn("save athletes:",e.code||e.message);});
   return true;
 }
-// Salvar apenas UM jogo (uso recomendado em vez de sobrescrever array todo)
+// Salvar UM jogo INTEIRO (games/{idx}). So pra criar jogo / edicao estrutural — no scout ao
+// vivo usar _gmUpdate (granular), senao 2 aparelhos no mesmo jogo se sobrescrevem (C2).
 function saveGame(g){
   if(!currentUser)return Promise.reject(new Error("login_necessario"));
   if(!g||!g.id||!D.games)return Promise.reject(new Error("Jogo invalido"));
-  var idx=-1;for(var i=0;i<D.games.length;i++)if(D.games[i].id===g.id){idx=i;break;}
+  var idx=_gmIdx(g);
   if(idx<0)return Promise.reject(new Error("Jogo nao existe no estado local"));
-  return db.ref("torneio-master-santos/games/"+idx).set(g);
+  var out=_gmSerialize(g); g._legacy=false; delete g._actN;
+  return db.ref("torneio-master-santos/games/"+idx).set(out);
 }
+// ===== ESCRITA GRANULAR NO JOGO (C2: 2+ aparelhos marcando o MESMO jogo) =====
+// Antes, cada ponto fazia saveGame(gm) = set() do jogo INTEIRO a partir do estado local: se o
+// outro aparelho tinha gravado no meio (ou este estava com a aba suspensa / offline), o ultimo
+// a gravar apagava a marcacao do outro. Agora, no banco:
+//   - act e OBJETO chaveado: games/{idx}/act/{aid} — cada acao gravada SOZINHA no seu no;
+//   - ss/{i}/sq e OBJETO chaveado (sq/{k}, k ordena cronologicamente) — a sequencia de pontos
+//     da ladder/PDF nao perde entrada quando os dois marcam;
+//   - ss/{i}/u e .t sobem com ServerValue.increment — o servidor SOMA, nao "grava o valor
+//     local" (conta certo com 2 aparelhos e ao re-enviar escritas feitas offline);
+//   - quadra (court/{set}), set novo (ss/{n}), status etc. vao em update() multi-caminho so
+//     com o que mudou.
+// Localmente o app segue com ARRAYS (gm.act, ss[i].sq) — _gmNormalize converte no listener;
+// ss[i].sqk guarda as chaves alinhadas com sq. Jogo no formato antigo (arrays) e marcado
+// _legacy e convertido JUNTO com a 1a escrita granular (_gmFixPaths), sem migracao em lote —
+// mesmo molde do modulo de Treinos (_trnNormalize/_trnKeyedFix).
+function _gmIdx(g){if(!g||!g.id||!D||!D.games)return -1;for(var i=0;i<D.games.length;i++)if(D.games[i]&&D.games[i].id===g.id)return i;return -1;}
+function _gmRef(g,sub){var idx=_gmIdx(g);if(idx<0)return null;return db.ref("torneio-master-santos/games/"+idx+(sub?"/"+sub:""));}
+// chave de entrada do sq: "p"+Date.now()+"_"+rand (13 digitos -> ordena como string)
+function _gmSqKey(){return uid("p");}
+// chave sintetica p/ sq legado: "p"+indice em 13 digitos com zeros — ordena ANTES de qualquer
+// chave real (Date.now() comeca em 1) e preserva a ordem original das entradas
+function _gmSqLegacyKey(i){var t=String(i);while(t.length<13)t="0"+t;return "p"+t;}
+function _gmIdMs(id){var m=/^a(\d{9,})/.exec(String(id));return m?parseInt(m[1],10):0;}
+// Le o jogo como veio do banco e devolve uma copia rasa com act/sq em arrays locais.
+// NUNCA muta o objeto do snapshot (no mock dos testes ele E o banco).
+function _gmNormalize(raw){
+  if(!raw||typeof raw!=="object")return raw;
+  var g={};for(var k in raw){if(raw.hasOwnProperty(k))g[k]=raw[k];}
+  var legacy=false;
+  if(Array.isArray(g.act)){
+    if(g.act.length){legacy=true;g._actN=g.act.length;}
+    g.act=g.act.filter(Boolean);
+  }else if(g.act&&typeof g.act==="object"){
+    // ordem cronologica: pelo instante embutido no id ("a"+Date.now()[+"_"+rand], antigo e novo);
+    // id fora do padrao vai pro inicio, estavel pela chave
+    var src=g.act,ks=Object.keys(src),ms={};for(var i=0;i<ks.length;i++)ms[ks[i]]=_gmIdMs(ks[i]);
+    ks.sort(function(x,y){var dx=ms[x],dy=ms[y];return dx!==dy?dx-dy:(x<y?-1:x>y?1:0);});
+    g.act=ks.map(function(key){var a=src[key];if(!a||typeof a!=="object")return null;var c={};for(var q in a)c[q]=a[q];if(!c.id)c.id=key;return c;}).filter(Boolean);
+  }
+  if(Array.isArray(g.ss)){
+    g.ss=g.ss.map(function(st){
+      if(!st||typeof st!=="object")return st;
+      var c={};for(var q in st)c[q]=st[q];
+      if(Array.isArray(c.sq)){
+        if(c.sq.length){legacy=true;c._sqN=c.sq.length;}
+        c.sq=c.sq.filter(Boolean);
+        c.sqk=c.sq.map(function(_,i){return _gmSqLegacyKey(i);});
+      }else if(c.sq&&typeof c.sq==="object"){
+        var so=c.sq,sk=Object.keys(so).sort();
+        c.sqk=sk;c.sq=sk.map(function(key){return so[key]==="t"?"t":"u";});
+      }
+      return c;
+    });
+  }
+  g._legacy=legacy;
+  return g;
+}
+function _gmActKeyed(arr){var o={};(arr||[]).forEach(function(a){if(!a)return;if(!a.id)a.id=uid("a");o[a.id]=a;});return o;}
+// chaves do sq alinhadas com s.sq (gera sinteticas se faltarem ou desalinharem)
+function _sqKeys(st){
+  if(!st.sq)st.sq=[];
+  if(!st.sqk||st.sqk.length!==st.sq.length)st.sqk=st.sq.map(function(_,i){return _gmSqLegacyKey(i);});
+  return st.sqk;
+}
+function _gmSqKeyed(st){var ks=_sqKeys(st),o={};for(var i=0;i<st.sq.length;i++)o[ks[i]]=st.sq[i];return o;}
+// Copia do jogo no FORMATO DO BANCO (act/sq chaveados, sem os campos internos _legacy/_actN/sqk/_sqN).
+function _gmSerialize(g){
+  if(!g||typeof g!=="object")return g;
+  var out={};for(var k in g){if(k==="_legacy"||k==="_actN"||!g.hasOwnProperty(k))continue;out[k]=g[k];}
+  if(Array.isArray(g.act))out.act=_gmActKeyed(g.act);
+  if(Array.isArray(g.ss))out.ss=g.ss.map(function(st){
+    if(!st||typeof st!=="object")return st;
+    var c={};for(var q in st){if(q==="sqk"||q==="_sqN")continue;c[q]=st[q];}
+    if(Array.isArray(st.sq))c.sq=_gmSqKeyed(st);
+    return c;
+  });
+  return out;
+}
+// Jogo no formato antigo: caminhos que convertem act (array -> act/{aid}) e sq (array ->
+// ss/{i}/sq/{k}): apagam os indices 0..n-1 e gravam as chaves, no MESMO update() da escrita
+// granular (atomico, 1 ida ao servidor). Nao substitui o no inteiro — o que outro aparelho
+// ja tiver gravado chaveado fica.
+function _gmFixPaths(g){
+  var up={};
+  if(!g||!g._legacy)return up;
+  var i;
+  if(g._actN){for(i=0;i<g._actN;i++)up["act/"+i]=null;}
+  if(Array.isArray(g.act)){var keyed=_gmActKeyed(g.act);for(var k in keyed)up["act/"+k]=keyed[k];}
+  if(Array.isArray(g.ss))for(i=0;i<g.ss.length;i++){
+    var st=g.ss[i];if(!st||!st._sqN)continue;
+    for(var j=0;j<st._sqN;j++)up["ss/"+i+"/sq/"+j]=null;
+    var sk=_gmSqKeyed(st);for(var q in sk)up["ss/"+i+"/sq/"+q]=sk[q];
+    delete st._sqN;
+  }
+  g._legacy=false;delete g._actN;
+  return up;
+}
+// Junta a conversao legada com os caminhos desta escrita. Caminho de `up` igual/ancestral de
+// um da conversao manda (ex: resetSet grava ss/0/sq inteiro); caminho da conversao ancestral
+// de um de `up` ja leva o valor local atualizado (act/{aid} inteiro cobre act/{aid}/pid).
+function _gmMerge(fix,up){
+  var out={},k,f,i;
+  var upKeys=Object.keys(up||{});
+  for(f in fix){
+    var skip=false;
+    for(i=0;i<upKeys.length;i++){k=upKeys[i];if(f===k||f.indexOf(k+"/")===0){skip=true;break;}}
+    if(!skip)out[f]=fix[f];
+  }
+  for(i=0;i<upKeys.length;i++){
+    k=upKeys[i];var covered=false;
+    for(f in out){if(k.indexOf(f+"/")===0){covered=true;break;}}
+    if(!covered)out[k]=up[k];
+  }
+  return out;
+}
+// ServerValue.increment(n): o servidor soma. Fallback = o mesmo sentinel que o SDK gera.
+function _inc(n){try{return firebase.database.ServerValue.increment(n);}catch(e){return {".sv":{"increment":n}};}}
+// Erro de gravacao: silencia so permissao/login (papel sem acesso) — falha de rede o usuario TEM que ver.
+function _gmSaveErr(e){
+  var msg=String((e&&(e.code||e.message))||"");
+  if(msg.indexOf("permission")<0 && msg.indexOf("login")<0 && typeof toast==="function"){
+    toast("\u26A0 Falha ao salvar \u2014 verifique a conex\u00e3o e tente de novo","error");
+  }
+}
+// Escrita GRANULAR do jogo: update() multi-caminho so com o que mudou (+ conversao legada na
+// 1a vez). E o caminho quente do scout (rcO/scUp/scDn/undo/erroadv/sets/quadra/finalizar).
+// Valores-objeto passam por JSON (tira undefined, que o Firebase rejeita; o sentinel do
+// increment sobrevive).
+function _gmUpdate(gm,up){
+  if(!gm)return Promise.resolve();
+  var merged=_gmMerge(_gmFixPaths(gm),up||{});
+  var keys=Object.keys(merged);
+  if(!keys.length)return Promise.resolve();
+  for(var i=0;i<keys.length;i++){var v=merged[keys[i]];if(v&&typeof v==="object")merged[keys[i]]=JSON.parse(JSON.stringify(v));}
+  if(!currentUser)return Promise.reject(new Error("login_necessario")).catch(_gmSaveErr);
+  var ref=_gmRef(gm);
+  if(!ref)return Promise.reject(new Error("Jogo nao existe no estado local")).catch(_gmSaveErr);
+  // o SDK LANCA (sincrono) em erro de validacao — nao pode derrubar o rcO no meio da marcacao
+  try{return ref.update(merged).catch(_gmSaveErr);}catch(e){_gmSaveErr(e);return Promise.resolve();}
+}
+// Grava so a quadra de UM set (court/{set}) — escalar, rodar, libero, substituicao.
+function _gmUpdateCourt(gm,setKey,cs){var up={};up["court/"+setKey]=cs||null;return _gmUpdate(gm,up);}
+// Identidade do APARELHO (a mesma do treino): carimba a acao (a.dev) pra saber de qual tablet
+// veio. O "desfazer" do jogo ja e por aparelho (pilha S.us e local) — so tira o que ESTE gravou.
+function _gmDev(){return _trnDev();}
 function trF(id){if(!D||!D.trainings)return null;for(var i=0;i<D.trainings.length;i++){if(D.trainings[i].id===id)return D.trainings[i];}return null;}
 function _trnRef(trId,sub){return db.ref("torneio-master-santos/trainings/"+trId+(sub?"/"+sub:""));}
 function _trnKeyBy(arr,key,prefix){var o={};(arr||[]).forEach(function(x){if(!x)return;if(!x[key])x[key]=uid(prefix);o[x[key]]=x;});return o;}
@@ -2254,9 +2403,8 @@ function _trnUpdateMeta(tr,fields){return _trnRef(tr.id).update(fields).catch(_t
 // Identidade do APARELHO (nao do login: os 2 operadores usam a mesma conta "Mesa"). Serve pro
 // "desfazer" tirar so a propria marcacao, nunca a do colega.
 function _trnDev(){try{var d=localStorage.getItem("rs_trn_dev");if(!d){d=uid("dev_");localStorage.setItem("rs_trn_dev",d);}return d;}catch(e){return "dev_x";}}
-// Persiste UM jogo (granular) com aviso de falha de REDE. Preferir a save() nos fluxos
-// de scout AO VIVO: grava so games/{idx} (nao reescreve o array inteiro -> nao apaga o
-// trabalho de outro dispositivo que edita OUTRO jogo) e nao depende do guard _dataLoaded.
+// Persiste UM jogo INTEIRO (games/{idx}) com aviso de falha de REDE. Nao apaga OUTRO jogo,
+// mas reescreve este a partir do estado local — no scout AO VIVO usar _gmUpdate (granular).
 // Silencia so erro de permissao/login (papel sem acesso) — falha de rede o usuario TEM que ver.
 function _persistGame(gm){
   if(!gm) return Promise.resolve();
@@ -6027,7 +6175,7 @@ function toggleLockGame(gid){
     confirmStyle:willLock?"bd":"bs",
     onConfirm:function(){
       g.locked=willLock;
-      save();
+      _gmUpdate(g,{locked:willLock}); // granular: travar nao reescreve as acoes do jogo
       toast(willLock?"Jogo travado":"Jogo destravado","ok");
       render();
     }
@@ -6599,7 +6747,7 @@ if(!confirm("Remover jogos teste?"))return;
 if(!D.games)return;
 D.games=D.games.filter(function(g){return g.id.indexOf("gtest")!==0;});
 save();alert("Jogos teste removidos!");}
-function openG(id){var g=gF(id);if(!g)return;if(g.st==="pending"){g.act=[];g.ss=[{u:0,t:0}];save();}if(!g.ss||!g.ss.length)g.ss=[{u:0,t:0}];if(!g.act)g.act=[];S={aid:id,sp:null,sa:null,cs:g.ss.length,us:[],tm:0,rn:false,ti:null};render();}
+function openG(id){var g=gF(id);if(!g)return;if(g.st==="pending"){g.act=[];g.ss=[{u:0,t:0}];_gmUpdate(g,{act:null,ss:g.ss});}if(!g.ss||!g.ss.length)g.ss=[{u:0,t:0}];if(!g.act)g.act=[];S={aid:id,sp:null,sa:null,cs:g.ss.length,us:[],tm:0,rn:false,ti:null};render();}
 
 // Modal de escalação do jogo
 function openLineup(gameId){
@@ -6851,7 +6999,11 @@ function removeLineupRow(aid){
 
 function closeLineup(){var m=document.getElementById("lineupModal");if(m)m.remove();}
 
-function startG(){var gm=gF(S.aid);if(!gm)return;if(!gm.ss||!gm.ss.length)gm.ss=[{u:0,t:0}];if(!gm.act)gm.act=[];gm.st="live";save();render();}
+// Iniciar partida: grava so st (+ ss se faltar) — granular. save() dos 4 nos aqui deixava um
+// render() no meio (rSctTablet liga courtMode) repor o estado do banco antes de gravar o st.
+// Grava ss SEMPRE: o ss pode ser um default so local (openGameDayCard/openTorneioGame criam
+// [{u:0,t:0}] na memoria sem salvar) e o listener descarta o que nao foi gravado.
+function startG(){var gm=gF(S.aid);if(!gm)return;if(!gm.ss||!gm.ss.length)gm.ss=[{u:0,t:0}];if(!gm.act)gm.act=[];gm.st="live";_gmUpdate(gm,{st:"live",ss:_gmSerialize({ss:gm.ss}).ss});render();}
 function resetG(){
   var gm=gF(S.aid);if(!gm)return;
   confirmModal({
@@ -6861,7 +7013,7 @@ function resetG(){
     confirmStyle:"bd",
     // MANTEM no jogo (S.aid preservado) — zerar nao pode ejetar pra a tela de selecao
     // do scout (orfa na galeria-first). Volta o jogo pra pending; o usuario ve o pre-jogo.
-    onConfirm:function(){gm.st="pending";gm.ss=[{u:0,t:0}];if(S.ti)clearInterval(S.ti);S={aid:S.aid,sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};toast("Partida zerada","ok");save();render();}
+    onConfirm:function(){gm.st="pending";gm.ss=[{u:0,t:0}];if(S.ti)clearInterval(S.ti);S={aid:S.aid,sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};toast("Partida zerada","ok");_gmUpdate(gm,{st:"pending",ss:gm.ss});render();}
   });
 }
 // Zera SO o placar do set atual (mantem os outros sets e o jogo AO VIVO). No modo
@@ -6874,11 +7026,12 @@ function resetSet(){
     confirmLabel:"\u{1F504} Zerar set",
     confirmStyle:"bd",
     onConfirm:function(){
-      var s=gm.ss[S.cs-1];s.u=0;s.t=0;s.sq=[];
-      if(gm.courtMode&&gm.court)delete gm.court[String(S.cs)];
+      var si=S.cs-1,s=gm.ss[si];s.u=0;s.t=0;s.sq=[];s.sqk=[];
+      var up={};up["ss/"+si+"/u"]=0;up["ss/"+si+"/t"]=0;up["ss/"+si+"/sq"]=null;
+      if(gm.courtMode&&gm.court){delete gm.court[String(S.cs)];up["court/"+S.cs]=null;}
       S.sp=null;S.sa=null;
       toast("Set "+S.cs+" zerado","ok");
-      if(typeof saveGame==="function")saveGame(gm).catch(function(){});else save();
+      _gmUpdate(gm,up);
       render();
     }
   });
@@ -6904,8 +7057,9 @@ function reassignActions(gid, fromAid, toAid, setNum){
   var n=0;
   // setNum (opcional): so reatribui as acoes daquele set. Sem set = todos.
   // Mantem a.side: a equipe/lado estava certo, so a PESSOA. Reatribui so o pid.
-  for(var i=0;i<g.act.length;i++){ var a=g.act[i]; if(a.pid===fromAid && (!setNum || a.set===setNum)){ a.pid=toAid; n++; } }
-  if(n){ if(typeof saveGame==="function") saveGame(g).catch(function(){}); else save(); }
+  var up={};
+  for(var i=0;i<g.act.length;i++){ var a=g.act[i]; if(a.pid===fromAid && (!setNum || a.set===setNum)){ a.pid=toAid; n++; if(a.id)up["act/"+a.id+"/pid"]=toAid; } }
+  if(n) _gmUpdate(g,up); // granular: so o pid das acoes trocadas
   return n;
 }
 // Cria um atleta novo numa equipe minis (pro caso do emprestado / atleta faltante).
@@ -7075,7 +7229,7 @@ function _isLibero(p){ return !!(p&&p.po&&/l[ií]bero|^lib/i.test(p.po)); }
 function toggleCourtMode(){
   var gm=gF(S.aid); if(!gm)return;
   gm.courtMode=!gm.courtMode; _courtDraft=null;
-  _persistGame(gm);
+  _gmUpdate(gm,{courtMode:gm.courtMode});
   render();
 }
 
@@ -7131,7 +7285,7 @@ function courtSetPos(aid,pos){
   if(gm.lineup)for(var i=0;i<gm.lineup.length;i++){ if(gm.lineup[i].aid===aid){ gm.lineup[i].po=pos; break; } } // por JOGO
   var ath=(typeof aFind==="function")?aFind(aid):null;                                                        // no CADASTRO
   if(ath){ nm=(ath.nm||"").split(" ")[0]; ath.po=pos; if(typeof saveAthlete==="function")saveAthlete(ath).catch(function(){}); }
-  _persistGame(gm);
+  if(gm.lineup)_gmUpdate(gm,{lineup:gm.lineup});
   if(typeof toast==="function")toast("Posição de "+nm+" → "+pos,"ok");
   render();
 }
@@ -7190,7 +7344,7 @@ function courtRepeatFromGame(srcId){
   var srcPos=null, srcServe=null; // 2) escalacao do 1o set escalado da origem
   if(src.court){ var keys=Object.keys(src.court).sort(); for(var i=0;i<keys.length;i++){ var cs=src.court[keys[i]]; if(cs&&cs.pos&&_posArr(cs.pos).filter(Boolean).length===6){ srcPos=cs.pos; srcServe=cs.serving; break; } } }
   var faltou=srcPos?_courtApplyDraft(gm,srcPos,srcServe):0;
-  _persistGame(gm); render();
+  if(gm.lineup)_gmUpdate(gm,{lineup:gm.lineup}); render();
   if(typeof toast==="function")toast("Escalação de vs "+esc(src.opp||"?")+" aplicada"+(faltou?(" — "+faltou+" fora do elenco"):""),"ok");
 }
 function courtDraftServer(side){ if(_courtDraft){_courtDraft.serving=side;render();} }
@@ -7202,9 +7356,10 @@ function courtConfirmSetup(){
   var _gp=(typeof _courtGp==='function')?_courtGp(gm):[];
   if(_COURT_FRONT.some(function(i){var a=_courtDraft.pos[i];var p=a?_gpFind(_gp,a):null;return p&&_isLibero(p);})){if(typeof toast==='function')toast("Líbero não pode iniciar na frente (P2/P3/P4)","error");return;}
   if(!gm.court)gm.court={};
-  gm.court[_courtDraft.set]={pos:_courtDraft.pos.slice(),serving:_courtDraft.serving,libPair:null};
+  var _cset=_courtDraft.set;
+  gm.court[_cset]={pos:_courtDraft.pos.slice(),serving:_courtDraft.serving,libPair:null};
   _courtDraft=null;
-  _persistGame(gm);
+  _gmUpdateCourt(gm,_cset,gm.court[_cset]);
   render();
 }
 // Rotacao manual (rede de seguranca). dir>0 horario, dir<0 anti-horario.
@@ -7213,7 +7368,7 @@ function courtManualRotate(dir){
   var k=String(S.cs); var cs=gm.court[k]; if(!cs||!cs.pos)return;
   cs.pos = dir>0 ? rotateCourt(cs.pos) : rotateCourtBack(cs.pos);
   var fixed=courtLiberoExit(cs); cs.pos=fixed.pos; cs.libPair=fixed.libPair; // libero sai se foi pra frente
-  _persistGame(gm);
+  _gmUpdateCourt(gm,k,cs);
   render();
 }
 // Trocar atleta (em quadra) pelo libero do banco, em 1 toque. Amarra o par desta entrada.
@@ -7229,7 +7384,7 @@ function courtLiberoSwap(aid){
   cs.pos[idx]=libero.id;
   cs.libPair={lib:libero.id,out:aid}; // par desta entrada (dinamico)
   S.sp=null;
-  _persistGame(gm);
+  _gmUpdateCourt(gm,S.cs,cs);
   render();
   var saiu=_gpFind(gp,aid);
   if(typeof toast==='function')toast("🦺 Líbero entrou no lugar de #"+(saiu?saiu.nu:"?"),"ok");
@@ -7405,28 +7560,31 @@ function courtSubDoIn(inAid){
   if(idx===0 && cs.serving==="us"){ S.sp=inAid; S.sa="saque"; }
   else if(S.sp===_courtSubOut){ S.sp=null; } // se o que saiu estava selecionado, limpa
   _courtSubOut=null;
-  if(typeof save==='function')save();
+  _gmUpdateCourt(gm,S.cs,cs); // granular: substituicao no meio do set nao reescreve o jogo inteiro
   closeCourtSub();
   render();
   if(typeof toast==='function')toast("Substituição feita","ok");
 }
 function closeCourtSub(){_courtSubOut=null;var d=document.getElementById("courtSubModal");if(d)d.remove();}
 
-function rcO(oc){if(!S.sp||!S.sa)return;var gm=gF(S.aid);if(!gm||gm.st!=="live")return;if(setIsOver(gm,S.cs)){_setEndBlock();return;}var a={id:"a"+Date.now(),pid:S.sp,ak:S.sa,oc:oc,set:S.cs,ts:S.tm};
+function rcO(oc){if(!S.sp||!S.sa)return;var gm=gF(S.aid);if(!gm||gm.st!=="live")return;if(setIsOver(gm,S.cs)){_setEndBlock();return;}var a={id:uid("a"),pid:S.sp,ak:S.sa,oc:oc,set:S.cs,ts:S.tm,dev:_gmDev()};
 if(gm.tidB) a.side=(S.side==="B")?"B":"A"; // minis 2 lados: de qual equipe foi a acao
 // Ponto automatico — registra qual lado subiu, pra o undo reverter junto
 var scSide=autoScoreSide(S.sa,oc);
 if(gm.tidB && a.side==="B" && scSide) scSide=(scSide==="u")?"t":"u"; // lado B: ss.u=casa, ss.t=B
-if(scSide&&gm.ss&&gm.ss[S.cs-1]){if(scSide==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;_sqPush(gm,scSide);}
+// C2: escrita GRANULAR — so act/{aid}, o contador do set (increment) e a entrada nova do sq
+var up={},sqk=null;up["act/"+a.id]=a;
+if(scSide&&gm.ss&&gm.ss[S.cs-1]){if(scSide==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;sqk=_sqPush(gm,scSide);up["ss/"+(S.cs-1)+"/"+scSide]=_inc(1);if(sqk)up["ss/"+(S.cs-1)+"/sq/"+sqk]=scSide;}
 // Q2: rotacao automatica (no-op fora do modo quadra). Guarda snapshot pra o undo reverter.
 var _courtSnap=scSide?courtRegisterPoint(scSide):null;
-S.us.push({a:a,sc:scSide,court:_courtSnap});if(!gm.act)gm.act=[];gm.act.push(a);S.sa=null;
+if(_courtSnap)up["court/"+S.cs]=gm.court[String(S.cs)];
+S.us.push({a:a,sc:scSide,sqk:sqk,court:_courtSnap});if(!gm.act)gm.act=[];gm.act.push(a);S.sa=null;
 courtApplyPreserve(); // Frente C: pre-seleciona sacador+saque se rotacionou
 if(navigator.vibrate)navigator.vibrate(40);
 var isGood=(oc==="Ace"||oc==="Ponto"||oc==="A");var isBad=(oc==="Erro");
 try{var actx=new(window.AudioContext||window.webkitAudioContext)();var osc=actx.createOscillator();var gain=actx.createGain();osc.connect(gain);gain.connect(actx.destination);osc.frequency.value=isGood?880:isBad?330:660;gain.gain.value=0.08;osc.start();osc.stop(actx.currentTime+0.08);}catch(e){}
 showFlash(isGood?"#059669":isBad?"#dc2626":"#2563eb");
-saveGame(gm).catch(function(){});render();}
+_gmUpdate(gm,up);render();}
 // showFlash: efeito visual de flash de cor (definicao estava faltando — causava travamento de scUp e rcO)
 function showFlash(color){
   try{
@@ -7450,9 +7608,12 @@ function showFlash(color){
 // Reusa o motor do courtMode (posicoes/rotacao/libero) e o rcO (gravacao).
 function isTabletMode(){try{return localStorage.getItem("rs_scout_tablet")==="1";}catch(e){return false;}}
 function toggleTabletMode(){try{localStorage.setItem("rs_scout_tablet",isTabletMode()?"0":"1");}catch(e){}S.sa=null;render();}
-// Sequencia de pontos do set, leve, p/ a ladder: gm.ss[i].sq=["u"|"t",...].
-function _sqPush(gm,side){if(!gm||!gm.ss)return;var s=gm.ss[S.cs-1];if(!s)return;if(!s.sq)s.sq=[];s.sq.push(side==="u"?"u":"t");}
-function _sqPopSide(gm,setIdx,side){if(!gm||!gm.ss||!gm.ss[setIdx]||!gm.ss[setIdx].sq)return;var q=gm.ss[setIdx].sq;for(var i=q.length-1;i>=0;i--){if(q[i]===side){q.splice(i,1);return;}}}
+// Sequencia de pontos do set, leve, p/ a ladder: gm.ss[i].sq=["u"|"t",...]. No banco e um
+// objeto chaveado (ss/{i}/sq/{k}); localmente sqk guarda as chaves alinhadas com sq (C2).
+// _sqPush devolve a chave nova; _sqPopSide/_sqRemoveKey devolvem a chave removida (p/ o update).
+function _sqPush(gm,side){if(!gm||!gm.ss)return null;var s=gm.ss[S.cs-1];if(!s)return null;var ks=_sqKeys(s),k=_gmSqKey();s.sq.push(side==="u"?"u":"t");ks.push(k);return k;}
+function _sqPopSide(gm,setIdx,side){if(!gm||!gm.ss||!gm.ss[setIdx]||!gm.ss[setIdx].sq)return null;var s=gm.ss[setIdx],q=s.sq,ks=_sqKeys(s);for(var i=q.length-1;i>=0;i--){if(q[i]===side){q.splice(i,1);return ks.splice(i,1)[0]||null;}}return null;}
+function _sqRemoveKey(gm,setIdx,key){if(!key||!gm||!gm.ss||!gm.ss[setIdx]||!gm.ss[setIdx].sq)return null;var s=gm.ss[setIdx],ks=_sqKeys(s),i=ks.indexOf(key);if(i<0)return null;s.sq.splice(i,1);ks.splice(i,1);return key;}
 // Reconstroi as colunas da ladder do set. Usa sq; completa p/ bater com o placar
 // (jogos antigos sem sq mostram o que da pra reconstruir + completam no fim).
 function _buildLadder(gm,setIdx){
@@ -7547,13 +7708,13 @@ function sctLibIn(idx){
   var gm=gF(S.aid);if(!gm||!gm.court)return;var cs=gm.court[String(S.cs)];if(!cs||!cs.pos||!_sctLibArmed)return;
   if(!_sctIsFundo(idx)){if(typeof toast==="function")toast("Líbero só entra no fundo (P1/P5/P6)","error");return;}
   cs.libPair={lib:_sctLibArmed,out:cs.pos[idx]};cs.pos[idx]=_sctLibArmed;S.sp=cs.pos[idx];_sctLibArmed=null;
-  if(typeof save==="function")save();render();
+  _gmUpdateCourt(gm,S.cs,cs);render(); // granular (C2): libero no meio do set nao reescreve o banco
 }
 function sctLibOut(){
   var gm=gF(S.aid);if(!gm||!gm.court)return;var cs=gm.court[String(S.cs)];if(!cs||!cs.libPair)return;
   var li=cs.pos.indexOf(cs.libPair.lib);if(li>=0)cs.pos[li]=cs.libPair.out;
   if(S.sp===cs.libPair.lib)S.sp=null;cs.libPair=null;
-  if(typeof save==="function")save();render();
+  _gmUpdateCourt(gm,S.cs,cs);render();
 }
 function sctTapAthlete(aid,idx){if(_sctLibArmed){sctLibIn(idx);return;}slP(aid);}
 function sctRenderLiberos(gm,gp,cs){
@@ -7622,9 +7783,9 @@ function sctTimeout(){
 }
 function closeSctTimeout(){var d=document.getElementById("sctTimeoutModal");if(d)d.remove();}
 function sctTimeoutAdd(side){
-  var gm=gF(S.aid);if(!gm||!gm.ss||!gm.ss[S.cs-1])return;var s=gm.ss[S.cs-1];
-  if(side==="u")s.toU=(s.toU||0)+1;else s.toT=(s.toT||0)+1;
-  if(typeof saveGame==="function")saveGame(gm).catch(function(){});
+  var gm=gF(S.aid);if(!gm||!gm.ss||!gm.ss[S.cs-1])return;var si=S.cs-1,s=gm.ss[si],up={};
+  if(side==="u"){s.toU=(s.toU||0)+1;up["ss/"+si+"/toU"]=_inc(1);}else{s.toT=(s.toT||0)+1;up["ss/"+si+"/toT"]=_inc(1);}
+  _gmUpdate(gm,up);
   if(typeof toast==="function")toast("Tempo registrado","ok");
   sctTimeout();render();
 }
@@ -7669,7 +7830,7 @@ function _sctKeydown(e){
 }
 // Monta a tela inteira do modo tablet (substitui arena+painel do scout no celular). Fiel a preview/scout-tablet-mockup.html.
 function rSctTablet(gm,gp,te){
-  if(!gm.courtMode){gm.courtMode=true;_persistGame(gm);}
+  if(!gm.courtMode){gm.courtMode=true;_gmUpdate(gm,{courtMode:true});}
   var nmRS=(te.n||"").replace(/RS-?VOLEIBOL\s*/i,"RS · ").trim();if(nmRS.length>20)nmRS=nmRS.substring(0,20)+"…";
   var nmAdv=(gm.opp||"Adversário");if(nmAdv.length>18)nmAdv=nmAdv.substring(0,18)+"…";
   var cur=(gm.ss&&gm.ss[S.cs-1])?gm.ss[S.cs-1]:{u:0,t:0};
@@ -7758,7 +7919,7 @@ function rSctTablet(gm,gp,te){
   h+='</div>';
   return h;
 }
-function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(setIsOver(gm,S.cs)){_setEndBlock();return;}if(who==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;_sqPush(gm,who);var _snap=courtRegisterPoint(who);S.us.push({manual:true,sc:who,set:S.cs,court:_snap});courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");saveGame(gm).catch(function(){});render();}
+function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(setIsOver(gm,S.cs)){_setEndBlock();return;}who=(who==="u")?"u":"t";var si=S.cs-1,up={};if(who==="u")gm.ss[si].u++;else gm.ss[si].t++;var sqk=_sqPush(gm,who);up["ss/"+si+"/"+who]=_inc(1);if(sqk)up["ss/"+si+"/sq/"+sqk]=who;var _snap=courtRegisterPoint(who);if(_snap)up["court/"+S.cs]=gm.court[String(S.cs)];S.us.push({manual:true,sc:who,set:S.cs,sqk:sqk,court:_snap});courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");_gmUpdate(gm,up);render();}
 // Ponto do NOSSO time por ERRO DO ADVERSARIO (saque na rede, ataque fora, etc). Independe de
 // marcar a acao da outra equipe: 1 toque sobe o placar (sem precisar do +/-), roda a quadra
 // (side-out) e registra na estatistica como {pid:null, ak:"erroadv"} -> conta nos "pontos
@@ -7766,24 +7927,31 @@ function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-
 function scErrAdv(){
   var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;
   if(setIsOver(gm,S.cs)){_setEndBlock();return;}
-  var a={id:"a"+Date.now(),pid:null,ak:"erroadv",oc:"Ponto",set:S.cs,ts:S.tm};
-  gm.ss[S.cs-1].u++;_sqPush(gm,"u");
+  var a={id:uid("a"),pid:null,ak:"erroadv",oc:"Ponto",set:S.cs,ts:S.tm,dev:_gmDev()};
+  var si=S.cs-1,up={};up["act/"+a.id]=a;
+  gm.ss[si].u++;var sqk=_sqPush(gm,"u");up["ss/"+si+"/u"]=_inc(1);if(sqk)up["ss/"+si+"/sq/"+sqk]="u";
   var _snap=courtRegisterPoint("u");
-  S.us.push({a:a,sc:"u",court:_snap});
+  if(_snap)up["court/"+S.cs]=gm.court[String(S.cs)];
+  S.us.push({a:a,sc:"u",sqk:sqk,court:_snap});
   if(!gm.act)gm.act=[];gm.act.push(a);
   courtApplyPreserve();
   if(navigator.vibrate)navigator.vibrate(40);showFlash("#059669");
-  _persistGame(gm);render();
+  _gmUpdate(gm,up);render();
 }
-function scDn(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(who==="u"&&gm.ss[S.cs-1].u>0){gm.ss[S.cs-1].u--;_sqPopSide(gm,S.cs-1,"u");}else if(who==="t"&&gm.ss[S.cs-1].t>0){gm.ss[S.cs-1].t--;_sqPopSide(gm,S.cs-1,"t");}saveGame(gm).catch(function(){});render();}
+function scDn(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;var si=S.cs-1,s=gm.ss[si],up={},k=null;if(who==="u"&&s.u>0){s.u--;k=_sqPopSide(gm,si,"u");up["ss/"+si+"/u"]=_inc(-1);}else if(who==="t"&&s.t>0){s.t--;k=_sqPopSide(gm,si,"t");up["ss/"+si+"/t"]=_inc(-1);}if(k)up["ss/"+si+"/sq/"+k]=null;_gmUpdate(gm,up);render();}
+// Desfazer e POR APARELHO: a pilha S.us so tem o que ESTE aparelho marcou; a escrita tira so
+// act/{aid} desta acao (o que o colega marcou no outro tablet fica) e desconta o ponto com increment(-1).
 function undo(){if(!S.us.length)return;var l=S.us.pop();var gm=gF(S.aid);if(!gm)return;
 var setN=(l.a&&l.a.set)||l.set||S.cs; // acao (rcO) tem l.a.set; ponto manual (+/- scUp) tem l.set
-if(l.a&&gm.act){gm.act=gm.act.filter(function(a){return a.id!==l.a.id;});}
+var si=setN-1,up={};
+if(l.a&&gm.act){gm.act=gm.act.filter(function(a){return a.id!==l.a.id;});up["act/"+l.a.id]=null;}
 // Reverter o ponto (de rcO OU de +/- manual) no set em que aconteceu
-if(l.sc&&gm.ss){var si=setN-1;if(gm.ss[si]){if(l.sc==="u"&&gm.ss[si].u>0)gm.ss[si].u--;else if(l.sc==="t"&&gm.ss[si].t>0)gm.ss[si].t--;_sqPopSide(gm,si,l.sc);}}
+if(l.sc&&gm.ss&&gm.ss[si]){var s=gm.ss[si];if(l.sc==="u"&&s.u>0){s.u--;up["ss/"+si+"/u"]=_inc(-1);}else if(l.sc==="t"&&s.t>0){s.t--;up["ss/"+si+"/t"]=_inc(-1);}
+  // tira do sq a entrada DESTE ponto (chave guardada na pilha); sem chave, a ultima do lado
+  var k=_sqRemoveKey(gm,si,l.sqk)||_sqPopSide(gm,si,l.sc);if(k)up["ss/"+si+"/sq/"+k]=null;}
 // Q2: reverte a rotacao da quadra (restaura o snapshot guardado no momento do ponto)
-if(l.court&&gm.courtMode&&gm.court){gm.court[String(setN)]=l.court;}
-saveGame(gm).catch(function(){});render();}
+if(l.court&&gm.courtMode&&gm.court){gm.court[String(setN)]=l.court;up["court/"+setN]=l.court;}
+_gmUpdate(gm,up);render();}
 // ===== FORMATO DA PARTIDA + FIM DE SET (regras do volei) =====
 // g.format: "bo3" (melhor de 3, set 3 = tie 15) | "bo5" (melhor de 5, set 5 = tie 15)
 //         | "fixed3" (3 sets obrigatorios, todos a 25, sem tie).
@@ -7834,7 +8002,7 @@ function nxS(){var gm=gF(S.aid);if(!gm)return;
     if(typeof toast==="function")toast("O set "+gm.ss.length+" ainda está 0-0 — jogue antes de abrir outro","error");
     return;
   }
-  var go=function(){gm.ss.push({u:0,t:0});S.cs=gm.ss.length;S.tm=0;if(gm.courtMode){S.sp=null;S.sa=null;}saveGame(gm).catch(function(){});render();};
+  var go=function(){var ni=gm.ss.length;gm.ss.push({u:0,t:0});S.cs=gm.ss.length;S.tm=0;if(gm.courtMode){S.sp=null;S.sa=null;}var up={};up["ss/"+ni]={u:0,t:0};_gmUpdate(gm,up);render();};
   // partida ja decidida (ex: 3-0 em bo5): confirma antes de abrir set extra
   if(gameIsDecided(gm)&&typeof confirmModal==="function"){
     var w=setsWon(gm);
@@ -7852,7 +8020,7 @@ function delLastSet(){
     if(typeof toast==="function")toast("O set "+idx+" tem placar/ações — não dá pra remover","error");
     return;
   }
-  var apply=function(){gm.ss.pop();if(gm.courtMode&&gm.court)delete gm.court[String(idx)];S.cs=gm.ss.length;S.sp=null;S.sa=null;if(typeof toast==="function")toast("Set "+idx+" removido — voltou pro set "+gm.ss.length,"ok");saveGame(gm).catch(function(){});render();};
+  var apply=function(){gm.ss.pop();var up={};up["ss/"+(idx-1)]=null;if(gm.courtMode&&gm.court){delete gm.court[String(idx)];up["court/"+idx]=null;}S.cs=gm.ss.length;S.sp=null;S.sa=null;if(typeof toast==="function")toast("Set "+idx+" removido — voltou pro set "+gm.ss.length,"ok");_gmUpdate(gm,up);render();};
   if(typeof confirmModal==="function")confirmModal({title:"REMOVER SET "+idx,body:"Remove o set <b>"+idx+"</b> (está 0-0, sem ações) e volta pro set "+(idx-1)+".<br><span style=\"color:var(--gray);font-size:12px\">Os sets jogados e as ações não são afetados.</span>",confirmLabel:"Remover set",confirmStyle:"bd",onConfirm:apply});
   else apply();
 }
@@ -7901,7 +8069,7 @@ function enG(){
       gm.st="done";
       if(S.ti)clearInterval(S.ti);
       var gid=S.aid;
-      saveGame(gm).catch(function(){});
+      _gmUpdate(gm,{st:"done"}); // granular: finalizar nao reescreve as acoes (o outro aparelho pode ter marcado agora)
       // Volta para a lista correta (cards do torneio se em modo torneio)
       S={aid:null,sp:null,sa:null,cs:1,us:[],tm:0,rn:false,ti:null};
       if(torneioMode){torneioGameOpen=null;}

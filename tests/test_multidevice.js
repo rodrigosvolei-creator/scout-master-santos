@@ -9,7 +9,11 @@ const html = fs.readFileSync('index.html', 'utf8');
 const fakeDB = {};
 const listeners = {};
 function getAt(p){const a=p.split('/');let c=fakeDB;for(const k of a){if(c==null)return null;c=c[k];}return c===undefined?null:c;}
-function setAt(p,v){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object')c[a[i]]={};c=c[a[i]];}c[a[a.length-1]]=JSON.parse(JSON.stringify(v));}
+function setAt(p,v){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object')c[a[i]]={};else if(Array.isArray(c[a[i]])&&!/^\d+$/.test(a[i+1]))c[a[i]]=Object.assign({},c[a[i]]);c=c[a[i]];}c[a[a.length-1]]=JSON.parse(JSON.stringify(v));}
+function delAt(p){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c==null)return;c=c[a[i]];}if(c)delete c[a[a.length-1]];}
+// update() multi-caminho como no Firebase: null apaga; {".sv":{increment:n}} SOMA no valor atual
+// (e assim que o app grava o placar — C2); no que era array vira objeto ao receber chave nao-numerica.
+function updAt(base,obj){for(const k in obj){const p=base+'/'+k,v=obj[k];if(v===null)delAt(p);else if(v&&typeof v==='object'&&v['.sv']&&typeof v['.sv'].increment==='number'){const cur=getAt(p);setAt(p,(typeof cur==='number'?cur:0)+v['.sv'].increment);}else setAt(p,v);}}
 function fire(writtenPath){
   Object.keys(listeners).forEach(function(lp){
     if(writtenPath===lp || writtenPath.indexOf(lp+'/')===0 || lp.indexOf(writtenPath+'/')===0){
@@ -21,7 +25,8 @@ function makeRef(p){return{_path:p,
   on:function(e,cb){(listeners[p]=listeners[p]||[]).push(cb); cb({val:function(){return getAt(p);}});},
   once:function(){return Promise.resolve({val:function(){return getAt(p);}});},
   set:function(v){setAt(p,v);fire(p);return Promise.resolve();},
-  update:function(){return Promise.resolve();}
+  update:function(obj){updAt(p,obj);fire(p);return Promise.resolve();},
+  remove:function(){delAt(p);fire(p);return Promise.resolve();}
 };}
 const mock={initializeApp:function(){},database:function(){return{ref:makeRef};},
   auth:function(){return{onAuthStateChanged:function(cb){setTimeout(function(){cb({uid:'u1',email:'rodrigosvolei@gmail.com',displayName:'Mesa'});},0);},signInWithPopup:function(){return Promise.resolve();},signOut:function(){return Promise.resolve();}};}};
@@ -68,8 +73,9 @@ let ok=0,ko=0; function chk(c,m){if(c){ok++;console.log('OK   '+m);}else{ko++;co
 
   // ---- A abre pelo GAME DAY card (caminho real), entra no tablet, escala tocando, marca
   wa.openGameDayCard('g1');
-  var ga=wa.gF('g1'); ga.st='live';
-  wa.render();  // rSctTablet: liga courtMode + save; mostra setup
+  wa.startG();  // caminho real: st=live GRAVADO (C2: escrita granular nao carrega mais mutacao local nao salva)
+  var ga=wa.gF('g1');
+  wa.render();  // rSctTablet: liga courtMode (update granular); mostra setup
   chk(ga.courtMode===true, 'A: modo tablet ligou courtMode');
   // escalar os 6 tocando banco -> celula (o fluxo real). idx de celula 0..5 = P1..P6
   ['a1','a2','a3','a4','a5','a6'].forEach(function(aid,i){ wa.courtDraftPlace(aid); wa.courtDraftCell(i); });
@@ -113,17 +119,19 @@ let ok=0,ko=0; function chk(c,m){if(c){ok++;console.log('OK   '+m);}else{ko++;co
   // ---- Persistencia GRANULAR: B marca em OUTRO jogo (g2). Com saveGame por-jogo, isso
   //      NAO pode apagar o court/acoes que A gravou no g1 (o save() do array inteiro apagaria).
   console.log('\n--- Granular: 2 dispositivos em 2 jogos diferentes ---');
-  wb.openGameDayCard('g2'); var g2b=wb.gF('g2'); g2b.st='live'; wb.render();
+  wb.openGameDayCard('g2'); wb.startG(); wb.render();
   ['a6','a5','a4','a3','a2','a1'].forEach(function(aid,i){ wb.courtDraftPlace(aid); wb.courtDraftCell(i); });
   wb.courtDraftServer('them'); wb.courtConfirmSetup();
   wb.S.sp='a5'; wb.S.sa='ataque'; wb.rcO('Ponto');
   await sleep(90);
   var fg1=getAt('torneio-master-santos/games/0'); // g1 (A)
   var fg2=getAt('torneio-master-santos/games/1'); // g2 (B)
-  chk(fg1 && fg1.id==='g1' && fg1.court && fg1.court['1'] && fg1.act && fg1.act.length>=2,
-      'g1 (A) PRESERVADO no Firebase apos B mexer no g2 (court + 2 acoes intactos)');
-  chk(fg2 && fg2.id==='g2' && fg2.court && fg2.court['1'] && fg2.act && fg2.act.length>=1,
-      'g2 (B) gravado no seu indice (court + 1 acao)');
+  // C2: no banco act e OBJETO chaveado (act/{aid}) — conta pelas chaves
+  var nAct=function(g){return (g&&g.act&&!Array.isArray(g.act))?Object.keys(g.act).length:-1;};
+  chk(fg1 && fg1.id==='g1' && fg1.court && fg1.court['1'] && nAct(fg1)>=2,
+      'g1 (A) PRESERVADO no Firebase apos B mexer no g2 (court + 2 acoes intactos, act chaveado)');
+  chk(fg2 && fg2.id==='g2' && fg2.court && fg2.court['1'] && nAct(fg2)>=1,
+      'g2 (B) gravado no seu indice (court + 1 acao, act chaveado)');
   var gaFim=wa.gF('g1');
   chk(gaFim && gaFim.court && gaFim.court['1'] && gaFim.act.length>=2, 'A continua vendo o g1 completo (nao foi sobrescrito)');
 

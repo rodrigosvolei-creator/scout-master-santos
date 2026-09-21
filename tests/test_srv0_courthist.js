@@ -111,6 +111,16 @@ setTimeout(function(){
     var ser=w._gmSerialize(w.gF('g1'));
     chk(ser.ss[0].srv0==='u'&&ser.ss[1].srv0==='t'&&ser.ss[0].sqk===undefined, '_gmSerialize leva srv0 (e nao leva campos internos)');
 
+    console.log('\n--- 6. modo tablet: chip na coluna de controles ---');
+    try{w.localStorage.setItem('rs_scout_tablet','1');}catch(e){}
+    // o tablet liga o modo quadra sozinho e so mostra os controles com a quadra escalada (set 5 foi zerado)
+    w.render(); ['a1','a2','a3','a4','a5','a6'].forEach(function(aid,i){w.courtDraftPlace(aid);w.courtDraftCell(i);});
+    w.courtDraftServer('them'); w.courtConfirmSetup(); w.render();
+    var tc=w.document.querySelector('.sct-srv0');
+    chk(!!tc&&tc.querySelectorAll('button').length===2&&tc.querySelectorAll('button')[1].className==='on'&&!tc.classList.contains('miss'), 'tablet: escalou com "eles sacam" -> chip com o adversario marcado (sem aviso)');
+    w.setSrv0('t'); w.render(); tc=w.document.querySelector('.sct-srv0');
+    chk(!!tc&&tc.classList.contains('miss')&&tc.querySelectorAll('button.on').length===0&&getAt(G).ss[4].srv0===undefined, 'tablet: tocar de novo desmarca -> borda de aviso e ss/4/srv0 apagado');
+
     console.log('\n=== test_srv0_courthist: '+ok+' OK, '+ko+' FAIL ===');
     process.exit(ko?1:0);
   }catch(e){console.log('FAIL exception: '+e.message);console.log((e.stack||'').split('\n').slice(0,6).join('\n'));process.exit(1);}

@@ -30,7 +30,7 @@ Uso real: mesa de scout numa partida, muitas vezes por uma pessoa só, no tablet
   a segurança real vem das Security Rules + Auth.
 - **Auth:** Firebase Auth (Google + email/senha), perfis e papéis em `users/{uid}`.
 - **Hospedagem:** GitHub → **Coolify** (deploy **manual**, ver §7).
-- **Testes:** Node + **jsdom** com um **mock do Firebase** (sem rede). 62 arquivos.
+- **Testes:** Node + **jsdom** com um **mock do Firebase** (sem rede). 63 arquivos.
 
 Filosofia: single-file, zero dependência de runtime, tudo versionado num `index.html`.
 Fácil de servir (qualquer host estático), difícil de escalar em manutenção (arquivo gigante).
@@ -52,7 +52,7 @@ APP SCOUT/
 │   ├── launch.json       ← config do preview (dev server)
 │   └── settings.local.json
 ├── docs/                 ← docs ANTIGOS (26/05, defasados): CONTEXTO, PLANO_ADEQUACAO, SKILL
-├── tests/                ← 62 test_*.js (jsdom + mock Firebase)
+├── tests/                ← 63 test_*.js (jsdom + mock Firebase)
 ├── preview/              ← mockups e geradores de snapshot (_gen-*.cjs) — não versionar geral
 ├── legacy-usa-import/    ← import legado do torneio USA (histórico)
 └── node_modules/         ← jsdom etc.
@@ -161,7 +161,13 @@ Torneios standalone configurados em `TOURNEY_ACCESS[token]`: `standalone` (pági
 
 ### Relatórios / PDF
 `exGamePDF` — relatório profissional da partida: 2 pizzas SVG (pontos ganhos/perdidos por
-fundamento), eficiência % por atleta, sequência de pontos por set (só quando é real).
+fundamento), eficiência % por atleta, sequência de pontos por set (só quando é real) e, desde
+21/09/2026, a seção **"Fases do jogo"** (`_pdfFasesHTML`): SO% (side-out), FBSO% (1ª bola),
+BP% (break point), origem/perda dos pontos, ataque e distribuição do levantamento por fase,
+recepção × side-out, por atleta e legenda. Motor puro `rallyModel(gm)` (rally = trecho entre 2
+pontos do `sq` com hora; sacador = vencedor do anterior) + `fasesStats(gm)`. Jogo no formato
+antigo (sq sem hora) sai com tarja "estimado · cobertura N%" (rallies reconstruídos pela ordem
+das ações). Teste: `tests/test_fases.js`.
 **`print-color-adjust:exact`** força as cores de fundo a saírem no PDF salvo. Há PDFs antigos
 por atleta (`exAthPDF`, `exAllAthPDF`) mantidos como estão.
 
@@ -201,7 +207,7 @@ Painel `📊 AO VIVO` (`openLivePanel`) — KPIs do time e por atleta, lê `gm.a
 
 ## 8. Testes
 
-62 arquivos `tests/test_*.js`, rodados com `node tests/test_X.js` (jsdom + mock Firebase).
+63 arquivos `tests/test_*.js`, rodados com `node tests/test_X.js` (jsdom + mock Firebase).
 `test_cores_e2e.js` demora ~7 min (torneio inteiro); os demais são segundos.
 Regra do projeto: **rodar a suíte inteira antes de commitar**; mudança nova precisa de teste
 novo (ou asserção nova). Cobrem: scout, autoscore, torneios, fases A/B/C/D, quadra (setup,

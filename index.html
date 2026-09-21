@@ -1337,7 +1337,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
+var APP_BUILD="2026-09-21b - PDF da partida ganha FASES DO JOGO: side-out %, 1a bola (FBSO), break point %, origem dos pontos, ataque e distribuicao do levantamento por fase, recepcao x side-out, por atleta, legenda (motor rallyModel/fasesStats); 21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -2359,6 +2359,7 @@ function _courtDerive(base,after,st){
   if(cs.pos&&cs.pos.length){for(var j=start;j<ks.length;j++){cs=courtApplyPoint(cs,st.sq[j]==="u"?"us":"them");}}
   cs.after=ks.length?ks[ks.length-1]:null;
   cs._baseAfter=after||null;
+  cs._baseServing=base.serving||null; // com _baseAfter nulo = quem sacou no INICIO do set (rallyModel usa)
   return cs;
 }
 // Quadra no FORMATO DO BANCO (so pos/serving/libPair/after; sem campos internos, sem undefined)
@@ -8692,6 +8693,184 @@ function exTreinoResumoPDF(trId){
 }
 // ===== FIM MODULO DE TREINOS ================================================
 
+/* ===== FASES DO JOGO — side-out (K1) x break x contra-ataque =====
+   Motor PURO (sem DOM), reusado pelo PDF da partida. Vocabulario (padrao Data Volley):
+   - rally: do saque ate o ponto. Quem saca o rally seguinte e quem ganhou o anterior.
+   - side-out (SO): rally em que o ADVERSARIO sacou. SO% = ganhos / rallies recebendo.
+   - 1a bola (FBSO): 1o ataque do rally de side-out, apos a recepcao. FBSO% = pontos / tentativas.
+   - break point (BP): rally em que NOS sacamos. BP% = ganhos / rallies sacando.
+   - contra-ataque (CA): qualquer ataque que nao e a 1a bola do side-out (apos defesa, bloqueio que
+     voltou ou ataque anterior "Cont"): "transicao" no rally deles, "break" no rally nosso.
+   Formato novo (sq com timestamp p<ms>, C2): rally EXATO = trecho entre 2 pontos, casando a hora
+   das acoes (a<ms>) com a dos pontos. Formato antigo (sq sem hora): novo rally em saque/recepcao
+   nossos ou apos acao que pontua; vencedor pela acao ou por quem sacou em seguida (ESTIMADO). */
+function _fasesMs(k){var m=/^[ap](\d{13})/.exec(String(k||""));return m?parseInt(m[1],10):0;}
+function _fasesScore(a){ // lado que pontuou com esta acao ("u"|"t"|null) — mesma regra do autoScoreSide + erroadv
+  if(!a)return null;if(a.ak==="erroadv")return"u";
+  var s=(typeof autoScoreSide==="function")?autoScoreSide(a.ak,a.oc):null;
+  if(s&&a.side==="B")s=(s==="u")?"t":"u"; // minis 2 lados: acao do lado B pontua pro "t"
+  return s;
+}
+function rallyModel(gm){
+  var out={sets:[],exact:true};
+  if(!gm)return out;
+  var acts=(gm.act||[]).filter(Boolean),ss=gm.ss||[];
+  for(var si=0;si<ss.length;si++){
+    var st=ss[si],setNum=si+1;
+    var sa=acts.filter(function(a){return a.set===setNum;}).map(function(a,i){return {a:a,i:i,t:_fasesMs(a.id)};});
+    sa.sort(function(x,y){return (x.t-y.t)||(x.i-y.i);});
+    var ks=(st&&st.sq&&st.sq.length)?_sqKeys(st):[];
+    var timed=ks.length>0&&ks.every(function(k){return _fasesMs(k)>0;});
+    var rallies=[],cur,i,r;
+    if(timed){
+      var ev=sa.map(function(x){return {t:x.t,k:"a",a:x.a,i:x.i};});
+      for(i=0;i<ks.length;i++)ev.push({t:_fasesMs(ks[i]),k:"p",side:st.sq[i]==="t"?"t":"u",i:i});
+      ev.sort(function(x,y){return (x.t-y.t)||((x.k==="a"?0:1)-(y.k==="a"?0:1))||(x.i-y.i);});
+      cur={acts:[],winner:null,winBy:null};
+      for(i=0;i<ev.length;i++){var e=ev[i];if(e.k==="a"){cur.acts.push(e.a);if(_fasesScore(e.a))cur.winBy=e.a;}else{cur.winner=e.side;rallies.push(cur);cur={acts:[],winner:null,winBy:null};}}
+      if(cur.acts.length)rallies.push(cur); // rally aberto (ponto ainda nao lancado)
+      for(i=0;i<rallies.length;i++){r=rallies[i];
+        if(i===0){var f=r.acts[0];r.srv=f?(f.ak==="saque"?"u":f.ak==="recepcao"?"t":(f.ak==="defesa"||f.ak==="bloqueio")?"u":"?"):"?";
+          // sem saque/recepcao marcados: quem sacou no inicio do set pela BASE da quadra (so se ela e do inicio do set)
+          var cb=gm.court&&gm.court[String(setNum)];if(r.srv==="?"&&cb&&!cb._baseAfter&&(cb._baseServing||cb.serving))r.srv=((cb._baseServing||cb.serving)==="us")?"u":"t";}
+        else r.srv=rallies[i-1].winner||"?";
+      }
+    }else{
+      if(sa.length)out.exact=false;
+      cur=null;
+      for(i=0;i<sa.length;i++){var a=sa[i].a;var starts=(a.ak==="saque"||a.ak==="recepcao");
+        if(!cur||starts||cur.done){cur={acts:[],srv:a.ak==="saque"?"u":a.ak==="recepcao"?"t":(a.ak==="defesa"||a.ak==="bloqueio")?"u":"?",winner:null,winBy:null,done:false};rallies.push(cur);}
+        cur.acts.push(a);var sc=_fasesScore(a);if(sc){cur.winner=sc;cur.winBy=a;cur.done=true;}
+      }
+      for(i=0;i<rallies.length;i++){r=rallies[i];if(!r.winner){var nx=rallies[i+1];if(nx&&nx.srv==="u")r.winner="u";else if(nx&&nx.srv==="t")r.winner="t";}}
+      // rally que comeca sem saque/recepcao (ex: so "erro adversario"): quem saca e quem ganhou o anterior
+      for(i=1;i<rallies.length;i++){if(rallies[i].srv==="?"&&rallies[i-1].winner)rallies[i].srv=rallies[i-1].winner;}
+    }
+    out.sets.push({set:setNum,score:st?((st.u||0)+"-"+(st.t||0)):"",rallies:rallies});
+  }
+  return out;
+}
+// Chaves de origem/perda dos pontos (rotulos em _fasesLabel)
+var FASES_PTS=["fbso","ca_t","ca_u","bloq","ace","erroadv","manual"];
+var FASES_LOST=["adv_manual","defesa","saque","recepcao","bloqueio","ataque_erro","ataque_bloq","levantamento"];
+function _fasesLabel(k){return ({fbso:"Side-out de 1ª bola (FBSO)",ca_t:"Contra-ataque em transição (rally do saque deles)",ca_u:"Contra-ataque no break (rally do nosso saque)",bloq:"Bloqueio",ace:"Ace",erroadv:"Erro do adversário (registrado)",manual:"Ponto lançado só no \"+\" (sem ação registrada)",
+  adv_manual:"Ataque / ace do adversário (só no \"+\")",defesa:"Defesa — erro",saque:"Saque — erro",recepcao:"Recepção — erro",bloqueio:"Bloqueio — erro",ataque_erro:"Ataque — erro",ataque_bloq:"Ataque — bloqueado",levantamento:"Levantamento — erro"})[k]||k;}
+// Agrega o rallyModel: por set, totais, ataque por fase, distribuicao por posicao, recepcao, atletas.
+function fasesStats(gm){
+  var rm=rallyModel(gm);
+  function mk(){return {n:0,p:0,e:0,b:0};}
+  function inc(o,k,n){o[k]=(o[k]||0)+(n==null?1:n);}
+  var T={exact:rm.exact,perSet:[],rSO:0,wSO:0,rBP:0,wBP:0,fb:0,fbTry:0,pts:{},lost:{},att:{SO:mk(),CA:mk()},dist:{SO:{},CA:{}},recep:{},soByRecep:{},serve:{n:0,ace:0,err:0,cont:0},blk:{p:0,e:0,c:0},def:{},lev:{},ath:{},ptsReal:0,ptsInf:0};
+  var gen=(typeof teamGender==="function")?teamGender(tF(gm.tid)):"";
+  for(var si=0;si<rm.sets.length;si++){
+    var S_={set:rm.sets[si].set,score:rm.sets[si].score,rallies:rm.sets[si].rallies.length,rSO:0,wSO:0,rBP:0,wBP:0,fb:0,fbTry:0};
+    var st=gm.ss&&gm.ss[si];if(st)T.ptsReal+=(st.u||0);
+    rm.sets[si].rallies.forEach(function(r){
+      if(r.srv==="t"){S_.rSO++;if(r.winner==="u")S_.wSO++;}else if(r.srv==="u"){S_.rBP++;if(r.winner==="u")S_.wBP++;}
+      var attIdx=0,seenRecep=false,lastRecepQ=null,firstAtt=null;
+      r.acts.forEach(function(a){
+        if(a.pid==null&&a.ak!=="erroadv")return;
+        var A=null;
+        if(a.pid!=null){A=T.ath[a.pid]=T.ath[a.pid]||{pid:a.pid,att:{SO:mk(),CA:mk()},blkP:0,ace:0,srv:0,srvErr:0,recep:{},lev:0,def:0,errs:0};}
+        if(a.ak==="recepcao"){seenRecep=true;lastRecepQ=a.oc;inc(T.recep,a.oc);if(A){inc(A.recep,a.oc);if(a.oc==="Erro")A.errs++;}}
+        if(a.ak==="levantamento"&&A){A.lev++;inc(T.lev,a.pid);if(a.oc==="Erro")A.errs++;}
+        if(a.ak==="saque"){T.serve.n++;if(A)A.srv++;if(a.oc==="Ace"){T.serve.ace++;if(A)A.ace++;}else if(a.oc==="Erro"){T.serve.err++;if(A){A.srvErr++;A.errs++;}}else T.serve.cont++;}
+        if(a.ak==="bloqueio"){if(a.oc==="Ponto"){T.blk.p++;if(A)A.blkP++;}else if(a.oc==="Erro"){T.blk.e++;if(A)A.errs++;}else T.blk.c++;}
+        if(a.ak==="defesa"){inc(T.def,a.oc);if(A){A.def++;if(a.oc==="Erro")A.errs++;}}
+        if(a.ak==="ataque"){
+          var isFB=(r.srv==="t"&&attIdx===0),ph=isFB?"SO":"CA"; // se eles sacaram, nosso 1o ataque E a 1a bola (recepcao marcada ou nao)
+          var X=T.att[ph];X.n++;if(a.oc==="Ponto")X.p++;if(a.oc==="Erro")X.e++;if(a.oc==="Bloq")X.b++;
+          if(A){var Y=A.att[ph];Y.n++;if(a.oc==="Ponto")Y.p++;if(a.oc==="Erro"){Y.e++;A.errs++;}if(a.oc==="Bloq"){Y.b++;A.errs++;}}
+          var pf=(typeof pFind==="function")?pFind(a.pid,gm.id):null;inc(T.dist[ph],(typeof posGroup==="function"?posGroup(pf&&pf.po):"")||"?");
+          if(isFB){S_.fbTry++;if(a.oc==="Ponto")S_.fb++;}
+          if(attIdx===0)firstAtt=a;attIdx++;
+        }
+      });
+      var w=r.winBy;
+      if(r.winner==="u"){T.ptsInf++;
+        if(!w)inc(T.pts,"manual");else if(w.ak==="erroadv")inc(T.pts,"erroadv");else if(w.ak==="saque")inc(T.pts,"ace");else if(w.ak==="bloqueio")inc(T.pts,"bloq");
+        else if(w.ak==="ataque")inc(T.pts,(r.srv==="t"&&w===firstAtt)?"fbso":(r.srv==="t"?"ca_t":"ca_u"));else inc(T.pts,"manual");
+        if(r.srv==="t"&&lastRecepQ)inc(T.soByRecep,lastRecepQ+":w");
+      }else if(r.winner==="t"){
+        if(!w)inc(T.lost,"adv_manual");else if(w.ak==="ataque")inc(T.lost,w.oc==="Bloq"?"ataque_bloq":"ataque_erro");else inc(T.lost,w.ak);
+      }
+      if(r.srv==="t"&&lastRecepQ)inc(T.soByRecep,lastRecepQ+":n");
+    });
+    T.perSet.push(S_);T.rSO+=S_.rSO;T.wSO+=S_.wSO;T.rBP+=S_.rBP;T.wBP+=S_.wBP;T.fb+=S_.fb;T.fbTry+=S_.fbTry;
+  }
+  T.cover=T.ptsReal?T.ptsInf/T.ptsReal:1;
+  T.estimado=!T.exact||T.cover<0.95||T.cover>1.05;
+  T.gen=gen;
+  return T;
+}
+// Legenda (usada no PDF; exportada pra teste)
+var FASES_LEGENDA=[
+  ["Rally","Disputa de um ponto: começa no saque e termina quando alguém pontua."],
+  ["Side-out (SO)","Rally em que o <b>adversário sacou</b> e nós recebemos. SO% = rallies recebendo que ganhamos ÷ rallies recebendo (elite: 65%+)."],
+  ["1ª bola / FBSO","First Ball Side-Out: recepção, levantamento e o <b>primeiro ataque</b> do rally virou ponto. FBSO% = pontos na 1ª bola ÷ 1ªs bolas atacadas. Mede o \"sistema\"."],
+  ["Break point (BP)","Rally em que <b>nós sacamos</b>. BP% = rallies sacando que ganhamos ÷ rallies sacando (40% já é muito bom). Vem de ace, bloqueio, contra-ataque e erro do adversário."],
+  ["Contra-ataque (CA)","Qualquer ataque nosso que não é a 1ª bola do side-out: após defesa, bloqueio que voltou ou ataque anterior \"Cont\". <b>Transição</b> = no rally do saque deles; <b>break</b> = no rally do nosso saque."],
+  ["Kill %","Pontos de ataque ÷ tentativas de ataque."],
+  ["Eficiência","(Pontos − erros − bloqueados) ÷ tentativas. Penaliza quem erra; é o número que melhor compara atacantes."],
+  ["Recepção A / B / C / Erro","A = perfeita (todas as opções de ataque), B = boa, C = ruim (ataque limitado), Erro = ponto direto do adversário."],
+  ["Distribuição do levantamento","Para qual posição foi o ataque após o levantamento, em % das tentativas — medido pelo ataque registrado em seguida."],
+  ["Ponto \"só no +\"","Ponto lançado pelo botão +/− sem ação de jogador registrada (em geral ataque ou ace do adversário). Conta no placar e nas fases, não por fundamento/atleta."],
+  ["Estimado","Jogo gravado no formato antigo (pontos sem hora): os rallies são reconstruídos pela ordem das ações (saque/recepção abre rally; quem saca em seguida ganhou o anterior)."]
+];
+// Secao "Fases do jogo" do PDF da partida (usa as classes .cards/.kpi/table.at/h2/h3 do exGamePDF)
+function _pdfFasesHTML(g){
+  if(!g||!g.act||!g.act.length)return"";
+  var T=fasesStats(g);
+  if(!T.rSO&&!T.rBP)return"";
+  var pct=function(a,b){return b?(Math.round(1000*a/b)/10)+"%":"–";},pr=function(a,b){return b?Math.round(100*a/b)+"%":"–";};
+  var gen=T.gen;var posL=function(c){return c==="?"?"sem posição":(typeof posLabel==="function"?posLabel(c,gen):c);};
+  var h="<h2>Fases do jogo"+(T.estimado?" <span style=\"font-size:10px;color:#b45309;background:#fef3c7;border-radius:5px;padding:1px 6px;vertical-align:middle\">estimado"+(T.exact?"":" · formato antigo")+" · cobertura "+Math.round(100*T.cover)+"%</span>":"")+"</h2>";
+  h+="<div class=cards>";
+  h+="<div class=kpi><div class=v>"+pr(T.wSO,T.rSO)+"</div><div class=k>Side-out (SO%) · "+T.wSO+" de "+T.rSO+"</div></div>";
+  h+="<div class=kpi><div class=v>"+pr(T.fb,T.fbTry)+"</div><div class=k>1ª bola (FBSO%) · "+T.fb+" de "+T.fbTry+"</div></div>";
+  h+="<div class=kpi><div class=v>"+pr(T.wBP,T.rBP)+"</div><div class=k>Break point (BP%) · "+T.wBP+" de "+T.rBP+"</div></div>";
+  h+="<div class=kpi><div class=v style=\"color:#059669\">"+T.blk.p+"</div><div class=k>Pontos de bloqueio</div></div>";
+  h+="</div>";
+  // por set
+  h+="<h3>Por set</h3><table class=at><thead><tr><th>Set</th><th class=c>Placar</th><th class=c>Rallies</th><th class=c>Recebendo (ganhos/rallies)</th><th class=c>SO%</th><th class=c>1ª bola</th><th class=c>FBSO%</th><th class=c>Sacando (ganhos/rallies)</th><th class=c>BP%</th></tr></thead><tbody>";
+  T.perSet.forEach(function(s){h+="<tr><td>Set "+s.set+"</td><td class=c>"+esc(s.score)+"</td><td class=c>"+s.rallies+"</td><td class=c>"+s.wSO+" / "+s.rSO+"</td><td class=c><b>"+pct(s.wSO,s.rSO)+"</b></td><td class=c>"+s.fb+" / "+s.fbTry+"</td><td class=c>"+pct(s.fb,s.fbTry)+"</td><td class=c>"+s.wBP+" / "+s.rBP+"</td><td class=c><b>"+pct(s.wBP,s.rBP)+"</b></td></tr>";});
+  h+="<tr style=\"background:#e2e8f0;font-weight:800\"><td>Total</td><td class=c></td><td class=c>"+T.perSet.reduce(function(n,s){return n+s.rallies;},0)+"</td><td class=c>"+T.wSO+" / "+T.rSO+"</td><td class=c>"+pct(T.wSO,T.rSO)+"</td><td class=c>"+T.fb+" / "+T.fbTry+"</td><td class=c>"+pct(T.fb,T.fbTry)+"</td><td class=c>"+T.wBP+" / "+T.rBP+"</td><td class=c>"+pct(T.wBP,T.rBP)+"</td></tr></tbody></table>";
+  // origem / perda dos pontos (barras)
+  var bars=function(keys,src,cls){var tot=0,mx=0;keys.forEach(function(k){tot+=src[k]||0;if((src[k]||0)>mx)mx=src[k];});var o="";keys.slice().sort(function(a,b){return (src[b]||0)-(src[a]||0);}).forEach(function(k){var v=src[k]||0;if(!v)return;o+="<div class=\"fbar "+cls+"\"><div class=fl>"+_fasesLabel(k)+"</div><div class=fb style=\"width:"+Math.round(40*v/mx)+"%\"></div><div class=fv>"+v+"</div></div>";});return {html:o,tot:tot};};
+  var bp=bars(FASES_PTS,T.pts,"pos"),bl=bars(FASES_LOST,T.lost,"neg");
+  h+="<div class=charts><div class=chart style=\"text-align:left\"><div class=ct>De onde vieram os nossos "+bp.tot+" pontos</div>"+bp.html+"</div>";
+  h+="<div class=chart style=\"text-align:left\"><div class=ct>Como perdemos "+bl.tot+" pontos</div>"+bl.html+"</div></div>";
+  // ataque por fase
+  var aro=function(l,A){return "<tr><td>"+l+"</td><td class=c>"+A.n+"</td><td class=c><b>"+A.p+"</b></td><td class=c>"+pct(A.p,A.n)+"</td><td class=c>"+A.e+"</td><td class=c>"+A.b+"</td><td class=c><b>"+pct(A.p-A.e-A.b,A.n)+"</b></td></tr>";};
+  var tot={n:T.att.SO.n+T.att.CA.n,p:T.att.SO.p+T.att.CA.p,e:T.att.SO.e+T.att.CA.e,b:T.att.SO.b+T.att.CA.b};
+  h+="<h3>Ataque por fase</h3><table class=at><thead><tr><th>Fase</th><th class=c>Tent.</th><th class=c>Pontos</th><th class=c>Kill %</th><th class=c>Erros</th><th class=c>Bloq.</th><th class=c>Eficiência</th></tr></thead><tbody>"+aro("Side-out (1ª bola após recepção)",T.att.SO)+aro("Contra-ataque (após defesa / bola que voltou)",T.att.CA)+aro("<b>Total</b>",tot)+"</tbody></table>";
+  // distribuicao do levantamento
+  var nSO=0,nCA=0,k;for(k in T.dist.SO)nSO+=T.dist.SO[k];for(k in T.dist.CA)nCA+=T.dist.CA[k];
+  h+="<h3>Distribuição do levantamento (para quem foi o ataque)</h3><table class=at><thead><tr><th>Posição</th><th class=c>Side-out</th><th class=c>%</th><th class=c>Contra-ataque</th><th class=c>%</th></tr></thead><tbody>";
+  ["pon","cen","opo","lev","lib","?"].forEach(function(c){var a=T.dist.SO[c]||0,b=T.dist.CA[c]||0;if(!a&&!b)return;h+="<tr><td>"+esc(posL(c))+"</td><td class=c>"+a+"</td><td class=c><b>"+pct(a,nSO)+"</b></td><td class=c>"+b+"</td><td class=c><b>"+pct(b,nCA)+"</b></td></tr>";});
+  h+="<tr style=\"background:#e2e8f0;font-weight:800\"><td>Total</td><td class=c>"+nSO+"</td><td class=c>100%</td><td class=c>"+nCA+"</td><td class=c>100%</td></tr></tbody></table>";
+  // recepcao -> SO%
+  var rq=["A","B","C","Erro"].filter(function(q){return T.recep[q];});
+  if(rq.length){h+="<h3>Recepção e side-out</h3><table class=at><thead><tr><th>Recepção</th><th class=c>Qtd</th><th class=c>SO% quando a recepção foi assim</th></tr></thead><tbody>";
+    rq.forEach(function(q){h+="<tr><td>"+q+"</td><td class=c>"+T.recep[q]+"</td><td class=c><b>"+pct(T.soByRecep[q+":w"]||0,T.soByRecep[q+":n"]||0)+"</b> ("+(T.soByRecep[q+":w"]||0)+"/"+(T.soByRecep[q+":n"]||0)+")</td></tr>";});h+="</tbody></table>";}
+  // por atleta
+  var rows=[];for(k in T.ath){var A=T.ath[k];if(A.att.SO.n+A.att.CA.n+A.blkP+A.srv+A.lev+A.def+Object.keys(A.recep).length===0)continue;rows.push(A);}
+  rows.sort(function(x,y){return (y.att.SO.n+y.att.CA.n)-(x.att.SO.n+x.att.CA.n);});
+  if(rows.length){
+    var f=function(A){return A.n?(A.p+"/"+A.n+" <small>("+pct(A.p,A.n)+")</small>"):"–";};
+    h+="<h3>Por atleta</h3><table class=at><thead><tr><th class=c>#</th><th>Atleta</th><th>Posição</th><th class=c>Ataque side-out</th><th class=c>Ataque contra-ataque</th><th class=c>Bloq.</th><th class=c>Saques (ace/erro)</th><th class=c>Recepção A·B·C·E</th><th class=c>Erros</th></tr></thead><tbody>";
+    rows.forEach(function(A){var pf=(typeof pFind==="function")?pFind(A.pid,g.id):null;var rc=A.recep;var rcs=Object.keys(rc).length?((rc.A||0)+"·"+(rc.B||0)+"·"+(rc.C||0)+"·"+(rc.Erro||0)):"–";
+      h+="<tr><td class=num>"+(pf&&pf.nu!=null&&pf.nu!==""?pf.nu:"–")+"</td><td class=nome>"+esc(pf?String(pf.nm).split(" ")[0]:A.pid)+"</td><td>"+esc(pf&&pf.po?pf.po:"–")+"</td><td class=c>"+f(A.att.SO)+"</td><td class=c>"+f(A.att.CA)+"</td><td class=c>"+A.blkP+"</td><td class=c>"+(A.srv?(A.srv+" <small>("+A.ace+"/"+A.srvErr+")</small>"):"–")+"</td><td class=c>"+rcs+"</td><td class=\"c err\">"+A.errs+"</td></tr>";});
+    h+="</tbody></table>";
+  }
+  // legenda
+  h+="<h3>Legenda</h3><table class=at><tbody>";
+  FASES_LEGENDA.forEach(function(L){if(L[0]==="Estimado"&&!T.estimado)return;h+="<tr><td class=nome style=\"width:150px\">"+L[0]+"</td><td>"+L[1]+"</td></tr>";});
+  h+="</tbody></table>";
+  var manual=(T.pts.manual||0),advm=(T.lost.adv_manual||0);
+  if(manual||advm)h+="<div style=\"font-size:9px;color:#94a3b8;margin-top:4px\">Qualidade do dado: "+manual+" ponto(s) nosso(s) e "+advm+" do adversário entraram só pelo \"+\" (sem ação registrada).</div>";
+  return h;
+}
 function exGamePDF(gid){
   var g=gF(gid);
   if(!g||!g.act||!g.act.length){alert("Este jogo ainda nao tem acoes registradas.");return;}
@@ -8805,6 +8984,7 @@ function exGamePDF(gid){
     +".charts{display:flex;gap:14px;margin-bottom:8px}.chart{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;text-align:center}.chart .ct{font-size:11px;font-weight:800;color:#0f172a;margin-bottom:8px}.chart svg{display:block;margin:0 auto}.chart .lg{margin-top:8px;text-align:left;font-size:9px;display:inline-block}.chart .lgi{display:flex;align-items:center;gap:5px;margin:2px 0;color:#334155}.chart .lgi small{color:#94a3b8}.chart .dot{width:9px;height:9px;border-radius:2px;flex:none}"
     +".eff{margin-left:auto;font-weight:800;color:#1d4ed8;font-size:10px;background:#eff6ff;border-radius:5px;padding:1px 6px}"
     +".ft{margin-top:24px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between}"
+    +".fbar{display:flex;align-items:center;gap:6px;font-size:9.5px;margin:3px 0}.fbar .fl{flex:0 0 58%}.fbar .fb{height:10px;border-radius:3px;background:#059669;min-width:2px}.fbar.neg .fb{background:#dc2626}.fbar .fv{font-weight:800;min-width:18px}"
     +"@media print{body{font-size:11px}.wrap{padding:0}h2{page-break-after:avoid}table.at{page-break-inside:auto}table.at tr{page-break-inside:avoid}}";
   var ph="<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>"+esc(teamName)+" vs "+esc(g.opp)+"</title><style>"+css+"</style></head><body><div class=wrap>";
   // cabecalho
@@ -8826,6 +9006,8 @@ function exGamePDF(gid){
   ph+=pdfChartsHTML(g);
   // sequencia de pontos (ladder)
   ph+=_pdfLadderHTML(g);
+  // fases do jogo: side-out / break / contra-ataque (motor fasesStats)
+  ph+=_pdfFasesHTML(g);
   // tabela geral
   ph+="<h2>Resumo da partida \u2014 por atleta</h2>";
   if(g.tidB){

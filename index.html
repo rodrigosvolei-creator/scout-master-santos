@@ -737,6 +737,10 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .sc-sb-plus{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.4)}
 .sc-sb-minus{background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12)}
 .sc-sets{text-align:center;font-size:11px;color:#94a3b8;padding:0 16px 12px;position:relative;z-index:1}
+.sc-srv0{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;font-size:11px;color:#94a3b8;padding:0 16px 12px;position:relative;z-index:1}
+.sc-srv0 button{font:inherit;font-weight:700;font-size:11px;padding:3px 11px;border-radius:999px;border:1px solid #475569;background:transparent;color:#cbd5e1;cursor:pointer;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-srv0 button.on{background:#f5b81f;color:#0f172a;border-color:#f5b81f}
+.sc-srv0 i{font-style:normal;color:#fbbf24}
 .sc-sets .chip{display:inline-block;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:3px 9px;margin:0 3px;font-weight:700}
 .sc-sets .chip.cur{background:rgba(251,191,36,.16);border-color:rgba(251,191,36,.4);color:#fbbf24}
 /* barra de controles */
@@ -923,6 +927,12 @@ body.rs-shell .app-content .sc-arena-court .sc-board{top:104px}
 .sct-ob{border:none;border-radius:7px;padding:13px 4px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;line-height:1.1;font-family:inherit}
 .sct-ob:active{transform:scale(.95)}
 .sct-ctrls{display:flex;flex-direction:column;gap:7px}
+.sct-srv0{border:1px solid #334155;border-radius:10px;padding:6px 8px;font-size:11px;color:#94a3b8}
+.sct-srv0.miss{border-color:#f59e0b}
+.sct-srv0>span{display:block;margin-bottom:4px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:10px}
+.sct-srv0>div{display:flex;gap:5px}
+.sct-srv0 button{flex:1;font:inherit;font-weight:700;font-size:11px;padding:5px 6px;border-radius:8px;border:1px solid #475569;background:transparent;color:#cbd5e1;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sct-srv0 button.on{background:#f5b81f;color:#0f172a;border-color:#f5b81f}
 .sct-ctl{background:#16213c;border:1px solid #243049;border-radius:9px;color:#cbd5e1;padding:11px 10px;font-size:13px;cursor:pointer;text-align:left;width:100%;font-family:inherit}
 .sct-ctl-back{border-color:#2563eb;color:#93c5fd;font-weight:700}
 .sct-erradv{width:100%;margin-top:8px;padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(22,163,74,.35)}
@@ -1337,7 +1347,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-21g - PARA QUEM FOI A BOLA por fase: no PDF Partida e no Relatorio visual, a distribuicao do levantamento sai separada em ataque de side-out x contra-ataque, por funcao (ataques, % da fase, pontos/kill) e por atleta (ataques, %, pontos); 21f - NOMENCLATURA das fases (Rodrigo): side-out = o 1o ataque vindo da recepcao (era \"1a bola/FBSO\"); qualquer outro ataque e contra-ataque (no break: nos sacamos -> defesa ou bloqueio -> ataque; em transicao: saque deles, depois do side-out); metricas de rally rotuladas \"rallies recebendo (side-out %)\" / \"rallies sacando (break %)\"; recepcao marcada em rally do nosso saque e tratada como defesa (contada no relatorio); 21e - contra-ataque dividido em no break (nos sacamos) x em transicao (eles sacaram) nas tabelas de ataque por fase; legenda BP/CA reescrita; 21d - FASES DO JOGO tambem no Relatorio visual (exTeamReport), no design dele (cards, KPIs, leitura escrita, barras, por atleta, legenda); 21c - FASES DO JOGO no layout do relatorio avulso (faixa, KPIs, leitura escrita gerada dos numeros, barras, metodo, legenda), paginas proprias no fim do PDF da partida; 21b - PDF da partida ganha FASES DO JOGO: side-out %, 1a bola (FBSO), break point %, origem dos pontos, ataque e distribuicao do levantamento por fase, recepcao x side-out, por atleta, legenda (motor rallyModel/fasesStats); 21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
+var APP_BUILD="2026-09-21h - MARCACAO pra analise por rotacao nos proximos jogos: (1) quem sacou primeiro no set (ss[i].srv0) — chip \"Saque inicial\" na mesa (classico e tablet), automatico na 1a acao do set (saque/recepcao a 0-0) e ao escalar no modo quadra; rallyModel usa; (2) historico de TODAS as edicoes da quadra (courtHist/{set}/{key}: escalar, rodar, libero, substituicao com in/out) — court/{set} guarda so a ultima base; 21g - PARA QUEM FOI A BOLA por fase: no PDF Partida e no Relatorio visual, a distribuicao do levantamento sai separada em ataque de side-out x contra-ataque, por funcao (ataques, % da fase, pontos/kill) e por atleta (ataques, %, pontos); 21f - NOMENCLATURA das fases (Rodrigo): side-out = o 1o ataque vindo da recepcao (era \"1a bola/FBSO\"); qualquer outro ataque e contra-ataque (no break: nos sacamos -> defesa ou bloqueio -> ataque; em transicao: saque deles, depois do side-out); metricas de rally rotuladas \"rallies recebendo (side-out %)\" / \"rallies sacando (break %)\"; recepcao marcada em rally do nosso saque e tratada como defesa (contada no relatorio); 21e - contra-ataque dividido em no break (nos sacamos) x em transicao (eles sacaram) nas tabelas de ataque por fase; legenda BP/CA reescrita; 21d - FASES DO JOGO tambem no Relatorio visual (exTeamReport), no design dele (cards, KPIs, leitura escrita, barras, por atleta, legenda); 21c - FASES DO JOGO no layout do relatorio avulso (faixa, KPIs, leitura escrita gerada dos numeros, barras, metodo, legenda), paginas proprias no fim do PDF da partida; 21b - PDF da partida ganha FASES DO JOGO: side-out %, 1a bola (FBSO), break point %, origem dos pontos, ataque e distribuicao do levantamento por fase, recepcao x side-out, por atleta, legenda (motor rallyModel/fasesStats); 21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -2449,7 +2459,13 @@ function _gmUpdate(gm,up){
 }
 // Grava a BASE da quadra de UM set (court/{set}) — escalar, rodar manual, libero, substituicao.
 // O estado local (derivado) ja tem `after` = ultimo ponto conhecido, entao vira a base nova.
-function _gmUpdateCourt(gm,setKey,cs){var up={};up["court/"+setKey]=cs?_gmCourtOut(cs):null;return _gmUpdate(gm,up);}
+function _gmUpdateCourt(gm,setKey,cs,kind,extra,moreUp){var up={};up["court/"+setKey]=cs?_gmCourtOut(cs):null;
+  // HISTORICO das edicoes manuais (courtHist/{set}/{key}): a base e sobrescrita a cada edicao; o historico
+  // (escalar, rodar, libero, substituicao com in/out) e o que permite reconstruir a rotacao depois.
+  if(cs){var hk=uid("h"),he=_gmCourtOut(cs);he.kind=kind||"edit";he.at=Date.now();he.dev=_gmDev();if(extra){for(var q in extra)if(extra[q]!=null)he[q]=extra[q];}
+    if(!gm.courtHist||typeof gm.courtHist!=="object")gm.courtHist={};var sk=String(setKey);if(!gm.courtHist[sk])gm.courtHist[sk]={};gm.courtHist[sk][hk]=he;up["courtHist/"+sk+"/"+hk]=he;}
+  if(moreUp)for(var m in moreUp)up[m]=moreUp[m];
+  return _gmUpdate(gm,up);}
 // Identidade do APARELHO (a mesma do treino): carimba a acao (a.dev) pra saber de qual tablet
 // veio. O "desfazer" do jogo ja e por aparelho (pilha S.us e local) — so tira o que ESTE gravou.
 function _gmDev(){return _trnDev();}
@@ -5361,6 +5377,9 @@ if(gm.ss&&gm.ss.length>1){
   for(var j=0;j<gm.ss.length;j++)h+='<span class="chip'+(j+1===S.cs?' cur':'')+'">'+gm.ss[j].u+'-'+gm.ss[j].t+'</span>';
   h+='</div>';
 }
+// saque inicial do set (quem sacou primeiro) — marcacao explicita; a analise por rotacao depende disso
+if(gm.st==="live"&&!locked&&!gm.tidB&&gm.ss&&gm.ss[S.cs-1]){var _s0v=(cur.srv0==="u"||cur.srv0==="t")?cur.srv0:null;
+  h+='<div class="sc-srv0"><span>Saque inicial \u00b7 set '+S.cs+'</span><button class="'+(_s0v==="u"?'on':'')+'" onclick="setSrv0(\'u\')">'+esc(nmRS||"RS")+'</button><button class="'+(_s0v==="t"?'on':'')+'" onclick="setSrv0(\'t\')">'+esc(nmAdv)+'</button>'+(_s0v?'':'<i>quem sacou primeiro?</i>')+'</div>';}
 // controles de jogo. No modo quadra com jogo rolando, NAO renderiza aqui \u2014
 // vao pro menu "\u22EF Mais" da linha de controles da quadra (courtRenderPanel).
 var _skipArenaCtrls = gm.courtMode && gm.st!=="pending" && !locked;
@@ -7109,8 +7128,9 @@ function resetSet(){
     confirmStyle:"bd",
     onConfirm:function(){
       var si=S.cs-1,s=gm.ss[si];s.u=0;s.t=0;s.sq=[];s.sqk=[];
-      var up={};up["ss/"+si+"/u"]=0;up["ss/"+si+"/t"]=0;up["ss/"+si+"/sq"]=null;
+      var up={};up["ss/"+si+"/u"]=0;up["ss/"+si+"/t"]=0;up["ss/"+si+"/sq"]=null;delete s.srv0;up["ss/"+si+"/srv0"]=null;
       if(gm.courtMode&&gm.court){delete gm.court[String(S.cs)];up["court/"+S.cs]=null;}
+      if(gm.courtHist&&gm.courtHist[String(S.cs)])delete gm.courtHist[String(S.cs)];up["courtHist/"+S.cs]=null;
       S.sp=null;S.sa=null;
       toast("Set "+S.cs+" zerado","ok");
       _gmUpdate(gm,up);
@@ -7446,7 +7466,10 @@ function courtConfirmSetup(){
   // base nova: pontos ja marcados neste set (se houver) NAO rodam a escalacao recem-declarada
   gm.court[_cset]={pos:_courtDraft.pos.slice(),serving:_courtDraft.serving,libPair:null,after:_sqLastKey(gm,parseInt(_cset,10)||S.cs)};
   _courtDraft=null;
-  _gmUpdateCourt(gm,_cset,gm.court[_cset]);
+  // set ainda 0-0: quem saca na escalacao e quem sacou primeiro no set (ss[i].srv0)
+  var _more={},_si0=(parseInt(_cset,10)||S.cs)-1,_st0=gm.ss&&gm.ss[_si0];
+  if(_st0&&!(_st0.sq&&_st0.sq.length)){_st0.srv0=(gm.court[_cset].serving==="us")?"u":"t";_more["ss/"+_si0+"/srv0"]=_st0.srv0;}
+  _gmUpdateCourt(gm,_cset,gm.court[_cset],"setup",null,_more);
   render();
 }
 // Rotacao manual (rede de seguranca). dir>0 horario, dir<0 anti-horario.
@@ -7455,7 +7478,7 @@ function courtManualRotate(dir){
   var k=String(S.cs); var cs=gm.court[k]; if(!cs||!cs.pos)return;
   cs.pos = dir>0 ? rotateCourt(cs.pos) : rotateCourtBack(cs.pos);
   var fixed=courtLiberoExit(cs); cs.pos=fixed.pos; cs.libPair=fixed.libPair; // libero sai se foi pra frente
-  _gmUpdateCourt(gm,k,cs);
+  _gmUpdateCourt(gm,k,cs,dir>0?"rotate":"rotate-back");
   render();
 }
 // Trocar atleta (em quadra) pelo libero do banco, em 1 toque. Amarra o par desta entrada.
@@ -7471,7 +7494,7 @@ function courtLiberoSwap(aid){
   cs.pos[idx]=libero.id;
   cs.libPair={lib:libero.id,out:aid}; // par desta entrada (dinamico)
   S.sp=null;
-  _gmUpdateCourt(gm,S.cs,cs);
+  _gmUpdateCourt(gm,S.cs,cs,"libero",{"in":libero.id,out:aid});
   render();
   var saiu=_gpFind(gp,aid);
   if(typeof toast==='function')toast("🦺 Líbero entrou no lugar de #"+(saiu?saiu.nu:"?"),"ok");
@@ -7642,12 +7665,13 @@ function courtSubDoIn(inAid){
   var gm=gF(S.aid); if(!gm)return; var cs=gm.court[String(S.cs)]; if(!cs)return;
   var idx=cs.pos.indexOf(_courtSubOut);
   if(idx<0){closeCourtSub();return;}
+  var _outAid=_courtSubOut;
   cs.pos[idx]=inAid;                 // entra mantendo a posicao
   // Frente C: trocou o sacador (P1) com nosso saque? o novo ja fica pronto pra sacar
   if(idx===0 && cs.serving==="us"){ S.sp=inAid; S.sa="saque"; }
   else if(S.sp===_courtSubOut){ S.sp=null; } // se o que saiu estava selecionado, limpa
   _courtSubOut=null;
-  _gmUpdateCourt(gm,S.cs,cs); // granular: substituicao no meio do set nao reescreve o jogo inteiro
+  _gmUpdateCourt(gm,S.cs,cs,"sub",{"in":inAid,out:_outAid}); // granular: substituicao no meio do set nao reescreve o jogo inteiro
   closeCourtSub();
   render();
   if(typeof toast==='function')toast("Substituição feita","ok");
@@ -7661,6 +7685,9 @@ var scSide=autoScoreSide(S.sa,oc);
 if(gm.tidB && a.side==="B" && scSide) scSide=(scSide==="u")?"t":"u"; // lado B: ss.u=casa, ss.t=B
 // C2: escrita GRANULAR — so act/{aid}, o contador do set (increment) e a entrada nova do sq
 var up={},sqk=null;up["act/"+a.id]=a;
+// quem sacou primeiro no set (ss[i].srv0): se a mesa nao marcou e esta e a 1a acao do set (0-0, sem acoes),
+// saque = nos sacamos, recepcao = eles sacaram. O chip da mesa continua podendo corrigir.
+if(!gm.tidB&&gm.ss&&gm.ss[S.cs-1]){var _s0=gm.ss[S.cs-1];if(_s0.srv0!=="u"&&_s0.srv0!=="t"&&(a.ak==="saque"||a.ak==="recepcao")&&!(_s0.sq&&_s0.sq.length)&&!(gm.act||[]).some(function(x){return x&&x.set===S.cs;})){_s0.srv0=(a.ak==="saque")?"u":"t";up["ss/"+(S.cs-1)+"/srv0"]=_s0.srv0;}}
 if(scSide&&gm.ss&&gm.ss[S.cs-1]){if(scSide==="u")gm.ss[S.cs-1].u++;else gm.ss[S.cs-1].t++;sqk=_sqPush(gm,scSide);up["ss/"+(S.cs-1)+"/"+scSide]=_inc(1);if(sqk)up["ss/"+(S.cs-1)+"/sq/"+sqk]=scSide;}
 // Q2: rotacao automatica (no-op fora do modo quadra). Guarda snapshot pra o undo reverter.
 var _courtSnap=scSide?courtRegisterPoint(scSide):null; // quadra derivada do sq: nada a gravar
@@ -7793,14 +7820,14 @@ function sctLibArm(aid){_sctLibArmed=(_sctLibArmed===aid)?null:aid;render();}
 function sctLibIn(idx){
   var gm=gF(S.aid);if(!gm||!gm.court)return;var cs=gm.court[String(S.cs)];if(!cs||!cs.pos||!_sctLibArmed)return;
   if(!_sctIsFundo(idx)){if(typeof toast==="function")toast("Líbero só entra no fundo (P1/P5/P6)","error");return;}
-  cs.libPair={lib:_sctLibArmed,out:cs.pos[idx]};cs.pos[idx]=_sctLibArmed;S.sp=cs.pos[idx];_sctLibArmed=null;
-  _gmUpdateCourt(gm,S.cs,cs);render(); // granular (C2): libero no meio do set nao reescreve o banco
+  var _li={"in":_sctLibArmed,out:cs.pos[idx]};cs.libPair={lib:_sctLibArmed,out:cs.pos[idx]};cs.pos[idx]=_sctLibArmed;S.sp=cs.pos[idx];_sctLibArmed=null;
+  _gmUpdateCourt(gm,S.cs,cs,"libero",_li);render(); // granular (C2): libero no meio do set nao reescreve o banco
 }
 function sctLibOut(){
   var gm=gF(S.aid);if(!gm||!gm.court)return;var cs=gm.court[String(S.cs)];if(!cs||!cs.libPair)return;
-  var li=cs.pos.indexOf(cs.libPair.lib);if(li>=0)cs.pos[li]=cs.libPair.out;
+  var _lo={"in":cs.libPair.out,out:cs.libPair.lib};var li=cs.pos.indexOf(cs.libPair.lib);if(li>=0)cs.pos[li]=cs.libPair.out;
   if(S.sp===cs.libPair.lib)S.sp=null;cs.libPair=null;
-  _gmUpdateCourt(gm,S.cs,cs);render();
+  _gmUpdateCourt(gm,S.cs,cs,"libero-out",_lo);render();
 }
 function sctTapAthlete(aid,idx){if(_sctLibArmed){sctLibIn(idx);return;}slP(aid);}
 function sctRenderLiberos(gm,gp,cs){
@@ -7974,6 +8001,8 @@ function rSctTablet(gm,gp,te){
   h+='<button class="sct-ctl sct-ctl-back" onclick="scoutBack()">← Voltar aos jogos</button>';
   h+='<button class="sct-ctl" onclick="sctTimeout()">⏱ Timeout</button>';
   h+='<button class="sct-ctl" onclick="undo()">↩ Desfazer</button>';
+  var _s0t=(gm.ss&&gm.ss[S.cs-1]&&(gm.ss[S.cs-1].srv0==="u"||gm.ss[S.cs-1].srv0==="t"))?gm.ss[S.cs-1].srv0:null;
+  h+='<div class="sct-srv0'+(_s0t?'':' miss')+'"><span>Saque inicial · set '+S.cs+'</span><div><button class="'+(_s0t==="u"?'on':'')+'" onclick="setSrv0(\'u\')">'+esc(nmRS||"RS")+'</button><button class="'+(_s0t==="t"?'on':'')+'" onclick="setSrv0(\'t\')">'+esc(nmAdv)+'</button></div></div>';
   h+='<button class="sct-ctl" onclick="nxS()">▶ Próximo set</button>';
   h+='<button class="sct-ctl" onclick="courtMoreMenu(\''+gm.id+'\')">⋯ Mais</button>';
   h+='</div><div class="sct-feedbox"><div class="sct-lbl" style="margin-bottom:5px">Últimas ações</div>';
@@ -8005,6 +8034,9 @@ function rSctTablet(gm,gp,te){
   h+='</div>';
   return h;
 }
+// Quem sacou primeiro no set (ss[i].srv0 = "u"|"t"): marcacao explicita da mesa; tocar de novo desmarca.
+// E o dado que a analise por rotacao (posicao do levantador) precisa e que nao existia no banco.
+function setSrv0(side){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;side=(side==="u")?"u":"t";var si=S.cs-1,st=gm.ss[si];var v=(st.srv0===side)?null:side;if(v===null)delete st.srv0;else st.srv0=v;var up={};up["ss/"+si+"/srv0"]=v;_gmUpdate(gm,up);render();}
 function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(setIsOver(gm,S.cs)){_setEndBlock();return;}who=(who==="u")?"u":"t";var si=S.cs-1,up={};if(who==="u")gm.ss[si].u++;else gm.ss[si].t++;var sqk=_sqPush(gm,who);up["ss/"+si+"/"+who]=_inc(1);if(sqk)up["ss/"+si+"/sq/"+sqk]=who;var _snap=courtRegisterPoint(who);S.us.push({manual:true,sc:who,set:S.cs,sqk:sqk,court:_snap});courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");_gmUpdate(gm,up);render();}
 // Ponto do NOSSO time por ERRO DO ADVERSARIO (saque na rede, ataque fora, etc). Independe de
 // marcar a acao da outra equipe: 1 toque sobe o placar (sem precisar do +/-), roda a quadra
@@ -8107,7 +8139,7 @@ function delLastSet(){
     if(typeof toast==="function")toast("O set "+idx+" tem placar/ações — não dá pra remover","error");
     return;
   }
-  var apply=function(){gm.ss.pop();var up={};up["ss/"+(idx-1)]=null;if(gm.courtMode&&gm.court){delete gm.court[String(idx)];up["court/"+idx]=null;}S.cs=gm.ss.length;S.sp=null;S.sa=null;if(typeof toast==="function")toast("Set "+idx+" removido — voltou pro set "+gm.ss.length,"ok");_gmUpdate(gm,up);render();};
+  var apply=function(){gm.ss.pop();var up={};up["ss/"+(idx-1)]=null;if(gm.courtMode&&gm.court){delete gm.court[String(idx)];up["court/"+idx]=null;}if(gm.courtHist&&gm.courtHist[String(idx)])delete gm.courtHist[String(idx)];up["courtHist/"+idx]=null;S.cs=gm.ss.length;S.sp=null;S.sa=null;if(typeof toast==="function")toast("Set "+idx+" removido — voltou pro set "+gm.ss.length,"ok");_gmUpdate(gm,up);render();};
   if(typeof confirmModal==="function")confirmModal({title:"REMOVER SET "+idx,body:"Remove o set <b>"+idx+"</b> (está 0-0, sem ações) e volta pro set "+(idx-1)+".<br><span style=\"color:var(--gray);font-size:12px\">Os sets jogados e as ações não são afetados.</span>",confirmLabel:"Remover set",confirmStyle:"bd",onConfirm:apply});
   else apply();
 }
@@ -8701,6 +8733,7 @@ function exTreinoResumoPDF(trId){
    - break point (BP): rally em que NOS sacamos. BP% = ganhos / rallies sacando.
    - contra-ataque (CA): qualquer ataque que nao e a 1a bola do side-out (apos defesa, bloqueio que
      voltou ou ataque anterior "Cont"): "transicao" no rally deles, "break" no rally nosso.
+   1o rally do set: ss[i].srv0 (quem sacou primeiro, marcado na mesa) manda; senao 1a acao, base da quadra, alternancia.
    Formato novo (sq com timestamp p<ms>, C2): rally EXATO = trecho entre 2 pontos, casando a hora
    das acoes (a<ms>) com a dos pontos. Formato antigo (sq sem hora): novo rally em saque/recepcao
    nossos ou apos acao que pontua; vencedor pela acao ou por quem sacou em seguida (ESTIMADO). */
@@ -8731,6 +8764,7 @@ function rallyModel(gm){
       if(cur.acts.length)rallies.push(cur); // rally aberto (ponto ainda nao lancado)
       for(i=0;i<rallies.length;i++){r=rallies[i];
         if(i===0){var f=r.acts[0];r.srv=f?(f.ak==="saque"?"u":f.ak==="recepcao"?"t":(f.ak==="defesa"||f.ak==="bloqueio")?"u":"?"):"?";
+          if(st&&(st.srv0==="u"||st.srv0==="t"))r.srv=st.srv0; // marcado na mesa: manda
           // sem saque/recepcao marcados: quem sacou no inicio do set pela BASE da quadra (so se ela e do inicio do set)
           var cb=gm.court&&gm.court[String(setNum)];if(r.srv==="?"&&cb&&!cb._baseAfter&&(cb._baseServing||cb.serving))r.srv=((cb._baseServing||cb.serving)==="us")?"u":"t";}
         else r.srv=rallies[i-1].winner||"?";
@@ -8742,6 +8776,7 @@ function rallyModel(gm){
         if(!cur||starts||cur.done){cur={acts:[],srv:a.ak==="saque"?"u":a.ak==="recepcao"?"t":(a.ak==="defesa"||a.ak==="bloqueio")?"u":"?",winner:null,winBy:null,done:false};rallies.push(cur);}
         cur.acts.push(a);var sc=_fasesScore(a);if(sc){cur.winner=sc;cur.winBy=a;cur.done=true;}
       }
+      if(rallies.length&&st&&(st.srv0==="u"||st.srv0==="t"))rallies[0].srv=st.srv0; // marcado na mesa: manda
       for(i=0;i<rallies.length;i++){r=rallies[i];if(!r.winner){var nx=rallies[i+1];if(nx&&nx.srv==="u")r.winner="u";else if(nx&&nx.srv==="t")r.winner="t";}}
       // rally que comeca sem saque/recepcao (ex: so "erro adversario"): quem saca e quem ganhou o anterior
       for(i=1;i<rallies.length;i++){if(rallies[i].srv==="?"&&rallies[i-1].winner)rallies[i].srv=rallies[i-1].winner;}

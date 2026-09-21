@@ -112,6 +112,15 @@ jeito. Campos internos (`_legacy`, `_actN`, `sqk`, `_sqN`) nunca vão pro banco.
 > Base do formato antigo (sem `after`) já tem todos os pontos legados aplicados: `after` é
 > inferido = última chave sintética do set e pinado no banco na conversão (`_courtAfterFix`).
 
+> **Marcação pra análise por rotação (21/09/2026, build 21h):** `ss[i].srv0` = quem sacou primeiro no set
+> (`"u"`/`"t"`) — chip "Saque inicial" na mesa (clássico e tablet, `setSrv0`), inferido na 1ª ação do set
+> (saque/recepção a 0-0 sem ações, em `rcO`) e gravado ao escalar no modo quadra (`courtConfirmSetup`);
+> `rallyModel` usa quando existe. `courtHist/{set}/{key}` = histórico de **todas** as edições manuais da
+> quadra (`kind`: setup / rotate / rotate-back / libero / libero-out / sub, com `in`/`out`, `pos`, `serving`,
+> `libPair`, `after`, `at`, `dev`) — escrito por `_gmUpdateCourt`, porque `court/{set}` guarda só a última
+> base. Zerar/remover set limpa os dois. Teste: `tests/test_srv0_courthist.js`. Isso é o que faltava pra
+> reconstruir a posição do levantador rally a rally sem dedução manual (ver §11).
+
 > **Limites conhecidos do C2:** contadores podem ficar negativos se 2 aparelhos desfazem o
 > mesmo ponto (visível na tela, corrige com "+"). Duas edições manuais de quadra simultâneas:
 > a última grava (é coordenação humana). Versões **misturadas** do app (um tablet ainda no
@@ -279,6 +288,13 @@ houve incidente real de 249 ações perdidas).
 
 ## 11. Pendências conhecidas / roadmap
 
+- **Análise por rotação (posição do levantador P1–P6) no app:** protótipo validado fora do app em
+  21/09/2026 (RS x Fenerbouas; dashboard HTML + PDF pros atletas). Motor = `rallyModel` + regra do
+  `courtApplyPoint` (roda no side-out) + âncora na base da quadra, replay pra frente e `rotateCourtBack`
+  pra trás; substituições vêm do `courtHist`, sacador inicial do `ss[i].srv0` (ambos gravados desde o
+  build 21h). Falta: a seção no Relatório/PDF ("por posição do levantador": recebendo/sacando, para quem
+  foi a bola por fase, quem estava em quadra) e tratar jogos sem modo quadra (só side-out/break por
+  rotação inferida pelos saques). Nomenclatura: 5x1, inversão, ataque de side-out × contra-ataque.
 - **Migração keyed-by-id (C1):** trocar `games/{idx}` por `games/{id}` — fix real do bug
   "grava no jogo errado". Precisa backup + autorização + validação com dados de produção.
   Próximo passo depois que o C2 (escrita granular, 18/09/2026) estiver estável em produção.

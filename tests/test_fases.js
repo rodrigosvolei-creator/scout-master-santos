@@ -170,6 +170,9 @@ setTimeout(()=>{
     chk(r4.indexOf('Por posição do levantador')>=0&&r4.indexOf('fz-sub')>=0&&r4.indexOf('<b>P6</b>')>=0&&r4.indexOf('levantou: Lev')>=0, 'Relatorio visual: mesma secao, com quem levantou');
     chk(h1.indexOf('Sem quadra registrada neste jogo')>=0&&w.reportTeamHTML(w.gF('g1')).indexOf('Sem quadra registrada')>=0, 'jogo sem quadra: aviso no PDF e no Relatorio');
     chk(h4.indexOf('Set(s) sem histórico de trocas')>=0&&w._pdfFasesHTML(g5).indexOf('sem histórico de trocas')<0, 'nota "sem historico de trocas" so no jogo sem courtHist');
+    const h5=w._pdfFasesHTML(g5), r5=w.reportTeamHTML(g5);
+    chk(h5.indexOf('Trocas registradas: 0-0 escalação: P1 Lev · P2 Ponta · P3 Sacador · P4 Def · P5 Oposto · P6 Libero · saque deles · 2-0 entra Lev por Oposto.')>=0, 'PDF: trocas do set com o placar do momento (escalacao 0-0, substituicao no 2-0)');
+    chk(r5.indexOf('2-0 entra Lev por Oposto')>=0&&h4.indexOf('Trocas registradas')<0, 'Relatorio: mesma lista; jogo sem courtHist nao tem a linha');
 
     console.log('\n=== test_fases: '+ok+' OK, '+ko+' FAIL ===');
     process.exit(ko?1:0);

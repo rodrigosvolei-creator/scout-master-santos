@@ -14,6 +14,14 @@
 > "só no +" da análise; depois C1.
 
 
+> **21/09 à noite (sessão das rotações, Opus 5):** builds `21f`…`21h` na `main` (ver `git log`):
+> nomenclatura do Rodrigo nos relatórios (ataque de side-out × contra-ataque; "rallies recebendo/sacando";
+> recepção em rally do nosso saque vira defesa), "Para quem foi a bola, por fase" (por função e atleta,
+> com % e pontos) e a **marcação pra análise por rotação**: `ss[i].srv0` + `courtHist/{set}/{key}`
+> (PROJETO §4). A análise por posição do levantador (P1–P6) existe como protótipo FORA do app
+> (dashboard HTML + PDF pros atletas do jogo Fenerbouas, na memória da sessão); a seção no app é o
+> próximo passo (PROJETO §11). Vocabulário: 5x1 (não 5-1), "inversão" (não 6-2), categoria Adulto.
+
 > Sessão anterior (ASV-SCOUT/Sonnet) só investigou e deixou o plano do **C2**. Esta sessão
 > **implementou o C2 inteiro** (escrita granular no jogo, 2+ aparelhos no mesmo jogo) **e a
 > quadra derivada** (rotação convergente entre tablets — o Rodrigo disse que sem isso não

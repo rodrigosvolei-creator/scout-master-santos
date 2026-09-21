@@ -164,7 +164,7 @@ Torneios standalone configurados em `TOURNEY_ACCESS[token]`: `standalone` (pági
 fundamento), eficiência % por atleta, sequência de pontos por set (só quando é real) e, desde
 21/09/2026, a seção **"Fases do jogo"** (`_pdfFasesHTML`): SO% (side-out), FBSO% (1ª bola),
 BP% (break point), origem/perda dos pontos, ataque e distribuição do levantamento por fase,
-recepção × side-out, por atleta e legenda — e a mesma seção, no design do **Relatório visual** (, , CSS ), que é o relatório de uso do time. Contra-ataque sai dividido em "no break" (nós sacamos) × "em transição" (eles sacaram). Motor puro `rallyModel(gm)` (rally = trecho entre 2
+recepção × side-out, por atleta e legenda — e a mesma seção, no design do **Relatório visual** (`exTeamReport`, `_repFasesHTML`, CSS `.fz-*`), que é o relatório de uso do time. Contra-ataque sai dividido em "no break" (nós sacamos) × "em transição" (eles sacaram). Motor puro `rallyModel(gm)` (rally = trecho entre 2
 pontos do `sq` com hora; sacador = vencedor do anterior) + `fasesStats(gm)`. Jogo no formato
 antigo (sq sem hora) sai com tarja "estimado · cobertura N%" (rallies reconstruídos pela ordem
 das ações). Teste: `tests/test_fases.js`.

@@ -181,6 +181,7 @@ por atleta (`exAthPDF`, `exAllAthPDF`) mantidos como estão.
 >   side-out) ou **no break** (`CAu`: rally em que nós sacamos — depois do nosso saque o primeiro
 >   contato nosso é sempre **defesa ou bloqueio**, nunca recepção; o ataque que vem é contra-ataque).
 > - Side-out e contra-ataque **nunca se confundem**: um ataque é um ou outro.
+> - Sistema de jogo se escreve **5x1** (com x), nunca "5-1" — com hífen parece placar.
 > - As métricas de rally continuam: side-out % = rallies recebendo que ganhamos; break % =
 >   rallies sacando que ganhamos (por ace, bloqueio, contra-ataque ou erro deles). Rotular como
 >   "rallies recebendo (side-out %)" / "rallies sacando (break %)" pra não confundir com o ataque.

@@ -101,7 +101,9 @@ setTimeout(()=>{
     chk(h.indexOf('>60%<')>=0&&h.indexOf('>33%<')>=0&&h.indexOf('>71%<')>=0, 'KPIs SO 60% / FBSO 33% / BP 71%');
     chk(h.indexOf('De onde vieram os nossos 8 pontos')>=0&&h.indexOf('Como perdemos 4 pontos')>=0, 'barras de origem (8) e perdas (4)');
     chk(h.indexOf('Ataque de side-out (1º ataque após a recepção)')>=0&&h.indexOf('Contra-ataque em transi')>=0&&h.indexOf('lançado só no "+"')>=0, 'rotulos das origens');
-    chk(h.indexOf('Distribuição do levantamento')>=0&&h.indexOf('<td>Ponteiro</td>')>=0&&h.indexOf('<td>Oposto</td>')>=0, 'distribuicao por posicao com rotulo masculino (time MASC)');
+    chk(h.indexOf('Para quem foi a bola, por fase')>=0&&h.indexOf('<td>Ponteiro</td>')>=0&&h.indexOf('<td>Oposto</td>')>=0, 'distribuicao por fase com rotulo masculino (time MASC)');
+    chk(T.distPts.SO.pon===1&&T.distPts.CA.pon===2&&T.distPts.CA.opo===1&&!T.distPts.SO.opo, 'pontos por funcao e fase: SO ponteiro 1; CA ponteiro 2 + oposto 1');
+    chk(h.indexOf('Ataque de side-out, por atleta:</b> Ponta #2 3 (100%) · 1 pt')>=0&&h.indexOf('Contra-ataque, por atleta:</b> Ponta #2 2 (67%) · 2 pt · Oposto #6 1 (33%) · 1 pt')>=0&&h.indexOf('<td class=c>1 (33.3%)</td>')>=0, 'por atleta e por fase com % da fase e pontos; kill por funcao na tabela (SO ponteiro 1/3 = 33%)');
     chk(h.indexOf('Recepção, saque, bloqueio e defesa')>=0&&h.indexOf('Side-out % quando a recep')>=0&&h.indexOf('Por atleta')>=0&&h.indexOf('Ponta')>=0&&h.indexOf('Leitura do jogo')>=0&&h.indexOf('Como este relat')>=0, 'leitura do jogo, recepcao/saque/bloqueio/defesa, metodo e tabela por atleta');
     chk(h.indexOf('<h2>Legenda</h2>')>=0&&h.indexOf('Rallies sacando (break %)')>=0&&h.indexOf('Ataque de side-out</td>')>=0&&h.indexOf('FBSO')<0&&h.indexOf('Kill %')>=0&&h.indexOf('>Estimado<')<0&&h.indexOf('class="band"')>=0&&h.indexOf('class="kpis"')>=0, 'faixa + KPIs + legenda na nomenclatura nova (rallies recebendo/sacando, ataque de side-out, contra-ataque, Kill, Eficiencia), sem "FBSO"; sem a entrada "Estimado" no jogo exato');
     const h2=w._pdfFasesHTML(g2);
@@ -115,7 +117,7 @@ setTimeout(()=>{
     chk(rh.indexOf('Fases do jogo')>=0&&rh.indexOf('class="fz"')>=0&&rh.indexOf('Leitura do jogo')>=0, 'reportTeamHTML: secao "Fases do jogo" + leitura escrita');
     chk(rh.indexOf('Rallies recebendo (side-out %)')>=0&&rh.indexOf('Ataque de side-out')>=0&&rh.indexOf('1ª bola')<0&&rh.indexOf('>60%<')>=0&&rh.indexOf('>33%<')>=0&&rh.indexOf('>71%<')>=0, 'KPIs SO 60 / FBSO 33 / BP 71 (mesmo motor)');
     chk(rh.indexOf('fz-bar fz-pos')>=0&&rh.indexOf('fz-bar fz-neg')>=0&&rh.indexOf('fz-bar pos')<0, 'barras com classes proprias (sem colidir com .pos do relatorio)');
-    chk(rh.indexOf('Fases por set')>=0&&rh.indexOf('Ataque por fase')>=0&&rh.indexOf('Distribuição do levantamento')>=0&&rh.indexOf('Por atleta — fases')>=0&&rh.indexOf('Como as fases são calculadas')>=0&&rh.indexOf('Legenda')>=0, 'todos os blocos: por set, ataque por fase, distribuicao, por atleta, metodo, legenda');
+    chk(rh.indexOf('Fases por set')>=0&&rh.indexOf('Ataque por fase')>=0&&rh.indexOf('Para quem foi a bola, por fase')>=0&&rh.indexOf('Contra-ataque, por atleta:</b> Ponta #2 2 (67%) · 2 pt')>=0&&rh.indexOf('Por atleta — fases')>=0&&rh.indexOf('Como as fases são calculadas')>=0&&rh.indexOf('Legenda')>=0, 'todos os blocos: por set, ataque por fase, para quem foi a bola por fase (com atletas), por atleta, metodo, legenda');
     chk(rh.indexOf('rallies exatos')>=0&&w.reportTeamHTML(g2).indexOf('estimado')>=0, 'tag "rallies exatos" no jogo novo e "estimado" no legado');
     chk(w._repFasesCSS().indexOf('.fz-tb')>=0&&rh.indexOf('.fz-tb{')>=0, 'CSS da secao entra no _repCSS do relatorio');
 

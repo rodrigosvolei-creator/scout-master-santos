@@ -1,4 +1,18 @@
-# Handoff — próxima sessão (2026-09-18, feito via Claude Opus 5 direto nesta pasta)
+# Handoff — próxima sessão (atualizado 2026-09-21, Claude Opus 5 direto nesta pasta)
+
+> **Estado em 21/09 (leia primeiro):** tudo abaixo já está na `main` e no GitHub. **No ar** (Redeploy
+> feito em 19/09) está o build `2026-09-18b` (C2 + quadra derivada) — o jogo de 20/09 (Fenerbouas,
+> 292 ações) já foi marcado com ele, no formato novo. **Ainda NÃO deployado**: builds `2026-09-21a…e`:
+> posição padronizada (select, gênero do time), e a seção **"Fases do jogo"** (side-out / 1ª bola /
+> break / contra-ataque) no **Relatório visual** (`exTeamReport`, `_repFasesHTML`) e no PDF Partida
+> (`_pdfFasesHTML`), ambos do mesmo motor `rallyModel`/`fasesStats`; contra-ataque dividido em "no
+> break" (nós sacamos) × "em transição" (eles sacaram); 1º rally do set sem saque/recepção resolvido
+> pela alternância de saque entre sets. Testes: `test_fases.js` (39), `test_posicoes.js` (31),
+> `test_games_multidevice.js` (68); suíte 62/62 rápidos (+ `test_cores_e2e` ~7 min). Módulo
+> equivalente pro ASV-SCOUT (Next/Supabase) foi entregue ao Rodrigo como `lib/fases.ts` (fora deste repo).
+> Próximo passo natural: botão tipado "ponto adversário" (ataque/ace/bloqueio deles) pra tirar os pontos
+> "só no +" da análise; depois C1.
+
 
 > Sessão anterior (ASV-SCOUT/Sonnet) só investigou e deixou o plano do **C2**. Esta sessão
 > **implementou o C2 inteiro** (escrita granular no jogo, 2+ aparelhos no mesmo jogo) **e a

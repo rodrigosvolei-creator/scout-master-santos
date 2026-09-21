@@ -1337,7 +1337,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-21d - FASES DO JOGO tambem no Relatorio visual (exTeamReport), no design dele (cards, KPIs, leitura escrita, barras, por atleta, legenda); 21c - FASES DO JOGO no layout do relatorio avulso (faixa, KPIs, leitura escrita gerada dos numeros, barras, metodo, legenda), paginas proprias no fim do PDF da partida; 21b - PDF da partida ganha FASES DO JOGO: side-out %, 1a bola (FBSO), break point %, origem dos pontos, ataque e distribuicao do levantamento por fase, recepcao x side-out, por atleta, legenda (motor rallyModel/fasesStats); 21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
+var APP_BUILD="2026-09-21e - contra-ataque dividido em no break (nos sacamos) x em transicao (eles sacaram) nas tabelas de ataque por fase; legenda BP/CA reescrita; 21d - FASES DO JOGO tambem no Relatorio visual (exTeamReport), no design dele (cards, KPIs, leitura escrita, barras, por atleta, legenda); 21c - FASES DO JOGO no layout do relatorio avulso (faixa, KPIs, leitura escrita gerada dos numeros, barras, metodo, legenda), paginas proprias no fim do PDF da partida; 21b - PDF da partida ganha FASES DO JOGO: side-out %, 1a bola (FBSO), break point %, origem dos pontos, ataque e distribuicao do levantamento por fase, recepcao x side-out, por atleta, legenda (motor rallyModel/fasesStats); 21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -8748,6 +8748,13 @@ function rallyModel(gm){
     }
     out.sets.push({set:setNum,score:st?((st.u||0)+"-"+(st.t||0)):"",rallies:rallies});
   }
+  // 1o rally do set sem saque/recepcao marcados: quem sacou primeiro no set anterior NAO saca
+  // primeiro neste (regra do volei; vale ate o 4o set — o tie-break e sorteio). Em seguida os
+  // sacadores derivados do vencedor anterior ja estao certos; so o rally 0 muda.
+  for(var q=1;q<out.sets.length;q++){
+    var cur0=out.sets[q].rallies[0],prev0=out.sets[q-1].rallies[0];
+    if(cur0&&cur0.srv==="?"&&prev0&&(prev0.srv==="u"||prev0.srv==="t")&&out.sets[q].set<=4){cur0.srv=prev0.srv==="u"?"t":"u";cur0.srvAlt=true;}
+  }
   return out;
 }
 // Chaves de origem/perda dos pontos (rotulos em _fasesLabel)
@@ -8760,7 +8767,7 @@ function fasesStats(gm){
   var rm=rallyModel(gm);
   function mk(){return {n:0,p:0,e:0,b:0};}
   function inc(o,k,n){o[k]=(o[k]||0)+(n==null?1:n);}
-  var T={exact:rm.exact,perSet:[],rSO:0,wSO:0,rBP:0,wBP:0,fb:0,fbTry:0,pts:{},lost:{},att:{SO:mk(),CA:mk()},dist:{SO:{},CA:{}},recep:{},soByRecep:{},serve:{n:0,ace:0,err:0,cont:0},blk:{p:0,e:0,c:0},def:{},lev:{},ath:{},ptsReal:0,ptsInf:0};
+  var T={exact:rm.exact,perSet:[],rSO:0,wSO:0,rBP:0,wBP:0,fb:0,fbTry:0,pts:{},lost:{},att:{SO:mk(),CA:mk(),CAu:mk(),CAt:mk()},dist:{SO:{},CA:{}},recep:{},soByRecep:{},serve:{n:0,ace:0,err:0,cont:0},blk:{p:0,e:0,c:0},def:{},lev:{},ath:{},ptsReal:0,ptsInf:0};
   var gen=(typeof teamGender==="function")?teamGender(tF(gm.tid)):"";
   for(var si=0;si<rm.sets.length;si++){
     var S_={set:rm.sets[si].set,score:rm.sets[si].score,rallies:rm.sets[si].rallies.length,rSO:0,wSO:0,rBP:0,wBP:0,fb:0,fbTry:0};
@@ -8780,6 +8787,8 @@ function fasesStats(gm){
         if(a.ak==="ataque"){
           var isFB=(r.srv==="t"&&attIdx===0),ph=isFB?"SO":"CA"; // se eles sacaram, nosso 1o ataque E a 1a bola (recepcao marcada ou nao)
           var X=T.att[ph];X.n++;if(a.oc==="Ponto")X.p++;if(a.oc==="Erro")X.e++;if(a.oc==="Bloq")X.b++;
+          // contra-ataque: no break (nos sacamos) ou em transicao (eles sacaram)
+          if(ph==="CA"&&(r.srv==="u"||r.srv==="t")){var Z=T.att[r.srv==="u"?"CAu":"CAt"];Z.n++;if(a.oc==="Ponto")Z.p++;if(a.oc==="Erro")Z.e++;if(a.oc==="Bloq")Z.b++;}
           if(A){var Y=A.att[ph];Y.n++;if(a.oc==="Ponto")Y.p++;if(a.oc==="Erro"){Y.e++;A.errs++;}if(a.oc==="Bloq"){Y.b++;A.errs++;}}
           var pf=(typeof pFind==="function")?pFind(a.pid,gm.id):null;inc(T.dist[ph],(typeof posGroup==="function"?posGroup(pf&&pf.po):"")||"?");
           if(isFB){S_.fbTry++;if(a.oc==="Ponto")S_.fb++;}
@@ -8808,8 +8817,8 @@ var FASES_LEGENDA=[
   ["Rally","Disputa de um ponto: começa no saque e termina quando alguém pontua."],
   ["Side-out (SO)","Rally em que o <b>adversário sacou</b> e nós recebemos. SO% = rallies recebendo que ganhamos ÷ rallies recebendo (elite: 65%+)."],
   ["1ª bola / FBSO","First Ball Side-Out: recepção, levantamento e o <b>primeiro ataque</b> do rally virou ponto. FBSO% = pontos na 1ª bola ÷ 1ªs bolas atacadas. Mede o \"sistema\"."],
-  ["Break point (BP)","Rally em que <b>nós sacamos</b>. BP% = rallies sacando que ganhamos ÷ rallies sacando (40% já é muito bom). Vem de ace, bloqueio, contra-ataque e erro do adversário."],
-  ["Contra-ataque (CA)","Qualquer ataque nosso que não é a 1ª bola do side-out: após defesa, bloqueio que voltou ou ataque anterior \"Cont\". <b>Transição</b> = no rally do saque deles; <b>break</b> = no rally do nosso saque."],
+  ["Break point (BP)","Rally em que <b>n\u00f3s sacamos</b>, ganho de qualquer forma: ace, bloqueio, contra-ataque ou erro deles. BP% = rallies sacando que ganhamos \u00f7 rallies sacando (40% j\u00e1 \u00e9 muito bom). Todo ataque nosso nesse rally \u00e9 contra-ataque."],
+  ["Contra-ataque (CA)","Qualquer ataque nosso que n\u00e3o \u00e9 a 1\u00aa bola do side-out: vem depois de defesa, de bloqueio que voltou ou de um ataque anterior \"Cont\". Dividido em <b>no break</b> (rally em que n\u00f3s sacamos \u2014 todo ataque ali \u00e9 contra-ataque) e <b>em transi\u00e7\u00e3o</b> (rally em que eles sacaram e a 1\u00aa bola n\u00e3o decidiu). Um ataque \u00e9 ou 1\u00aa bola ou contra-ataque, nunca os dois."],
   ["Kill %","Pontos de ataque ÷ tentativas de ataque."],
   ["Eficiência","(Pontos − erros − bloqueados) ÷ tentativas. Penaliza quem erra; é o número que melhor compara atacantes."],
   ["Recepção A / B / C / Erro","A = perfeita (todas as opções de ataque), B = boa, C = ruim (ataque limitado), Erro = ponto direto do adversário."],
@@ -8892,8 +8901,9 @@ function _pdfFasesHTML(g){
   // ataque por fase (nova pagina)
   var aro=function(l,A,tot){return '<tr'+(tot?' class=tot':'')+'><td>'+l+'</td><td class=c>'+A.n+'</td><td class=c>'+A.p+'</td><td class=c>'+pct(A.p,A.n)+'</td><td class=c>'+A.e+'</td><td class=c>'+A.b+'</td><td class="c b">'+pct(A.p-A.e-A.b,A.n)+'</td></tr>';};
   var tot={n:T.att.SO.n+T.att.CA.n,p:T.att.SO.p+T.att.CA.p,e:T.att.SO.e+T.att.CA.e,b:T.att.SO.b+T.att.CA.b};
-  h+='<h2 class="pb">Ataque por fase</h2><table><thead><tr><th>Fase</th><th class=c>Tentativas</th><th class=c>Pontos</th><th class=c>Kill %</th><th class=c>Erros</th><th class=c>Bloqueados</th><th class=c>Eficiência</th></tr></thead><tbody>'+aro('Side-out (1ª bola após recepção)',T.att.SO)+aro('Contra-ataque (após defesa / bola que voltou)',T.att.CA)+aro('Total',tot,true)+'</tbody></table>';
-  h+='<p class="sm">Kill % = pontos ÷ tentativas. Eficiência = (pontos − erros − bloqueados) ÷ tentativas.</p>';
+  h+='<h2 class="pb">Ataque por fase</h2><table><thead><tr><th>Fase</th><th class=c>Tentativas</th><th class=c>Pontos</th><th class=c>Kill %</th><th class=c>Erros</th><th class=c>Bloqueados</th><th class=c>Eficiência</th></tr></thead><tbody>'+aro('Side-out (1ª bola após recepção)',T.att.SO)+aro('Contra-ataque (após defesa / bola que voltou)',T.att.CA)+aro('\u2003\u21b3 no break (n\u00f3s sacamos)',T.att.CAu)+aro('\u2003\u21b3 em transi\u00e7\u00e3o (eles sacaram)',T.att.CAt)+aro('Total',tot,true)+'</tbody></table>';
+  var _caOut=T.att.CA.n-T.att.CAu.n-T.att.CAt.n;
+  h+='<p class="sm">'+(_caOut>0?_caOut+' contra-ataque(s) em rally sem sacador identificado n\u00e3o entram nas sub-linhas. ':'')+'Kill % = pontos ÷ tentativas. Eficiência = (pontos − erros − bloqueados) ÷ tentativas.</p>';
   // distribuicao
   var nSO=0,nCA=0,k;for(k in T.dist.SO)nSO+=T.dist.SO[k];for(k in T.dist.CA)nCA+=T.dist.CA[k];
   h+='<h2>Distribuição do levantamento (para quem foi o ataque)</h2><table><thead><tr><th>Posição</th><th class=c>Side-out</th><th class=c>%</th><th class=c>Contra-ataque</th><th class=c>%</th></tr></thead><tbody>';
@@ -9544,8 +9554,9 @@ function _repFasesHTML(g){
   var aro=function(l,A,tot){return '<tr'+(tot?' class="tot"':'')+'><td class="l">'+l+'</td><td>'+A.n+'</td><td>'+A.p+'</td><td>'+pct(A.p,A.n)+'</td><td>'+A.e+'</td><td>'+A.b+'</td><td class="b">'+pct(A.p-A.e-A.b,A.n)+'</td></tr>';};
   var tot={n:T.att.SO.n+T.att.CA.n,p:T.att.SO.p+T.att.CA.p,e:T.att.SO.e+T.att.CA.e,b:T.att.SO.b+T.att.CA.b};
   h+='<div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-eq")+'</span><h3>Ataque por fase</h3><span class="tag">kill % · eficiência</span></div><div class="card-bd">';
-  h+='<table class="fz-tb"><thead><tr><th class="l">Fase</th><th>Tentativas</th><th>Pontos</th><th>Kill %</th><th>Erros</th><th>Bloqueados</th><th>Eficiência</th></tr></thead><tbody>'+aro('Side-out (1ª bola após recepção)',T.att.SO)+aro('Contra-ataque (após defesa / bola que voltou)',T.att.CA)+aro('Total',tot,true)+'</tbody></table>';
-  h+='<div class="fz-note">Kill % = pontos ÷ tentativas. Eficiência = (pontos − erros − bloqueados) ÷ tentativas.</div></div></div>';
+  h+='<table class="fz-tb"><thead><tr><th class="l">Fase</th><th>Tentativas</th><th>Pontos</th><th>Kill %</th><th>Erros</th><th>Bloqueados</th><th>Eficiência</th></tr></thead><tbody>'+aro('Side-out (1ª bola após recepção)',T.att.SO)+aro('Contra-ataque (após defesa / bola que voltou)',T.att.CA)+aro('\u2003\u21b3 no break (n\u00f3s sacamos)',T.att.CAu)+aro('\u2003\u21b3 em transi\u00e7\u00e3o (eles sacaram)',T.att.CAt)+aro('Total',tot,true)+'</tbody></table>';
+  var _caOut=T.att.CA.n-T.att.CAu.n-T.att.CAt.n;
+  h+='<div class="fz-note">'+(_caOut>0?_caOut+' contra-ataque(s) em rally sem sacador identificado n\u00e3o entram nas sub-linhas. ':'')+'Kill % = pontos ÷ tentativas. Eficiência = (pontos − erros − bloqueados) ÷ tentativas.</div></div></div>';
   var nSO=0,nCA=0;for(k in T.dist.SO)nSO+=T.dist.SO[k];for(k in T.dist.CA)nCA+=T.dist.CA[k];
   h+='<div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-users")+'</span><h3>Distribuição do levantamento</h3><span class="tag">para quem foi o ataque</span></div><div class="card-bd">';
   h+='<table class="fz-tb"><thead><tr><th class="l">Posição</th><th>Side-out</th><th>%</th><th>Contra-ataque</th><th>%</th></tr></thead><tbody>';

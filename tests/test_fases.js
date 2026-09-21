@@ -26,6 +26,10 @@ A('a1','recepcao','Erro'); P('t');                                              
 A('a1','recepcao','A'); A('a4','levantamento','A'); A('a2','ataque','Erro'); P('t');            // R9 srv t: perdido (ataque erro)
 A(null,'erroadv','Ponto'); P('u');                                                               // R10 srv t: erro adversario
 P('u');                                                                                          // R11 srv u: ponto nosso so no "+"
+// set 2: 1o rally sem saque/recepcao marcados (so levantamento + ataque) -> sacador pela ALTERNANCIA:
+// eles sacaram primeiro no set 1, entao NOS sacamos primeiro no set 2 -> esse ataque e contra-ataque no break
+const sq2 = {}; const A2 = (pid, ak, oc) => { t0 += 1000; const id = 'a' + t0 + '_x'; act[id] = { id, pid, ak, oc, set: 2, ts: 0, dev: 'dev_A' }; };
+A2('a4','levantamento','A'); A2('a2','ataque','Ponto'); t0 += 1000; sq2['p' + t0 + '_x'] = 'u';
 const legacyActs = Object.values(act).map(a => Object.assign({}, a)); // mesmo roteiro, formato antigo (array), sem pontos manuais no sq
 
 const seed={'torneio-master-santos':{
@@ -33,7 +37,7 @@ const seed={'torneio-master-santos':{
   athletes:[{aid:'a1',nm:'Libero Um',po:'Líbero'},{aid:'a2',nm:'Ponta Dois',po:'Ponteiro(a)'},{aid:'a3',nm:'Sacador Tres',po:'Central'},{aid:'a4',nm:'Lev Quatro',po:'Levantador(a)'},{aid:'a5',nm:'Def Cinco',po:'Ponteiro(a)'},{aid:'a6',nm:'Oposto Seis',po:'Oposto(a)'}],
   tournaments:[{id:'tA',n:'Liga',c:'#2563eb'}],
   games:[
-    {id:'g1',torId:'tA',tid:'tm',opp:'Adv Novo',dt:'2026-09-21',st:'done',lineup:[1,2,3,4,5,6].map(i=>({aid:'a'+i,nu:i})),act:act,ss:[{u:7,t:4,sq:sq}]},
+    {id:'g1',torId:'tA',tid:'tm',opp:'Adv Novo',dt:'2026-09-21',st:'done',lineup:[1,2,3,4,5,6].map(i=>({aid:'a'+i,nu:i})),act:act,ss:[{u:7,t:4,sq:sq},{u:1,t:0,sq:sq2}]},
     {id:'g2',torId:'tA',tid:'tm',opp:'Adv Legado',dt:'2026-09-01',st:'done',lineup:[1,2,3,4,5,6].map(i=>({aid:'a'+i,nu:i})),act:legacyActs,ss:[{u:6,t:3,sq:['u','u','t','u','u','u','t','t','u']}]}
   ],invites:{}}};
 Object.assign(fakeDB,JSON.parse(JSON.stringify(seed)));
@@ -52,7 +56,8 @@ setTimeout(()=>{
 
     console.log('\n--- 1. rallyModel: formato novo -> rallies exatos ---');
     const g1=w.gF('g1'); const rm=w.rallyModel(g1);
-    chk(rm.exact===true&&rm.sets.length===1&&rm.sets[0].rallies.length===11, 'set 1 dividido em 11 rallies exatos pelo sq com hora');
+    chk(rm.exact===true&&rm.sets.length===2&&rm.sets[0].rallies.length===11, 'set 1 dividido em 11 rallies exatos pelo sq com hora');
+    chk(rm.sets[1].rallies.length===1&&rm.sets[1].rallies[0].srv==='u'&&rm.sets[1].rallies[0].srvAlt===true, 'set 2 sem saque/recepcao no 1o rally: sacador pela alternancia com o set 1 (eles sacaram no 1 -> nos no 2)');
     const srv=rm.sets[0].rallies.map(r=>r.srv).join(''), win=rm.sets[0].rallies.map(r=>r.winner).join('');
     chk(srv==='tuutuuutttu', 'sacador de cada rally = vencedor do anterior (1o pelo 1o toque): '+srv);
     chk(win==='uutuuuttt'+'uu', 'vencedores pela sequencia de pontos: '+win);
@@ -62,15 +67,16 @@ setTimeout(()=>{
     const T=w.fasesStats(g1);
     chk(T.rSO===5&&T.wSO===3, 'recebendo: 5 rallies, 3 ganhos (SO% 60)');
     chk(T.fbTry===3&&T.fb===1, '1a bola: 3 tentativas, 1 ponto (FBSO% 33)');
-    chk(T.rBP===6&&T.wBP===4, 'sacando: 6 rallies, 4 ganhos (BP% 67)');
-    chk(T.pts.fbso===1&&T.pts.ca_t===1&&T.pts.ca_u===1&&T.pts.bloq===1&&T.pts.ace===1&&T.pts.erroadv===1&&T.pts.manual===1, 'origem dos 7 pontos: FBSO, CA transicao, CA break, bloqueio, ace, erro adv, so no "+"');
+    chk(T.rBP===7&&T.wBP===5, 'sacando: 7 rallies, 5 ganhos (BP% 71) — inclui o rally do set 2 resolvido pela alternancia');
+    chk(T.pts.fbso===1&&T.pts.ca_t===1&&T.pts.ca_u===2&&T.pts.bloq===1&&T.pts.ace===1&&T.pts.erroadv===1&&T.pts.manual===1, 'origem dos 8 pontos: FBSO, CA transicao, 2 CA break, bloqueio, ace, erro adv, so no "+"');
     chk(T.lost.saque===1&&T.lost.adv_manual===1&&T.lost.recepcao===1&&T.lost.ataque_erro===1&&Object.keys(T.lost).length===4, 'perdas: saque, ponto deles no "+", recepcao, ataque erro');
-    chk(T.ptsInf===7&&T.ptsReal===7&&T.exact===true&&T.estimado===false, 'cobertura 100%: 7 pontos inferidos = 7 do placar; nao estimado');
-    chk(T.att.SO.n===3&&T.att.SO.p===1&&T.att.SO.e===1&&T.att.CA.n===2&&T.att.CA.p===2, 'ataque por fase: SO 1/3 (1 erro), CA 2/2');
-    chk(T.dist.SO.pon===3&&T.dist.CA.pon===1&&T.dist.CA.opo===1, 'distribuicao: SO -> 3 ponteiro; CA -> 1 ponteiro + 1 oposto');
+    chk(T.ptsInf===8&&T.ptsReal===8&&T.exact===true&&T.estimado===false, 'cobertura 100%: 8 pontos inferidos = 8 do placar; nao estimado');
+    chk(T.att.SO.n===3&&T.att.SO.p===1&&T.att.SO.e===1&&T.att.CA.n===3&&T.att.CA.p===3, 'ataque por fase: SO 1/3 (1 erro), CA 3/3');
+    chk(T.att.CAu.n===2&&T.att.CAu.p===2&&T.att.CAt.n===1&&T.att.CAt.p===1&&T.att.CAu.n+T.att.CAt.n===T.att.CA.n, 'contra-ataque dividido: 2 no break (nos sacamos) + 1 em transicao (eles sacaram) = total');
+    chk(T.dist.SO.pon===3&&T.dist.CA.pon===2&&T.dist.CA.opo===1, 'distribuicao: SO -> 3 ponteiro; CA -> 2 ponteiro + 1 oposto');
     chk(T.recep.A===2&&T.recep.B===1&&T.recep.Erro===1&&T.soByRecep['A:n']===2&&T.soByRecep['A:w']===1&&T.soByRecep['B:w']===1&&T.soByRecep['Erro:w']===undefined, 'recepcao A/B/Erro e SO% por qualidade (A 1/2, B 1/1, Erro 0/1)');
     chk(T.serve.n===5&&T.serve.ace===1&&T.serve.err===1&&T.serve.cont===3&&T.blk.p===1&&T.def.A===2, 'saque 5 (1 ace, 1 erro), bloqueio 1 ponto, defesa 2 A');
-    chk(T.ath.a2.att.SO.n===3&&T.ath.a2.att.SO.p===1&&T.ath.a2.att.CA.n===1&&T.ath.a6.blkP===1&&T.ath.a3.srv===5&&T.ath.a3.ace===1&&T.ath.a1.recep.A===2&&T.ath.a1.errs===1&&T.ath.a4.lev===5, 'por atleta: ataques por fase, bloqueio, saques, recepcao, levantamentos');
+    chk(T.ath.a2.att.SO.n===3&&T.ath.a2.att.SO.p===1&&T.ath.a2.att.CA.n===2&&T.ath.a6.blkP===1&&T.ath.a3.srv===5&&T.ath.a3.ace===1&&T.ath.a1.recep.A===2&&T.ath.a1.errs===1&&T.ath.a4.lev===6, 'por atleta: ataques por fase, bloqueio, saques, recepcao, levantamentos');
     chk(!T.ath[null]&&!T.ath['null'], 'erro do adversario (pid null) nao vira "atleta"');
 
     console.log('\n--- 3. formato antigo -> estimado, mas calcula ---');
@@ -83,8 +89,9 @@ setTimeout(()=>{
     console.log('\n--- 4. secao do PDF ---');
     const h=w._pdfFasesHTML(g1);
     chk(h.indexOf('Fases do jogo')>=0&&h.indexOf('estimado')<0, 'secao "Fases do jogo" sem tarja "estimado" no jogo novo');
-    chk(h.indexOf('>60%<')>=0&&h.indexOf('>33%<')>=0&&h.indexOf('>67%<')>=0, 'KPIs SO 60% / FBSO 33% / BP 67%');
-    chk(h.indexOf('De onde vieram os nossos 7 pontos')>=0&&h.indexOf('Como perdemos 4 pontos')>=0, 'barras de origem (7) e perdas (4)');
+    chk(h.indexOf('no break (n')>=0&&h.indexOf('em transi')>=0&&w.reportTeamHTML(g1).indexOf('no break (n')>=0, 'tabela de ataque com as sub-linhas do contra-ataque (PDF Partida e Relatorio)');
+    chk(h.indexOf('>60%<')>=0&&h.indexOf('>33%<')>=0&&h.indexOf('>71%<')>=0, 'KPIs SO 60% / FBSO 33% / BP 71%');
+    chk(h.indexOf('De onde vieram os nossos 8 pontos')>=0&&h.indexOf('Como perdemos 4 pontos')>=0, 'barras de origem (8) e perdas (4)');
     chk(h.indexOf('Side-out de 1ª bola (FBSO)')>=0&&h.indexOf('Contra-ataque em transi')>=0&&h.indexOf('lançado só no "+"')>=0, 'rotulos das origens');
     chk(h.indexOf('Distribuição do levantamento')>=0&&h.indexOf('<td>Ponteiro</td>')>=0&&h.indexOf('<td>Oposto</td>')>=0, 'distribuicao por posicao com rotulo masculino (time MASC)');
     chk(h.indexOf('Recepção, saque, bloqueio e defesa')>=0&&h.indexOf('SO% quando a recep')>=0&&h.indexOf('Por atleta')>=0&&h.indexOf('Ponta')>=0&&h.indexOf('Leitura do jogo')>=0&&h.indexOf('Como este relat')>=0, 'leitura do jogo, recepcao/saque/bloqueio/defesa, metodo e tabela por atleta');
@@ -98,7 +105,7 @@ setTimeout(()=>{
     console.log('\n--- 5. Relatorio visual (exTeamReport) traz a mesma secao, no design dele ---');
     const rh=w.reportTeamHTML(g1);
     chk(rh.indexOf('Fases do jogo')>=0&&rh.indexOf('class="fz"')>=0&&rh.indexOf('Leitura do jogo')>=0, 'reportTeamHTML: secao "Fases do jogo" + leitura escrita');
-    chk(rh.indexOf('Side-out (SO%)')>=0&&rh.indexOf('>60%<')>=0&&rh.indexOf('>33%<')>=0&&rh.indexOf('>67%<')>=0, 'KPIs SO 60 / FBSO 33 / BP 67 (mesmo motor)');
+    chk(rh.indexOf('Side-out (SO%)')>=0&&rh.indexOf('>60%<')>=0&&rh.indexOf('>33%<')>=0&&rh.indexOf('>71%<')>=0, 'KPIs SO 60 / FBSO 33 / BP 71 (mesmo motor)');
     chk(rh.indexOf('fz-bar fz-pos')>=0&&rh.indexOf('fz-bar fz-neg')>=0&&rh.indexOf('fz-bar pos')<0, 'barras com classes proprias (sem colidir com .pos do relatorio)');
     chk(rh.indexOf('Fases por set')>=0&&rh.indexOf('Ataque por fase')>=0&&rh.indexOf('Distribuição do levantamento')>=0&&rh.indexOf('Por atleta — fases')>=0&&rh.indexOf('Como as fases são calculadas')>=0&&rh.indexOf('Legenda')>=0, 'todos os blocos: por set, ataque por fase, distribuicao, por atleta, metodo, legenda');
     chk(rh.indexOf('rallies exatos')>=0&&w.reportTeamHTML(g2).indexOf('estimado')>=0, 'tag "rallies exatos" no jogo novo e "estimado" no legado');

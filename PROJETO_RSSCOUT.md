@@ -179,7 +179,7 @@ por atleta (`exAthPDF`, `exAllAthPDF`) mantidos como estão.
 > - **Contra-ataque** = **qualquer outro ataque**. Ganha um nome pela origem, mas é sempre
 >   contra-ataque: **em transição** (`CAt`: mesmo rally do saque deles, depois do ataque de
 >   side-out) ou **no break** (`CAu`: rally em que nós sacamos — depois do nosso saque o primeiro
->   contato nosso é sempre **defesa**, nunca recepção; o ataque que vem é contra-ataque).
+>   contato nosso é sempre **defesa ou bloqueio**, nunca recepção; o ataque que vem é contra-ataque).
 > - Side-out e contra-ataque **nunca se confundem**: um ataque é um ou outro.
 > - As métricas de rally continuam: side-out % = rallies recebendo que ganhamos; break % =
 >   rallies sacando que ganhamos (por ace, bloqueio, contra-ataque ou erro deles). Rotular como

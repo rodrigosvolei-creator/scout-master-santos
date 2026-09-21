@@ -87,10 +87,10 @@ setTimeout(()=>{
     chk(h.indexOf('De onde vieram os nossos 7 pontos')>=0&&h.indexOf('Como perdemos 4 pontos')>=0, 'barras de origem (7) e perdas (4)');
     chk(h.indexOf('Side-out de 1ª bola (FBSO)')>=0&&h.indexOf('Contra-ataque em transi')>=0&&h.indexOf('lançado só no "+"')>=0, 'rotulos das origens');
     chk(h.indexOf('Distribuição do levantamento')>=0&&h.indexOf('<td>Ponteiro</td>')>=0&&h.indexOf('<td>Oposto</td>')>=0, 'distribuicao por posicao com rotulo masculino (time MASC)');
-    chk(h.indexOf('Recepção e side-out')>=0&&h.indexOf('Por atleta')>=0&&h.indexOf('Ponta')>=0, 'recepcao x side-out e tabela por atleta');
-    chk(h.indexOf('<h3>Legenda</h3>')>=0&&h.indexOf('Break point (BP)')>=0&&h.indexOf('Kill %')>=0&&h.indexOf('>Estimado<')<0, 'legenda com SO/FBSO/BP/CA/Kill/Eficiencia; sem a entrada "Estimado" no jogo exato');
+    chk(h.indexOf('Recepção, saque, bloqueio e defesa')>=0&&h.indexOf('SO% quando a recep')>=0&&h.indexOf('Por atleta')>=0&&h.indexOf('Ponta')>=0&&h.indexOf('Leitura do jogo')>=0&&h.indexOf('Como este relat')>=0, 'leitura do jogo, recepcao/saque/bloqueio/defesa, metodo e tabela por atleta');
+    chk(h.indexOf('<h2>Legenda</h2>')>=0&&h.indexOf('Break point (BP)')>=0&&h.indexOf('Kill %')>=0&&h.indexOf('>Estimado<')<0&&h.indexOf('class="band"')>=0&&h.indexOf('class="kpis"')>=0, 'faixa + KPIs + legenda com SO/FBSO/BP/CA/Kill/Eficiencia; sem a entrada "Estimado" no jogo exato');
     const h2=w._pdfFasesHTML(g2);
-    chk(h2.indexOf('>estimado')>=0&&h2.indexOf('formato antigo')>=0&&/cobertura \d+%<\/span>/.test(h2)&&h2.indexOf('>Estimado<')>=0, 'jogo legado: tarja "estimado · formato antigo · cobertura N%" + entrada na legenda');
+    chk(h2.indexOf('<b>estimado (formato antigo)')>=0&&/cobertura \d+%<\/b>/.test(h2)&&h2.indexOf('>Estimado<')>=0, 'jogo legado: tarja "estimado (formato antigo) · cobertura N%" + entrada na legenda');
     w.exGamePDF('g1');
     const ov=w.document.getElementById('pdfOverlay-doc')||w.document.getElementById('pdfOverlay');
     chk(!!ov&&ov.innerHTML.indexOf('Fases do jogo')>=0&&ov.innerHTML.indexOf('Sequ')>=0, 'exGamePDF: PDF da partida traz a secao Fases do jogo (depois da sequencia de pontos)');

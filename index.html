@@ -1337,7 +1337,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-21b - PDF da partida ganha FASES DO JOGO: side-out %, 1a bola (FBSO), break point %, origem dos pontos, ataque e distribuicao do levantamento por fase, recepcao x side-out, por atleta, legenda (motor rallyModel/fasesStats); 21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
+var APP_BUILD="2026-09-21c - FASES DO JOGO no layout do relatorio avulso (faixa, KPIs, leitura escrita gerada dos numeros, barras, metodo, legenda), paginas proprias no fim do PDF da partida; 21b - PDF da partida ganha FASES DO JOGO: side-out %, 1a bola (FBSO), break point %, origem dos pontos, ataque e distribuicao do levantamento por fase, recepcao x side-out, por atleta, legenda (motor rallyModel/fasesStats); 21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -8817,58 +8817,121 @@ var FASES_LEGENDA=[
   ["Ponto \"só no +\"","Ponto lançado pelo botão +/− sem ação de jogador registrada (em geral ataque ou ace do adversário). Conta no placar e nas fases, não por fundamento/atleta."],
   ["Estimado","Jogo gravado no formato antigo (pontos sem hora): os rallies são reconstruídos pela ordem das ações (saque/recepção abre rally; quem saca em seguida ganhou o anterior)."]
 ];
-// Secao "Fases do jogo" do PDF da partida (usa as classes .cards/.kpi/table.at/h2/h3 do exGamePDF)
+// Secao "Fases do jogo" do PDF da partida — MESMO layout do relatorio avulso (faixa navy, KPIs,
+// leitura do jogo, tabelas navy/zebra, barras empilhadas, metodo, por atleta, legenda). CSS proprio (.fs).
+function _pdfFasesCss(){
+  return ".fs{page-break-before:always;color:#0f172a}"
+    +".fs .band{background:#0f2a5c;border-bottom:4px solid #f59e0b;color:#fff;padding:14px 18px;margin:0 0 14px;border-radius:6px}"
+    +".fs .band .k{font-size:9px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;opacity:.9}"
+    +".fs .band .t{font-size:20px;font-weight:900;margin:4px 0 2px}.fs .band .s{font-size:10.5px;color:#c7d3ea}"
+    +".fs .kpis{display:flex;border:1px solid #cbd5e1;border-radius:6px;overflow:hidden;background:#f8fafc;margin-bottom:12px}"
+    +".fs .kpi{flex:1;text-align:center;padding:10px 6px;border-left:1px solid #cbd5e1}.fs .kpi:first-child{border-left:0}"
+    +".fs .kpi .v{font-size:22px;font-weight:900;color:#0f2a5c;line-height:1.1}.fs .kpi .l{font-size:8px;color:#64748b;text-transform:uppercase;letter-spacing:.3px;margin-top:4px;line-height:1.3}"
+    +".fs h2{font-size:14px;color:#0f2a5c;border:0;padding:0;margin:16px 0 6px;font-weight:900}"
+    +".fs h3{font-size:11px;color:#2563eb;margin:12px 0 5px;font-weight:800}"
+    +".fs p,.fs li{font-size:10.5px;line-height:1.45}.fs ul{margin:0 0 4px 14px;padding:0}.fs li{margin:2px 0}"
+    +".fs .sm{font-size:8.6px;color:#64748b;line-height:1.35;margin:4px 0 0}"
+    +".fs table{width:100%;border-collapse:collapse;margin-bottom:4px}"
+    +".fs th{background:#0f2a5c;color:#fff;font-size:8.6px;font-weight:800;text-align:left;padding:5px 6px;border-bottom:1px solid #0f2a5c}"
+    +".fs td{font-size:9px;padding:4px 6px;border-bottom:.5px solid #cbd5e1;vertical-align:middle}"
+    +".fs tbody tr:nth-child(even) td{background:#eef2ff}.fs tr.tot td{background:#e2e8f0;font-weight:800}"
+    +".fs td.c,.fs th.c{text-align:center}.fs td.b{font-weight:800}.fs td.err{color:#dc2626;font-weight:700}"
+    +".fs .bars{margin:2px 0 8px}.fs .bar{display:flex;align-items:center;gap:6px;font-size:8.6px;margin:3px 0}"
+    +".fs .bar .fl{flex:0 0 46%;color:#0f172a}.fs .bar .fb{height:9px;border-radius:2px;background:#059669}.fs .bar.neg .fb{background:#dc2626}.fs .bar .fv{font-weight:800}"
+    +".fs .two{display:flex;gap:14px}.fs .two>div{flex:1;min-width:0}"
+    +".fs .leg td:first-child{font-weight:800;width:150px}"
+    +"@media print{.fs h2,.fs h3{page-break-after:avoid}.fs table{page-break-inside:auto}.fs tr{page-break-inside:avoid}.fs .kpis,.fs .bars,.fs .two{page-break-inside:avoid}.fs .pb{page-break-before:always}}";
+}
+// Frases da "leitura do jogo" a partir dos numeros (mesmas regras do relatorio avulso).
+function _fasesLeitura(T,g){
+  var pr=function(a,b){return b?Math.round(100*a/b)+"%":"–";},pct=function(a,b){return b?(Math.round(1000*a/b)/10)+"%":"–";};
+  var gen=T.gen,pl=function(c){return (typeof posLabel==="function")?posLabel(c,gen):c;};
+  var L=[];var att=T.att;
+  var worst=null;T.perSet.forEach(function(s){if(s.fbTry&&(!worst||s.fb/s.fbTry<worst.fb/worst.fbTry))worst=s;});
+  if(T.rSO)L.push("Side-out: <b>"+pr(T.wSO,T.rSO)+"</b> dos rallies recebendo virados em ponto (1ª bola <b>"+pr(T.fb,T.fbTry)+"</b>)"+(worst&&T.perSet.length>1?". No set "+worst.set+" a 1ª bola ficou em "+pr(worst.fb,worst.fbTry)+" ("+worst.fb+"/"+worst.fbTry+") — o set mais difícil.":"."));
+  if(att.SO.n||att.CA.n)L.push("Ataque de 1ª bola <b>"+att.SO.p+"/"+att.SO.n+" ("+pct(att.SO.p,att.SO.n)+")</b>, "+att.SO.e+" erro(s) e "+att.SO.b+" bloqueado(s); no contra-ataque "+att.CA.p+"/"+att.CA.n+" ("+pct(att.CA.p,att.CA.n)+"), eficiência "+pct(att.CA.p-att.CA.e-att.CA.b,att.CA.n)+".");
+  var nSO=0,nCA=0,k;for(k in T.dist.SO)nSO+=T.dist.SO[k];for(k in T.dist.CA)nCA+=T.dist.CA[k];
+  if(nSO&&nCA){var topCA=null;for(k in T.dist.CA){if(k!=="?"&&(!topCA||T.dist.CA[k]>T.dist.CA[topCA]))topCA=k;}
+    L.push("Distribuição: em sistema (side-out) "+pl("pon")+" "+pr(T.dist.SO.pon||0,nSO)+" · "+pl("cen")+" "+pr(T.dist.SO.cen||0,nSO)+" · "+pl("opo")+" "+pr(T.dist.SO.opo||0,nSO)+"; fora de sistema (contra-ataque) a bola foi mais pra <b>"+(topCA?pl(topCA):"–")+" ("+pr(T.dist.CA[topCA]||0,nCA)+")</b>.");}
+  var grp={};for(k in T.ath){var A=T.ath[k];var pf=(typeof pFind==="function")?pFind(k,g.id):null;var c=(typeof posGroup==="function")?posGroup(pf&&pf.po):"";if(!c)continue;var G=grp[c]=grp[c]||{n:0,p:0,e:0};G.n+=A.att.SO.n+A.att.CA.n;G.p+=A.att.SO.p+A.att.CA.p;G.e+=A.errs;}
+  var weak=null;for(k in grp){if(grp[k].n>=4){var kp=grp[k].p/grp[k].n;if(!weak||kp<weak.kp)weak={c:k,kp:kp,g:grp[k]};}}
+  if(weak&&weak.kp<0.45)L.push("Ponto de atenção: "+pl(weak.c)+" somou <b>"+weak.g.p+"/"+weak.g.n+" no ataque e "+weak.g.e+" erro(s)</b>.");
+  if(T.serve.n)L.push("Saque: "+T.serve.ace+" ace em "+T.serve.n+" ("+pct(T.serve.ace,T.serve.n)+") e "+T.serve.err+" erro(s) ("+pct(T.serve.err,T.serve.n)+"). O break point ("+pr(T.wBP,T.rBP)+") veio de bloqueio ("+T.blk.p+"), contra-ataque ("+((T.pts.ca_u||0))+") e erro deles ("+((T.pts.erroadv||0)+(T.pts.manual||0))+").");
+  return L;
+}
 function _pdfFasesHTML(g){
   if(!g||!g.act||!g.act.length)return"";
   var T=fasesStats(g);
   if(!T.rSO&&!T.rBP)return"";
   var pct=function(a,b){return b?(Math.round(1000*a/b)/10)+"%":"–";},pr=function(a,b){return b?Math.round(100*a/b)+"%":"–";};
   var gen=T.gen;var posL=function(c){return c==="?"?"sem posição":(typeof posLabel==="function"?posLabel(c,gen):c);};
-  var h="<h2>Fases do jogo"+(T.estimado?" <span style=\"font-size:10px;color:#b45309;background:#fef3c7;border-radius:5px;padding:1px 6px;vertical-align:middle\">estimado"+(T.exact?"":" · formato antigo")+" · cobertura "+Math.round(100*T.cover)+"%</span>":"")+"</h2>";
-  h+="<div class=cards>";
-  h+="<div class=kpi><div class=v>"+pr(T.wSO,T.rSO)+"</div><div class=k>Side-out (SO%) · "+T.wSO+" de "+T.rSO+"</div></div>";
-  h+="<div class=kpi><div class=v>"+pr(T.fb,T.fbTry)+"</div><div class=k>1ª bola (FBSO%) · "+T.fb+" de "+T.fbTry+"</div></div>";
-  h+="<div class=kpi><div class=v>"+pr(T.wBP,T.rBP)+"</div><div class=k>Break point (BP%) · "+T.wBP+" de "+T.rBP+"</div></div>";
-  h+="<div class=kpi><div class=v style=\"color:#059669\">"+T.blk.p+"</div><div class=k>Pontos de bloqueio</div></div>";
-  h+="</div>";
+  var te=(typeof tF==="function")?tF(g.tid):null;var teamName=te?te.n:"RS";
+  var setsRS=0,setsADV=0;(g.ss||[]).forEach(function(s){if(s.u>s.t)setsRS++;else if(s.t>s.u)setsADV++;});
+  var h='<div class="fs">';
+  // faixa
+  h+='<div class="band"><div class="k">RS-SCOUT · Relatório por fases do jogo</div><div class="t">'+esc(teamName)+' '+setsRS+' × '+setsADV+' '+esc(g.opp||"Adversário")+'</div>';
+  var _tor=(typeof tFnd==="function"&&g.torId)?tFnd(g.torId):null;var torName=_tor?_tor.n:(g.tor||"");
+  h+='<div class="s">'+(torName?esc(torName)+' · ':'')+(g.dt?fD(g.dt):'')+' · sets '+(g.ss||[]).map(function(s){return s.u+'-'+s.t;}).join(' / ')+' · '+g.act.length+' ações registradas'+(T.estimado?' · <b>estimado'+(T.exact?'':' (formato antigo)')+' · cobertura '+Math.round(100*T.cover)+'%</b>':'')+'</div></div>';
+  // KPIs
+  h+='<div class="kpis"><div class="kpi"><div class="v">'+pr(T.wSO,T.rSO)+'</div><div class="l">Side-out (SO%) · '+T.wSO+' de '+T.rSO+' rallies recebendo</div></div>';
+  h+='<div class="kpi"><div class="v">'+pr(T.fb,T.fbTry)+'</div><div class="l">Side-out de 1ª bola (FBSO%) · '+T.fb+' de '+T.fbTry+'</div></div>';
+  h+='<div class="kpi"><div class="v">'+pr(T.wBP,T.rBP)+'</div><div class="l">Break point (BP%) · '+T.wBP+' de '+T.rBP+' rallies sacando</div></div>';
+  h+='<div class="kpi"><div class="v">'+T.blk.p+'</div><div class="l">Pontos de bloqueio</div></div></div>';
+  // leitura
+  var L=_fasesLeitura(T,g);if(L.length){h+='<h2>Leitura do jogo</h2><ul>';L.forEach(function(x){h+='<li>'+x+'</li>';});h+='</ul>';}
   // por set
-  h+="<h3>Por set</h3><table class=at><thead><tr><th>Set</th><th class=c>Placar</th><th class=c>Rallies</th><th class=c>Recebendo (ganhos/rallies)</th><th class=c>SO%</th><th class=c>1ª bola</th><th class=c>FBSO%</th><th class=c>Sacando (ganhos/rallies)</th><th class=c>BP%</th></tr></thead><tbody>";
-  T.perSet.forEach(function(s){h+="<tr><td>Set "+s.set+"</td><td class=c>"+esc(s.score)+"</td><td class=c>"+s.rallies+"</td><td class=c>"+s.wSO+" / "+s.rSO+"</td><td class=c><b>"+pct(s.wSO,s.rSO)+"</b></td><td class=c>"+s.fb+" / "+s.fbTry+"</td><td class=c>"+pct(s.fb,s.fbTry)+"</td><td class=c>"+s.wBP+" / "+s.rBP+"</td><td class=c><b>"+pct(s.wBP,s.rBP)+"</b></td></tr>";});
-  h+="<tr style=\"background:#e2e8f0;font-weight:800\"><td>Total</td><td class=c></td><td class=c>"+T.perSet.reduce(function(n,s){return n+s.rallies;},0)+"</td><td class=c>"+T.wSO+" / "+T.rSO+"</td><td class=c>"+pct(T.wSO,T.rSO)+"</td><td class=c>"+T.fb+" / "+T.fbTry+"</td><td class=c>"+pct(T.fb,T.fbTry)+"</td><td class=c>"+T.wBP+" / "+T.rBP+"</td><td class=c>"+pct(T.wBP,T.rBP)+"</td></tr></tbody></table>";
-  // origem / perda dos pontos (barras)
-  var bars=function(keys,src,cls){var tot=0,mx=0;keys.forEach(function(k){tot+=src[k]||0;if((src[k]||0)>mx)mx=src[k];});var o="";keys.slice().sort(function(a,b){return (src[b]||0)-(src[a]||0);}).forEach(function(k){var v=src[k]||0;if(!v)return;o+="<div class=\"fbar "+cls+"\"><div class=fl>"+_fasesLabel(k)+"</div><div class=fb style=\"width:"+Math.round(40*v/mx)+"%\"></div><div class=fv>"+v+"</div></div>";});return {html:o,tot:tot};};
+  h+='<h2>Fases do jogo, por set</h2><table><thead><tr><th>Set</th><th class=c>Placar</th><th class=c>Rallies</th><th class=c>Recebendo (ganhos / rallies)</th><th class=c>SO%</th><th class=c>1ª bola</th><th class=c>FBSO%</th><th class=c>Sacando (ganhos / rallies)</th><th class=c>BP%</th></tr></thead><tbody>';
+  T.perSet.forEach(function(s){h+='<tr><td>'+s.set+'</td><td class=c>'+esc(s.score)+'</td><td class=c>'+s.rallies+'</td><td class=c>'+s.wSO+' / '+s.rSO+'</td><td class="c b">'+pct(s.wSO,s.rSO)+'</td><td class=c>'+s.fb+' / '+s.fbTry+'</td><td class=c>'+pct(s.fb,s.fbTry)+'</td><td class=c>'+s.wBP+' / '+s.rBP+'</td><td class="c b">'+pct(s.wBP,s.rBP)+'</td></tr>';});
+  h+='<tr class=tot><td>Total</td><td class=c>'+setsRS+' × '+setsADV+'</td><td class=c>'+T.perSet.reduce(function(n,s){return n+s.rallies;},0)+'</td><td class=c>'+T.wSO+' / '+T.rSO+'</td><td class=c>'+pct(T.wSO,T.rSO)+'</td><td class=c>'+T.fb+' / '+T.fbTry+'</td><td class=c>'+pct(T.fb,T.fbTry)+'</td><td class=c>'+T.wBP+' / '+T.rBP+'</td><td class=c>'+pct(T.wBP,T.rBP)+'</td></tr></tbody></table>';
+  h+='<p class="sm">Rally = do saque até o ponto. Quem saca o rally seguinte é quem ganhou o anterior (regra do vôlei), por isso a divisão recebendo × sacando é exata.</p>';
+  // barras
+  var bars=function(keys,src,cls){var tot=0,mx=0;keys.forEach(function(k){tot+=src[k]||0;if((src[k]||0)>mx)mx=src[k];});var o='<div class="bars">';keys.slice().sort(function(a,b){return (src[b]||0)-(src[a]||0);}).forEach(function(k){var v=src[k]||0;if(!v)return;o+='<div class="bar '+cls+'"><div class="fl">'+_fasesLabel(k)+'</div><div class="fb" style="width:'+Math.max(2,Math.round(42*v/mx))+'%"></div><div class="fv">'+v+'</div></div>';});return {html:o+'</div>',tot:tot};};
   var bp=bars(FASES_PTS,T.pts,"pos"),bl=bars(FASES_LOST,T.lost,"neg");
-  h+="<div class=charts><div class=chart style=\"text-align:left\"><div class=ct>De onde vieram os nossos "+bp.tot+" pontos</div>"+bp.html+"</div>";
-  h+="<div class=chart style=\"text-align:left\"><div class=ct>Como perdemos "+bl.tot+" pontos</div>"+bl.html+"</div></div>";
-  // ataque por fase
-  var aro=function(l,A){return "<tr><td>"+l+"</td><td class=c>"+A.n+"</td><td class=c><b>"+A.p+"</b></td><td class=c>"+pct(A.p,A.n)+"</td><td class=c>"+A.e+"</td><td class=c>"+A.b+"</td><td class=c><b>"+pct(A.p-A.e-A.b,A.n)+"</b></td></tr>";};
+  h+='<h2>De onde vieram os nossos '+bp.tot+' pontos</h2>'+bp.html;
+  h+='<h2>Como perdemos '+bl.tot+' pontos</h2>'+bl.html;
+  // ataque por fase (nova pagina)
+  var aro=function(l,A,tot){return '<tr'+(tot?' class=tot':'')+'><td>'+l+'</td><td class=c>'+A.n+'</td><td class=c>'+A.p+'</td><td class=c>'+pct(A.p,A.n)+'</td><td class=c>'+A.e+'</td><td class=c>'+A.b+'</td><td class="c b">'+pct(A.p-A.e-A.b,A.n)+'</td></tr>';};
   var tot={n:T.att.SO.n+T.att.CA.n,p:T.att.SO.p+T.att.CA.p,e:T.att.SO.e+T.att.CA.e,b:T.att.SO.b+T.att.CA.b};
-  h+="<h3>Ataque por fase</h3><table class=at><thead><tr><th>Fase</th><th class=c>Tent.</th><th class=c>Pontos</th><th class=c>Kill %</th><th class=c>Erros</th><th class=c>Bloq.</th><th class=c>Eficiência</th></tr></thead><tbody>"+aro("Side-out (1ª bola após recepção)",T.att.SO)+aro("Contra-ataque (após defesa / bola que voltou)",T.att.CA)+aro("<b>Total</b>",tot)+"</tbody></table>";
-  // distribuicao do levantamento
+  h+='<h2 class="pb">Ataque por fase</h2><table><thead><tr><th>Fase</th><th class=c>Tentativas</th><th class=c>Pontos</th><th class=c>Kill %</th><th class=c>Erros</th><th class=c>Bloqueados</th><th class=c>Eficiência</th></tr></thead><tbody>'+aro('Side-out (1ª bola após recepção)',T.att.SO)+aro('Contra-ataque (após defesa / bola que voltou)',T.att.CA)+aro('Total',tot,true)+'</tbody></table>';
+  h+='<p class="sm">Kill % = pontos ÷ tentativas. Eficiência = (pontos − erros − bloqueados) ÷ tentativas.</p>';
+  // distribuicao
   var nSO=0,nCA=0,k;for(k in T.dist.SO)nSO+=T.dist.SO[k];for(k in T.dist.CA)nCA+=T.dist.CA[k];
-  h+="<h3>Distribuição do levantamento (para quem foi o ataque)</h3><table class=at><thead><tr><th>Posição</th><th class=c>Side-out</th><th class=c>%</th><th class=c>Contra-ataque</th><th class=c>%</th></tr></thead><tbody>";
-  ["pon","cen","opo","lev","lib","?"].forEach(function(c){var a=T.dist.SO[c]||0,b=T.dist.CA[c]||0;if(!a&&!b)return;h+="<tr><td>"+esc(posL(c))+"</td><td class=c>"+a+"</td><td class=c><b>"+pct(a,nSO)+"</b></td><td class=c>"+b+"</td><td class=c><b>"+pct(b,nCA)+"</b></td></tr>";});
-  h+="<tr style=\"background:#e2e8f0;font-weight:800\"><td>Total</td><td class=c>"+nSO+"</td><td class=c>100%</td><td class=c>"+nCA+"</td><td class=c>100%</td></tr></tbody></table>";
-  // recepcao -> SO%
-  var rq=["A","B","C","Erro"].filter(function(q){return T.recep[q];});
-  if(rq.length){h+="<h3>Recepção e side-out</h3><table class=at><thead><tr><th>Recepção</th><th class=c>Qtd</th><th class=c>SO% quando a recepção foi assim</th></tr></thead><tbody>";
-    rq.forEach(function(q){h+="<tr><td>"+q+"</td><td class=c>"+T.recep[q]+"</td><td class=c><b>"+pct(T.soByRecep[q+":w"]||0,T.soByRecep[q+":n"]||0)+"</b> ("+(T.soByRecep[q+":w"]||0)+"/"+(T.soByRecep[q+":n"]||0)+")</td></tr>";});h+="</tbody></table>";}
-  // por atleta
+  h+='<h2>Distribuição do levantamento (para quem foi o ataque)</h2><table><thead><tr><th>Posição</th><th class=c>Side-out</th><th class=c>%</th><th class=c>Contra-ataque</th><th class=c>%</th></tr></thead><tbody>';
+  ["pon","cen","opo","lev","lib","?"].forEach(function(c){var a=T.dist.SO[c]||0,b=T.dist.CA[c]||0;if(!a&&!b)return;h+='<tr><td>'+esc(posL(c))+'</td><td class=c>'+a+'</td><td class="c b">'+pct(a,nSO)+'</td><td class=c>'+b+'</td><td class="c b">'+pct(b,nCA)+'</td></tr>';});
+  h+='<tr class=tot><td>Total</td><td class=c>'+nSO+'</td><td class=c>100%</td><td class=c>'+nCA+'</td><td class=c>100%</td></tr></tbody></table>';
+  var levs=[];for(k in T.lev){var pf0=(typeof pFind==="function")?pFind(k,g.id):null;levs.push({n:(pf0?String(pf0.nm).split(" ")[0]:k)+(pf0&&pf0.nu!=null&&pf0.nu!==""?" #"+pf0.nu:""),v:T.lev[k]});}
+  levs.sort(function(a,b){return b.v-a.v;});
+  h+='<p class="sm">'+(levs.length?'Levantamentos registrados: '+levs.map(function(x){return esc(x.n)+' '+x.v;}).join(' · ')+'. ':'')+'A distribuição é medida pelo ataque que se seguiu (o levantamento nem sempre é marcado).</p>';
+  // recepcao / saque / bloqueio / defesa
+  var rq=["A","B","C","Erro"].filter(function(q){return T.recep[q];}),nrc=0;rq.forEach(function(q){nrc+=T.recep[q];});
+  h+='<h2>Recepção, saque, bloqueio e defesa</h2><div class="two"><div>';
+  h+='<table><thead><tr><th>Recepção</th><th class=c>Qtd</th><th class=c>%</th><th class=c>SO% quando a recepção foi assim</th></tr></thead><tbody>';
+  rq.forEach(function(q){h+='<tr><td>'+q+'</td><td class=c>'+T.recep[q]+'</td><td class=c>'+pct(T.recep[q],nrc)+'</td><td class="c b">'+pct(T.soByRecep[q+":w"]||0,T.soByRecep[q+":n"]||0)+' <span style="font-weight:400">('+(T.soByRecep[q+":w"]||0)+'/'+(T.soByRecep[q+":n"]||0)+')</span></td></tr>';});
+  h+='<tr class=tot><td>Total</td><td class=c>'+nrc+'</td><td class=c>100%</td><td></td></tr></tbody></table></div><div>';
+  var sv=T.serve,bk=T.blk,df=T.def;
+  h+='<table><thead><tr><th>Fundamento</th><th class=c>Total</th><th>Resultado</th></tr></thead><tbody>';
+  h+='<tr><td>Saque</td><td class=c>'+sv.n+'</td><td>ace '+sv.ace+' ('+pct(sv.ace,sv.n)+') · erro '+sv.err+' ('+pct(sv.err,sv.n)+') · em jogo '+sv.cont+'</td></tr>';
+  h+='<tr><td>Bloqueio</td><td class=c>'+(bk.p+bk.e+bk.c)+'</td><td>ponto '+bk.p+' · erro '+bk.e+' · toque/cont '+bk.c+'</td></tr>';
+  h+='<tr><td>Defesa</td><td class=c>'+((df.A||0)+(df.B||0)+(df.C||0)+(df.Erro||0))+'</td><td>A '+(df.A||0)+' · B '+(df.B||0)+' · C '+(df.C||0)+' · erro '+(df.Erro||0)+'</td></tr></tbody></table></div></div>';
+  // metodo
+  h+='<h2>Como este relatório é calculado</h2><p>Cada ponto do placar tem hora; cada ação registrada também. Juntando as duas sequências, o jogo é dividido em rallies exatos. O sacador de cada rally é quem ganhou o rally anterior (no 1º rally do set, o primeiro toque registrado). O primeiro ataque nosso num rally do saque adversário é a 1ª bola de side-out; todo outro ataque é contra-ataque. Posição do atleta = a cadastrada no RS-SCOUT.</p>';
+  var manual=(T.pts.manual||0),advm=(T.lost.adv_manual||0),defE=(T.lost.defesa||0);
+  h+='<p class="sm">Qualidade do dado neste jogo: '+manual+' ponto(s) nosso(s) e '+advm+' do adversário entraram só pelo "+" (sem ação registrada)'+(defE?'; "Defesa — erro" foi usado '+defE+' vez(es), em geral como ataque adversário que não conseguimos defender':'')+'.'+(T.estimado?' Jogo no formato antigo: rallies reconstruídos pela ordem das ações (estimado).':'')+'</p>';
+  // por atleta (nova pagina)
   var rows=[];for(k in T.ath){var A=T.ath[k];if(A.att.SO.n+A.att.CA.n+A.blkP+A.srv+A.lev+A.def+Object.keys(A.recep).length===0)continue;rows.push(A);}
   rows.sort(function(x,y){return (y.att.SO.n+y.att.CA.n)-(x.att.SO.n+x.att.CA.n);});
   if(rows.length){
-    var f=function(A){return A.n?(A.p+"/"+A.n+" <small>("+pct(A.p,A.n)+")</small>"):"–";};
-    h+="<h3>Por atleta</h3><table class=at><thead><tr><th class=c>#</th><th>Atleta</th><th>Posição</th><th class=c>Ataque side-out</th><th class=c>Ataque contra-ataque</th><th class=c>Bloq.</th><th class=c>Saques (ace/erro)</th><th class=c>Recepção A·B·C·E</th><th class=c>Erros</th></tr></thead><tbody>";
-    rows.forEach(function(A){var pf=(typeof pFind==="function")?pFind(A.pid,g.id):null;var rc=A.recep;var rcs=Object.keys(rc).length?((rc.A||0)+"·"+(rc.B||0)+"·"+(rc.C||0)+"·"+(rc.Erro||0)):"–";
-      h+="<tr><td class=num>"+(pf&&pf.nu!=null&&pf.nu!==""?pf.nu:"–")+"</td><td class=nome>"+esc(pf?String(pf.nm).split(" ")[0]:A.pid)+"</td><td>"+esc(pf&&pf.po?pf.po:"–")+"</td><td class=c>"+f(A.att.SO)+"</td><td class=c>"+f(A.att.CA)+"</td><td class=c>"+A.blkP+"</td><td class=c>"+(A.srv?(A.srv+" <small>("+A.ace+"/"+A.srvErr+")</small>"):"–")+"</td><td class=c>"+rcs+"</td><td class=\"c err\">"+A.errs+"</td></tr>";});
-    h+="</tbody></table>";
+    var f=function(A){return A.n?(A.p+'/'+A.n+' ('+pct(A.p,A.n)+')'):'–';};
+    h+='<h2 class="pb">Por atleta</h2><table><thead><tr><th class=c>#</th><th>Atleta</th><th>Posição</th><th class=c>Ataque side-out</th><th class=c>Ataque contra-ataque</th><th class=c>Bloq. pts</th><th class=c>Saques (ace / erro)</th><th class=c>Recepção A·B·C·E</th><th class=c>Erros</th></tr></thead><tbody>';
+    rows.forEach(function(A){var pf=(typeof pFind==="function")?pFind(A.pid,g.id):null;var rc=A.recep;var rcs=Object.keys(rc).length?((rc.A||0)+'·'+(rc.B||0)+'·'+(rc.C||0)+'·'+(rc.Erro||0)):'–';
+      h+='<tr><td class=c>'+(pf&&pf.nu!=null&&pf.nu!==""?pf.nu:'–')+'</td><td class=b>'+esc(pf?String(pf.nm).split(" ")[0]:A.pid)+'</td><td>'+esc(pf&&pf.po?pf.po:'–')+'</td><td class=c>'+f(A.att.SO)+'</td><td class=c>'+f(A.att.CA)+'</td><td class=c>'+A.blkP+'</td><td class=c>'+(A.srv?(A.srv+' ('+A.ace+' / '+A.srvErr+')'):'–')+'</td><td class=c>'+rcs+'</td><td class="c err">'+A.errs+'</td></tr>';});
+    h+='</tbody></table><p class="sm">Erros = soma de saque, ataque (erro e bloqueado), recepção, defesa, bloqueio e levantamento com resultado Erro.</p>';
   }
   // legenda
-  h+="<h3>Legenda</h3><table class=at><tbody>";
-  FASES_LEGENDA.forEach(function(L){if(L[0]==="Estimado"&&!T.estimado)return;h+="<tr><td class=nome style=\"width:150px\">"+L[0]+"</td><td>"+L[1]+"</td></tr>";});
-  h+="</tbody></table>";
-  var manual=(T.pts.manual||0),advm=(T.lost.adv_manual||0);
-  if(manual||advm)h+="<div style=\"font-size:9px;color:#94a3b8;margin-top:4px\">Qualidade do dado: "+manual+" ponto(s) nosso(s) e "+advm+" do adversário entraram só pelo \"+\" (sem ação registrada).</div>";
+  h+='<h2>Legenda</h2><table class="leg"><thead><tr><th>Sigla / termo</th><th>Significado</th></tr></thead><tbody>';
+  FASES_LEGENDA.forEach(function(Lg){if(Lg[0]==="Estimado"&&!T.estimado)return;h+='<tr><td>'+Lg[0]+'</td><td>'+Lg[1]+'</td></tr>';});
+  h+='<tr><td>Posições</td><td>'+[posL("pon"),posL("cen"),posL("opo"),posL("lev"),posL("lib")].join(' · ')+' (rótulo no gênero do time).</td></tr></tbody></table>';
+  h+='</div>';
   return h;
 }
 function exGamePDF(gid){
@@ -8984,8 +9047,8 @@ function exGamePDF(gid){
     +".charts{display:flex;gap:14px;margin-bottom:8px}.chart{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;text-align:center}.chart .ct{font-size:11px;font-weight:800;color:#0f172a;margin-bottom:8px}.chart svg{display:block;margin:0 auto}.chart .lg{margin-top:8px;text-align:left;font-size:9px;display:inline-block}.chart .lgi{display:flex;align-items:center;gap:5px;margin:2px 0;color:#334155}.chart .lgi small{color:#94a3b8}.chart .dot{width:9px;height:9px;border-radius:2px;flex:none}"
     +".eff{margin-left:auto;font-weight:800;color:#1d4ed8;font-size:10px;background:#eff6ff;border-radius:5px;padding:1px 6px}"
     +".ft{margin-top:24px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between}"
-    +".fbar{display:flex;align-items:center;gap:6px;font-size:9.5px;margin:3px 0}.fbar .fl{flex:0 0 58%}.fbar .fb{height:10px;border-radius:3px;background:#059669;min-width:2px}.fbar.neg .fb{background:#dc2626}.fbar .fv{font-weight:800;min-width:18px}"
-    +"@media print{body{font-size:11px}.wrap{padding:0}h2{page-break-after:avoid}table.at{page-break-inside:auto}table.at tr{page-break-inside:avoid}}";
+    +"@media print{body{font-size:11px}.wrap{padding:0}h2{page-break-after:avoid}table.at{page-break-inside:auto}table.at tr{page-break-inside:avoid}}"
+    +_pdfFasesCss();
   var ph="<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>"+esc(teamName)+" vs "+esc(g.opp)+"</title><style>"+css+"</style></head><body><div class=wrap>";
   // cabecalho
   ph+="<div class=hd>";
@@ -9006,8 +9069,6 @@ function exGamePDF(gid){
   ph+=pdfChartsHTML(g);
   // sequencia de pontos (ladder)
   ph+=_pdfLadderHTML(g);
-  // fases do jogo: side-out / break / contra-ataque (motor fasesStats)
-  ph+=_pdfFasesHTML(g);
   // tabela geral
   ph+="<h2>Resumo da partida \u2014 por atleta</h2>";
   if(g.tidB){
@@ -9038,6 +9099,8 @@ function exGamePDF(gid){
       }
     }
   }
+  // fases do jogo (side-out / 1a bola / break / contra-ataque) — paginas proprias no fim (motor fasesStats)
+  ph+=_pdfFasesHTML(g);
   ph+="<div class=ft><span>RS-Scout 2026 \u00b7 Associa\u00e7\u00e3o Scola de Voleibol</span><span>Gerado em "+new Date().toLocaleString("pt-BR")+"</span></div>";
   ph+="</div></body></html>";
   // Renderiza em overlay inline (iframe) em vez de nova aba \u2014 no iOS Safari o

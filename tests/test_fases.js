@@ -95,6 +95,14 @@ setTimeout(()=>{
     const ov=w.document.getElementById('pdfOverlay-doc')||w.document.getElementById('pdfOverlay');
     chk(!!ov&&ov.innerHTML.indexOf('Fases do jogo')>=0&&ov.innerHTML.indexOf('Sequ')>=0, 'exGamePDF: PDF da partida traz a secao Fases do jogo (depois da sequencia de pontos)');
     chk(w._pdfFasesHTML({id:'x',act:[],ss:[]})===''&&w._pdfFasesHTML(null)==='', 'jogo sem acoes: secao vazia (nao quebra o PDF)');
+    console.log('\n--- 5. Relatorio visual (exTeamReport) traz a mesma secao, no design dele ---');
+    const rh=w.reportTeamHTML(g1);
+    chk(rh.indexOf('Fases do jogo')>=0&&rh.indexOf('class="fz"')>=0&&rh.indexOf('Leitura do jogo')>=0, 'reportTeamHTML: secao "Fases do jogo" + leitura escrita');
+    chk(rh.indexOf('Side-out (SO%)')>=0&&rh.indexOf('>60%<')>=0&&rh.indexOf('>33%<')>=0&&rh.indexOf('>67%<')>=0, 'KPIs SO 60 / FBSO 33 / BP 67 (mesmo motor)');
+    chk(rh.indexOf('fz-bar fz-pos')>=0&&rh.indexOf('fz-bar fz-neg')>=0&&rh.indexOf('fz-bar pos')<0, 'barras com classes proprias (sem colidir com .pos do relatorio)');
+    chk(rh.indexOf('Fases por set')>=0&&rh.indexOf('Ataque por fase')>=0&&rh.indexOf('Distribuição do levantamento')>=0&&rh.indexOf('Por atleta — fases')>=0&&rh.indexOf('Como as fases são calculadas')>=0&&rh.indexOf('Legenda')>=0, 'todos os blocos: por set, ataque por fase, distribuicao, por atleta, metodo, legenda');
+    chk(rh.indexOf('rallies exatos')>=0&&w.reportTeamHTML(g2).indexOf('estimado')>=0, 'tag "rallies exatos" no jogo novo e "estimado" no legado');
+    chk(w._repFasesCSS().indexOf('.fz-tb')>=0&&rh.indexOf('.fz-tb{')>=0, 'CSS da secao entra no _repCSS do relatorio');
 
     console.log('\n=== test_fases: '+ok+' OK, '+ko+' FAIL ===');
     process.exit(ko?1:0);

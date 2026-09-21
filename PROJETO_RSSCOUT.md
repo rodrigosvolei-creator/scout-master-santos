@@ -173,7 +173,9 @@ Torneios standalone configurados em `TOURNEY_ACCESS[token]`: `standalone` (pági
 fundamento), eficiência % por atleta, sequência de pontos por set (só quando é real) e, desde
 21/09/2026, a seção **"Fases do jogo"** (`_pdfFasesHTML`): SO% (side-out), FBSO% (1ª bola),
 BP% (break point), origem/perda dos pontos, ataque e distribuição do levantamento por fase,
-recepção × side-out, por atleta e legenda — e a mesma seção, no design do **Relatório visual** (`exTeamReport`, `_repFasesHTML`, CSS `.fz-*`), que é o relatório de uso do time. Contra-ataque sai dividido em "no break" (nós sacamos) × "em transição" (eles sacaram). Motor puro `rallyModel(gm)` (rally = trecho entre 2
+recepção × side-out, **"Para quem foi a bola, por fase"** (função e atleta, com % e pontos), **"Por
+posição do levantador"** (rotações P1–P6, por set e jogo todo — `rotacaoStats`), por atleta e legenda —
+e a mesma seção, no design do **Relatório visual** (`exTeamReport`, `_repFasesHTML`, CSS `.fz-*`), que é o relatório de uso do time. Contra-ataque sai dividido em "no break" (nós sacamos) × "em transição" (eles sacaram). Motor puro `rallyModel(gm)` (rally = trecho entre 2
 pontos do `sq` com hora; sacador = vencedor do anterior) + `fasesStats(gm)`. Jogo no formato
 antigo (sq sem hora) sai com tarja "estimado · cobertura N%" (rallies reconstruídos pela ordem
 das ações). Teste: `tests/test_fases.js`.
@@ -288,13 +290,16 @@ houve incidente real de 249 ações perdidas).
 
 ## 11. Pendências conhecidas / roadmap
 
-- **Análise por rotação (posição do levantador P1–P6) no app:** protótipo validado fora do app em
-  21/09/2026 (RS x Fenerbouas; dashboard HTML + PDF pros atletas). Motor = `rallyModel` + regra do
-  `courtApplyPoint` (roda no side-out) + âncora na base da quadra, replay pra frente e `rotateCourtBack`
-  pra trás; substituições vêm do `courtHist`, sacador inicial do `ss[i].srv0` (ambos gravados desde o
-  build 21h). Falta: a seção no Relatório/PDF ("por posição do levantador": recebendo/sacando, para quem
-  foi a bola por fase, quem estava em quadra) e tratar jogos sem modo quadra (só side-out/break por
-  rotação inferida pelos saques). Nomenclatura: 5x1, inversão, ataque de side-out × contra-ataque.
+- **Análise por rotação (posição do levantador P1–P6):** NO APP desde o build 21i (seção "Por posição do
+  levantador" no PDF Partida e no Relatório visual; motor `rotacaoModel`/`rotacaoStats`, teste em
+  `test_fases.js` §7). Validado contra o protótipo externo do jogo RS x Fenerbouas (dashboard HTML + PDF
+  pros atletas): 0 diferenças nas 6 posições × 3 sets. Como funciona: quadra por rally = `courtHist`
+  (base em vigor + replay) ou, sem histórico, a quadra derivada do fim do set desrodada com
+  `rotateCourtBack`; levantador = quem levantou/sacou por último com função "Levantador" (vaga de quem
+  não está no sexteto derivado é fixada pelo saque dele — cobre a inversão em jogos antigos), senão o
+  único/o do fundo. Limites: jogo sem modo quadra → aviso; jogos antigos mostram o último sexteto
+  registrado (nota "sem histórico de trocas"). Possível evolução: "para quem foi a bola" por rotação e
+  a quadra desenhada (hoje: rallies, recebendo/sacando, saldo, side-out, contra-ataque, sexteto).
 - **Migração keyed-by-id (C1):** trocar `games/{idx}` por `games/{id}` — fix real do bug
   "grava no jogo errado". Precisa backup + autorização + validação com dados de produção.
   Próximo passo depois que o C2 (escrita granular, 18/09/2026) estiver estável em produção.

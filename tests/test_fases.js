@@ -37,16 +37,35 @@ const P3 = side => { t0 += 1000; sq3['p' + t0 + '_x'] = side; };
 A3('a3','saque','Cont'); A3('a1','recepcao','B'); A3('a4','levantamento','A'); A3('a2','ataque','Ponto'); P3('u'); // R1 srv u: 'recepcao' e defesa; ataque = CA no break
 A3('a3','saque','Cont'); A3('a1','recepcao','Erro'); P3('t');                                            // R2 srv u: perdido por defesa (nao recepcao)
 A3('a1','recepcao','A'); A3('a4','levantamento','A'); A3('a2','ataque','Ponto'); P3('u');            // R3 srv t: recepcao de verdade + ataque de side-out
+// g4/g5 (rotacoes): modo quadra. Eles sacam primeiro; a4 e o levantador (P1 na escalacao).
+// R0 recebendo, ganho (roda: a4 -> P6) | R1 sacando, ganho | R2 sacando, perdido | R3 recebendo, ganho (roda)
+function roteiroRot(setter3){const act={},sq={},keys=[];
+  const A=(pid,ak,oc)=>{t0+=1000;const id='a'+t0+'_x';act[id]={id,pid,ak,oc,set:1,ts:0,dev:'dev_A'};};
+  const P=side=>{t0+=1000;const k='p'+t0+'_x';sq[k]=side;keys.push(k);};
+  A('a1','recepcao','A');A('a4','levantamento','A');A('a2','ataque','Ponto');P('u');
+  A('a4','saque','Cont');A('a1','defesa','A');A('a3','ataque','Ponto');P('u');
+  A('a4','saque','Erro');P('t');
+  A('a1','recepcao','B');A(setter3,'levantamento','A');A('a5','ataque','Cont');A('a1','defesa','A');A('a2','ataque','Ponto');P('u');
+  return {act,sq,keys};}
+const R4=roteiroRot('a4'), R5=roteiroRot('a8');
 const legacyActs = Object.values(act).map(a => Object.assign({}, a)); // mesmo roteiro, formato antigo (array), sem pontos manuais no sq
 
 const seed={'torneio-master-santos':{
   teams:[{id:'tm',n:'RS MASC 35+',c:'#2563eb',roster:['a1','a2','a3','a4','a5','a6'].map(aid=>({aid}))}],
-  athletes:[{aid:'a1',nm:'Libero Um',po:'Líbero'},{aid:'a2',nm:'Ponta Dois',po:'Ponteiro(a)'},{aid:'a3',nm:'Sacador Tres',po:'Central'},{aid:'a4',nm:'Lev Quatro',po:'Levantador(a)'},{aid:'a5',nm:'Def Cinco',po:'Ponteiro(a)'},{aid:'a6',nm:'Oposto Seis',po:'Oposto(a)'}],
+  athletes:[{aid:'a1',nm:'Libero Um',po:'Líbero'},{aid:'a2',nm:'Ponta Dois',po:'Ponteiro(a)'},{aid:'a3',nm:'Sacador Tres',po:'Central'},{aid:'a4',nm:'Lev Quatro',po:'Levantador(a)'},{aid:'a5',nm:'Def Cinco',po:'Ponteiro(a)'},{aid:'a6',nm:'Oposto Seis',po:'Oposto(a)'},{aid:'a8',nm:'Lev Oito',po:'Levantador(a)'}],
   tournaments:[{id:'tA',n:'Liga',c:'#2563eb'}],
   games:[
     {id:'g1',torId:'tA',tid:'tm',opp:'Adv Novo',dt:'2026-09-21',st:'done',lineup:[1,2,3,4,5,6].map(i=>({aid:'a'+i,nu:i})),act:act,ss:[{u:7,t:4,sq:sq},{u:1,t:0,sq:sq2}]},
     {id:'g2',torId:'tA',tid:'tm',opp:'Adv Legado',dt:'2026-09-01',st:'done',lineup:[1,2,3,4,5,6].map(i=>({aid:'a'+i,nu:i})),act:legacyActs,ss:[{u:6,t:3,sq:['u','u','t','u','u','u','t','t','u']}]},
-    {id:'g3',torId:'tA',tid:'tm',opp:'Adv Recep',dt:'2026-09-22',st:'done',lineup:[1,2,3,4,5,6].map(i=>({aid:'a'+i,nu:i})),act:act3,ss:[{u:2,t:1,sq:sq3}]}
+    {id:'g3',torId:'tA',tid:'tm',opp:'Adv Recep',dt:'2026-09-22',st:'done',lineup:[1,2,3,4,5,6].map(i=>({aid:'a'+i,nu:i})),act:act3,ss:[{u:2,t:1,sq:sq3}]},
+    // g4: quadra do modo quadra (base do inicio do set, sem historico): ancora no fim, desrodada
+    {id:'g4',torId:'tA',tid:'tm',opp:'Adv Quadra',dt:'2026-09-23',st:'done',courtMode:true,lineup:[1,2,3,4,5,6,8].map(i=>({aid:'a'+i,nu:i})),act:R4.act,ss:[{u:3,t:1,sq:R4.sq}],
+     court:{'1':{pos:['a4','a2','a3','a5','a6','a1'],serving:'them',after:null}}},
+    // g5: COM historico (courtHist): escalacao + substituicao a8 (levantador) por a6 depois do 2o ponto; a8 levanta no R3
+    {id:'g5',torId:'tA',tid:'tm',opp:'Adv Hist',dt:'2026-09-24',st:'done',courtMode:true,lineup:[1,2,3,4,5,6,8].map(i=>({aid:'a'+i,nu:i})),act:R5.act,ss:[{u:3,t:1,sq:R5.sq}],
+     court:{'1':{pos:['a2','a3','a5','a8','a1','a4'],serving:'us',after:R5.keys[1]}},
+     courtHist:{'1':{'h1000000000001_a':{kind:'setup',pos:['a4','a2','a3','a5','a6','a1'],serving:'them',after:null,at:1},
+                     'h1000000000002_b':{kind:'sub','in':'a8',out:'a6',pos:['a2','a3','a5','a8','a1','a4'],serving:'us',after:R5.keys[1],at:2}}}}
   ],invites:{}}};
 Object.assign(fakeDB,JSON.parse(JSON.stringify(seed)));
 
@@ -132,6 +151,25 @@ setTimeout(()=>{
     chk(T3.ath.a1.def===2&&T3.ath.a1.recep.A===1&&T3.ath.a1.errs===1, 'por atleta: libero com 2 defesas (relabel) + 1 recepcao A + 1 erro');
     const h3=w._pdfFasesHTML(g3);
     chk(h3.indexOf('2 recepção(ões) marcada(s) em rally do nosso saque foram tratadas como defesa')>=0&&w.reportTeamHTML(g3).indexOf('tratadas como defesa')>=0, 'PDF e Relatorio avisam quantas recepcoes foram tratadas como defesa');
+
+    console.log('\n--- 7. por posicao do levantador (rotacoes): quadra + sequencia de pontos ---');
+    const g4=w.gF('g4'); const M4=w.rotacaoModel(g4); const R4s=w.rotacaoStats(g4);
+    chk(M4.ok&&M4.sets[0].hasCourt&&!M4.sets[0].hist&&M4.sets[0].rallies.map(r=>r.pos).join('')==='1666', 'g4 (sem historico): ancora no fim do set desrodada -> levantador P1, depois P6 (rodou no side-out do R0)');
+    chk(M4.sets[0].rallies[0].court.join()==='a4,a2,a3,a5,a6,a1'&&M4.sets[0].rallies[1].court.join()==='a2,a3,a5,a6,a1,a4', 'sextetos rally a rally: escalacao no R0, rodada a partir do R1');
+    var P1=R4s.sets[0].per[1],P6=R4s.sets[0].per[6];
+    chk(P1.n===1&&P1.rSO===1&&P1.wSO===1&&P1.rBP===0&&P1.att.SO.n===1&&P1.att.SO.p===1&&P1.dist.SO.pon===1, 'P1: 1 rally recebendo (ganho), ataque de side-out 1/1 pro ponteiro');
+    chk(P6.n===3&&P6.rSO===1&&P6.wSO===1&&P6.rBP===2&&P6.wBP===1&&P6.pw===2&&P6.pl===1&&P6.att.SO.n===1&&P6.att.SO.p===0&&P6.att.CA.n===2&&P6.att.CA.p===2, 'P6: 3 rallies (rec 1/1, sac 1/2, saldo +1), side-out 0/1, contra-ataque 2/2');
+    chk(R4s.tot[1].n===1&&R4s.tot[6].n===3&&R4s.tot[0].n===0&&R4s.noSetter===0&&R4s.noCourt===0&&Object.keys(P6.setters).join()==='a4', 'jogo todo soma os sets; levantador identificado em todos (a4)');
+    const g5=w.gF('g5'); const M5=w.rotacaoModel(g5);
+    chk(M5.sets[0].hist&&M5.sets[0].rallies.map(r=>r.pos).join('')==='1664'&&M5.sets[0].rallies[3].court.join()==='a2,a3,a5,a8,a1,a4'&&M5.sets[0].rallies[3].setter==='a8', 'g5 (courtHist): a8 entra por a6 depois do 2o ponto e levanta no R3 -> posicao dele (P4); antes, a4 (P1, P6, P6)');
+    chk(w.rotacaoStats(g5).sets[0].per[4].n===1&&w.rotacaoStats(g5).sets[0].per[6].n===2, 'g5: P4 1 rally, P6 2 rallies');
+    const M1=w.rotacaoModel(w.gF('g1'));
+    chk(!M1.ok&&M1.noCourt===2, 'g1 sem quadra: sem analise por rotacao (noCourt por set)');
+    const h4=w._pdfFasesHTML(g4), r4=w.reportTeamHTML(g4), h1=w._pdfFasesHTML(w.gF('g1'));
+    chk(h4.indexOf('Por posição do levantador')>=0&&h4.indexOf('<b>P6</b>')>=0&&h4.indexOf('100% <span style="font-weight:400">(1/1)</span>')>=0&&h4.indexOf('P1 Lev · P2 Ponta · P3 Sacador · P4 Def · P5 Oposto · P6 Libero')>=0, 'PDF: tabela por rotacao com P6, side-out % e o sexteto P1->P6 do set');
+    chk(r4.indexOf('Por posição do levantador')>=0&&r4.indexOf('fz-sub')>=0&&r4.indexOf('<b>P6</b>')>=0&&r4.indexOf('levantou: Lev')>=0, 'Relatorio visual: mesma secao, com quem levantou');
+    chk(h1.indexOf('Sem quadra registrada neste jogo')>=0&&w.reportTeamHTML(w.gF('g1')).indexOf('Sem quadra registrada')>=0, 'jogo sem quadra: aviso no PDF e no Relatorio');
+    chk(h4.indexOf('Set(s) sem histórico de trocas')>=0&&w._pdfFasesHTML(g5).indexOf('sem histórico de trocas')<0, 'nota "sem historico de trocas" so no jogo sem courtHist');
 
     console.log('\n=== test_fases: '+ok+' OK, '+ko+' FAIL ===');
     process.exit(ko?1:0);

@@ -1347,7 +1347,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-21h - MARCACAO pra analise por rotacao nos proximos jogos: (1) quem sacou primeiro no set (ss[i].srv0) — chip \"Saque inicial\" na mesa (classico e tablet), automatico na 1a acao do set (saque/recepcao a 0-0) e ao escalar no modo quadra; rallyModel usa; (2) historico de TODAS as edicoes da quadra (courtHist/{set}/{key}: escalar, rodar, libero, substituicao com in/out) — court/{set} guarda so a ultima base; 21g - PARA QUEM FOI A BOLA por fase: no PDF Partida e no Relatorio visual, a distribuicao do levantamento sai separada em ataque de side-out x contra-ataque, por funcao (ataques, % da fase, pontos/kill) e por atleta (ataques, %, pontos); 21f - NOMENCLATURA das fases (Rodrigo): side-out = o 1o ataque vindo da recepcao (era \"1a bola/FBSO\"); qualquer outro ataque e contra-ataque (no break: nos sacamos -> defesa ou bloqueio -> ataque; em transicao: saque deles, depois do side-out); metricas de rally rotuladas \"rallies recebendo (side-out %)\" / \"rallies sacando (break %)\"; recepcao marcada em rally do nosso saque e tratada como defesa (contada no relatorio); 21e - contra-ataque dividido em no break (nos sacamos) x em transicao (eles sacaram) nas tabelas de ataque por fase; legenda BP/CA reescrita; 21d - FASES DO JOGO tambem no Relatorio visual (exTeamReport), no design dele (cards, KPIs, leitura escrita, barras, por atleta, legenda); 21c - FASES DO JOGO no layout do relatorio avulso (faixa, KPIs, leitura escrita gerada dos numeros, barras, metodo, legenda), paginas proprias no fim do PDF da partida; 21b - PDF da partida ganha FASES DO JOGO: side-out %, 1a bola (FBSO), break point %, origem dos pontos, ataque e distribuicao do levantamento por fase, recepcao x side-out, por atleta, legenda (motor rallyModel/fasesStats); 21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
+var APP_BUILD="2026-09-21i - POR POSICAO DO LEVANTADOR (P1-P6) no PDF Partida e no Relatorio visual: rallies, recebendo/sacando, saldo, ataque de side-out e contra-ataque por rotacao, por set (com o sexteto) e jogo todo — motor rotacaoModel/rotacaoStats (quadra do modo quadra + sequencia de pontos, historico de trocas quando existe; levantador = funcao cadastrada / quem levantou); 21h - MARCACAO pra analise por rotacao nos proximos jogos: (1) quem sacou primeiro no set (ss[i].srv0) — chip \"Saque inicial\" na mesa (classico e tablet), automatico na 1a acao do set (saque/recepcao a 0-0) e ao escalar no modo quadra; rallyModel usa; (2) historico de TODAS as edicoes da quadra (courtHist/{set}/{key}: escalar, rodar, libero, substituicao com in/out) — court/{set} guarda so a ultima base; 21g - PARA QUEM FOI A BOLA por fase: no PDF Partida e no Relatorio visual, a distribuicao do levantamento sai separada em ataque de side-out x contra-ataque, por funcao (ataques, % da fase, pontos/kill) e por atleta (ataques, %, pontos); 21f - NOMENCLATURA das fases (Rodrigo): side-out = o 1o ataque vindo da recepcao (era \"1a bola/FBSO\"); qualquer outro ataque e contra-ataque (no break: nos sacamos -> defesa ou bloqueio -> ataque; em transicao: saque deles, depois do side-out); metricas de rally rotuladas \"rallies recebendo (side-out %)\" / \"rallies sacando (break %)\"; recepcao marcada em rally do nosso saque e tratada como defesa (contada no relatorio); 21e - contra-ataque dividido em no break (nos sacamos) x em transicao (eles sacaram) nas tabelas de ataque por fase; legenda BP/CA reescrita; 21d - FASES DO JOGO tambem no Relatorio visual (exTeamReport), no design dele (cards, KPIs, leitura escrita, barras, por atleta, legenda); 21c - FASES DO JOGO no layout do relatorio avulso (faixa, KPIs, leitura escrita gerada dos numeros, barras, metodo, legenda), paginas proprias no fim do PDF da partida; 21b - PDF da partida ganha FASES DO JOGO: side-out %, 1a bola (FBSO), break point %, origem dos pontos, ataque e distribuicao do levantamento por fase, recepcao x side-out, por atleta, legenda (motor rallyModel/fasesStats); 21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -8854,6 +8854,106 @@ function fasesStats(gm){
   T.gen=gen;
   return T;
 }
+// ===== ROTACOES: posicao do LEVANTADOR (P1..P6) rally a rally =====
+// Rotacao nomeada pela posicao do levantador em quadra (P1 fundo direita/saque ... P6 fundo meio).
+// Fonte da quadra: courtHist/{set} (todas as edicoes manuais, com in/out — jogos do build 21h em diante);
+// senao a quadra DERIVADA do set (ultima base + replay) como ancora no fim do set, desrodada ate o 1o rally.
+// Regra = a do modo quadra (courtApplyPoint): roda quando NOS ganhamos o ponto sem estar sacando.
+// Levantador = quem levantou no rally (se esta no sexteto) > unico atleta com funcao Levantador no sexteto >
+// o levantador do fundo (dois em quadra). Sem levantador identificado (funcao nao cadastrada) -> pos 0.
+function rotacaoModel(gm){
+  var out={sets:[],ok:false,noCourt:0,noSetter:0,offCourtLev:0,exact:true};
+  if(!gm)return out;
+  var rm=rallyModel(gm);out.exact=rm.exact;
+  var libOut=function(pos,lp){return pos.map(function(a){return (lp&&a===lp.lib&&lp.out)?lp.out:a;});};
+  var grpOf=function(aid){if(!aid)return"";var pf=(typeof pFind==="function")?pFind(aid,gm.id):null;return (typeof posGroup==="function")?posGroup(pf&&pf.po):"";};
+  for(var si=0;si<rm.sets.length;si++){
+    var S_=rm.sets[si],setNum=S_.set,st=gm.ss&&gm.ss[si];
+    var res={set:setNum,rallies:[],hasCourt:false,hist:false};out.sets.push(res);
+    if(!st||!S_.rallies.length)continue;
+    var ks=(st.sq&&st.sq.length)?_sqKeys(st):[];
+    var nR=Math.min(S_.rallies.length,ks.length); // rally aberto (sem ponto) fica de fora
+    if(!rm.exact||!nR)continue;
+    var entries=[],hist=gm.courtHist&&gm.courtHist[String(setNum)];
+    if(hist&&typeof hist==="object"){Object.keys(hist).sort().forEach(function(k){var e=hist[k];var p=e&&_posArr(e.pos);if(!p||p.length!==6||p.some(function(x){return !x;}))return;entries.push({afterIdx:e.after?ks.indexOf(e.after):-1,pos:libOut(p,e.libPair)});});}
+    if(entries.length)res.hist=true;
+    var cs=gm.court&&gm.court[String(setNum)];
+    if(!entries.length&&cs&&cs.pos){var cp=_posArr(cs.pos);if(cp.length===6&&!cp.some(function(x){return !x;}))entries.push({afterIdx:ks.length-1,pos:libOut(cp,cs.libPair)});}
+    if(!entries.length){out.noCourt++;continue;}
+    res.hasCourt=true;
+    var srv0=S_.rallies[0].srv; // ja considera ss.srv0, 1a acao, base da quadra e alternancia
+    var servingBefore=function(j){if(j===0)return srv0==="u"?"us":srv0==="t"?"them":null;return st.sq[j-1]==="u"?"us":"them";};
+    var rotates=function(j){return st.sq[j]==="u"&&servingBefore(j)!=="us";};
+    // passo 1: sexteto (vagas) em cada rally = base em vigor + replay; antes da 1a base, desroda
+    var courts=[],i,j,q;
+    for(i=0;i<nR;i++){
+      var e=null,pos;
+      for(q=entries.length-1;q>=0;q--){if(entries[q].afterIdx<=i-1){e=entries[q];break;}}
+      if(e){pos=e.pos.slice();for(j=e.afterIdx+1;j<=i-1;j++){if(rotates(j))pos=rotateCourt(pos);}}
+      else{var f0=entries[0];pos=f0.pos.slice();for(j=f0.afterIdx;j>=i;j--){if(rotates(j))pos=rotateCourtBack(pos);}}
+      courts.push(pos);
+    }
+    // passo 2: levantador que NAO esta no sexteto derivado (substituicao nao registrada — jogos antigos):
+    // quem saca esta na P1, entao um saque dele fixa a vaga (= ocupante dessa vaga na quadra registrada)
+    var pins={};
+    for(i=0;i<nR;i++){var rr=S_.rallies[i];if(rr.srv!=="u")continue;rr.acts.forEach(function(x){if(x.ak==="saque"&&x.pid&&grpOf(x.pid)==="lev"&&courts[i].indexOf(x.pid)<0&&!pins[x.pid])pins[x.pid]=courts[i][0];});}
+    // passo 3: posicao do levantador rally a rally. Levantador "corrente" = quem levantou ou sacou por ultimo
+    // (funcao Levantador); comeca no levantador do sexteto. Posicao = vaga dele no sexteto ou vaga fixada.
+    // levantador inicial: o 1o que levanta ou saca no set (olhando pra frente); senao o unico do sexteto
+    var cur=null;for(i=0;i<nR&&!cur;i++){S_.rallies[i].acts.forEach(function(x){if(!cur&&x.pid&&grpOf(x.pid)==="lev"&&(x.ak==="levantamento"||(x.ak==="saque"&&S_.rallies[i].srv==="u")))cur=x.pid;});}
+    if(!cur){var levs0=courts[0].filter(function(x){return grpOf(x)==="lev";});if(levs0.length===1)cur=levs0[0];}
+    var posOf=function(aid,pos){if(!aid)return -1;var k=pos.indexOf(aid);if(k<0&&pins[aid])k=pos.indexOf(pins[aid]);return k;};
+    for(i=0;i<nR;i++){
+      var r=S_.rallies[i];pos=courts[i];
+      var la=null;r.acts.forEach(function(x){if(x.pid&&grpOf(x.pid)==="lev"&&(x.ak==="levantamento"||(x.ak==="saque"&&r.srv==="u")))la=x.pid;});
+      if(la)cur=la;
+      var lev=-1;
+      if(cur){lev=posOf(cur,pos);if(lev<0&&pos.indexOf(cur)<0)out.offCourtLev++;}
+      if(lev<0){var levs=[];pos.forEach(function(x,k){if(grpOf(x)==="lev")levs.push(k);});
+        if(levs.length===1)lev=levs[0];else if(levs.length>1){var back=levs.filter(function(k){return k===0||k===4||k===5;});lev=back.length?back[0]:levs[0];}}
+      if(lev<0)out.noSetter++;
+      res.rallies.push({i:i,pos:lev<0?0:lev+1,court:pos,setter:lev<0?null:(cur&&posOf(cur,pos)===lev?cur:pos[lev]),srv:r.srv,winner:r.winner,acts:r.acts});
+    }
+  }
+  out.ok=out.sets.some(function(x){return x.hasCourt;});
+  return out;
+}
+// Agrega por set e no jogo todo, por posicao do levantador (1..6; 0 = nao identificado).
+function rotacaoStats(gm){
+  var M=rotacaoModel(gm);
+  function mkP(){return {n:0,rSO:0,wSO:0,rBP:0,wBP:0,pw:0,pl:0,att:{SO:{n:0,p:0},CA:{n:0,p:0}},dist:{SO:{},CA:{}},court:null,setters:{}};}
+  var T={ok:M.ok,exact:M.exact,noCourt:M.noCourt,noSetter:M.noSetter,offCourtLev:M.offCourtLev,sets:[],tot:[]};
+  var p;for(p=0;p<=6;p++)T.tot[p]=mkP();
+  M.sets.forEach(function(S_){var per=[];for(p=0;p<=6;p++)per[p]=mkP();
+    S_.rallies.forEach(function(x){[per[x.pos],T.tot[x.pos]].forEach(function(P){P.n++;
+      if(x.srv==="t"){P.rSO++;if(x.winner==="u")P.wSO++;}else if(x.srv==="u"){P.rBP++;if(x.winner==="u")P.wBP++;}
+      if(x.winner==="u")P.pw++;else if(x.winner==="t")P.pl++;
+      if(!P.court)P.court=x.court.slice();if(x.setter)P.setters[x.setter]=(P.setters[x.setter]||0)+1;
+      var ai=0;x.acts.forEach(function(a){if(a.ak!=="ataque"||a.pid==null)return;var ph=(x.srv==="t"&&ai===0)?"SO":"CA";ai++;var X=P.att[ph];X.n++;if(a.oc==="Ponto")X.p++;
+        var pf=(typeof pFind==="function")?pFind(a.pid,gm.id):null;var g=((typeof posGroup==="function")?posGroup(pf&&pf.po):"")||"?";P.dist[ph][g]=(P.dist[ph][g]||0)+1;});});});
+    T.sets.push({set:S_.set,hasCourt:S_.hasCourt,hist:S_.hist,per:per});});
+  return T;
+}
+function _rotNm(g,aid){var pf=(typeof pFind==="function")?pFind(aid,g.id):null;return pf?String(pf.nm||aid).split(" ")[0]:String(aid||"?");}
+var ROT_POS_DESC={1:"fundo direita (saque)",2:"rede direita",3:"rede meio",4:"rede esquerda",5:"fundo esquerda",6:"fundo meio"};
+// Linhas P1..P6 de uma tabela (PDF e Relatorio compartilham; cls = classes das celulas)
+function _rotRows(g,per,withCourt,cellL,cellC,cellB){
+  var pct=function(a,b){return b?(Math.round(1000*a/b)/10)+"%":"–";},h="",p;
+  for(p=1;p<=6;p++){var P=per[p];if(!P.n)continue;
+    var who=withCourt&&P.court?P.court.map(function(a,k){return "P"+(k+1)+" "+esc(_rotNm(g,a));}).join(" · "):"";
+    var lev=Object.keys(P.setters).map(function(a){return esc(_rotNm(g,a))+(Object.keys(P.setters).length>1?" ("+P.setters[a]+")":"");}).join(", ");
+    h+='<tr><td '+cellL+'><b>P'+p+'</b> <span style="font-weight:400;color:#64748b">'+ROT_POS_DESC[p]+'</span></td><td '+cellC+'>'+P.n+'</td><td '+cellB+'>'+pct(P.wSO,P.rSO)+' <span style="font-weight:400">('+P.wSO+'/'+P.rSO+')</span></td><td '+cellB+'>'+pct(P.wBP,P.rBP)+' <span style="font-weight:400">('+P.wBP+'/'+P.rBP+')</span></td><td '+cellC+'>'+(P.pw-P.pl>=0?'+':'')+(P.pw-P.pl)+'</td><td '+cellC+'>'+P.att.SO.p+'/'+P.att.SO.n+'</td><td '+cellC+'>'+P.att.CA.p+'/'+P.att.CA.n+'</td>'+(withCourt?'<td '+cellL+' style="font-size:10px">'+who+(lev?'<br><span style="color:#64748b">levantou: '+lev+'</span>':'')+'</td>':'')+'</tr>';}
+  if(per[0]&&per[0].n)h+='<tr><td '+cellL+'>sem levantador identificado</td><td '+cellC+'>'+per[0].n+'</td><td '+cellC+' colspan="'+(withCourt?6:5)+'" style="text-align:left;color:#64748b">função "Levantador" não cadastrada em nenhum atleta do sexteto</td></tr>';
+  return h;
+}
+function _rotNotes(T,setsWithCourt){
+  var L=[];
+  if(T.noCourt)L.push(T.noCourt+' set(s) sem quadra registrada (modo quadra) — sem análise por rotação nele(s).');
+  if(T.offCourtLev)L.push(T.offCourtLev+' rally(s) com levantamento de atleta fora do sexteto derivado: substituição não registrada na quadra (jogos a partir do build 2026-09-21h gravam o histórico de trocas).');
+  if(T.noSetter)L.push(T.noSetter+' rally(s) sem levantador identificado: cadastre a função "Levantador" no atleta.');
+  if(setsWithCourt.some(function(x){return !x.hist;}))L.push('Set(s) sem histórico de trocas: a quadra é a última registrada, desrodada até o 1º rally — substituições anteriores não aparecem.');
+  return L;
+}
 // Distribuicao por fase, por atleta: [{nm, n, p, pct}] em ordem de ataques (usada no PDF Partida e no Relatorio visual)
 function _fasesDistAth(T,g,ph){
   var tot=0,k;for(k in T.dist[ph])tot+=T.dist[ph][k];
@@ -8872,6 +8972,7 @@ var FASES_LEGENDA=[
   ["Eficiência","(Pontos − erros − bloqueados) ÷ tentativas. Penaliza quem erra; é o número que melhor compara atacantes."],
   ["Recepção A / B / C / Erro","A = perfeita (todas as opções de ataque), B = boa, C = ruim (ataque limitado), Erro = ponto direto do adversário."],
   ["Para quem foi a bola, por fase","Para qual posição (e atleta) foi o ataque, separado em ataque de side-out e contra-ataque: número de ataques, % dos ataques daquela fase e pontos (kill) — medido pelo ataque registrado em seguida ao levantamento."],
+  ["Posição do levantador (P1–P6)","Rotação nomeada pela posição do levantador em quadra: P1 fundo direita (saque), P2 rede direita, P3 rede meio, P4 rede esquerda, P5 fundo esquerda, P6 fundo meio. Vem da quadra do modo quadra (escalação + sequência de pontos, com o histórico de trocas) e da função \"Levantador\" cadastrada no atleta; quem levantou no rally manda quando está no sexteto."],
   ["Ponto \"só no +\"","Ponto lançado pelo botão +/− sem ação de jogador registrada (em geral ataque ou ace do adversário). Conta no placar e nas fases, não por fundamento/atleta."],
   ["Estimado","Jogo gravado no formato antigo (pontos sem hora): os rallies são reconstruídos pela ordem das ações (saque/recepção abre rally; quem saca em seguida ganhou o anterior)."]
 ];
@@ -8964,6 +9065,18 @@ function _pdfFasesHTML(g){
   var levs=[];for(k in T.lev){var pf0=(typeof pFind==="function")?pFind(k,g.id):null;levs.push({n:(pf0?String(pf0.nm).split(" ")[0]:k)+(pf0&&pf0.nu!=null&&pf0.nu!==""?" #"+pf0.nu:""),v:T.lev[k]});}
   levs.sort(function(a,b){return b.v-a.v;});
   h+='<p class="sm">'+(levs.length?'Levantamentos registrados: '+levs.map(function(x){return esc(x.n)+' '+x.v;}).join(' · ')+'. ':'')+'% = parte dos ataques da fase. A distribuição é medida pelo ataque que se seguiu (o levantamento nem sempre é marcado).</p>';
+  // por posicao do levantador (rotacoes)
+  var RT=rotacaoStats(g);
+  h+='<h2 class="pb">Por posi\u00e7\u00e3o do levantador</h2>';
+  if(!RT.ok)h+='<p class="sm">Sem quadra registrada neste jogo (modo quadra) \u2014 a an\u00e1lise por rota\u00e7\u00e3o precisa da escala\u00e7\u00e3o em quadra e da fun\u00e7\u00e3o "Levantador" no atleta.</p>';
+  else{
+    var rtHead='<thead><tr><th>Rota\u00e7\u00e3o</th><th class=c>Rallies</th><th class=c>Recebendo (side-out %)</th><th class=c>Sacando (break %)</th><th class=c>Saldo</th><th class=c>Ataque de side-out</th><th class=c>Contra-ataque</th>';
+    var rtSets=RT.sets.filter(function(x){return x.hasCourt;});
+    h+='<p class="sm">Rota\u00e7\u00e3o nomeada pela <b>posi\u00e7\u00e3o do levantador</b> em quadra. Recebendo = rallies do saque deles que ganhamos; sacando = rallies do nosso saque que ganhamos; side-out / contra-ataque = pontos / ataques registrados.</p>';
+    if(rtSets.length>1)h+='<h3 style="margin:8px 0 4px">Jogo todo</h3><table>'+rtHead+'</tr></thead><tbody>'+_rotRows(g,RT.tot,false,'','class=c','class="c b"')+'</tbody></table>';
+    rtSets.forEach(function(x){h+='<h3 style="margin:8px 0 4px">Set '+x.set+'</h3><table>'+rtHead+'<th>Quem estava (P1\u2192P6)</th></tr></thead><tbody>'+_rotRows(g,x.per,true,'','class=c','class="c b"')+'</tbody></table>';});
+    var rtN=_rotNotes(RT,rtSets);if(rtN.length)h+='<p class="sm">'+rtN.map(esc).join(' ')+'</p>';
+  }
   // recepcao / saque / bloqueio / defesa
   var rq=["A","B","C","Erro"].filter(function(q){return T.recep[q];}),nrc=0;rq.forEach(function(q){nrc+=T.recep[q];});
   h+='<h2>Recepção, saque, bloqueio e defesa</h2><div class="two"><div>';
@@ -9558,6 +9671,7 @@ function _reportCoreHTML(agg, opts){
 // (cards .card/.card-hd, KPIs .kpis/.kpi, blocos .method, tabelas .fz-tb; CSS extra em _repFasesCSS)
 function _repFasesCSS(){
   return '.fz{break-before:page}'
+    +'.fz-sub{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin:10px 0 4px}'
     +'.fz-tb{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13px}'
     +'.fz-tb th{font-family:var(--fd);font-size:10.5px;letter-spacing:.3px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:7px 8px 6px;text-align:center;border-bottom:2px solid var(--line)}'
     +'.fz-tb th.l,.fz-tb td.l{text-align:left}.fz-tb td{padding:7px 8px;text-align:center;border-bottom:1px solid var(--line);color:var(--ink)}'
@@ -9620,6 +9734,19 @@ function _repFasesHTML(g){
   var levs=[];for(k in T.lev){var pf0=(typeof pFind==="function")?pFind(k,g.id):null;levs.push({n:(pf0?String(pf0.nm).split(" ")[0]:k)+(pf0&&pf0.nu!=null&&pf0.nu!==""?" #"+pf0.nu:""),v:T.lev[k]});}
   levs.sort(function(a,b){return b.v-a.v;});
   h+='<div class="fz-note">'+(levs.length?'Levantamentos registrados: '+levs.map(function(x){return esc(x.n)+' '+x.v;}).join(' · ')+'. ':'')+'% = parte dos ataques da fase. A distribuição é medida pelo ataque que se seguiu (o levantamento nem sempre é marcado).</div></div></div>';
+  // ---- por posicao do levantador (rotacoes)
+  var RT=rotacaoStats(g);
+  h+='<div class="card"><div class="card-hd"><span class="h-ic">'+_ic("i-eq")+'</span><h3>Por posi\u00e7\u00e3o do levantador</h3><span class="tag">rota\u00e7\u00f5es P1\u2013P6</span></div><div class="card-bd">';
+  if(!RT.ok)h+='<div class="fz-note">Sem quadra registrada neste jogo (modo quadra) \u2014 a an\u00e1lise por rota\u00e7\u00e3o precisa da escala\u00e7\u00e3o em quadra e da fun\u00e7\u00e3o "Levantador" no atleta.</div>';
+  else{
+    var rtHead='<thead><tr><th class="l">Rota\u00e7\u00e3o</th><th>Rallies</th><th>Recebendo (side-out %)</th><th>Sacando (break %)</th><th>Saldo</th><th>Ataque de side-out</th><th>Contra-ataque</th>';
+    var rtSets=RT.sets.filter(function(x){return x.hasCourt;});
+    h+='<div class="fz-note" style="margin-bottom:8px">Rota\u00e7\u00e3o nomeada pela <b>posi\u00e7\u00e3o do levantador</b> em quadra. Recebendo = rallies do saque deles que ganhamos; sacando = rallies do nosso saque que ganhamos; side-out / contra-ataque = pontos / ataques registrados.</div>';
+    if(rtSets.length>1)h+='<div class="fz-sub">Jogo todo</div><div class="tscroll"><table class="fz-tb">'+rtHead+'</tr></thead><tbody>'+_rotRows(g,RT.tot,false,'class="l"','','class="b"')+'</tbody></table></div>';
+    rtSets.forEach(function(x){h+='<div class="fz-sub">Set '+x.set+'</div><div class="tscroll"><table class="fz-tb">'+rtHead+'<th class="l">Quem estava (P1\u2192P6)</th></tr></thead><tbody>'+_rotRows(g,x.per,true,'class="l"','','class="b"')+'</tbody></table></div>';});
+    var rtN=_rotNotes(RT,rtSets);if(rtN.length)h+='<div class="fz-note">'+rtN.map(esc).join(' ')+'</div>';
+  }
+  h+='</div></div>';
   // ---- recepcao x side-out / saque, bloqueio, defesa
   var rq=["A","B","C","Erro"].filter(function(q){return T.recep[q];}),nrc=0;rq.forEach(function(q){nrc+=T.recep[q];});
   var sv=T.serve,bk=T.blk,df=T.def;

@@ -171,6 +171,23 @@ das ações). Teste: `tests/test_fases.js`.
 **`print-color-adjust:exact`** força as cores de fundo a saírem no PDF salvo. Há PDFs antigos
 por atleta (`exAthPDF`, `exAllAthPDF`) mantidos como estão.
 
+> **Nomenclatura das fases (definida pelo Rodrigo em 21/09/2026 — vale pra todo relatório,
+> dashboard, código e conversa, em qualquer sessão):**
+> - **Side-out** (ataque) = o **primeiro ataque vindo de uma recepção**, no rally em que o saque é
+>   do adversário. É o que o código chama de `SO`/`fbso`/"1ª bola (FBSO)" → nos textos, chamar de
+>   **ataque de side-out**.
+> - **Contra-ataque** = **qualquer outro ataque**. Ganha um nome pela origem, mas é sempre
+>   contra-ataque: **em transição** (`CAt`: mesmo rally do saque deles, depois do ataque de
+>   side-out) ou **no break** (`CAu`: rally em que nós sacamos — depois do nosso saque o primeiro
+>   contato nosso é sempre **defesa**, nunca recepção; o ataque que vem é contra-ataque).
+> - Side-out e contra-ataque **nunca se confundem**: um ataque é um ou outro.
+> - As métricas de rally continuam: side-out % = rallies recebendo que ganhamos; break % =
+>   rallies sacando que ganhamos (por ace, bloqueio, contra-ataque ou erro deles). Rotular como
+>   "rallies recebendo (side-out %)" / "rallies sacando (break %)" pra não confundir com o ataque.
+> - Consequência pro scout: "recepção" marcada num rally do **nosso** saque é erro de marcação
+>   (era defesa). Pendente: trocar os rótulos "1ª bola/FBSO" no PDF/Relatório/legenda por
+>   "ataque de side-out" (só texto + `test_fases.js`).
+
 ### Estatística ao vivo
 Painel `📊 AO VIVO` (`openLivePanel`) — KPIs do time e por atleta, lê `gm.act`.
 

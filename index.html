@@ -1337,11 +1337,47 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
+var APP_BUILD="2026-09-21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
 var POS=["Levantador(a)","Oposto(a)","Ponteiro(a)","Central","L\u00edbero"];
+// ===== POSICAO (funcao) PADRONIZADA =====
+// Codigo fixo (POSK) + rotulo no GENERO do atleta/time: M "Ponteiro", F "Ponteira", sem genero
+// "Ponteiro(a)". Nunca mais texto livre: toda tela usa posOptions() (select) e toda gravacao passa
+// por posCanon(). posGroup() le qualquer grafia antiga do banco ("Ponteira/Oposta", "Levantadora",
+// "Ponteiro"...) e devolve o codigo — e o que as estatisticas por posicao usam.
+var POSK=["lev","opo","pon","cen","lib"];
+var POSLBL={lev:["Levantador(a)","Levantador","Levantadora"],opo:["Oposto(a)","Oposto","Oposta"],pon:["Ponteiro(a)","Ponteiro","Ponteira"],cen:["Central","Central","Central"],lib:["L\u00edbero","L\u00edbero","L\u00edbero"]};
+function posGroup(po){
+  po=String(po||"").toLowerCase();if(!po)return"";
+  if(/levant|setter/.test(po))return"lev";
+  if(/l[i\u00ed]bero|^lib/.test(po))return"lib";
+  if(/central|meio|middle/.test(po))return"cen";
+  var ip=po.search(/pont/),io=po.search(/opost/);
+  if(ip>=0&&io>=0)return ip<io?"pon":"opo"; // "Ponteira/Oposta": vale a primeira
+  if(ip>=0)return"pon";if(io>=0)return"opo";
+  return"";
+}
+function posLabel(code,gen){var l=POSLBL[code];if(!l)return"";return gen==="F"?l[2]:gen==="M"?l[1]:l[0];}
+// grafia antiga -> rotulo padrao no genero; desconhecida (nao e posicao) -> fica como esta
+function posShow(po,gen){var c=posGroup(po);return c?posLabel(c,gen):(po||"");}
+function posCanon(po,gen){return posShow(po,gen);}
+// Genero do TIME: campo explicito (t.gen), senao pelo nome (FEM/MASC), senao pela maioria do roster.
+function teamGender(t){
+  if(!t)return"";if(t.gen==="F"||t.gen==="M")return t.gen;
+  var nm=String(t.n||"");if(/fem/i.test(nm))return"F";if(/masc/i.test(nm))return"M";
+  var f=0,m=0;(t.roster||[]).forEach(function(r){var a=(typeof aFind==="function")?aFind(r.aid):null;if(a&&a.gender==="F")f++;else if(a&&a.gender==="M")m++;});
+  return f>m?"F":m>f?"M":"";
+}
+function athGender(a,t){return (a&&(a.gender==="F"||a.gender==="M"))?a.gender:teamGender(t);}
+function athTeam(aid){if(!D||!D.teams)return null;for(var i=0;i<D.teams.length;i++){var t=D.teams[i];if(t&&t.roster)for(var j=0;j<t.roster.length;j++)if(t.roster[j]&&t.roster[j].aid===aid)return t;}return null;}
+// <option>s das 5 posicoes no genero (value = rotulo canonico), com a atual pre-selecionada
+function posOptions(po,gen,withEmpty){
+  var c=posGroup(po),h=withEmpty?'<option value=""'+(c?"":" selected")+'>\u2014 posi\u00e7\u00e3o \u2014</option>':"";
+  for(var i=0;i<POSK.length;i++){var l=posLabel(POSK[i],gen);h+='<option value="'+esc(l)+'"'+(POSK[i]===c?" selected":"")+'>'+esc(l)+'</option>';}
+  return h;
+}
 var ACT={saque:{l:"Saque",i:"\u{1F3D0}",o:["Ace","Erro","Cont"]},recepcao:{l:"Recep\u00e7\u00e3o",i:"\u{1F932}",o:["A","B","C","Erro"]},levantamento:{l:"Levant.",i:"\u{1F446}",o:["A","B","C","Erro"]},ataque:{l:"Ataque",i:"\u{1F4A5}",o:["Ponto","Bloq","Erro","Cont"]},bloqueio:{l:"Bloqueio",i:"\u{1F9F1}",o:["Ponto","Erro","Cont"]},defesa:{l:"Defesa",i:"\u{1F6E1}\uFE0F",o:["A","B","C","Erro"]}};
 var OC={Ace:"#059669",Ponto:"#059669",A:"#059669",B:"#d97706",Cont:"#64748b",C:"#ea580c",Bloq:"#ea580c",Erro:"#dc2626"};
 // Cor por fundamento (cabecalho dos grupos no modo tablet). Igual ao mockup.
@@ -1437,7 +1473,7 @@ function pFind(pid,gameId,preferTid){
         var __le=__g.lineup[__i];
         if(__le.aid===pid && __le.nm){
           var __team=__g.tid?tF(__g.tid):null;
-          return {id:pid,aid:pid,nm:__le.nm,nu:__le.nu||0,po:__le.po||"",tid:__g.tid,tn:__team?__team.n:"",tc:__team?__team.c:"#64748b",adhoc:true};
+          return {id:pid,aid:pid,nm:__le.nm,nu:__le.nu||0,po:posShow(__le.po,teamGender(__team)),tid:__g.tid,tn:__team?__team.n:"",tc:__team?__team.c:"#64748b",adhoc:true};
         }
       }
     }
@@ -1484,7 +1520,7 @@ function pFind(pid,gameId,preferTid){
     aid:a.aid,
     nm:a.nm,
     nu:nu,
-    po:a.po||"",
+    po:posShow(a.po,athGender(a,team)),
     gender:a.gender||"",
     tags:a.tags||[],
     tc:team?team.c:"#64748b",
@@ -1904,11 +1940,11 @@ function buildUsaLineup(rosterOverride){
     }
     if(!ath){
       // atleta nao existe no banco — cria
-      ath={aid:uid("a_"),nm:r.nm,po:r.po,gender:(r.gender||"M"),legacy_ids:[],tags:[]};
+      ath={aid:uid("a_"),nm:r.nm,po:posCanon(r.po,r.gender||"M"),gender:(r.gender||"M"),legacy_ids:[],tags:[]};
       D.athletes.push(ath);
     }else if(!ath.po){
       // atleta existe mas sem posicao — completa
-      ath.po=r.po;
+      ath.po=posCanon(r.po,ath.gender||r.gender||"M");
     }
     lineup.push({aid:ath.aid,nu:r.nu});
   }
@@ -4292,7 +4328,7 @@ function renderSignup(){
     h+='<h3 class="su-h2">Complete seu cadastro</h3>';
     h+='<div class="su-field"><label>Como quer ser chamado(a) no app?</label><input id="su-apelido" type="text" placeholder="Ex: KAH, FUB\u00c1, Jo\u00e3o" maxlength="20" value="'+esc(signupApelido)+'" onchange="signupApelido=this.value;render()"></div>';
     h+='<div class="su-field"><label>Posi\u00e7\u00e3o</label><select onchange="signupPos=this.value;render()">';
-    for(var k=0;k<POS.length;k++)h+='<option'+(POS[k]===signupPos?" selected":"")+'>'+POS[k]+'</option>';
+    h+=posOptions(signupPos,"",false);
     h+='</select></div>';
     h+='<div class="su-field"><label>Equipes em que joga (marque todas)</label>';
     // Cadastro RS so mostra equipes RS — equipes standalone (PRAIA GRANDE) ficam
@@ -4867,7 +4903,7 @@ function renderAthletesListInner(){
     h+='<div style="width:36px;height:36px;border-radius:8px;background:var(--card2);color:var(--gray);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0">'+(a.nm?a.nm[0].toUpperCase():"?")+'</div>';
     h+='<div style="flex:1;min-width:0">';
     h+='<div style="font-size:14px;font-weight:700;line-height:1.2">'+esc(a.nm)+(genIcon?' <span style="color:var(--gray);font-weight:400">'+genIcon+'</span>':'')+'</div>';
-    if(a.po)h+='<div style="font-size:11px;color:var(--gray);margin-top:2px">'+esc(a.po)+'</div>';
+    if(a.po)h+='<div style="font-size:11px;color:var(--gray);margin-top:2px">'+esc(posShow(a.po,athGender(a,athTeam(a.aid))))+'</div>';
     var chips=[];
     for(var ti2=0;ti2<r.active.length;ti2++){var ta=r.active[ti2];chips.push('<span style="background:'+ta.c+'15;color:'+ta.c+';padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700">'+esc(ta.n.replace(/^RS\s*/,""))+'</span>');}
     if(santosTag)chips.push('<span style="background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700">\u{1F4E6} Santos</span>');
@@ -4884,7 +4920,7 @@ function editAthleteFromBank(aid){
   var m='<div class="admin-modal" onclick="closeAthBank()"><div class="admin-box" onclick="event.stopPropagation()" style="text-align:left;max-width:420px;max-height:90vh;overflow-y:auto"><div style="font-family:Bebas Neue,sans-serif;font-size:22px;letter-spacing:2px;color:var(--navy);margin-bottom:14px;text-align:center">EDITAR NO BANCO</div>';
   m+='<div style="margin-bottom:10px"><span class="lb">Nome</span><input id="ab-nm" value="'+esc(ath.nm||"")+'"></div>';
   m+='<div class="rw" style="margin-bottom:10px"><div style="flex:1"><span class="lb">Posi\u00e7\u00e3o</span><select id="ab-po">';
-  for(var k=0;k<POS.length;k++)m+='<option'+(POS[k]===ath.po?' selected':'')+'>'+POS[k]+'</option>';
+  m+=posOptions(ath.po,athGender(ath,athTeam(aid)),false);
   m+='</select></div>';
   m+='<div style="flex:1"><span class="lb">G\u00eanero</span><select id="ab-genE"><option value="">\u2014</option><option value="F"'+(ath.gender==="F"?" selected":"")+'>Feminino</option><option value="M"'+(ath.gender==="M"?" selected":"")+'>Masculino</option></select></div></div>';
   // Equipes em que joga
@@ -4932,8 +4968,8 @@ function saveAthBank(aid){
   var gen=document.getElementById("ab-genE").value;
   if(!nm){toast("Nome n\u00e3o pode ficar vazio","error");return;}
   ath.nm=nm;
-  ath.po=po;
   if(gen)ath.gender=gen;
+  ath.po=posCanon(po,athGender(ath,athTeam(aid)));
   closeAthBank();
   toast("Atleta atualizado(a) no banco","ok");
   save();
@@ -5140,7 +5176,7 @@ else{
     var lastNu=ath.last_nu_by_team&&ath.last_nu_by_team[t.id]!==undefined?ath.last_nu_by_team[t.id]:null;
     var avatarContent=lastNu!==null?lastNu:(ath.nm?ath.nm[0].toUpperCase():"?");
     var avatarTitle=lastNu!==null?'\u00daltima camisa: #'+lastNu:'';
-    h+='<div class="pr"><div class="pnm" style="background:'+t.c+'15;color:'+t.c+'" title="'+avatarTitle+'">'+avatarContent+'</div><div style="flex:1"><div style="font-size:14px;font-weight:600">'+esc(ath.nm)+multiTag+'</div><div style="font-size:11px;color:var(--gray)">'+esc(ath.po||"")+'</div></div><button class="bt bg bsm" onclick="editP(\''+t.id+'\',\''+entry.aid+'\')">\u270F\uFE0F</button><button class="bt bg bsm" onclick="delP(\''+t.id+'\',\''+entry.aid+'\')">\u{1F5D1}</button></div>';
+    h+='<div class="pr"><div class="pnm" style="background:'+t.c+'15;color:'+t.c+'" title="'+avatarTitle+'">'+avatarContent+'</div><div style="flex:1"><div style="font-size:14px;font-weight:600">'+esc(ath.nm)+multiTag+'</div><div style="font-size:11px;color:var(--gray)">'+esc(posShow(ath.po,athGender(ath,t)))+'</div></div><button class="bt bg bsm" onclick="editP(\''+t.id+'\',\''+entry.aid+'\')">\u270F\uFE0F</button><button class="bt bg bsm" onclick="delP(\''+t.id+'\',\''+entry.aid+'\')">\u{1F5D1}</button></div>';
   }
 }
 h+='</div></div>';}return h;}
@@ -5217,7 +5253,7 @@ if(activeLineup){
     var le=activeLineup[i];
     var ath=aFind(le.aid);
     var nm=(le.nm)||(ath&&ath.nm)||"";
-    var po=(le.po)||(ath&&ath.po)||"";
+    var po=posShow((le.po)||(ath&&ath.po)||"",teamGender(tF(gm.tid)));
     if(nm) gp.push({id:le.aid,nm:nm,nu:_lineupNu(le,ath,(twoSided&&scSideAB==="B")?gm.tidB:gm.tid),po:po});
   }
 }
@@ -6060,7 +6096,7 @@ function rPerfilAtleta(){
   h+='<div class="perfil-apelido">'+esc(ath.apelido||userProfile.apelido||ath.nm.split(" ")[0])+'</div>';
   h+='<div class="perfil-nome">'+esc(ath.nm)+'</div>';
   var meta=[];
-  if(ath.po)meta.push(esc(ath.po));
+  if(ath.po)meta.push(esc(posShow(ath.po,athGender(ath,athTeam(ath.aid)))));
   if(ath.gender==="F")meta.push("Feminino");
   else if(ath.gender==="M")meta.push("Masculino");
   if(meta.length)h+='<div class="perfil-meta">'+meta.join(" \u00b7 ")+'</div>';
@@ -6358,7 +6394,7 @@ function togAP(tid){
   m+='<div style="background:var(--card2);padding:8px 12px;border-radius:8px;font-size:11px;color:var(--gray);margin-bottom:14px;line-height:1.5">Cria um(a) atleta no banco e j\u00e1 vincula a esta equipe.<br><b>O n\u00famero da camisa \u00e9 definido na escala\u00e7\u00e3o de cada jogo.</b></div>';
   m+='<div style="margin-bottom:12px"><span class="lb">Nome</span><input type="text" id="modal-pnm" placeholder="Ex: Maria Silva" autocomplete="off" autofocus></div>';
   m+='<div style="margin-bottom:14px"><span class="lb">Posi\u00e7\u00e3o</span><select id="modal-ppo">';
-  for(var k=0;k<POS.length;k++)m+='<option>'+POS[k]+'</option>';
+  m+=posOptions("",teamGender(t),false);
   m+='</select></div>';
   m+='<div style="display:flex;gap:8px"><button class="bt bg" style="flex:1" onclick="closeAddAthModal()">Cancelar</button><button class="bt bs" style="flex:2" onclick="addPFromModal(\''+tid+'\')">\u2713 Adicionar atleta</button></div>';
   m+='</div></div>';
@@ -6377,7 +6413,7 @@ function addPFromModal(tid){
   if(!D.athletes)D.athletes=[];
   var newAid=uid("a_");
   var gender=/FEMININO|FEM/i.test(t.n)?"F":"M";
-  D.athletes.push({aid:newAid,nm:nmV,po:po.value,gender:gender,legacy_ids:[],tags:[]});
+  D.athletes.push({aid:newAid,nm:nmV,po:posCanon(po.value,gender),gender:gender,legacy_ids:[],tags:[]});
   t.roster.push({aid:newAid});
   closeAddAthModal();
   toast(nmV+" adicionado(a)","ok");
@@ -6396,7 +6432,7 @@ function addP(tid){
   var poV=po.value;
   var newAid=uid("a_");
   var gender=/FEMININO|FEM/i.test(t.n)?"F":"M";
-  D.athletes.push({aid:newAid,nm:nmV,po:poV,gender:gender,legacy_ids:[],tags:[]});
+  D.athletes.push({aid:newAid,nm:nmV,po:posCanon(poV,gender),gender:gender,legacy_ids:[],tags:[]});
   // Vincula ao roster (sem número — número é por jogo)
   t.roster.push({aid:newAid});
   nm.value="";
@@ -6415,7 +6451,7 @@ function editP(tid,aid){
   }
   m+='<div style="margin-bottom:10px"><span class="lb">Nome</span><input id="ep-nm" value="'+esc(ath.nm)+'"></div>';
   m+='<div style="margin-bottom:14px"><span class="lb">Posi\u00e7\u00e3o</span><select id="ep-po">';
-  for(var k=0;k<POS.length;k++)m+='<option'+(POS[k]===ath.po?' selected':'')+'>'+POS[k]+'</option>';
+  m+=posOptions(ath.po,athGender(ath,t),false);
   m+='</select></div>';
   m+='<div style="background:#fef3c7;border:1px solid #fde68a;color:#92400e;padding:8px 12px;border-radius:8px;font-size:11px;margin-bottom:14px">\u{1F4A1} O n\u00famero da camisa \u00e9 definido na <b>escala\u00e7\u00e3o de cada jogo</b>, no Scout ao Vivo.</div>';
   m+='<div style="display:flex;gap:8px"><button class="bt bg" style="flex:1" onclick="closeEdit()">Cancelar</button><button class="bt bs" style="flex:1" onclick="saveEdit(\''+tid+'\',\''+aid+'\')">\u2713 Salvar</button></div></div></div>';
@@ -6429,7 +6465,7 @@ function saveEdit(tid,aid){
   var nmV=nm.value.trim();
   if(!nmV){toast("Nome n\u00e3o pode ficar vazio","error");return;}
   ath.nm=nmV;
-  ath.po=po.value;
+  ath.po=posCanon(po.value,athGender(ath,tF(tid)));
   closeEdit();
   toast("Atleta atualizado(a)","ok");
   save();
@@ -6499,7 +6535,7 @@ function linkExistingP(tid){
     m+='<div class="lp-item" data-nm="'+esc((a.nm||"").toLowerCase())+'" onclick="confirmLinkP(\''+tid+'\',\''+a.aid+'\')" style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--brd);'+(genderMismatch?'opacity:.5':'')+'">';
     m+='<div style="flex:1"><div style="font-weight:700;font-size:14px">'+esc(a.nm)+'</div>';
     var meta=[];
-    if(a.po)meta.push(esc(a.po));
+    if(a.po)meta.push(esc(posShow(a.po,athGender(a,athTeam(a.aid)))));
     if(a.gender==="F")meta.push("\u2640");
     else if(a.gender==="M")meta.push("\u2642");
     if(santosTag)meta.push("\uD83D\uDCE6 Santos");
@@ -6798,6 +6834,7 @@ function openG(id){var g=gF(id);if(!g)return;if(g.st==="pending"){g.act=[];g.ss=
 function openLineup(gameId){
   var g=gF(gameId);if(!g){toast("Jogo n\u00e3o encontrado","error");return;}
   var t=tF(g.tid);
+  var luGen=teamGender(t); _luGen=luGen; // rotulos de posicao no genero do time (Ponteira x Ponteiro)
   var roster=(t&&t.roster)||[];
   // Estado atual da lineup (mantem ordem dos entries existentes)
   var lineupNow={}, lineupOrder=[];
@@ -6842,7 +6879,7 @@ function openLineup(gameId){
     m+='<div class="lu-row'+(it.adhoc?' lu-adhoc':'')+(it.checked?' on':'')+'" data-aid="'+it.aid+'" data-on="'+(it.checked?1:0)+'" onclick="toggleLuRow(this,event)">';
     m+='<div class="lu-toggle"><span class="lu-toggle-check">\u2713</span></div>';
     m+='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">'+esc(it.nm)+(it.adhoc?' <span style="font-size:9px;color:#fbbf24;font-weight:800;letter-spacing:.5px;background:rgba(251,191,36,.12);padding:2px 6px;border-radius:4px;margin-left:4px">NOVO</span>':'')+'</div>';
-    m+=_luPoSelect(it.aid,it.po);
+    m+=_luPoSelect(it.aid,it.po,luGen);
     m+='</div>';
     m+='<input type="number" class="lu-nu" data-aid="'+it.aid+'" value="'+(it.nu===""||it.nu==null?"":it.nu)+'" min="0" max="99" placeholder="\u2014" onclick="event.stopPropagation()" style="width:58px;text-align:center;font-weight:800;font-size:16px;padding:8px 4px">';
     m+=rowExtra;
@@ -6857,7 +6894,7 @@ function openLineup(gameId){
   m+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
   m+='<input id="lu-new-nu" type="number" min="0" max="99" placeholder="N\u00ba opc" style="width:60px;padding:8px;text-align:center;font-weight:800;font-size:14px">';
   m+='<input id="lu-new-nm" type="text" placeholder="Nome (n\u00famero depois)" maxlength="30" style="flex:2;min-width:120px;padding:8px;font-size:13px">';
-  m+='<input id="lu-new-po" type="text" placeholder="Posi\u00e7\u00e3o" maxlength="20" style="flex:1.4;min-width:90px;padding:8px;font-size:12px">';
+  m+='<select id="lu-new-po" style="flex:1.4;min-width:110px;padding:8px;font-size:12px;font-family:inherit">'+posOptions("",luGen,true)+'</select>';
   m+='<button class="bt bp bsm" onclick="addAdhocAthlete(\''+gameId+'\')" style="flex-shrink:0">\u2795 Adicionar</button>';
   m+='</div></div>';
   // Repetir esta escalacao nos demais jogos por jogar do torneio (so aparece se houver outros).
@@ -6886,11 +6923,10 @@ function lineupAll(checked){
   }
 }
 // Select de posição/função do atleta na escalação (trocar Levantador->Líbero, etc).
-function _luPoSelect(aid,po){
-  var o='',has=false,i;
-  for(i=0;i<POS.length;i++){if(POS[i]===po)has=true;o+='<option'+(POS[i]===po?' selected':'')+'>'+esc(POS[i])+'</option>';}
-  var head=(po&&!has)?'<option selected>'+esc(po)+'</option>':(!po?'<option value="" selected>— posição —</option>':'');
-  return '<select class="lu-po" data-aid="'+esc(String(aid))+'" onclick="event.stopPropagation()" onchange="event.stopPropagation()" style="margin-top:3px;font-size:10px;color:var(--gray);border:1px solid var(--brd);border-radius:6px;padding:3px 6px;background:var(--card);max-width:150px;font-family:inherit;font-weight:600">'+head+o+'</select>';
+var _luGen=""; // genero do time do modal de escalacao aberto (p/ atleta avulso, que nao esta no cadastro)
+function _luPoSelect(aid,po,gen){
+  // grafia antiga no banco cai na opcao padrao equivalente (posGroup) — nunca vira opcao "solta"
+  return '<select class="lu-po" data-aid="'+esc(String(aid))+'" onclick="event.stopPropagation()" onchange="event.stopPropagation()" style="margin-top:3px;font-size:10px;color:var(--gray);border:1px solid var(--brd);border-radius:6px;padding:3px 6px;background:var(--card);max-width:150px;font-family:inherit;font-weight:600">'+posOptions(po,gen,true)+'</select>';
 }
 // Le as rows do modal de escalacao, valida os numeros e monta a lineup (SEM
 // persistir nem mexer no cadastro). Retorna o array de {aid,nu,[po],[nm]} ou null
@@ -6918,7 +6954,7 @@ function _collectLineupFromModal(){
     var poSel=row.querySelector(".lu-po");
     var poV=poSel?((poSel.value||"").trim()):"";
     var entry={aid:aid,nu:nuV};
-    if(poV)entry.po=poV; // funcao escolhida vale pra ESTE jogo (le.po tem prioridade no scout — _courtGp)
+    if(poV)entry.po=posCanon(poV,athGender(aFind(aid),athTeam(aid))||_luGen); // funcao escolhida vale pra ESTE jogo (le.po tem prioridade no scout — _courtGp); avulso usa o genero do time
     if(isAdhoc)entry.nm=labelNm; // atleta ad-hoc vive so na lineup
     newLineup.push(entry);
   }
@@ -7318,8 +7354,9 @@ function courtEditPos(aid){
   m+='<div style="font-family:Bebas Neue,sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--navy);margin-bottom:2px;text-align:center">Posição de #'+(p.nu!=null&&p.nu!==""?p.nu:"–")+" "+esc(p.nm.split(" ")[0])+'</div>';
   m+='<div style="font-size:12px;color:var(--gray);text-align:center;margin-bottom:14px">muda no cadastro e neste jogo</div>';
   m+='<div style="display:flex;flex-direction:column;gap:7px">';
-  for(var i=0;i<POS.length;i++){ var pv=POS[i]; var base=pv.replace(/\(a\)/,"").toLowerCase();
-    var on=(!!cur && cur.slice(0,4)===base.slice(0,4));
+  var _pg=teamGender(tF(gm.tid)),_curC=posGroup(cur);
+  for(var i=0;i<POSK.length;i++){ var pv=posLabel(POSK[i],_pg);
+    var on=(!!_curC && _curC===POSK[i]);
     m+='<button class="bt '+(on?"bp":"bg")+'" onclick="courtSetPos(\''+aid+'\',\''+pv.replace(/'/g,"\\'")+'\')">'+esc(pv)+(on?" ✓":"")+'</button>';
   }
   m+='</div></div></div>';
@@ -7555,7 +7592,7 @@ function _courtGp(gm){
   var gp=[];
   if(gm&&gm.lineup)for(var i=0;i<gm.lineup.length;i++){
     var le=gm.lineup[i]; var ath=(typeof aFind==='function')?aFind(le.aid):null;
-    var nm=(le.nm)||(ath&&ath.nm)||""; var po=(le.po)||(ath&&ath.po)||"";
+    var nm=(le.nm)||(ath&&ath.nm)||""; var po=posShow((le.po)||(ath&&ath.po)||"",teamGender(tF(gm.tid)));
     if(nm)gp.push({id:le.aid,nm:nm,nu:_lineupNu(le,ath,gm.tid),po:po});
   }
   return gp;
@@ -8268,7 +8305,7 @@ function _trnAthListInner(trId){
   for(var i=0;i<pool.length;i++){
     var a=pool[i];
     var on=!!_trnAthleteByLinked(tr,a.aid);
-    h+='<div class="lu-row'+(on?" on":"")+'" onclick="toggleTrnCadastroAthlete(\''+tr.id+'\',\''+a.aid+'\')"><div class="lu-toggle"><span class="lu-toggle-check">✓</span></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">'+esc(a.nm)+'</div>'+(a.po?'<div class="trn-muted" style="font-size:10.5px">'+esc(a.po)+'</div>':"")+'</div></div>';
+    h+='<div class="lu-row'+(on?" on":"")+'" onclick="toggleTrnCadastroAthlete(\''+tr.id+'\',\''+a.aid+'\')"><div class="lu-toggle"><span class="lu-toggle-check">✓</span></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">'+esc(a.nm)+'</div>'+(a.po?'<div class="trn-muted" style="font-size:10.5px">'+esc(posShow(a.po,athGender(a,tF(tr.tid))))+'</div>':"")+'</div></div>';
   }
   return h;
 }

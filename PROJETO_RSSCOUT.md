@@ -30,7 +30,7 @@ Uso real: mesa de scout numa partida, muitas vezes por uma pessoa só, no tablet
   a segurança real vem das Security Rules + Auth.
 - **Auth:** Firebase Auth (Google + email/senha), perfis e papéis em `users/{uid}`.
 - **Hospedagem:** GitHub → **Coolify** (deploy **manual**, ver §7).
-- **Testes:** Node + **jsdom** com um **mock do Firebase** (sem rede). 61 arquivos.
+- **Testes:** Node + **jsdom** com um **mock do Firebase** (sem rede). 62 arquivos.
 
 Filosofia: single-file, zero dependência de runtime, tudo versionado num `index.html`.
 Fácil de servir (qualquer host estático), difícil de escalar em manutenção (arquivo gigante).
@@ -52,7 +52,7 @@ APP SCOUT/
 │   ├── launch.json       ← config do preview (dev server)
 │   └── settings.local.json
 ├── docs/                 ← docs ANTIGOS (26/05, defasados): CONTEXTO, PLANO_ADEQUACAO, SKILL
-├── tests/                ← 61 test_*.js (jsdom + mock Firebase)
+├── tests/                ← 62 test_*.js (jsdom + mock Firebase)
 ├── preview/              ← mockups e geradores de snapshot (_gen-*.cjs) — não versionar geral
 ├── legacy-usa-import/    ← import legado do torneio USA (histórico)
 └── node_modules/         ← jsdom etc.
@@ -201,7 +201,7 @@ Painel `📊 AO VIVO` (`openLivePanel`) — KPIs do time e por atleta, lê `gm.a
 
 ## 8. Testes
 
-61 arquivos `tests/test_*.js`, rodados com `node tests/test_X.js` (jsdom + mock Firebase).
+62 arquivos `tests/test_*.js`, rodados com `node tests/test_X.js` (jsdom + mock Firebase).
 `test_cores_e2e.js` demora ~7 min (torneio inteiro); os demais são segundos.
 Regra do projeto: **rodar a suíte inteira antes de commitar**; mudança nova precisa de teste
 novo (ou asserção nova). Cobrem: scout, autoscore, torneios, fases A/B/C/D, quadra (setup,
@@ -242,6 +242,14 @@ houve incidente real de 249 ações perdidas).
   operações estruturais — **nunca** no meio de um jogo ao vivo.
 - Torneios standalone isolados do app principal por `isSpecialTour/isSpecialTeam/isSpecialGame`.
 - Rótulos/cores de fundamentos: `ACT`, `OC` (outcome), `FCOL` (fundamento).
+- **Posição (função) do atleta é padronizada (21/09/2026):** 5 códigos fixos `POSK`
+  (`lev/opo/pon/cen/lib`) com rótulo no **gênero** do atleta (`gender`) ou do time
+  (`teamGender`: `t.gen` → nome FEM/MASC → maioria do roster): "Ponteira" / "Ponteiro" /
+  "Ponteiro(a)" quando não se sabe. **Nunca texto livre**: toda tela usa `posOptions()` (select)
+  e toda gravação passa por `posCanon()`; `posShow()` normaliza grafia antiga na exibição
+  (perfil `pFind`, listas, PDF, quadra); `posGroup()` é o que as estatísticas por posição usam.
+  Grafias antigas ("Ponteira/Oposta", "Levantadora", "Ponteiro") seguem no banco até a
+  próxima edição do atleta — não houve migração em lote. Teste: `tests/test_posicoes.js`.
 
 ---
 

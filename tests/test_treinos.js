@@ -163,9 +163,9 @@ setTimeout(async ()=>{
     chk(cells[3]==='1' && cells[6]==='1' && cells[7]==='2' && cells[8]==='50%', 'tabela saque: Ace 1 · Erro 1 · Tot 2 · 50%: '+cells.slice(3,9).join('|'));
     chk(cells[9]==='1' && cells[10]==='1' && cells[12]==='1' && cells[13]==='3' && cells[14]==='67%', 'tabela recepcao: Perf 1 · Bom 1 · Erro 1 · Tot 3 · 67%: '+cells.slice(9,15).join('|'));
     chk(!!w.document.querySelector('.trn-light'), 'aba Treinos renderiza no painel claro (.trn-light)');
-    // Celular: cards por atleta (1 card, 4 linhas de fundamento, mesmas contagens da planilha)
+    // Celular: cards por atleta (1 card, 1 linha por fundamento, mesmas contagens da planilha)
     var pc=w.document.querySelectorAll('.trn-cards .trn-pc');
-    chk(pc.length===1 && pc[0].querySelectorAll('.fr').length===4, 'resumo celular: 1 card (Ana) com 4 linhas de fundamento');
+    chk(pc.length===1 && pc[0].querySelectorAll('.fr').length===6, 'resumo celular: 1 card (Ana) com 6 linhas de fundamento');
     var frS=pc[0].querySelectorAll('.fr')[0].textContent.replace(/\s+/g,' ');
     chk(/Saque/.test(frS) && /Ace\s*1/.test(frS) && /Erro\s*1/.test(frS) && /50%/.test(frS), 'card celular saque: Ace 1 · Erro 1 · 50%: '+frS);
     chk(/\.trn-cards\{display:none\}/.test(html) && /max-width:640px\)\{\.trn-tbl-desk\{display:none\}\.trn-cards\{display:flex/.test(html), 'CSS: cards so no celular, planilha so em tela grande');
@@ -227,12 +227,42 @@ setTimeout(async ()=>{
     chk(bAgg.n===5 && bAgg.good===3 && bAgg.err===2 && bAgg.aprov===60, 'geral: 3 acertos / 2 erros / 60%');
     w.trnSub='resumo'; w.render();
     var h2b=w.document.querySelector('.trn-tbl tr.h2');
-    chk(!!h2b && (h2b.textContent.match(/Tot/g)||[]).length===4, 'tabela: coluna Tot (total do fundamento) em cada um dos 4 fundamentos');
+    chk(!!h2b && (h2b.textContent.match(/Tot/g)||[]).length===6, 'tabela: coluna Tot (total do fundamento) em cada um dos 6 fundamentos');
     var biaRow=null; w.document.querySelectorAll('.trn-tbl tbody tr').forEach(function(r){ if(r.textContent.indexOf('Bia')>=0) biaRow=r; });
     var bc=biaRow?Array.prototype.map.call(biaRow.querySelectorAll('td'),function(td){return td.textContent.trim();}):[];
     // Atleta, Acoes, Aprov, Saque[Ace,Bom,Neu,Erro,Tot,%], Recep[.. 6], Levant[.. 6], Ataque[Pto,Bloq,Def,Erro,Tot,%]
     chk(bc[5]==='1' && bc[6]==='1' && bc[7]==='2' && bc[8]==='50%', 'linha Bia saque: Neu 1 · Erro 1 · Tot 2 · 50%: '+bc.slice(3,9).join('|'));
     chk(bc[21]==='1' && bc[22]==='1' && bc[23]==='1' && bc[25]==='3' && bc[26]==='67%', 'linha Bia ataque: Pto 1 · Bloq 1 · Def 1 · Tot 3 · 67%: '+bc.slice(21,27).join('|'));
+
+    // 11b. BLOQUEIO e DEFESA (fundamentos novos do treino): marcam, contam na regua e saem
+    // em TODOS os relatorios (tabela do resumo, cards do celular, PDF geral).
+    w.trnSub='marcar'; w.setTrnAtivo(biaTaid);
+    w.trnFund='bloqueio';
+    w.markTreino(tr.id,'ponto'); w.markTreino(tr.id,'toque'); w.markTreino(tr.id,'passou'); w.markTreino(tr.id,'erro');
+    w.trnFund='defesa';
+    w.markTreino(tr.id,'3'); w.markTreino(tr.id,'0');
+    tr=w.trF(tr.id);
+    chk(w.TFUND_ORDER.length===6 && w.TFUND_ORDER[4]==='bloqueio' && w.TFUND_ORDER[5]==='defesa', 'TFUND_ORDER: 6 fundamentos, bloqueio e defesa no fim');
+    var b2=w.trnAgg(tr).filter(function(p){return p.taid===biaTaid;})[0];
+    chk(!!b2.byF.bloqueio && b2.byF.bloqueio.n===4 && b2.byF.bloqueio.good===3 && b2.byF.bloqueio.err===1, 'bloqueio: ponto+toque+passou contam como acerto, so o erro desconta (3/4)');
+    chk(!!b2.byF.defesa && b2.byF.defesa.n===2 && b2.byF.defesa.good===1, 'defesa: perfeita = acerto, erro desconta (1/2)');
+    w.trnSub='resumo'; w.render();
+    var h1c=w.document.querySelector('.trn-tbl tr.h1');
+    chk(!!h1c && /Bloqueio/.test(h1c.textContent) && /Defesa/.test(h1c.textContent), 'tabela do resumo: Bloqueio e Defesa no cabecalho');
+    var biaRow2=null; w.document.querySelectorAll('.trn-tbl tbody tr').forEach(function(r){ if(r.textContent.indexOf('Bia')>=0) biaRow2=r; });
+    var bc2=biaRow2?Array.prototype.map.call(biaRow2.querySelectorAll('td'),function(td){return td.textContent.trim();}):[];
+    // Atleta, Acoes, Aprov, Saque[6], Recep[6], Levant[6], Ataque[6], Bloqueio[Pto,Toq,Pass,Erro,Tot,%]=27..32, Defesa[Perf,Boa,Reg,Erro,Tot,%]=33..38
+    chk(bc2[27]==='1' && bc2[28]==='1' && bc2[29]==='1' && bc2[30]==='1' && bc2[31]==='4' && bc2[32]==='75%', 'linha Bia bloqueio: Pto/Toq/Pass/Erro 1 cada · Tot 4 · 75%: '+bc2.slice(27,33).join('|'));
+    chk(bc2[33]==='1' && bc2[36]==='1' && bc2[37]==='2' && bc2[38]==='50%', 'linha Bia defesa: Perf 1 · Erro 1 · Tot 2 · 50%: '+bc2.slice(33,39).join('|'));
+    var pcB=w.document.querySelectorAll('.trn-cards .trn-pc');
+    chk(pcB.length>0 && pcB[0].querySelectorAll('.fr').length===6, 'cards do celular: 6 linhas de fundamento (bloqueio e defesa inclusos)');
+    // PDF geral: planilha com os 6 fundamentos, em paisagem (nao cabe mais em retrato)
+    var ovG=w.document.getElementById('pdfOverlay'); if(ovG)ovG.remove();
+    w.exTreinoResumoPDF(tr.id);
+    var pdfG=w.document.getElementById('pdfOverlay').innerHTML;
+    chk(/Bloqueio/.test(pdfG) && /Defesa/.test(pdfG), 'PDF geral: colunas de Bloqueio e Defesa');
+    chk(/75%/.test(pdfG) && /A4 landscape/.test(pdfG), 'PDF geral: 75% do bloqueio da Bia e pagina em paisagem');
+    var ovG2=w.document.getElementById('pdfOverlay'); if(ovG2)ovG2.remove();
 
     // 12. PDF individual no formato planilha (linha por fundamento, notas + Total + %)
     var ov2=w.document.getElementById('pdfOverlay'); if(ov2)ov2.remove();
@@ -240,6 +270,7 @@ setTimeout(async ()=>{
     var pdfHtml=w.document.getElementById('pdfOverlay').innerHTML;
     chk(pdfHtml.indexOf('table')>=0 && /Fundamento/.test(pdfHtml) && /Total/.test(pdfHtml) && pdfHtml.indexOf('50%')>=0 && pdfHtml.indexOf('67%')>=0, 'PDF individual: tabela Fundamento/Notas/Total/Aprov. com 50% (saque) e 67% (ataque)');
     chk(pdfHtml.indexOf('×')<0, 'PDF individual: sem chips "2×" (mesmo formato do geral)');
+    chk(/Bloqueio/.test(pdfHtml) && /Defesa/.test(pdfHtml) && /Passou/.test(pdfHtml) && /75%/.test(pdfHtml), 'PDF individual: linhas de Bloqueio (75%) e Defesa tambem saem');
     var ov3=w.document.getElementById('pdfOverlay'); if(ov3)ov3.remove();
 
     // 13. Feedback de toque: botao tocado ganha classe flash no re-render
@@ -248,13 +279,16 @@ setTimeout(async ()=>{
     chk(!!w.document.querySelector('.trn-nota.flash'), 'botao tocado pisca (classe .flash) no re-render');
     chk(/@keyframes trnFlash/.test(html) && /\.trn-nota\{border:2px solid/.test(html), 'CSS: animacao trnFlash e borda de destaque nos botoes de nota');
 
-    // 14. MODO TABLET: toggle por localStorage (nunca por largura), 16 botoes combinados, 1 toque grava com o fundamento certo
+    // 14. MODO TABLET: toggle por localStorage (nunca por largura), 24 botoes combinados, 1 toque grava com o fundamento certo
     chk(!w.isTrnTablet(), 'tablet: desligado por padrao');
     w.toggleTrnTablet();
     chk(w.isTrnTablet() && w.localStorage.getItem('rs_trn_tablet')==='1', 'tablet: toggle grava preferencia no localStorage');
     chk(!!w.document.querySelector('.trn-tab'), 'tablet: layout .trn-tab renderizado na sub-aba Marcar');
     chk(w.document.body.classList.contains('trn-tablet'), 'tablet: body.trn-tablet (esconde header/tabs)');
-    chk(w.document.querySelectorAll('.trn-tab .trn-nota').length===16, 'tablet: 4 fundamentos x 4 notas = 16 botoes combinados');
+    chk(w.document.querySelectorAll('.trn-tab .trn-nota').length===24, 'tablet: 6 fundamentos x 4 notas = 24 botoes combinados');
+    chk(/\.trn-tab \.fgrid\{display:grid;grid-auto-rows:1fr/.test(html), 'CSS tablet: linhas do grid se dividem sozinhas (nao ha mais repeat(4,1fr) fixo)');
+    chk(/\.trn-tab\{[^}]*height:calc\(100dvh - 92px\)/.test(html), 'CSS tablet: grade travada na altura da tela (nao estoura com 6 fundamentos)');
+    chk(/\.trn-light \.trn-fsel[^{]*\{display:grid;grid-template-columns:repeat\(3,1fr\)/.test(html), 'CSS celular: seletor de fundamento em grade 3x2');
     chk(w.document.querySelectorAll('.trn-tab .ath').length===tr.athletes.length && !!w.document.querySelector('.trn-tab .ath.on'), 'tablet: coluna de atletas ('+tr.athletes.length+') com a ativa marcada');
     var before=w.trF(tr.id).marks.length;
     w.trnFund='saque'; // celular armado em saque, mas o botao combinado manda o fundamento

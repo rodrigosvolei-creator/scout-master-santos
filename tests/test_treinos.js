@@ -238,13 +238,13 @@ setTimeout(async ()=>{
     // em TODOS os relatorios (tabela do resumo, cards do celular, PDF geral).
     w.trnSub='marcar'; w.setTrnAtivo(biaTaid);
     w.trnFund='bloqueio';
-    w.markTreino(tr.id,'ponto'); w.markTreino(tr.id,'toque'); w.markTreino(tr.id,'passou'); w.markTreino(tr.id,'erro');
+    w.markTreino(tr.id,'ponto'); w.markTreino(tr.id,'toque'); w.markTreino(tr.id,'atrasado'); w.markTreino(tr.id,'erro');
     w.trnFund='defesa';
     w.markTreino(tr.id,'3'); w.markTreino(tr.id,'0');
     tr=w.trF(tr.id);
     chk(w.TFUND_ORDER.length===6 && w.TFUND_ORDER[4]==='bloqueio' && w.TFUND_ORDER[5]==='defesa', 'TFUND_ORDER: 6 fundamentos, bloqueio e defesa no fim');
     var b2=w.trnAgg(tr).filter(function(p){return p.taid===biaTaid;})[0];
-    chk(!!b2.byF.bloqueio && b2.byF.bloqueio.n===4 && b2.byF.bloqueio.good===3 && b2.byF.bloqueio.err===1, 'bloqueio: ponto+toque+passou contam como acerto, so o erro desconta (3/4)');
+    chk(!!b2.byF.bloqueio && b2.byF.bloqueio.n===4 && b2.byF.bloqueio.good===3 && b2.byF.bloqueio.err===1, 'bloqueio: ponto+tocou+atrasado contam como acerto, so o erro desconta (3/4)');
     chk(!!b2.byF.defesa && b2.byF.defesa.n===2 && b2.byF.defesa.good===1, 'defesa: perfeita = acerto, erro desconta (1/2)');
     w.trnSub='resumo'; w.render();
     var h1c=w.document.querySelector('.trn-tbl tr.h1');
@@ -252,7 +252,7 @@ setTimeout(async ()=>{
     var biaRow2=null; w.document.querySelectorAll('.trn-tbl tbody tr').forEach(function(r){ if(r.textContent.indexOf('Bia')>=0) biaRow2=r; });
     var bc2=biaRow2?Array.prototype.map.call(biaRow2.querySelectorAll('td'),function(td){return td.textContent.trim();}):[];
     // Atleta, Acoes, Aprov, Saque[6], Recep[6], Levant[6], Ataque[6], Bloqueio[Pto,Toq,Pass,Erro,Tot,%]=27..32, Defesa[Perf,Boa,Reg,Erro,Tot,%]=33..38
-    chk(bc2[27]==='1' && bc2[28]==='1' && bc2[29]==='1' && bc2[30]==='1' && bc2[31]==='4' && bc2[32]==='75%', 'linha Bia bloqueio: Pto/Toq/Pass/Erro 1 cada · Tot 4 · 75%: '+bc2.slice(27,33).join('|'));
+    chk(bc2[27]==='1' && bc2[28]==='1' && bc2[29]==='1' && bc2[30]==='1' && bc2[31]==='4' && bc2[32]==='75%', 'linha Bia bloqueio: Pto/Toc/Atr/Erro 1 cada · Tot 4 · 75%: '+bc2.slice(27,33).join('|'));
     chk(bc2[33]==='1' && bc2[36]==='1' && bc2[37]==='2' && bc2[38]==='50%', 'linha Bia defesa: Perf 1 · Erro 1 · Tot 2 · 50%: '+bc2.slice(33,39).join('|'));
     var pcB=w.document.querySelectorAll('.trn-cards .trn-pc');
     chk(pcB.length>0 && pcB[0].querySelectorAll('.fr').length===6, 'cards do celular: 6 linhas de fundamento (bloqueio e defesa inclusos)');
@@ -270,7 +270,7 @@ setTimeout(async ()=>{
     var pdfHtml=w.document.getElementById('pdfOverlay').innerHTML;
     chk(pdfHtml.indexOf('table')>=0 && /Fundamento/.test(pdfHtml) && /Total/.test(pdfHtml) && pdfHtml.indexOf('50%')>=0 && pdfHtml.indexOf('67%')>=0, 'PDF individual: tabela Fundamento/Notas/Total/Aprov. com 50% (saque) e 67% (ataque)');
     chk(pdfHtml.indexOf('×')<0, 'PDF individual: sem chips "2×" (mesmo formato do geral)');
-    chk(/Bloqueio/.test(pdfHtml) && /Defesa/.test(pdfHtml) && /Passou/.test(pdfHtml) && /75%/.test(pdfHtml), 'PDF individual: linhas de Bloqueio (75%) e Defesa tambem saem');
+    chk(/Bloqueio/.test(pdfHtml) && /Defesa/.test(pdfHtml) && /Atrasado/.test(pdfHtml) && /75%/.test(pdfHtml), 'PDF individual: linhas de Bloqueio (75%) e Defesa tambem saem');
     var ov3=w.document.getElementById('pdfOverlay'); if(ov3)ov3.remove();
 
     // 13. Feedback de toque: botao tocado ganha classe flash no re-render

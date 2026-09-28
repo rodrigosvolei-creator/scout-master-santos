@@ -748,6 +748,8 @@ body.rs-shell .app-content hr{border-color:var(--rs-line)}
 .sc-srv0 i{font-style:normal;color:#fbbf24}
 .sc-sets .chip{display:inline-block;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:3px 9px;margin:0 3px;font-weight:700}
 .sc-sets .chip.cur{background:rgba(251,191,36,.16);border-color:rgba(251,191,36,.4);color:#fbbf24}
+.sc-sets .chip.go{cursor:pointer}.sc-sets .chip.go:hover{border-color:rgba(251,191,36,.4);color:#e2e8f0}
+.sct-sets .sct-setn{cursor:pointer;opacity:.55;padding:0 3px}.sct-sets .sct-setn.cur{opacity:1;cursor:default}
 /* barra de controles */
 .sc-ctrls{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:12px 14px;background:rgba(0,0,0,.25);border-top:1px solid rgba(255,255,255,.06);position:relative;z-index:1}
 .sc-cbtn{font-size:12px;font-weight:700;font-family:inherit;border-radius:10px;padding:9px 14px;cursor:pointer;border:1px solid transparent;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
@@ -1352,7 +1354,7 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-09-22b - TREINO COM 6 FUNDAMENTOS: entraram BLOQUEIO (Ponto/Tocou/Atrasado/Erro) e DEFESA (Perfeita/Boa/Regular/Erro) na marcacao, no consolidado, nos cards do celular, na planilha e nos PDFs (individual e geral, este agora em paisagem); telas de marcar REDIMENSIONADAS: no modo tablet a grade fundamento x nota trava na altura da tela (linhas se dividem sozinhas, sem repeat(4,1fr) fixo) e no celular o seletor de fundamento virou grade 3x2; 21i - POR POSICAO DO LEVANTADOR (P1-P6), com as trocas registradas do set (escalacao, substituicoes com placar, rotacao manual) no PDF Partida e no Relatorio visual: rallies, recebendo/sacando, saldo, ataque de side-out e contra-ataque por rotacao, por set (com o sexteto) e jogo todo — motor rotacaoModel/rotacaoStats (quadra do modo quadra + sequencia de pontos, historico de trocas quando existe; levantador = funcao cadastrada / quem levantou); 21h - MARCACAO pra analise por rotacao nos proximos jogos: (1) quem sacou primeiro no set (ss[i].srv0) — chip \"Saque inicial\" na mesa (classico e tablet), automatico na 1a acao do set (saque/recepcao a 0-0) e ao escalar no modo quadra; rallyModel usa; (2) historico de TODAS as edicoes da quadra (courtHist/{set}/{key}: escalar, rodar, libero, substituicao com in/out) — court/{set} guarda so a ultima base; 21g - PARA QUEM FOI A BOLA por fase: no PDF Partida e no Relatorio visual, a distribuicao do levantamento sai separada em ataque de side-out x contra-ataque, por funcao (ataques, % da fase, pontos/kill) e por atleta (ataques, %, pontos); 21f - NOMENCLATURA das fases (Rodrigo): side-out = o 1o ataque vindo da recepcao (era \"1a bola/FBSO\"); qualquer outro ataque e contra-ataque (no break: nos sacamos -> defesa ou bloqueio -> ataque; em transicao: saque deles, depois do side-out); metricas de rally rotuladas \"rallies recebendo (side-out %)\" / \"rallies sacando (break %)\"; recepcao marcada em rally do nosso saque e tratada como defesa (contada no relatorio); 21e - contra-ataque dividido em no break (nos sacamos) x em transicao (eles sacaram) nas tabelas de ataque por fase; legenda BP/CA reescrita; 21d - FASES DO JOGO tambem no Relatorio visual (exTeamReport), no design dele (cards, KPIs, leitura escrita, barras, por atleta, legenda); 21c - FASES DO JOGO no layout do relatorio avulso (faixa, KPIs, leitura escrita gerada dos numeros, barras, metodo, legenda), paginas proprias no fim do PDF da partida; 21b - PDF da partida ganha FASES DO JOGO: side-out %, 1a bola (FBSO), break point %, origem dos pontos, ataque e distribuicao do levantamento por fase, recepcao x side-out, por atleta, legenda (motor rallyModel/fasesStats); 21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
+var APP_BUILD="2026-09-28a - scout: chip de set clicavel (goSet) pra voltar num set anterior e remarcar (set incompleto refeito pela filmagem); fim do set remarcado oferece voltar pro ultimo set em vez de abrir set novo; 2026-09-22b - TREINO COM 6 FUNDAMENTOS: entraram BLOQUEIO (Ponto/Tocou/Atrasado/Erro) e DEFESA (Perfeita/Boa/Regular/Erro) na marcacao, no consolidado, nos cards do celular, na planilha e nos PDFs (individual e geral, este agora em paisagem); telas de marcar REDIMENSIONADAS: no modo tablet a grade fundamento x nota trava na altura da tela (linhas se dividem sozinhas, sem repeat(4,1fr) fixo) e no celular o seletor de fundamento virou grade 3x2; 21i - POR POSICAO DO LEVANTADOR (P1-P6), com as trocas registradas do set (escalacao, substituicoes com placar, rotacao manual) no PDF Partida e no Relatorio visual: rallies, recebendo/sacando, saldo, ataque de side-out e contra-ataque por rotacao, por set (com o sexteto) e jogo todo — motor rotacaoModel/rotacaoStats (quadra do modo quadra + sequencia de pontos, historico de trocas quando existe; levantador = funcao cadastrada / quem levantou); 21h - MARCACAO pra analise por rotacao nos proximos jogos: (1) quem sacou primeiro no set (ss[i].srv0) — chip \"Saque inicial\" na mesa (classico e tablet), automatico na 1a acao do set (saque/recepcao a 0-0) e ao escalar no modo quadra; rallyModel usa; (2) historico de TODAS as edicoes da quadra (courtHist/{set}/{key}: escalar, rodar, libero, substituicao com in/out) — court/{set} guarda so a ultima base; 21g - PARA QUEM FOI A BOLA por fase: no PDF Partida e no Relatorio visual, a distribuicao do levantamento sai separada em ataque de side-out x contra-ataque, por funcao (ataques, % da fase, pontos/kill) e por atleta (ataques, %, pontos); 21f - NOMENCLATURA das fases (Rodrigo): side-out = o 1o ataque vindo da recepcao (era \"1a bola/FBSO\"); qualquer outro ataque e contra-ataque (no break: nos sacamos -> defesa ou bloqueio -> ataque; em transicao: saque deles, depois do side-out); metricas de rally rotuladas \"rallies recebendo (side-out %)\" / \"rallies sacando (break %)\"; recepcao marcada em rally do nosso saque e tratada como defesa (contada no relatorio); 21e - contra-ataque dividido em no break (nos sacamos) x em transicao (eles sacaram) nas tabelas de ataque por fase; legenda BP/CA reescrita; 21d - FASES DO JOGO tambem no Relatorio visual (exTeamReport), no design dele (cards, KPIs, leitura escrita, barras, por atleta, legenda); 21c - FASES DO JOGO no layout do relatorio avulso (faixa, KPIs, leitura escrita gerada dos numeros, barras, metodo, legenda), paginas proprias no fim do PDF da partida; 21b - PDF da partida ganha FASES DO JOGO: side-out %, 1a bola (FBSO), break point %, origem dos pontos, ataque e distribuicao do levantamento por fase, recepcao x side-out, por atleta, legenda (motor rallyModel/fasesStats); 21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
 try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
@@ -5329,6 +5331,7 @@ if(gm.st==="live" && !locked && setIsOver(gm,S.cs)){
   h+='<div class="set-end-banner">';
   h+='<div class="set-end-info">🏁 SET '+S.cs+(_tie?' (TIE)':'')+' ENCERRADO · <b>'+_se.u+'-'+_se.t+'</b></div>';
   if(_decided)h+='<button class="set-end-btn fin" onclick="enG()">🏁 Finalizar jogo</button>';
+  else if(S.cs<gm.ss.length)h+='<button class="set-end-btn" onclick="goSet('+gm.ss.length+')">▶ Voltar pro set '+gm.ss.length+'</button>';
   else h+='<button class="set-end-btn" onclick="nxS()">▶ Iniciar Set '+(S.cs+1)+'</button>';
   h+='</div>';
 }
@@ -5388,7 +5391,9 @@ h+='</div>';
 // faixa de sets
 if(gm.ss&&gm.ss.length>1){
   h+='<div class="sc-sets">';
-  for(var j=0;j<gm.ss.length;j++)h+='<span class="chip'+(j+1===S.cs?' cur':'')+'">'+gm.ss[j].u+'-'+gm.ss[j].t+'</span>';
+  // chip clicavel (jogo ao vivo): volta num set anterior pra remarcar (ex: set incompleto refeito pela filmagem)
+  var _chipGo=(gm.st==="live"&&!locked);
+  for(var j=0;j<gm.ss.length;j++)h+='<span class="chip'+(j+1===S.cs?' cur':'')+(_chipGo&&j+1!==S.cs?' go':'')+'"'+(_chipGo&&j+1!==S.cs?' onclick="goSet('+(j+1)+')" title="Marcar no set '+(j+1)+'"':'')+'>'+gm.ss[j].u+'-'+gm.ss[j].t+'</span>';
   h+='</div>';
 }
 // saque inicial do set (quem sacou primeiro) — marcacao explicita; a analise por rotacao depende disso
@@ -7982,6 +7987,11 @@ function rSctTablet(gm,gp,te){
   h+='</div>';
   var sw=setsWon(gm);
   var setsTxt='SETS '+sw.u+' × '+sw.t+' · SET '+S.cs;
+  // mais de 1 set ao vivo: numeros clicaveis pra voltar num set anterior e remarcar
+  if(gm.ss&&gm.ss.length>1&&gm.st==="live"&&!gm.locked){
+    setsTxt='SETS '+sw.u+' × '+sw.t+' · SET';
+    for(var _si=1;_si<=gm.ss.length;_si++)setsTxt+=' <span class="sct-setn'+(_si===S.cs?' cur':'')+'"'+(_si!==S.cs?' onclick="goSet('+_si+')" title="Marcar no set '+_si+'"':'')+'>'+_si+'</span>';
+  }
   var serveTxt=cs?(cs.serving==="us"?'🏐 nosso saque':'↩ saque adversário'):'';
   var serveCol=(cs&&cs.serving==="us")?'#64d39a':'#93a4c0';
   var markTxt;
@@ -8161,6 +8171,18 @@ function delLastSet(){
 // "iniciar próximo set?" ou, se a partida foi decidida (2-0 bo3 / 3-x bo5), "finalizar jogo?".
 // Chamado no render (cobre as 2 seções: quando o placar sincroniza, o modal aparece nos dois).
 var _setCloseShownFor=null;
+// Troca o set em que o scout marca (jogo ao vivo). Serve pra remarcar um set anterior
+// (ex: set 1 ficou incompleto e vai ser refeito pela filmagem). Nao cria nem apaga set.
+function goSet(n){
+  var gm=gF(S.aid);n=parseInt(n,10);
+  if(!gm||!gm.ss||!(n>=1&&n<=gm.ss.length)||n===S.cs)return;
+  if(gm.st!=="live"||gm.locked){if(typeof toast==="function")toast("Só dá pra trocar de set com o jogo ao vivo","error");return;}
+  S.cs=n;S.sp=null;S.sa=null;
+  // set ja encerrado: nao abre o modal "set encerrado" so por navegar ate ele
+  _setCloseShownFor=setIsOver(gm,n)?gm.id+"#"+n:null;
+  if(typeof toast==="function")toast("Marcando no set "+n,"ok");
+  render();
+}
 function _maybeSetClose(){
   var gm=gF(S.aid);
   if(!gm||gm.st!=="live"||gm.locked||typeof confirmModal!=="function")return;
@@ -8176,6 +8198,12 @@ function _maybeSetClose(){
     confirmModal({title:"🏁 PARTIDA ENCERRADA",noBackdrop:true,
       body:"Set "+S.cs+(tie?" (tie-break)":"")+" fechou em <b>"+s.u+"-"+s.t+"</b> — placar final <b>"+w.u+" x "+w.t+"</b> em sets.<br><span style=\"color:var(--gray);font-size:12px\">"+esc(nm)+" venceu. Finalizar o jogo agora?</span>",
       confirmLabel:"🏁 Finalizar jogo",confirmStyle:"bp",onConfirm:function(){enG();}});
+  }else if(S.cs<gm.ss.length){
+    // remarcando um set anterior: nao abre set novo, volta pro ultimo set
+    var last=gm.ss.length;
+    confirmModal({title:"✅ SET "+S.cs+" ENCERRADO",noBackdrop:true,
+      body:"Fechou em <b>"+s.u+"-"+s.t+"</b>"+(tie?" (tie-break)":"")+". Voltar pro set "+last+"?",
+      confirmLabel:"▶ Voltar pro set "+last,confirmStyle:"bp",onConfirm:function(){goSet(last);}});
   }else{
     confirmModal({title:"✅ SET "+S.cs+" ENCERRADO",noBackdrop:true,
       body:"Fechou em <b>"+s.u+"-"+s.t+"</b>"+(tie?" (tie-break)":"")+". Iniciar o set "+(S.cs+1)+"?",

@@ -86,6 +86,8 @@ setTimeout(()=>{
     chk(w.gameAutoTarja(w.gF('g_manual_cancel'))==='cancelled','g.status_tag="cancelled" prevalece (mesmo jogo futuro)');
     chk(w.gameAutoTarja(w.gF('g_manual_nodata'))==='no_data','g.status_tag="no_data" prevalece (mesmo jogo futuro)');
 
+    // "Sem tarja" (status_tag='none') desliga o automatico: jogo passado sem dados nao ganha tarja
+    chk(w.gameAutoTarja(Object.assign({}, w.gF('g_past_nodata'), {status_tag:'none'}))===null,'status_tag="none" desliga a tarja automatica');
     // Manual prevalece tambem sobre auto: jogo passado SEM dados, marcado como cancelled vira "cancelled" (nao "no_data")
     const g2 = Object.assign({}, w.gF('g_past_nodata'), {status_tag:'cancelled'});
     chk(w.gameAutoTarja(g2)==='cancelled','manual "cancelled" sobrescreve auto "no_data"');

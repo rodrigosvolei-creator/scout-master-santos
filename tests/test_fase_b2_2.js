@@ -107,9 +107,9 @@ setTimeout(()=>{
       // Bloco de tarja
       chk(html.indexOf('name="tnj-tarja"')>=0,'modal: contem radios da tarja (name="tnj-tarja")');
       const radios = modal.querySelectorAll('input[name="tnj-tarja"]');
-      chk(radios.length===3,'modal: 3 opcoes de tarja (Nenhuma/SEM DADOS/CANCELADO): '+radios.length);
+      chk(radios.length===4,'modal: 4 opcoes de tarja (Automatica/Sem tarja/SEM DADOS/CANCELADO): '+radios.length);
       // "Nenhuma" eh o default
-      chk(radios[0].value==='' && radios[0].checked===true,'modal: opcao "Nenhuma" eh o default em modo criar');
+      chk(radios[0].value==='' && radios[0].checked===true,'modal: opcao "Automatica" eh o default em modo criar');
     }
 
     // 7. Preencher campos + escolher CANCELADO + salvar

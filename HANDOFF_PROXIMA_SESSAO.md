@@ -1,4 +1,105 @@
-# Handoff — próxima sessão (atualizado 2026-09-21, Claude Opus 5 direto nesta pasta)
+# Handoff — próxima sessão (atualizado 2026-11-15, sessão "dois aparelhos + cache")
+
+> **Estado em 15/11/2026 (leia primeiro).** Build novo no código: **`2026-11-14a`**. No ar (Coolify)
+> ainda está o `2026-10-15a` — **o deploy é manual e depende do Rodrigo** (ver "Deploy do 2026-11-14a"
+> abaixo). Confira com `git status`/`git log` se esta sessão já foi commitada e enviada.
+>
+> **Pedido do Rodrigo (14/11):** corrigir conexão e marcação com 2 celulares, o cache do iPhone/iPad
+> ("a página não atualiza, e isso interfere na marcação dupla"), uma classificação melhor no relatório
+> ("quem recebeu 100 bolas e rodou 90 não pode ficar abaixo de quem recebeu 4 e rodou as 4") e, durante
+> a partida, ver rápido quantos saques errados / erros de ataque etc.
+>
+> **O que o diagnóstico achou (medido, não suposto):**
+> - `once("value")`/`get()` num nó com listener respondem do **cache local do SDK** (0 ms, mesmo
+>   offline — testado no SDK 9.22 real). O `_resyncGames` antigo, portanto, **não relia nada** do
+>   servidor. Só reconectar (`goOffline`+`goOnline`, ~1 s) faz o listener reler.
+> - Aparelho com estado velho apagava o jogo do colega: `startG` gravava `ss` inteiro, `nxS` gravava
+>   `ss/{n}={u:0,t:0}`, `openG` gravava `act:null`, e **`save()` (≈40 pontos de chamada: escalar,
+>   editar atleta/jogo, abrir card sem escalação…) regravava os 4 nós inteiros** (~2,5 MB por save).
+> - Dados reais dos jogos com 2 aparelhos (9 jogos): **ponto duplicado** — os dois marcam o ponto do
+>   mesmo rally com 2–4 s de diferença; 12 de 18 ações de ponto "sem ponto no placar" tinham outro
+>   ponto a menos de 8 s. Pares legítimos de aparelhos diferentes a menos de 6 s: 2 em 1.087 pontos.
+> - iOS só entrega o `click` se o botão tocado ainda for o mesmo elemento quando o dedo sobe; o app
+>   redesenha a tela inteira a cada evento do banco → toque perdido quando o colega marca no meio.
+> - O servidor (nginx do Coolify) **não manda `Cache-Control`**: o Safari guarda o `index.html` pela
+>   heurística do `Last-Modified` (deploy de 30 dias atrás ≈ 3 dias de cache) e o SW v1 buscava a
+>   navegação com `fetch(req)`, que passa por esse cache. PWA na tela de início é retomado da memória.
+> - Relatório: ordenado por aproveitamento % com corte de 4 ações. RS Masc 35+ × Fluminense (14/11):
+>   quem teve 51 ações e saldo +35 aparecia em **7º**; o 1º tinha 14 de 14.
+>
+> **O que entrou no `2026-11-14a`** (tudo em `index.html` + `sw.js`; bloco "DOIS APARELHOS" antes dos
+> listeners):
+> 1. **Gravação segura com estado velho:** `save()` por diferença (`_saveNode`/`_diffInto`: compara com
+>    o último snapshot do servidor, `_srvSnap`, e grava só os caminhos mudados num `update()`; vetor e
+>    ação/base da quadra vão inteiros; `ss` desce por campo; nó sem mudança não é gravado). `startG` e
+>    `nxS` usam `increment(0)` (criam sem sobrescrever). `openG` apaga só o que conhece. Escalação
+>    automática do card: `_lineupInit` (transação: só grava se o servidor não tiver).
+>    `repeatLineupToOthers` grava só `lineup`.
+> 2. **Conexão:** `.info/connected` + fila de envio (`_netTrack`), reconexão forçada ao voltar do 2º
+>    plano / rede de volta / timers destravarem / gravação parada >10 s / sonda sem resposta
+>    (`_netResume`, `_netTick`, `_netProbe`). Selo no placar (`_netChip`) e faixa no topo (`#netBar`).
+>    Erro de permissão com usuário logado renova o token e tenta 1 vez; não é mais silencioso.
+> 3. **Set aberto no outro aparelho** é acompanhado sozinho (`_sctFollowSets`); `nxS` só avança se o
+>    set seguinte já existe (fim do set fantasma).
+> 4. **Ponto duplicado** (`_ptWatch`/`_ptDup`/`_ptAsk`): por 6 s depois de um ponto vindo de OUTRO
+>    aparelho, `rcO` grava a ação sem somar ponto (a MESMA ação não é gravada 2×) e `+`/erro do
+>    adversário pedem um 2º toque. Pontos seguidos do próprio aparelho não são segurados.
+> 5. **Toque seguro:** listeners e cronômetro chamam `renderSoon()` (espera o dedo sair da tela).
+> 6. **Versão:** `<meta name="rs-build">` no `<head>` + `_verCheckNow` (lê os 2 KB iniciais do
+>    `index.html` sem cache). Fora de jogo recarrega sozinho; dentro mostra a faixa `#updBar` e, ao
+>    atualizar, volta pro mesmo jogo/set (`_sessKeep`/`_sessRestore`). `games/{idx}/devs/{aparelho}`
+>    guarda o build de cada aparelho → aviso de versões misturadas. **SW v2** (`sw.js`): navegação com
+>    `cache:'no-store'`, só estáticos em cache, página antiga é recarregada na troca do SW.
+> 7. **Relatório (jogo e torneio):** ordem pelo **saldo** (positivas − erros), `_repRankCmp`; % só
+>    desempata; medalha só com saldo positivo; última coluna "Saldo · Aprov.".
+> 8. **Erros ao vivo:** `errStats` + quadro na mesa (clássica: abaixo do placar; tablet: coluna
+>    esquerda) + atalho no centro do placar + detalhe por atleta (`openErrPanel`).
+>
+> **Testes:** `tests/test_dois_aparelhos.js` (85), `tests/test_sw.js` (26), `tests/test_erros_ao_vivo.js`
+> (29), mais asserções em `test_relatorio.js` (100) e `test_pwa.js` (32). Mocks de `test_excluir`,
+> `test_fase3`, `test_games_multidevice`, `test_srv0_courthist`, `test_repetir_escalacao` ajustados
+> (`update()` de verdade; `ss` criado por caminho vira vetor; janela da trava de ponto zerada entre
+> rallies). Suíte: 68 arquivos.
+>
+> **Validado com os dados reais (só leitura, nada gravado):** `save()` sem mudança = 0 caminhos nos 62
+> jogos / 87 atletas; mexer na escalação de um jogo ao vivo = só `games/{idx}/lineup`; reconexão
+> forçada no SDK real = ~1 s. Bancada visual de 2 aparelhos com banco falso:
+> `preview/_real/dois-aparelhos.html` (pasta ignorada pelo git; abrir via `npx http-server`).
+> Backup de leitura do banco antes do deploy: `preview/_real/backup-rtdb-2026-11-15.json`.
+>
+> **Aguardando o Rodrigo:** (a) Redeploy; (b) validar o critério do relatório — a versão para análise
+> está em `preview/_real/relatorio-analise.html` (antes × depois nos 2 jogos de 14/11; alternativa
+> avaliada e não adotada: Wilson 95%); (c) se quiser ranking **por função** (o saldo favorece quem toca
+> mais na bola: levantador, líbero).
+>
+> **Limites que ficaram:** C1 (jogos por índice) continua — dois aparelhos criando jogo ao mesmo tempo
+> ainda disputam o mesmo índice. A fila de envio é só memória (fechar o app sem conexão perde o que não
+> subiu — a faixa avisa). No iPhone estreito, com conta de coordenador, o cabeçalho da mesa clássica já
+> estourava (o "Desfazer" fica parcialmente cortado) — não mexi no layout. Não testei em iPhone físico:
+> o comportamento do toque no iOS vem da lógica do WebKit, reproduzida em teste com eventos de toque.
+
+## Deploy do 2026-11-14a — passo a passo (depende do Rodrigo)
+
+1. Commit + push (se ainda não foi) e **Redeploy manual** no Coolify.
+2. **Em cada aparelho, uma vez:** fechar o app por completo e abrir de novo (iPhone/iPad: deslizar o
+   app pra cima no seletor de apps; no Safari, recarregar a página). É a última vez que isso é
+   necessário: a versão antiga não sabe se atualizar sozinha; a nova sabe.
+   - Conferir `build 2026-11-14a` no rodapé da tela de login.
+   - Aparelho que ficar pra trás aparece no jogo como "outro aparelho neste jogo está numa versão
+     ANTIGA" na tela de quem já atualizou.
+3. **Antes de jogo real**, jogo de teste com 2 aparelhos: os dois abrem, um inicia, os dois marcam;
+   marcar ponto nos dois quase juntos (o 2º deve avisar e não somar); bloquear a tela de um por 1 min
+   e voltar (deve mostrar o selo verde de novo em ~1–2 s e o placar certo); modo avião num deles,
+   marcar 2 ações, tirar do modo avião (faixa vermelha "SEM CONEXÃO — 2 marcações guardadas" e depois
+   some); fechar o set e abrir o próximo em um só (o outro acompanha). Excluir o jogo de teste.
+4. A partir daqui, um Redeploy novo chega sozinho: fora de jogo o app recarrega; dentro de jogo aparece
+   a faixa azul "Nova versão — Atualizar agora".
+5. **A cada build:** bumpar `var APP_BUILD` **e** o `<meta name="rs-build">` (o `test_pwa.js` falha se
+   não baterem).
+
+---
+
+# Histórico — sessões anteriores (atualizado 2026-09-21, Claude Opus 5 direto nesta pasta)
 
 > **Estado em 21/09 (leia primeiro):** tudo abaixo já está na `main` e no GitHub. **No ar** (Redeploy
 > feito em 19/09) está o build `2026-09-18b` (C2 + quadra derivada) — o jogo de 20/09 (Fenerbouas,

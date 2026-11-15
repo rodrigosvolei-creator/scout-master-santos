@@ -10,7 +10,7 @@ const html = fs.readFileSync('index.html', 'utf8');
 const fakeDB = {};
 const listeners = [];
 function getAt(p){const a=p.split('/');let c=fakeDB;for(const k of a){if(c==null)return null;c=c[k];}return c===undefined?null:c;}
-function setAt(p,v){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object')c[a[i]]={};c=c[a[i]];}c[a[a.length-1]]=JSON.parse(JSON.stringify(v));}
+function setAt(p,v){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object')c[a[i]]=(/^[0-9]+$/.test(a[i+1])?[]:{});c=c[a[i]];}c[a[a.length-1]]=JSON.parse(JSON.stringify(v));}
 function delAt(p){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c==null)return;c=c[a[i]];}if(!c)return;const k=a[a.length-1];if(Array.isArray(c)&&/^\d+$/.test(k)){const i=+k;if(i===c.length-1){c.length=i;}else c[i]=null;}else delete c[k];}
 function updAt(base,obj){const ks=Object.keys(obj);for(const x of ks)for(const y of ks){if(x!==y&&y.indexOf(x+'/')===0)throw new Error('update() com caminho ancestral: '+x+' > '+y);}
   for(const k of ks){const p=base+'/'+k,v=obj[k];if(v===null)delAt(p);else if(v&&typeof v==='object'&&v['.sv']&&typeof v['.sv'].increment==='number'){const cur=getAt(p);setAt(p,(typeof cur==='number'?cur:0)+v['.sv'].increment);}else{if(JSON.stringify(v).indexOf('undefined')>=0)throw new Error('undefined em '+p);setAt(p,v);}}}

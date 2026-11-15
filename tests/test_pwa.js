@@ -57,5 +57,15 @@ var navIdx = sw.indexOf("=== 'navigate'") >= 0 ? sw.indexOf("=== 'navigate'") : 
 chk(liveIdx >= 0 && navIdx >= 0 && sw.lastIndexOf('LIVE_HOSTS') < navIdx, 'sw: checa dado ao vivo ANTES de interceptar navegação (RTDB passa direto)');
 chk(/gstatic\.com/.test(sw), 'sw: CDN (Firebase SDK/fontes) cacheável pro shell abrir offline');
 
+// 5) ATUALIZACAO DE VERSAO (build 2026-11-14a): iPhone/iPad seguravam versao velha (cache HTTP + pagina em memoria)
+chk(/cache:\s*['"]no-store['"]/.test(sw), 'sw: navegação busca o HTML com cache:"no-store" (sem cache HTTP do navegador)');
+chk(/rsscout-shell-v2/.test(sw), 'sw: cache v2 (a ativação apaga o v1 e recarrega páginas antigas)');
+chk(/updateViaCache:\s*['"]none['"]/.test(html), 'index: registra o SW com updateViaCache:"none"');
+var mMeta = /<meta name="rs-build" content="([^"]+)">/.exec(html);
+var mBuild = /var APP_BUILD="([^ "]+)/.exec(html);
+chk(!!mMeta && !!mBuild && mMeta[1] === mBuild[1], 'index: <meta name="rs-build"> ('+(mMeta&&mMeta[1])+') == 1o item do APP_BUILD ('+(mBuild&&mBuild[1])+') — BUMPAR OS DOIS JUNTOS a cada build');
+chk(!!mMeta && html.indexOf('<meta name="rs-build"') < 2000, 'index: o meta do build fica nos primeiros 2 KB (a checagem de versão só lê o começo do arquivo)');
+chk(/index\.html\?vchk=1/.test(html) && /_verCheckNow/.test(html), 'index: checagem de versão contra o servidor (index.html?vchk=1)');
+
 console.log('\n=== test_pwa: '+ok+' OK, '+ko+' FAIL ===');
 process.exit(ko > 0 ? 1 : 0);

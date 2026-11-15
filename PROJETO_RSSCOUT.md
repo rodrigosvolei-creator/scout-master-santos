@@ -127,6 +127,24 @@ jeito. Campos internos (`_legacy`, `_actN`, `sqk`, `_sqN`) nunca vão pro banco.
 > build antigo) reintroduzem o bug: o antigo grava o jogo inteiro em array por cima. Recarregar
 > todos os aparelhos após o Redeploy.
 
+> **Dois aparelhos na mesma partida (build 2026-11-14a) — o que mudou na escrita:**
+> - **`save()` é por diferença.** `_saveNode` compara o estado local com o último snapshot que o
+>   servidor entregou (`_srvSnap[nó]`, o `DataSnapshot` do listener, imutável) e manda só os caminhos
+>   que este aparelho mudou num `update()` multi-caminho por nó; nó sem mudança não é gravado. Vetor
+>   vai inteiro (`lineup`, `roster`); `act/{aid}`, `court/{set}` e `courtHist/{set}/{k}` vão inteiros;
+>   `ss` desce campo a campo; `ss` "padrão" criado só na memória ao abrir o card não vira gravação
+>   (`_gmDiffPre`). Se o registro de um índice é outro (lista deslocou), o filho vai inteiro. Antes eram
+>   4 `set()` dos nós inteiros (~2,5 MB por save) a partir da cópia local — um aparelho com dado velho
+>   apagava o que o outro tinha marcado.
+> - **Criar sem sobrescrever:** `startG` e `nxS` gravam `ss/{i}/u` e `ss/{i}/t` com `increment(0)`.
+>   Escalação automática do card: `_lineupInit` (transação em `games/{idx}/lineup`).
+> - **`games/{idx}/devs/{aparelho}` = build** de cada aparelho que marcou no jogo (gravado junto com a
+>   1ª marcação, `_gmStampDev`). É como o app avisa "versões misturadas neste jogo".
+> - **Leitura:** `once("value")`/`get()` num nó que já tem listener respondem do cache local do SDK.
+>   Reler do servidor = reconectar (`_netReconnect`: `goOffline()` + `goOnline()`).
+> - Nenhuma regra nova no Firebase: a sonda de conexão lê `torneio-master-santos/_ping`, que é negado
+>   de propósito (a resposta "sem permissão" já prova que a conexão está viva).
+
 ---
 
 ## 5. Funcionalidades
@@ -200,8 +218,34 @@ por atleta (`exAthPDF`, `exAllAthPDF`) mantidos como estão.
 >   (era defesa). Pendente: trocar os rótulos "1ª bola/FBSO" no PDF/Relatório/legenda por
 >   "ataque de side-out" (só texto + `test_fases.js`).
 
+**Classificação dos atletas (build 2026-11-14a):** a tabela geral do Relatório visual (jogo e torneio,
+`_reportCoreHTML`) é ordenada pelo **saldo = positivas − erros** (`_repRankCmp`); o aproveitamento %
+só desempata e a medalha exige saldo positivo. Era por % com corte de 4 ações — quem acertava 4 de 4
+ficava em 1º, à frente de quem teve 41 ações com resultado e acertou 38 (pedido do Rodrigo, 14/11/2026:
+"quem recebeu 100 bolas e rodou 90 não pode ficar abaixo de quem recebeu 4 e rodou as 4"). Alternativa
+avaliada e não adotada: limite inferior de Wilson. Limite do saldo: favorece quem toca mais na bola.
+
 ### Estatística ao vivo
 Painel `📊 AO VIVO` (`openLivePanel`) — KPIs do time e por atleta, lê `gm.act`.
+
+**Erros ao vivo (build 2026-11-14a)** — quadro fixo na tela de marcação (`_errStripHTML`): erros por
+fundamento (SAQ/ATQ/REC/BLQ/LEV/DEF), total e pontos em erro do adversário, no **set em que a mesa
+está** e no **jogo**. Clássico: logo abaixo do placar, com atalho "N erros" no centro do placar
+(`_errPillHTML`); tablet: pé da coluna esquerda. Tocar abre o detalhe por atleta (`openErrPanel`, que
+se atualiza a cada marcação). Ataque bloqueado é contado à parte. Motor puro: `errStats(gm,set)`.
+
+### Dois aparelhos na mesma partida (build 2026-11-14a)
+- **Selo de conexão** no centro do placar (`_netChip`) e **faixa no topo** quando há problema
+  (`#netBar`: "SEM CONEXÃO — N marcações guardadas neste aparelho. Não feche o app").
+- **Ponto duplicado:** por 6 s depois de um ponto vindo de OUTRO aparelho, a ação de ponto deste é
+  gravada sem somar ponto (a mesma ação não é gravada 2×) e `+`/erro do adversário pedem 2º toque.
+- **Set novo:** quem estava no último set acompanha sozinho o set aberto pelo colega; "Próximo set"
+  só avança se o set seguinte já existe.
+- **Toque seguro:** redesenho disparado por dado (`renderSoon`) espera o dedo sair da tela — no iOS o
+  `click` se perde se o botão for trocado durante o toque.
+- **Versão:** o app confere o build do servidor ao abrir, ao voltar do 2º plano e a cada 5 min; fora
+  de jogo recarrega sozinho, dentro mostra a faixa "Nova versão — Atualizar agora" e volta ao mesmo
+  jogo/set depois; avisa quando outro aparelho do jogo está em versão diferente.
 
 ---
 
@@ -231,12 +275,19 @@ Painel `📊 AO VIVO` (`openLivePanel`) — KPIs do time e por atleta, lê `gm.a
 - Sempre bumpar `var APP_BUILD="..."` (aparece no rodapé `#buildStamp`) — é a forma de
   confirmar qual versão está no ar e matar dúvida de cache. **O app no ar costuma ficar
   builds atrás do código no GitHub** enquanto o Redeploy não é feito.
+- **Bumpar junto o `<meta name="rs-build" content="...">` do `<head>`** (o mesmo id curto). É o que
+  os aparelhos leem do servidor pra saber que há versão nova; `tests/test_pwa.js` falha se os dois
+  não baterem.
+- **Cache (build 2026-11-14a):** o nginx do Coolify não manda `Cache-Control`. O `sw.js` (v2) busca a
+  navegação com `cache:'no-store'` e só guarda estáticos; o app se atualiza sozinho (ver §5). Depois
+  de um Redeploy que troca o `sw.js`, a página antiga aberta é recarregada uma vez. Quem ainda está
+  num build anterior ao 2026-11-14a precisa fechar e abrir o app uma vez.
 
 ---
 
 ## 8. Testes
 
-63 arquivos `tests/test_*.js`, rodados com `node tests/test_X.js` (jsdom + mock Firebase).
+68 arquivos `tests/test_*.js` (nov/2026), rodados com `node tests/test_X.js` (jsdom + mock Firebase).
 `test_cores_e2e.js` demora ~7 min (torneio inteiro); os demais são segundos.
 Regra do projeto: **rodar a suíte inteira antes de commitar**; mudança nova precisa de teste
 novo (ou asserção nova). Cobrem: scout, autoscore, torneios, fases A/B/C/D, quadra (setup,
@@ -253,6 +304,15 @@ líbero, rotação, saque), tablet, modo note, PDF, gate de auth, galeria-first,
 > `test_games_multidevice.js` (2 aparelhos, aba suspensa, conversão do formato antigo) e
 > `test_multidevice.js`. Os mocks antigos com `update()` vazio continuam válidos pra testes
 > que só olham o estado local.
+
+> Desde o build 2026-11-14a: (1) `save()` grava por **`update()`** — mock que confere o banco depois
+> de um `save()` precisa de `update()` de verdade (ver `test_excluir.js`); (2) `ss` criado por caminho
+> (`ss/0/u`) tem que virar **vetor** no mock, como o Firebase devolve (`setAt` cria `[]` quando a
+> chave seguinte é numérica); (3) a **trava de ponto duplicado** segura por 6 s o ponto de um aparelho
+> depois do ponto do outro — teste com 2 aparelhos marcando no mesmo milissegundo zera `w._pt.at`
+> entre os rallies (ver `test_games_multidevice.js`); (4) o snapshot do mock deve ser **imutável** pra
+> exercitar o `save()` por diferença com estado velho (ver `test_dois_aparelhos.js`, que também
+> modela o aparelho suspenso com cópia privada do banco e transação pendente).
 
 Guard sagrado: **nunca remover o `_dataLoaded` do `save()`** (protege contra perda de dados —
 houve incidente real de 249 ações perdidas).
@@ -273,8 +333,15 @@ houve incidente real de 249 ações perdidas).
 
 - Commit direto na `main` (sem branch/PR), autoria `rodrigosvolei@gmail.com`.
 - Hot path de scout: `rcO`/`scUp`/`scDn`/`undo`/sets/quadra → `_gmUpdate` (granular, C2).
-  `saveGame` só pra criar/editar jogo. Evitar `save()` (reescreve os 4 nós, pesado) fora de
-  operações estruturais — **nunca** no meio de um jogo ao vivo.
+  `saveGame` (jogo inteiro) não é mais usado pelo app. `save()` grava por diferença desde o build
+  2026-11-14a (só o que mudou) — ainda assim, no jogo ao vivo prefira `_gmUpdate` com o caminho exato.
+- **Nunca gravar um nó "inteiro" a partir do estado local** (placar, `ss`, `act`): outro aparelho pode
+  ter gravado no meio. Criar = `increment(0)` ou transação; alterar = caminho exato.
+- Redesenho disparado por **dado** (listener, timer) usa `renderSoon()`; `render()` direto só em
+  resposta a uma ação do próprio operador.
+- **Editar o `index.html`:** o arquivo é CRLF com **1 CR solto** no fim da linha do `APP_BUILD`. Editor
+  que normaliza fim de linha tira esse CR e o git passa a mostrar o arquivo inteiro como alterado.
+  Conferir com `git diff --stat` depois de editar.
 - Torneios standalone isolados do app principal por `isSpecialTour/isSpecialTeam/isSpecialGame`.
 - Rótulos/cores de fundamentos: `ACT`, `OC` (outcome), `FCOL` (fundamento).
 - **Posição (função) do atleta é padronizada (21/09/2026):** 5 códigos fixos `POSK`
@@ -305,7 +372,14 @@ houve incidente real de 249 ações perdidas).
   Próximo passo depois que o C2 (escrita granular, 18/09/2026) estiver estável em produção.
 - **C2 — validar em produção:** depois do Redeploy, recarregar TODOS os tablets (build
   `2026-09-18b` no rodapé) e testar com 2 aparelhos num jogo de teste antes do jogo real.
-- **Undo pós-reload:** o histórico de undo (`S.us`) é volátil; some ao recarregar.
+- **Undo pós-reload:** o histórico de undo (`S.us`) é volátil; some ao recarregar — exceto na
+  atualização de versão dentro do jogo, que o preserva (`_sessKeep`/`_sessRestore`).
+- **Fila de envio só em memória:** marcação feita sem conexão se perde se o app for fechado antes de
+  a rede voltar (a faixa vermelha avisa). Fila persistente exigiria tornar o placar idempotente.
+- **Ranking por função no relatório:** o saldo favorece quem toca mais na bola (levantador, líbero);
+  comparar dentro da mesma função é o próximo passo se o Rodrigo quiser.
+- **Cabeçalho da mesa clássica no celular estreito:** com conta de coordenador (6 ícones) o "Desfazer"
+  fica parcialmente cortado em telas de ~375–390 px. Já era assim antes do build 2026-11-14a.
 - **Limpar cards legados USA/PG** do `TOURNEY_ACCESS` (senhas `usa2026`/`PG2026` ainda no
   código; com o banco fechado viraram decorativas). Antes, checar se há jogos vinculados.
 - **Passo 2 — "Criador de Cards":** página separada que cria torneios/jogos e gera config

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="rs-build" content="2026-11-14a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a0a1a">
@@ -1188,6 +1189,55 @@ body.rs-shell .app-content .sc-fitem .fset,
 .usa-scout-wrap .sc-fitem .fset{color:#475569!important}
 
 /* Carimbo de build — discreto no canto inferior, nao atrapalha toque (pointer-events:none) */
+/* erros ao vivo: quadro rapido na mesa + detalhe por atleta */
+.sc-errs{margin:0 12px 12px;padding:6px 8px 5px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);cursor:pointer;position:relative;z-index:1}
+.sc-errs table{width:100%;border-collapse:collapse;table-layout:fixed}
+.sc-errs th{font:800 9px/1.2 'Inter',sans-serif;letter-spacing:.4px;color:#94a3b8;padding:1px 0;text-align:center}
+.sc-errs td{font:800 14px/1.3 'Inter',sans-serif;text-align:center;color:#e2e8f0;padding:1px 0}
+.sc-errs .l{text-align:left;width:19%;font:800 9px/1.2 'Inter',sans-serif;letter-spacing:.4px;color:#94a3b8;text-transform:uppercase;white-space:nowrap}
+.sc-errs td.e{color:#fca5a5}.sc-errs td.z{color:#475569}
+.sc-errs th.t,.sc-errs td.t{color:#fbbf24}
+.sc-errs th.a,.sc-errs td.a{color:#86efac}
+.sc-errs tr.g td{font-size:12px}
+.sc-errs .ft{font:600 9px/1.3 'Inter',sans-serif;color:#64748b;text-align:center;margin-top:3px}
+.sct-col-l .sc-errs{margin:8px 0 0;padding:6px 6px 5px}
+.sct-col-l .sc-errs th{font-size:8px;letter-spacing:0}
+.sct-col-l .sc-errs .l{width:17%;font-size:8px;letter-spacing:0}
+.sct-col-l .sc-errs td{font-size:13px}
+.sct-col-l .sc-errs .ft{display:none}
+.sc-errpill{margin-top:5px;font:800 10px/1.4 'Inter',sans-serif;letter-spacing:.2px;color:#fca5a5;background:rgba(239,68,68,.16);border:1px solid rgba(239,68,68,.4);border-radius:999px;padding:1px 7px;white-space:nowrap;cursor:pointer;text-align:center}
+.sc-errpill.z{color:#94a3b8;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14)}
+.errp{max-width:520px!important;width:94vw;text-align:left;padding:14px 14px 12px!important}
+.errp-hd{display:flex;align-items:center;justify-content:space-between;font:800 15px 'Inter',sans-serif;color:#0f172a;margin-bottom:8px}
+.errp-hd button{border:0;background:#e2e8f0;color:#0f172a;border-radius:8px;width:30px;height:30px;font-size:14px;cursor:pointer}
+.errp-tgl{display:flex;gap:6px;margin-bottom:8px}
+.errp-tgl button{flex:1;border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:8px;padding:7px;font:700 12px 'Inter',sans-serif;cursor:pointer}
+.errp-tgl button.on{background:#0f172a;color:#fff;border-color:#0f172a}
+.errp-sc{max-height:56vh;overflow-y:auto;overflow-x:hidden}
+.errp-tb{width:100%;border-collapse:collapse;table-layout:fixed}
+.errp-tb th{font:800 9px/1.15 'Inter',sans-serif;color:#64748b;padding:5px 1px;text-align:center;border-bottom:2px solid #e2e8f0;position:sticky;top:0;background:#fff}
+.errp-tb th.bq{font-size:8px;color:#7c3aed}
+.errp-tb td{font:800 14px 'Inter',sans-serif;text-align:center;padding:6px 2px;border-bottom:1px solid #f1f5f9;color:#0f172a}
+.errp-tb .l{text-align:left;width:27%;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.errp-tb td.e{color:#dc2626}.errp-tb td.z{color:#cbd5e1;font-weight:600}
+.errp-tb td.t{color:#b45309}.errp-tb td.b{color:#7c3aed}
+.errp-tb tr.tot td{border-top:2px solid #0f172a;background:#f8fafc}
+.errp-ft{font:600 11px/1.4 'Inter',sans-serif;color:#64748b;margin-top:8px}
+/* 2 aparelhos: selo de conexao, faixa de fila/sem conexao, faixa de versao */
+.net-chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;letter-spacing:.3px;padding:2px 7px;border-radius:999px;white-space:nowrap;vertical-align:middle;line-height:1.5;background:rgba(34,197,94,.16);color:#4ade80;border:1px solid rgba(34,197,94,.35);font-family:'Inter',sans-serif;text-transform:none}
+.net-chip.wait{background:rgba(245,158,11,.18);color:#fbbf24;border-color:rgba(245,158,11,.45)}
+.net-chip.off{background:rgba(239,68,68,.22);color:#fca5a5;border-color:rgba(239,68,68,.55)}
+.net-chip.unk{display:none}
+.sc-net{margin-top:4px;line-height:1;text-align:center}
+#rsBars{position:fixed;left:0;right:0;top:6px;top:calc(6px + env(safe-area-inset-top,0px));z-index:9997;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding:0 8px}
+#netBar,#updBar{display:none;max-width:560px;padding:9px 14px;border-radius:12px;font:700 13px/1.35 'Inter',sans-serif;color:#fff;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+#netBar.off{display:block;background:#b91c1c}
+#netBar.wait{display:block;background:#b45309}
+#updBar.on{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;background:#1d4ed8;pointer-events:auto}
+#updBar.on.warn{background:#92400e}
+#updBar button{border:0;border-radius:8px;padding:7px 12px;font:800 12px 'Inter',sans-serif;background:#fff;color:#1d4ed8;cursor:pointer}
+#updBar button.x{background:transparent;color:#fff;padding:6px 8px}
+@media print{#rsBars{display:none!important}}
 #buildStamp{position:fixed;bottom:4px;right:6px;z-index:9998;font-size:9px;font-weight:700;letter-spacing:.3px;color:rgba(148,163,184,.55);background:rgba(10,15,28,.45);padding:2px 7px;border-radius:6px;pointer-events:none;font-family:'Inter',sans-serif;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 @media print{#buildStamp{display:none!important}}
 
@@ -1354,8 +1404,10 @@ try{document.documentElement.style.setProperty('--rs-watermark',"url('"+LR+"')")
 
 // Carimbo de build: ATUALIZAR esta string a cada deploy. Aparece discreto no
 // canto pra confirmar visualmente qual versao esta no ar (mata duvida "subiu ou cache?").
-var APP_BUILD="2026-10-15a - tarja: opcao Sem tarja no editar/criar jogo desliga o SEM DADOS automatico (scout feito depois por video); 2026-09-28a - scout: chip de set clicavel (goSet) pra voltar num set anterior e remarcar (set incompleto refeito pela filmagem); fim do set remarcado oferece voltar pro ultimo set em vez de abrir set novo; 2026-09-22b - TREINO COM 6 FUNDAMENTOS: entraram BLOQUEIO (Ponto/Tocou/Atrasado/Erro) e DEFESA (Perfeita/Boa/Regular/Erro) na marcacao, no consolidado, nos cards do celular, na planilha e nos PDFs (individual e geral, este agora em paisagem); telas de marcar REDIMENSIONADAS: no modo tablet a grade fundamento x nota trava na altura da tela (linhas se dividem sozinhas, sem repeat(4,1fr) fixo) e no celular o seletor de fundamento virou grade 3x2; 21i - POR POSICAO DO LEVANTADOR (P1-P6), com as trocas registradas do set (escalacao, substituicoes com placar, rotacao manual) no PDF Partida e no Relatorio visual: rallies, recebendo/sacando, saldo, ataque de side-out e contra-ataque por rotacao, por set (com o sexteto) e jogo todo — motor rotacaoModel/rotacaoStats (quadra do modo quadra + sequencia de pontos, historico de trocas quando existe; levantador = funcao cadastrada / quem levantou); 21h - MARCACAO pra analise por rotacao nos proximos jogos: (1) quem sacou primeiro no set (ss[i].srv0) — chip \"Saque inicial\" na mesa (classico e tablet), automatico na 1a acao do set (saque/recepcao a 0-0) e ao escalar no modo quadra; rallyModel usa; (2) historico de TODAS as edicoes da quadra (courtHist/{set}/{key}: escalar, rodar, libero, substituicao com in/out) — court/{set} guarda so a ultima base; 21g - PARA QUEM FOI A BOLA por fase: no PDF Partida e no Relatorio visual, a distribuicao do levantamento sai separada em ataque de side-out x contra-ataque, por funcao (ataques, % da fase, pontos/kill) e por atleta (ataques, %, pontos); 21f - NOMENCLATURA das fases (Rodrigo): side-out = o 1o ataque vindo da recepcao (era \"1a bola/FBSO\"); qualquer outro ataque e contra-ataque (no break: nos sacamos -> defesa ou bloqueio -> ataque; em transicao: saque deles, depois do side-out); metricas de rally rotuladas \"rallies recebendo (side-out %)\" / \"rallies sacando (break %)\"; recepcao marcada em rally do nosso saque e tratada como defesa (contada no relatorio); 21e - contra-ataque dividido em no break (nos sacamos) x em transicao (eles sacaram) nas tabelas de ataque por fase; legenda BP/CA reescrita; 21d - FASES DO JOGO tambem no Relatorio visual (exTeamReport), no design dele (cards, KPIs, leitura escrita, barras, por atleta, legenda); 21c - FASES DO JOGO no layout do relatorio avulso (faixa, KPIs, leitura escrita gerada dos numeros, barras, metodo, legenda), paginas proprias no fim do PDF da partida; 21b - PDF da partida ganha FASES DO JOGO: side-out %, 1a bola (FBSO), break point %, origem dos pontos, ataque e distribuicao do levantamento por fase, recepcao x side-out, por atleta, legenda (motor rallyModel/fasesStats); 21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
-try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+String(APP_BUILD).split(" - ")[0].trim();}catch(e){}
+var APP_BUILD="2026-11-14a - DOIS APARELHOS + CACHE: (1) gravacao segura com aparelho desatualizado: save() grava so o que mudou (diferenca contra o ultimo snapshot do servidor) em vez de regravar teams/games/athletes/tournaments inteiros; iniciar partida, proximo set e abrir jogo nao regravam mais placar/acoes; escalacao automatica do card so grava se o servidor nao tiver uma; (2) reconexao DE VERDADE ao voltar do 2o plano / trocar de rede (goOffline+goOnline) + selo de conexao na mesa + aviso de fila de envio; (3) set aberto no outro aparelho e acompanhado sozinho (fim do set fantasma do segundo operador); (4) trava de ponto duplicado: ponto que chega de outro aparelho segura por 6 s o ponto deste; (5) toque nao se perde quando o outro aparelho marca no meio do toque (iPhone/iPad): redesenho por dado espera o dedo sair; (6) versao: o app confere o build do servidor, atualiza sozinho fora de jogo, mostra faixa dentro do jogo e avisa quando ha versoes misturadas na mesma partida (games/{idx}/devs); SW v2 busca o HTML sem cache HTTP; (7) relatorio (jogo e torneio): classificacao pelo SALDO (positivas - erros) em vez do aproveitamento % — 4 acertos em 4 nao passam mais na frente de 38 em 41; % so desempata; medalha so com saldo positivo (_repRankCmp); (8) ERROS AO VIVO na mesa (classica e tablet): quadro com erros por fundamento no set e no jogo + pontos em erro do adversario, toque abre o detalhe por atleta (errStats); 2026-10-15a - tarja: opcao Sem tarja no editar/criar jogo desliga o SEM DADOS automatico (scout feito depois por video); 2026-09-28a - scout: chip de set clicavel (goSet) pra voltar num set anterior e remarcar (set incompleto refeito pela filmagem); fim do set remarcado oferece voltar pro ultimo set em vez de abrir set novo; 2026-09-22b - TREINO COM 6 FUNDAMENTOS: entraram BLOQUEIO (Ponto/Tocou/Atrasado/Erro) e DEFESA (Perfeita/Boa/Regular/Erro) na marcacao, no consolidado, nos cards do celular, na planilha e nos PDFs (individual e geral, este agora em paisagem); telas de marcar REDIMENSIONADAS: no modo tablet a grade fundamento x nota trava na altura da tela (linhas se dividem sozinhas, sem repeat(4,1fr) fixo) e no celular o seletor de fundamento virou grade 3x2; 21i - POR POSICAO DO LEVANTADOR (P1-P6), com as trocas registradas do set (escalacao, substituicoes com placar, rotacao manual) no PDF Partida e no Relatorio visual: rallies, recebendo/sacando, saldo, ataque de side-out e contra-ataque por rotacao, por set (com o sexteto) e jogo todo — motor rotacaoModel/rotacaoStats (quadra do modo quadra + sequencia de pontos, historico de trocas quando existe; levantador = funcao cadastrada / quem levantou); 21h - MARCACAO pra analise por rotacao nos proximos jogos: (1) quem sacou primeiro no set (ss[i].srv0) — chip \"Saque inicial\" na mesa (classico e tablet), automatico na 1a acao do set (saque/recepcao a 0-0) e ao escalar no modo quadra; rallyModel usa; (2) historico de TODAS as edicoes da quadra (courtHist/{set}/{key}: escalar, rodar, libero, substituicao com in/out) — court/{set} guarda so a ultima base; 21g - PARA QUEM FOI A BOLA por fase: no PDF Partida e no Relatorio visual, a distribuicao do levantamento sai separada em ataque de side-out x contra-ataque, por funcao (ataques, % da fase, pontos/kill) e por atleta (ataques, %, pontos); 21f - NOMENCLATURA das fases (Rodrigo): side-out = o 1o ataque vindo da recepcao (era \"1a bola/FBSO\"); qualquer outro ataque e contra-ataque (no break: nos sacamos -> defesa ou bloqueio -> ataque; em transicao: saque deles, depois do side-out); metricas de rally rotuladas \"rallies recebendo (side-out %)\" / \"rallies sacando (break %)\"; recepcao marcada em rally do nosso saque e tratada como defesa (contada no relatorio); 21e - contra-ataque dividido em no break (nos sacamos) x em transicao (eles sacaram) nas tabelas de ataque por fase; legenda BP/CA reescrita; 21d - FASES DO JOGO tambem no Relatorio visual (exTeamReport), no design dele (cards, KPIs, leitura escrita, barras, por atleta, legenda); 21c - FASES DO JOGO no layout do relatorio avulso (faixa, KPIs, leitura escrita gerada dos numeros, barras, metodo, legenda), paginas proprias no fim do PDF da partida; 21b - PDF da partida ganha FASES DO JOGO: side-out %, 1a bola (FBSO), break point %, origem dos pontos, ataque e distribuicao do levantamento por fase, recepcao x side-out, por atleta, legenda (motor rallyModel/fasesStats); 21a - posicao PADRONIZADA: 5 funcoes fixas com rotulo no genero do time (Ponteira x Ponteiro), so por selecao (sem texto livre), grafia antiga normalizada; 18b - quadra DERIVADA (base + replay do sq): ponto nao grava court/{set}, 2 tablets rodando com estado velho convergem; 18a - jogos MULTI-APARELHO (C2): cada acao gravada no proprio no (act/{aid}), placar com increment, sq chaveado, quadra/sets/finalizar por update() granular — 2 tablets no mesmo jogo nao se sobrescrevem mais (jogo antigo converte na 1a marcacao); 15d - treinos MULTI-OPERADOR: marks/{mid} e athletes/{taid} gravados um a um (2+ aparelhos sem sobrepor), undo so da propria marcacao, tablet ocupa a tela inteira; 15c - treinos: aviso quando o RTDB nega o no trainings (regra pendente); 15b - treinos: excluir treino (trainings/{id}.remove) + sem aviso de categorias; 15a - modulo de Treinos: aba nova (coordenador/scouter/admin), cadastro com atletas do cadastro ou colados, marcacao rapida atleta+fundamento+nota, consolidado a qualquer momento (planilha por nota, cards no celular), modo tablet 1 toque, PDF individual e geral; node trainings/{id} no RTDB";
+// id curto do build (o mesmo do <meta name="rs-build"> no <head> — test_pwa.js confere que batem)
+var APP_BUILD_ID=String(APP_BUILD).split(" - ")[0].trim();
+try{var _bs=document.getElementById("buildStamp");if(_bs)_bs.textContent="build "+APP_BUILD_ID;}catch(e){}
 
 // Preencher logos no boot (evita duplicação de base64 no HTML)
 var POS=["Levantador(a)","Oposto(a)","Ponteiro(a)","Central","L\u00edbero"];
@@ -2130,6 +2182,367 @@ function getBrand(token){
   }catch(e){}
 })();
 
+// ============================================================================
+// ===== DOIS APARELHOS NO MESMO JOGO — base (build 2026-11-14a) ==============
+// ============================================================================
+// Este bloco fica ANTES dos listeners: o estado daqui e usado pelo render(), e nos testes
+// (mock sincrono) o primeiro render() roda durante o registro do listener.
+//
+// (1) TOQUE SEGURO. O app redesenha a tela inteira (innerHTML) a cada evento do banco. No
+// iPhone/iPad o Safari so entrega o "click" se o botao tocado ainda for O MESMO elemento
+// quando o dedo sobe; com 2 aparelhos, a marcacao do colega chegava no meio do toque, o botao
+// era trocado por outro igual e o toque se perdia ("apertei e nao marcou"). Redesenho
+// disparado por DADO (listener do banco, cronometro) espera o dedo sair da tela; redesenho
+// disparado pelo proprio toque (render() direto) continua imediato.
+var _tch={down:false,t0:0,until:0,pend:false,tm:null};
+function _tchBusy(){var n=Date.now();return (_tch.down&&n-_tch.t0<1500)||n<_tch.until;}
+function renderSoon(){
+  if(!appStarted)return;
+  if(!_tchBusy()){_tch.pend=false;render();return;}
+  _tch.pend=true;
+  if(!_tch.tm)_tch.tm=setTimeout(function(){_tch.tm=null;if(_tch.pend)renderSoon();},90);
+}
+if(typeof document!=="undefined"&&document.addEventListener){
+  (function(){
+    var dn=function(){_tch.down=true;_tch.t0=Date.now();};
+    var up=function(){_tch.down=false;_tch.until=Date.now()+140;}; // o click chega logo depois de soltar
+    var cl=function(){_tch.down=false;_tch.until=0;};              // click entregue / toque cancelado: libera
+    var o={capture:true,passive:true};
+    document.addEventListener("touchstart",dn,o);
+    document.addEventListener("touchend",up,o);
+    document.addEventListener("touchcancel",cl,o);
+    document.addEventListener("mousedown",dn,true);
+    document.addEventListener("mouseup",up,true);
+    document.addEventListener("click",cl,true);
+  })();
+}
+
+// (2) CONEXAO. O SDK do Firebase nao avisa quando a conexao "morre em pe" (celular voltou do
+// bolso, trocou wifi/4G): a tela fica com dado velho e as marcacoes entram numa fila em
+// MEMORIA. Aqui: estado real da conexao (.info/connected), quantas gravacoes o servidor ainda
+// nao confirmou, e reconexao FORCADA (goOffline+goOnline) quando o aparelho volta do 2o plano,
+// quando uma gravacao fica parada ou quando o servidor nao responde a sonda.
+// Obs (medido no SDK 9.22): once("value")/get() num no que ja tem listener respondem do cache
+// local em 0 ms, mesmo offline — nao "releem do servidor". So reconectar faz o listener reler.
+var _net={on:null,chg:Date.now(),hid:0,tick:Date.now(),force:0,stuck:0,seq:0,pend:{},probe:0,probing:false};
+function _netPendN(){var n=0,k;for(k in _net.pend)n++;return n;}
+function _netOldest(){var t=0,k;for(k in _net.pend){if(!t||_net.pend[k]<t)t=_net.pend[k];}return t;}
+// Acompanha uma gravacao ate o servidor confirmar (a promise do SDK so resolve no ack).
+function _netTrack(p){
+  if(!p||typeof p.then!=="function")return p;
+  var id=++_net.seq;_net.pend[id]=Date.now();
+  var fin=function(){delete _net.pend[id];_netPaint();};
+  p.then(fin,fin);
+  setTimeout(_netPaint,2700);
+  return p;
+}
+function _netReconnect(why){
+  var now=Date.now();if(now-_net.force<5000)return false;
+  _net.force=now;
+  try{if(db&&typeof db.goOffline==="function"&&typeof db.goOnline==="function"){db.goOffline();db.goOnline();}}catch(e){}
+  return true;
+}
+// O aparelho voltou (aba visivel de novo, rede voltou, timers destravaram): reconecta e confere a versao.
+function _netResume(why){
+  var away=_net.hid?(Date.now()-_net.hid):0;_net.hid=0;
+  if(why==="online"||why==="pageshow"||why==="wake"||away>=4000||_net.on===false)_netReconnect(why);
+  _verSoon(1200);
+}
+// Marcando ao vivo agora? (jogo aberto no scout, ou marcacao de treino)
+function _netLive(){try{return !!(S&&S.aid)||(tab==="treinos"&&!!selTrn&&trnSub==="marcar");}catch(e){return false;}}
+// Sonda: pede ao servidor um caminho que NAO tem listener (a resposta "sem permissao" ja prova que
+// a conexao esta viva nos 2 sentidos). Sem resposta em 7 s com a conexao "de pe" = zumbi -> reconecta.
+function _netProbe(){
+  var ref;try{ref=db.ref("torneio-master-santos/_ping");}catch(e){return;}
+  if(!ref||typeof ref.get!=="function")return;
+  _net.probing=true;_net.probe=Date.now();
+  var fin=false,ok=function(){fin=true;_net.probing=false;};
+  try{ref.get().then(ok,ok);}catch(e){ok();return;}
+  setTimeout(function(){if(fin)return;fin=true;_net.probing=false;if(_net.on===true)_netReconnect("sonda");},7000);
+}
+function _netTick(){
+  var now=Date.now(),gap=now-_net.tick;_net.tick=now;
+  if(typeof document!=="undefined"&&document.hidden)return; // escondida: quem cuida da volta e o visibilitychange
+  if(gap>20000)_netResume("wake"); // os timers pararam com a tela visivel: o app ficou suspenso (iOS)
+  var old=_netOldest();
+  if(old&&_net.on===true&&now-old>10000&&now-_net.chg>10000){
+    // gravacao enviada ha mais de 10 s sem confirmacao e a conexao "diz" que esta de pe
+    if(now-_net.force>Math.min(60000,10000*(_net.stuck+1))){if(_netReconnect("fila"))_net.stuck++;}
+  }else if(!old)_net.stuck=0;
+  if(_net.on===true&&!old&&!_net.probing&&now-_net.probe>20000&&_netLive())_netProbe();
+  _netPaint();
+  _verTick(now);
+}
+function _netState(){
+  var n=_netPendN(),now=Date.now();
+  if(_net.on===false)return {k:"off",n:n,ms:now-_net.chg};
+  if(n>0&&now-_netOldest()>2500)return {k:"wait",n:n,ms:0};
+  if(_net.on===true)return {k:"ok",n:n,ms:0};
+  return {k:"unk",n:n,ms:0};
+}
+function _netChipTxt(st){
+  // celular (tela estreita): so o simbolo (+ quantas marcacoes na fila) — o texto completo vai na faixa de baixo
+  var narrow=false;try{narrow=window.innerWidth<560;}catch(e){}
+  if(st.k==="off")return narrow?("⚠"+(st.n?" "+st.n:"")):("⚠ sem conexão"+(st.n?" · "+st.n+" na fila":""));
+  if(st.k==="wait")return narrow?("⏳ "+st.n):("⏳ enviando "+st.n);
+  return narrow?"●":"● online";
+}
+// Selo de conexao dentro da tela de marcacao (o render inclui; _netPaint atualiza sem redesenhar a tela).
+function _netChip(){var st=_netState();return '<span class="net-chip '+st.k+'" title="conexão com o servidor">'+_netChipTxt(st)+'</span>';}
+function _barsHost(){
+  var h=document.getElementById("rsBars");
+  if(!h){h=document.createElement("div");h.id="rsBars";document.body.appendChild(h);}
+  return h;
+}
+function _netPaint(){
+  if(typeof document==="undefined"||!document.body)return;
+  var st=_netState();
+  try{var cs=document.querySelectorAll(".net-chip");for(var i=0;i<cs.length;i++){cs[i].className="net-chip "+st.k;cs[i].textContent=_netChipTxt(st);}}catch(e){}
+  // faixa global: so com problema de verdade (sem conexao ha 3 s+, ou fila parada) e so pra quem esta logado
+  var show=!!currentUser&&!telaoMode&&((st.k==="off"&&st.ms>=3000)||st.k==="wait");
+  var b=document.getElementById("netBar");
+  if(!show){if(b)b.className="";return;}
+  if(!b){b=document.createElement("div");b.id="netBar";_barsHost().appendChild(b);}
+  var pl=st.n>1,mk="marca"+(pl?"ções":"ção");
+  b.className=st.k;
+  b.textContent=st.k==="off"
+    ?("⚠ SEM CONEXÃO"+(st.n?(" — "+st.n+" "+mk+" guardada"+(pl?"s":"")+" neste aparelho. Não feche o app: envia sozinho quando a rede voltar."):" — reconectando…"))
+    :("⏳ Enviando "+st.n+" "+mk+"… conexão lenta");
+}
+try{db.ref(".info/connected").on("value",function(s){
+  var v=(s&&typeof s.val==="function")?s.val():null,on=(v===true)?true:(v===false?false:null);
+  if(on===_net.on)return;
+  _net.on=on;_net.chg=Date.now();
+  if(on===false)setTimeout(_netPaint,3100);
+  _netPaint();
+});}catch(e){}
+if(typeof document!=="undefined"&&document.addEventListener){
+  document.addEventListener("visibilitychange",function(){if(document.hidden){_net.hid=Date.now();}else{_netResume("visible");_resyncGames();}});
+}
+if(typeof window!=="undefined"&&window.addEventListener){
+  window.addEventListener("online",function(){_netResume("online");_resyncGames();});
+  window.addEventListener("focus",function(){_netResume("focus");_resyncGames();});
+  window.addEventListener("pageshow",function(e){if(e&&e.persisted){_netResume("pageshow");_resyncGames();}});
+  window.addEventListener("pagehide",function(){_net.hid=Date.now();});
+  // marcacao ainda nao confirmada pelo servidor se perde se a pagina fechar (a fila do SDK e so memoria)
+  window.addEventListener("beforeunload",function(e){if(_netPendN()>0){e.preventDefault();e.returnValue="";return "";}});
+  setInterval(_netTick,5000);
+}
+
+// (3) PONTO DUPLICADO. Com 2 aparelhos e comum os dois marcarem o ponto do MESMO rally (um marca
+// "ataque ponto", o outro o "erro do adversario" ou o "+") com 2-4 s de diferenca: o placar sobe
+// 2, alguem corrige no "-" e a acao duplicada fica na estatistica. Guarda quando chegou um ponto
+// de OUTRO aparelho; por 6 s este aparelho nao soma outro ponto sem o operador confirmar.
+var _pt={gid:null,set:0,keys:null,at:0,side:null,desc:"",act:null,mine:{},ovr:0};
+function _ptMine(k){if(k)_pt.mine[k]=1;}
+function _ptDesc(gm,key){
+  _pt.act=null;
+  try{
+    var m=/^p(\d+)/.exec(String(key)),t=m?parseInt(m[1],10):0,A=gm.act||[],me=_gmDev();
+    for(var i=A.length-1;i>=0&&i>=A.length-12;i--){
+      var a=A[i];if(!a||a.dev===me)continue;
+      if(Math.abs(_gmIdMs(a.id)-t)<400){
+        _pt.act=a;
+        if(a.ak==="erroadv")return "erro do adversário";
+        var pf=(typeof pFind==="function")?pFind(a.pid,gm.id):null;
+        return ((typeof ACT!=="undefined"&&ACT[a.ak])?ACT[a.ak].l:a.ak)+((pf&&pf.nu!=null&&pf.nu!=="")?" #"+pf.nu:"")+" · "+a.oc;
+      }
+    }
+  }catch(e){}
+  return "placar +";
+}
+// Chamado a cada snapshot dos jogos e a cada render: nota ponto novo no set aberto que NAO e deste aparelho.
+function _ptWatch(){
+  try{
+    var gm=(S&&S.aid)?gF(S.aid):null,st=(gm&&gm.ss)?gm.ss[S.cs-1]:null;
+    if(!st){_pt.gid=null;_pt.keys=null;_pt.at=0;return;}
+    var ks=st.sqk||[],now={},i,fresh=-1;
+    for(i=0;i<ks.length;i++)now[ks[i]]=1;
+    if(_pt.gid===gm.id&&_pt.set===S.cs&&_pt.keys){
+      for(i=ks.length-1;i>=0;i--){if(!_pt.keys[ks[i]]&&!_pt.mine[ks[i]]){fresh=i;break;}}
+      if(fresh>=0){_pt.at=Date.now();_pt.side=st.sq[fresh];_pt.desc=_ptDesc(gm,ks[fresh]);_pt.ovr=0;}
+    }else{_pt.at=0;}
+    _pt.gid=gm.id;_pt.set=S.cs;_pt.keys=now;
+  }catch(e){}
+}
+// Chegou ponto de outro aparelho ha menos de 6 s? devolve ha quantos segundos (0 = nao).
+function _ptDup(){
+  if(!_pt.at)return 0;
+  var gm=(S&&S.aid)?gF(S.aid):null;
+  if(!gm||_pt.gid!==gm.id||_pt.set!==S.cs){_pt.at=0;return 0;}
+  var dt=Date.now()-_pt.at;
+  if(dt>6000){_pt.at=0;return 0;}
+  return Math.max(1,Math.round(dt/1000));
+}
+// "+" manual / erro do adversario: o ponto E a marcacao. 1o toque avisa, 2o toque (em ate 6 s) marca.
+function _ptAsk(){
+  var s=_ptDup();if(!s)return false;
+  if(_pt.ovr&&Date.now()-_pt.ovr<6000){_pt.ovr=0;_pt.at=0;return false;}
+  _pt.ovr=Date.now();
+  if(typeof toast==="function")toast("O outro aparelho já marcou ponto "+(_pt.side==="t"?"do adversário":"nosso")+" há "+s+" s ("+_pt.desc+"). É OUTRO ponto? Toque de novo.","error");
+  try{if(typeof showFlash==="function")showFlash("#d97706");}catch(e){}
+  return true;
+}
+
+// (4) SET ABERTO NO OUTRO APARELHO. S.cs (o set em que este aparelho marca) e local. Quando o colega
+// abre o proximo set, quem estava no ultimo set acompanha sozinho — sem isso o segundo aparelho
+// continuava no set encerrado e o "Proximo set" dele criava um set a mais (set fantasma).
+var _sctSeen={gid:null,n:0};
+function _sctFollowSets(){
+  try{
+    var gm=(S&&S.aid)?gF(S.aid):null;
+    if(!gm||!gm.ss){_sctSeen.gid=null;return;}
+    var n=gm.ss.length;
+    if(_sctSeen.gid!==gm.id){_sctSeen.gid=gm.id;_sctSeen.n=n;return;}
+    if(n>_sctSeen.n&&S.cs===_sctSeen.n&&gm.st==="live"){
+      S.cs=n;S.tm=0;S.sa=null;if(gm.courtMode)S.sp=null;
+      var m=document.getElementById("rsConfirm");
+      if(m&&m.getAttribute("data-kind")==="setclose")m.remove(); // "set encerrado — iniciar o proximo?" ficou velho
+      _setCloseShownFor=null;
+      if(typeof toast==="function")toast("Set "+n+" aberto no outro aparelho — marcando no set "+n,"ok");
+    }else if(S.cs>n){S.cs=Math.max(1,n);S.sp=null;S.sa=null;}
+    _sctSeen.n=n;
+  }catch(e){}
+}
+
+// (5) VERSAO. iPhone/iPad seguram a pagina em memoria por dias, e sem Cache-Control no servidor o
+// Safari guarda o index.html no cache HTTP: o aparelho ficava numa versao antiga sem ninguem
+// perceber — e versao antiga no mesmo jogo traz de volta os bugs de gravacao. O app le o comeco
+// do index.html do servidor (sem cache) e compara o <meta name="rs-build"> com o build em
+// execucao: fora de um jogo atualiza sozinho; dentro de um jogo mostra a faixa com o botao (e
+// volta pro mesmo jogo/set depois de recarregar). Cada aparelho carimba o build no jogo
+// (games/{idx}/devs/{aparelho}) pra avisar quando ha versoes misturadas na mesma partida.
+var _ver={at:0,busy:false,server:null,need:null,peer:null,peerOld:false,hide:null};
+function _verFetch(){
+  try{
+    if(typeof fetch!=="function"||typeof location==="undefined"||!/^https?:$/.test(location.protocol))return Promise.resolve(null);
+    return fetch("./index.html?vchk=1",{cache:"no-store",credentials:"same-origin",headers:{"Range":"bytes=0-2047"}}).then(function(r){
+      if(!r||!r.ok)return null;
+      if(r.status===206||!r.body||!r.body.getReader||typeof TextDecoder==="undefined")return r.text();
+      // o servidor ignorou o Range: le so o primeiro pedaco e cancela o resto do download
+      var rd=r.body.getReader(),dec=new TextDecoder(),acc="";
+      var step=function(){return rd.read().then(function(x){
+        if(x.value)acc+=dec.decode(x.value,{stream:true});
+        if(x.done||acc.length>=2048){try{rd.cancel();}catch(e){}return acc;}
+        return step();
+      });};
+      return step();
+    }).then(function(txt){var m=/<meta name="rs-build" content="([^"]+)"/.exec(String(txt||""));return m?m[1]:null;}).catch(function(){return null;});
+  }catch(e){return Promise.resolve(null);}
+}
+function _verCheckNow(force){
+  if(_ver.busy)return;
+  if(!force&&Date.now()-_ver.at<20000)return;
+  _ver.busy=true;_ver.at=Date.now();
+  _verFetch().then(function(id){
+    _ver.busy=false;if(!id)return;
+    _ver.server=id;
+    if(id!==APP_BUILD_ID){_ver.need=id;_verOnOutdated();}
+    else{_ver.need=null;try{sessionStorage.removeItem("rs_upd_try");}catch(e){}_verPaint();}
+  });
+}
+function _verSoon(ms){setTimeout(function(){_verCheckNow(false);},ms||0);}
+function _verTick(now){if(_ver.need)_verOnOutdated();else if(now-_ver.at>300000)_verCheckNow(false);}
+// Da pra recarregar sozinho sem atrapalhar ninguem?
+function _verSafeNow(){
+  try{
+    if(_netPendN()>0)return false;                 // ha marcacao ainda nao confirmada pelo servidor
+    if(S&&S.aid)return false;                      // dentro de um jogo: quem decide e o operador (botao da faixa)
+    if(tab==="treinos"&&selTrn)return false;       // dentro de um treino
+    var ae=document.activeElement;
+    if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))return false;                              // digitando
+    if(document.querySelector(".admin-modal,#lineupModal,#pdfOverlay,#rsConfirm,[id$='Modal']"))return false; // modal/relatorio aberto
+    return true;
+  }catch(e){return false;}
+}
+function _verOnOutdated(){
+  var tried=null;try{tried=sessionStorage.getItem("rs_upd_try");}catch(e){}
+  if(tried!==_ver.need&&_verSafeNow()){_verApply();return;}
+  _verPaint();
+}
+// Recarrega pegando a versao nova. Antes renova a entrada desta URL no cache HTTP (cache:"reload")
+// pra o reload nao devolver HTML velho mesmo sem Service Worker.
+function _verApply(){
+  try{sessionStorage.setItem("rs_upd_try",String(_ver.need||_ver.server||_ver.peer||"?"));}catch(e){}
+  _sessKeep();
+  var done=false,go=function(){if(done)return;done=true;try{location.reload();}catch(e){}};
+  try{
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration)navigator.serviceWorker.getRegistration().then(function(r){if(r&&r.update)r.update();}).catch(function(){});
+    fetch(location.href,{cache:"reload",credentials:"same-origin"}).then(go,go);
+    setTimeout(go,6000);
+  }catch(e){go();}
+}
+function _verPaint(){
+  if(typeof document==="undefined"||!document.body)return;
+  var b=document.getElementById("updBar"),h="",cls="",tried=null;
+  try{tried=sessionStorage.getItem("rs_upd_try");}catch(e){}
+  if(_ver.need){
+    cls="on";
+    h='<span>\u{1F504} Nova versão do app disponível'+(tried===_ver.need?" — se não atualizar, feche o app e abra de novo":"")+'</span><button onclick="_verApply()">Atualizar agora</button>';
+  }else if(_ver.peer){
+    cls="on";
+    h='<span>\u{1F504} O outro aparelho deste jogo está numa versão mais nova do app</span><button onclick="_verApply()">Atualizar este</button>';
+  }else if(_ver.peerOld&&_ver.hide!==(S&&S.aid)){
+    cls="on warn";
+    h='<span>⚠ Outro aparelho neste jogo está numa versão ANTIGA do app — feche e abra o app nele</span><button class="x" onclick="_ver.hide=S.aid;_verPaint()">✕</button>';
+  }
+  if(!cls){if(b)b.className="";return;}
+  if(!b){b=document.createElement("div");b.id="updBar";_barsHost().insertBefore(b,_barsHost().firstChild);}
+  if(b.getAttribute("data-h")!==h){b.innerHTML=h;b.setAttribute("data-h",h);}
+  b.className=cls;
+}
+// Versoes misturadas no jogo aberto: build carimbado pelos outros aparelhos (gm.devs) e acao recente
+// de aparelho que nao carimbou (build anterior a este mecanismo).
+function _verPeers(){
+  try{
+    var gm=(S&&S.aid)?gF(S.aid):null,me=_gmDev(),newer=null,old=false;
+    if(gm&&gm.st==="live"){
+      var dv=gm.devs||{},k;
+      for(k in dv){if(k===me)continue;var b=String(dv[k]||"");if(b>APP_BUILD_ID&&(!newer||b>newer))newer=b;}
+      var now=Date.now(),A=gm.act||[];
+      for(var i=A.length-1;i>=0&&i>=A.length-80;i--){
+        var a=A[i];if(!a||!a.dev||a.dev===me)continue;
+        if(now-_gmIdMs(a.id)>600000)break;
+        var bb=dv[a.dev];if(!bb||String(bb)<APP_BUILD_ID){old=true;break;}
+      }
+    }
+    var chg=(_ver.peer!==newer)||(_ver.peerOld!==old);
+    _ver.peer=newer;_ver.peerOld=old;
+    if(newer&&!_ver.need)_verCheckNow(false);
+    if(chg)_verPaint();
+  }catch(e){}
+}
+// Carimba o build deste aparelho no jogo (1 gravacao por aparelho por jogo), junto com a marcacao.
+function _gmStampDev(gm,up){
+  var d=_gmDev();if(!gm||!d)return;
+  if(gm.devs&&gm.devs[d]===APP_BUILD_ID)return;
+  var nd={},k;for(k in (gm.devs||{}))nd[k]=gm.devs[k]; // copia: nunca muta o objeto do snapshot
+  nd[d]=APP_BUILD_ID;gm.devs=nd;up["devs/"+d]=APP_BUILD_ID;
+}
+// Guarda onde o operador esta (jogo + set + pilha do desfazer) pra a atualizacao nao tira-lo da mesa.
+function _sessKeep(){
+  try{if(!S||!S.aid)return;sessionStorage.setItem("rs_resume",JSON.stringify({aid:S.aid,cs:S.cs,t:Date.now(),us:S.us||[]}));}catch(e){}
+}
+var _sessBack=null;
+try{(function(){
+  var raw=sessionStorage.getItem("rs_resume");if(!raw)return;
+  sessionStorage.removeItem("rs_resume");
+  var o=JSON.parse(raw);if(o&&o.aid&&Date.now()-o.t<120000)_sessBack=o;
+})();}catch(e){}
+function _sessRestore(){ // no render(), quando dados e login ja chegaram
+  if(!_sessBack)return;
+  if(!currentUser||!userProfile||!_dataLoaded.games||!_dataLoaded.teams||!_dataLoaded.athletes||!_dataLoaded.tournaments)return;
+  var sb=_sessBack;_sessBack=null;
+  try{
+    if(!isScouter||!gF(sb.aid))return;
+    if(torneioMode)openTorneioGame(sb.aid);else openGameDayCard(sb.aid);
+    var g=gF(sb.aid);
+    if(g&&g.ss&&sb.cs>=1&&sb.cs<=g.ss.length)S.cs=sb.cs;
+    if(Array.isArray(sb.us))S.us=sb.us;
+    if(typeof toast==="function")toast("App atualizado — de volta ao jogo","ok");
+  }catch(e){}
+}
+
 // === LEITURA: separada por filho (compatível com Security Rules granulares) ===
 // Cada filho tem .read próprio. Lemos paralelamente e montamos D.
 var _dataLoaded = {teams:false, games:false, tournaments:false, athletes:false, invites:false, trainings:false};
@@ -2156,39 +2569,47 @@ function clnLogo(s){ return (typeof s==="string" && _OK_LOGO.test(s)) ? s : null
 _initD();
 
 // Listener por filho — todos públicos para leitura
+// Ultimo snapshot que o servidor entregou de cada no (DataSnapshot do SDK e IMUTAVEL). E a "base"
+// do save() por diferenca: o que ESTE aparelho sabe que esta no banco. Ver _saveNode.
+var _srvSnap={teams:null,games:null,tournaments:null,athletes:null};
 db.ref("torneio-master-santos/teams").on("value", function(snap){
+  _srvSnap.teams=snap;
   var v = snap.val();
   D.teams = Array.isArray(v) ? v : (v ? Object.values(v) : []);
   D.teams.forEach(function(t){ if(t){ if(t.brandLogoData)t.brandLogoData=clnLogo(t.brandLogoData); if(t.logoData)t.logoData=clnLogo(t.logoData); } });
   _dataLoaded.teams = true;
-  if(appStarted) render();
+  renderSoon();
 });
 // games: no banco, act e ss[i].sq sao OBJETOS chaveados (ou arrays, no formato antigo);
 // _gmNormalize devolve arrays locais — ver bloco "ESCRITA GRANULAR NO JOGO (C2)" abaixo.
 db.ref("torneio-master-santos/games").on("value", function(snap){
+  _srvSnap.games=snap;
   var v = snap.val();
   D.games = (Array.isArray(v) ? v : (v ? Object.values(v) : [])).map(_gmNormalize);
   D.games.forEach(function(g){ if(g&&g.oppLogoData)g.oppLogoData=clnLogo(g.oppLogoData); });
   _dataLoaded.games = true;
-  if(appStarted) render();
+  _ptWatch(); // ponto novo vindo de OUTRO aparelho (trava de ponto duplicado)
+  renderSoon();
 });
 db.ref("torneio-master-santos/tournaments").on("value", function(snap){
+  _srvSnap.tournaments=snap;
   var v = snap.val();
   D.tournaments = Array.isArray(v) ? v : (v ? Object.values(v) : []);
   _dataLoaded.tournaments = true;
-  if(appStarted) render();
+  renderSoon();
 });
 db.ref("torneio-master-santos/athletes").on("value", function(snap){
+  _srvSnap.athletes=snap;
   var v = snap.val();
   D.athletes = Array.isArray(v) ? v : (v ? Object.values(v) : []);
   _dataLoaded.athletes = true;
-  if(appStarted) render();
+  renderSoon();
 });
 db.ref("torneio-master-santos/invites").on("value", function(snap){
   var v = snap.val();
   D.invites = v || {};
   _dataLoaded.invites = true;
-  if(appStarted) render();
+  renderSoon();
 });
 // Treinos: node novo, guardado OBJETO chaveado por id (torneio-master-santos/trainings/{id}),
 // nao array por indice — evita replicar a divida C1 dos jogos (grava no indice errado se
@@ -2220,7 +2641,7 @@ db.ref("torneio-master-santos/trainings").on("value", function(snap){
   D.trainings = v ? Object.values(v).map(_trnNormalize).filter(Boolean) : [];
   _dataLoaded.trainings = true;
   _trnReadErr=null;
-  if(appStarted) render();
+  renderSoon();
 }, function(err){
   _trnReadErr=(err&&(err.code||err.message))||"erro";
   console.warn("[treinos] leitura negada:",_trnReadErr);
@@ -2231,25 +2652,23 @@ db.ref("torneio-master-santos/trainings").on("value", function(snap){
 // Navegadores mobile (Safari iOS em especial) SUSPENDEM a aba em background e param o
 // listener do RTDB. Cenario real: um 2o aparelho abre o jogo (0x0, sem escalar), fica em
 // background enquanto OUTRO aparelho escala e marca; ao voltar, a aba mostrava DADOS VELHOS
-// (0x0 / tela "posicionar o time") de um jogo que ja avancou. Forcamos re-leitura dos jogos
-// + re-render sempre que a aba volta ao foco / a rede reconecta.
+// (0x0 / tela "posicionar o time") de um jogo que ja avancou.
+// ATENCAO (medido no SDK 9.22, build 2026-11-14a): este once("value") NAO vai ao servidor — com
+// o listener ativo ele responde do cache local. Quem traz o estado novo e a RECONEXAO forcada do
+// _netResume (bloco "DOIS APARELHOS", acima), disparada pelos mesmos eventos (aba visivel, foco,
+// rede de volta). Esta funcao fica como re-leitura + redesenho (e o que os testes exercitam).
 function _resyncGames(){
   try{
     if(typeof db==="undefined"||!db||!_dataLoaded.games)return;
     db.ref("torneio-master-santos/games").once("value").then(function(snap){
+      _srvSnap.games=snap;
       var v=snap.val();
       D.games = (Array.isArray(v) ? v : (v ? Object.values(v) : [])).map(_gmNormalize);
       D.games.forEach(function(g){ if(g&&g.oppLogoData)g.oppLogoData=clnLogo(g.oppLogoData); });
-      if(appStarted) render();
-    }).catch(function(){ if(appStarted) render(); });
+      _ptWatch();
+      renderSoon();
+    }).catch(function(){ renderSoon(); });
   }catch(e){}
-}
-if(typeof document!=="undefined" && document.addEventListener){
-  document.addEventListener("visibilitychange", function(){ if(!document.hidden) _resyncGames(); });
-}
-if(typeof window!=="undefined" && window.addEventListener){
-  window.addEventListener("online", _resyncGames);
-  window.addEventListener("focus", _resyncGames);
 }
 
 // Render inicial imediato (antes do Firebase responder, com estado vazio)
@@ -2271,12 +2690,101 @@ function save(){
   if(D.games && !Array.isArray(D.games)){console.error("[save] D.games nao e array");return false;}
   if(D.teams && !Array.isArray(D.teams)){console.error("[save] D.teams nao e array");return false;}
   if(D.athletes && !Array.isArray(D.athletes)){console.error("[save] D.athletes nao e array");return false;}
-  // Escrever cada filho. .catch silencia (permissão negada por rule é OK pra papéis sem acesso).
-  if(D.teams) db.ref("torneio-master-santos/teams").set(D.teams).catch(function(e){console.warn("save teams:",e.code||e.message);});
-  if(D.games) db.ref("torneio-master-santos/games").set(D.games.map(_gmSerialize)).catch(function(e){console.warn("save games:",e.code||e.message);});
-  if(D.tournaments) db.ref("torneio-master-santos/tournaments").set(D.tournaments).catch(function(e){console.warn("save tournaments:",e.code||e.message);});
-  if(D.athletes) db.ref("torneio-master-santos/athletes").set(D.athletes).catch(function(e){console.warn("save athletes:",e.code||e.message);});
+  // Grava cada filho POR DIFERENCA (so o que este aparelho mudou — ver _saveNode). .catch silencia
+  // (permissão negada por rule é OK pra papéis sem acesso).
+  var w=function(nm,fn){
+    var pr;
+    try{pr=fn();}
+    catch(e){ // comparacao falhou (dado em formato inesperado): cai no comportamento antigo, grava o no inteiro
+      console.error("[save] diferenca falhou em "+nm+", gravando o no inteiro:",e);
+      pr=db.ref("torneio-master-santos/"+nm).set(_jc(nm==="games"?D.games.map(_gmSerialize):D[nm]));
+    }
+    if(pr&&typeof pr.then==="function")_netTrack(pr).catch(function(e){console.warn("save "+nm+":",e&&(e.code||e.message));});
+  };
+  if(D.teams) w("teams",function(){return _saveNode("teams",D.teams,"id");});
+  if(D.games) w("games",function(){return _saveNode("games",D.games,"id",_gmSerialize,_gmNormalize,_gmAtom,_gmDiffPre);});
+  if(D.tournaments) w("tournaments",function(){return _saveNode("tournaments",D.tournaments,"id");});
+  if(D.athletes) w("athletes",function(){return _saveNode("athletes",D.athletes,"aid");});
   return true;
+}
+// ===== save() POR DIFERENCA (build 2026-11-14a) =====
+// Antes: set() dos 4 nos INTEIROS a partir da copia local. Qualquer tela que chama save() (escalar,
+// editar atleta/jogo, abrir card sem escalacao... ~40 pontos) regravava TODOS os jogos: um aparelho
+// com dado velho apagava o que o outro tinha marcado, e cada save subia ~2,5 MB pela rede do celular.
+// Agora compara o estado local com o ultimo snapshot recebido do servidor (_srvSnap) e grava so os
+// caminhos que ESTE aparelho mudou, num update() multi-caminho por no. O que o outro aparelho gravou
+// e este ainda nem viu nao e tocado; no sem mudanca nao e gravado.
+function _jc(v){return (v===undefined||v===null)?null:JSON.parse(JSON.stringify(v));}
+// vazio no sentido do Firebase: null, {} , [] ou so nulos dentro (o banco nao guarda no vazio)
+function _emptyV(v){
+  if(v===null||v===undefined)return true;
+  if(typeof v!=="object")return false;
+  for(var k in v){if(Object.prototype.hasOwnProperty.call(v,k)&&!_emptyV(v[k]))return false;}
+  return true;
+}
+function _deq(a,b){
+  var ea=_emptyV(a),eb=_emptyV(b);
+  if(ea||eb)return ea&&eb;
+  if(typeof a!=="object"||typeof b!=="object")return a===b;
+  var k,H=Object.prototype.hasOwnProperty;
+  for(k in a){if(H.call(a,k)&&!_deq(a[k],b[k]))return false;}
+  for(k in b){if(H.call(b,k)&&!H.call(a,k)&&!_emptyV(b[k]))return false;}
+  return true;
+}
+// Caminhos que mudaram de `a` (base = servidor) pra `b` (local). VETOR e gravado INTEIRO (indice e
+// posicao: "meio vetor" de 2 aparelhos embaralha escalacao/roster), menos onde atom(path)===false.
+// atom(path)===true marca no que so faz sentido inteiro (uma acao, a base da quadra de um set).
+function _diffInto(out,path,a,b,atom){
+  if(_deq(a,b))return;
+  var ao=(a!==null&&a!==undefined&&typeof a==="object"),bo=(b!==null&&b!==undefined&&typeof b==="object");
+  var whole=!ao||!bo;
+  if(!whole){var k0=atom?atom(path):undefined;whole=(k0===true)||(k0!==false&&(Array.isArray(a)||Array.isArray(b)));}
+  if(whole){out[path]=_emptyV(b)?null:b;return;}
+  var k,seen={},H=Object.prototype.hasOwnProperty;
+  for(k in a){if(H.call(a,k)){seen[k]=1;_diffInto(out,path+"/"+k,a[k],b[k],atom);}}
+  for(k in b){if(H.call(b,k)&&!seen[k])_diffInto(out,path+"/"+k,undefined,b[k],atom);}
+}
+// jogo: acao (act/{aid}), base da quadra (court/{set}) e entrada do historico vao inteiras; ss (sets)
+// e vetor mas o indice e o numero do set — desce campo a campo (u, t, sq/{k}, srv0...).
+var _GM_ATOM=/^\d+\/(act\/[^\/]+|court\/[^\/]+|courtHist\/[^\/]+\/[^\/]+)$/, _GM_DEEP=/^\d+\/ss(\/\d+)?$/;
+function _gmAtom(path){return _GM_ATOM.test(path)?true:(_GM_DEEP.test(path)?false:undefined);}
+// ss "padrao" (1 set 0-0) criado so na MEMORIA ao abrir o card nao e mudanca: se o servidor (base)
+// nao tem ss, nao grava — senao um aparelho com dado velho zerava o placar de um jogo ja iniciado.
+function _gmBlankSS(ss){
+  if(!Array.isArray(ss)||ss.length!==1||!ss[0]||typeof ss[0]!=="object")return false;
+  var s=ss[0];if(s.u||s.t||!_emptyV(s.sq))return false;
+  for(var k in s){if(k!=="u"&&k!=="t"&&k!=="sq"&&k!=="sqk"&&k!=="_sqN")return false;}
+  return true;
+}
+function _gmDiffPre(a,b){
+  if(a&&b&&_emptyV(a.ss)&&_gmBlankSS(b.ss)){var c={};for(var k in b){if(k!=="ss")c[k]=b[k];}return c;}
+  return b;
+}
+// Grava UM no (teams/games/tournaments/athletes) por diferenca. Devolve a promise do update(), ou null
+// se nada mudou. idKey = campo de identidade do filho (id/aid): se o registro daquele indice e OUTRO
+// (lista deslocou, registro novo ou removido), grava o filho inteiro — ai o vetor local manda.
+function _saveNode(name,arr,idKey,ser,norm,atom,pre){
+  var ref=db.ref("torneio-master-santos/"+name);
+  var S0=function(x){return x?(ser?ser(x):x):null;};
+  var want=(arr||[]).map(S0);
+  var snap=_srvSnap[name];
+  if(!snap||typeof snap.val!=="function")return ref.set(_jc(want)); // sem base (nao deveria: _dataLoaded garante): no inteiro, como antes
+  var raw=snap.val();
+  if(raw&&!Array.isArray(raw))return ref.set(_jc(want)); // no com buracos (posicao != chave): regrava inteiro, como antes
+  var bl=raw||[];
+  var up={},n=Math.max(bl.length,want.length),i;
+  for(i=0;i<n;i++){
+    var rb=(i<bl.length)?bl[i]:null,nb=(rb&&norm)?norm(rb):rb;
+    var a=S0(nb),b=(i<want.length)?want[i]:null;
+    if(nb&&nb._legacy){up[String(i)]=b||null;continue;} // jogo no formato antigo: vai inteiro (converte), como o saveGame
+    if(pre&&b)b=pre(a,b);
+    if(_deq(a,b))continue;
+    if(_emptyV(a)||_emptyV(b)||a[idKey]!==b[idKey]){up[String(i)]=_emptyV(b)?null:b;continue;}
+    _diffInto(up,String(i),a,b,atom);
+  }
+  var ks=Object.keys(up);if(!ks.length)return null;
+  for(i=0;i<ks.length;i++){var v=up[ks[i]];if(v&&typeof v==="object")up[ks[i]]=_jc(v);}
+  return ref.update(up);
 }
 // Salvar UM jogo INTEIRO (games/{idx}). So pra criar jogo / edicao estrutural — no scout ao
 // vivo usar _gmUpdate (granular), senao 2 aparelhos no mesmo jogo se sobrescrevem (C2).
@@ -2331,6 +2839,8 @@ function _gmNormalize(raw){
     ks.sort(function(x,y){var dx=ms[x],dy=ms[y];return dx!==dy?dx-dy:(x<y?-1:x>y?1:0);});
     g.act=ks.map(function(key){var a=src[key];if(!a||typeof a!=="object")return null;var c={};for(var q in a)c[q]=a[q];if(!c.id)c.id=key;return c;}).filter(Boolean);
   }
+  // ss veio como OBJETO de chaves numericas (o banco devolve assim quando o vetor fica esparso): vira vetor
+  if(g.ss&&typeof g.ss==="object"&&!Array.isArray(g.ss)){var _sa=[],_sk;for(_sk in g.ss){if(/^\d+$/.test(_sk))_sa[parseInt(_sk,10)]=g.ss[_sk];}g.ss=_sa;}
   if(Array.isArray(g.ss)){
     g.ss=g.ss.map(function(st){
       if(!st||typeof st!=="object")return st;
@@ -2452,10 +2962,15 @@ function _gmMerge(fix,up){
 function _inc(n){try{return firebase.database.ServerValue.increment(n);}catch(e){return {".sv":{"increment":n}};}}
 // Erro de gravacao: silencia so permissao/login (papel sem acesso) — falha de rede o usuario TEM que ver.
 function _gmSaveErr(e){
-  var msg=String((e&&(e.code||e.message))||"");
-  if(msg.indexOf("permission")<0 && msg.indexOf("login")<0 && typeof toast==="function"){
-    toast("\u26A0 Falha ao salvar \u2014 verifique a conex\u00e3o e tente de novo","error");
+  var msg=String((e&&(e.code||e.message))||"").toLowerCase();
+  if(typeof toast!=="function")return;
+  if(msg.indexOf("login")>=0)return; // sem login: o gate ja cuida
+  if(msg.indexOf("permission")>=0){
+    // usuario LOGADO com gravacao recusada = marcacao perdida (login vencido?): o operador TEM que ver
+    if(currentUser)toast("⚠ Marcação recusada pelo servidor — saia e entre de novo no app","error");
+    return;
   }
+  toast("⚠ Falha ao salvar — verifique a conexão e tente de novo","error");
 }
 // Escrita GRANULAR do jogo: update() multi-caminho so com o que mudou (+ conversao legada na
 // 1a vez). E o caminho quente do scout (rcO/scUp/scDn/undo/erroadv/sets/quadra/finalizar).
@@ -2471,7 +2986,20 @@ function _gmUpdate(gm,up){
   var ref=_gmRef(gm);
   if(!ref)return Promise.reject(new Error("Jogo nao existe no estado local")).catch(_gmSaveErr);
   // o SDK LANCA (sincrono) em erro de validacao — nao pode derrubar o rcO no meio da marcacao
-  try{return ref.update(merged).catch(_gmSaveErr);}catch(e){_gmSaveErr(e);return Promise.resolve();}
+  try{
+    return _netTrack(ref.update(merged)).catch(function(e){
+      // "permission denied" com usuario logado = o token do login venceu (aparelho voltou do 2o plano):
+      // renova o token e tenta UMA vez. O update() e atomico — se foi recusado, nada foi gravado.
+      var msg=String((e&&(e.code||e.message))||"").toLowerCase();
+      if(msg.indexOf("permission")>=0&&currentUser&&typeof currentUser.getIdToken==="function"){
+        return currentUser.getIdToken(true).then(function(){
+          var r2=_gmRef(gF(gm.id)||gm)||ref;
+          return _netTrack(r2.update(merged));
+        }).catch(_gmSaveErr);
+      }
+      _gmSaveErr(e);
+    });
+  }catch(e){_gmSaveErr(e);return Promise.resolve();}
 }
 // Grava a BASE da quadra de UM set (court/{set}) — escalar, rodar manual, libero, substituicao.
 // O estado local (derivado) ja tem `after` = ultimo ponto conhecido, entao vira a base nova.
@@ -2482,6 +3010,29 @@ function _gmUpdateCourt(gm,setKey,cs,kind,extra,moreUp){var up={};up["court/"+se
     if(!gm.courtHist||typeof gm.courtHist!=="object")gm.courtHist={};var sk=String(setKey);if(!gm.courtHist[sk])gm.courtHist[sk]={};gm.courtHist[sk][hk]=he;up["courtHist/"+sk+"/"+hk]=he;}
   if(moreUp)for(var m in moreUp)up[m]=moreUp[m];
   return _gmUpdate(gm,up);}
+// Escalacao AUTOMATICA ao abrir o card de um jogo sem lineup: grava so a lineup DESTE jogo e so se o servidor
+// ainda nao tiver uma (transacao). Antes era save(): regravava todos os jogos a partir da copia local.
+function _lineupInit(g,lu){
+  if(!g||!lu||!lu.length)return;
+  var val=JSON.parse(JSON.stringify(lu));
+  if(!currentUser){g.lineup=val;return;} // sem login: so na tela (o save() antigo tambem nao gravava)
+  try{
+    var ref=_gmRef(g,"lineup");
+    if(ref&&typeof ref.transaction==="function"){
+      // A transacao aplica o valor no cache local do SDK (o listener ja devolve o jogo com a lineup) e so
+      // confirma no servidor se la ainda nao houver escalacao. NAO mexe em g.lineup aqui: se o servidor ja
+      // tem uma (este aparelho estava com estado velho), fica valendo a do servidor — e um save() deste
+      // aparelho nao regrava a automatica por cima da que o colega ajustou.
+      var pr=ref.transaction(function(cur){
+        var has=cur&&(Array.isArray(cur)?cur.length:Object.keys(cur).length);
+        return has?undefined:val; // undefined = aborta: ja existe escalacao no servidor
+      });
+      if(pr&&typeof pr.then==="function")_netTrack(pr).catch(function(){});
+      return;
+    }
+  }catch(e){}
+  g.lineup=val;_gmUpdate(g,{lineup:val});
+}
 // Identidade do APARELHO (a mesma do treino): carimba a acao (a.dev) pra saber de qual tablet
 // veio. O "desfazer" do jogo ja e por aparelho (pilha S.us e local) — so tira o que ESTE gravou.
 function _gmDev(){return _trnDev();}
@@ -2509,8 +3060,8 @@ function _trnKeyedFix(tr){
   return _trnRef(tr.id).update({athletes:_trnKeyBy(tr.athletes,"taid","ta_"),marks:_trnKeyBy(tr.marks,"id","m_")});
 }
 function _trnErr(e){toast("Erro ao salvar: "+(e&&(e.code||e.message)||e),"error");}
-function _trnWriteMark(tr,m){return _trnKeyedFix(tr).then(function(){return _trnRef(tr.id,"marks/"+m.id).set(m);}).catch(_trnErr);}
-function _trnRemoveMark(tr,mid){return _trnKeyedFix(tr).then(function(){return _trnRef(tr.id,"marks/"+mid).remove();}).catch(_trnErr);}
+function _trnWriteMark(tr,m){return _trnKeyedFix(tr).then(function(){return _netTrack(_trnRef(tr.id,"marks/"+m.id).set(m));}).catch(_trnErr);}
+function _trnRemoveMark(tr,mid){return _trnKeyedFix(tr).then(function(){return _netTrack(_trnRef(tr.id,"marks/"+mid).remove());}).catch(_trnErr);}
 function _trnWriteAthlete(tr,a){return _trnKeyedFix(tr).then(function(){return _trnRef(tr.id,"athletes/"+a.taid).set(a);}).catch(_trnErr);}
 function _trnRemoveAthlete(tr,taid,markIds){return _trnKeyedFix(tr).then(function(){var up={};up["athletes/"+taid]=null;(markIds||[]).forEach(function(id){up["marks/"+id]=null;});return _trnRef(tr.id).update(up);}).catch(_trnErr);}
 function _trnUpdateMeta(tr,fields){return _trnRef(tr.id).update(fields).catch(_trnErr);}
@@ -3607,10 +4158,7 @@ function openTorneioGame(gid){
         __roster=window[__acc.rosterVar];
       }
       var built=buildUsaLineup(__roster);
-      if(built && built.length){
-        g.lineup=built;
-        save();
-      }
+      if(built && built.length) _lineupInit(g,built);
     }
     S={aid:gid,sp:null,sa:null,cs:g.ss.length,us:[],tm:0,rn:false,ti:null};
   }
@@ -3643,7 +4191,7 @@ function openGameDayCard(gid){
     // Escala a EQUIPE do jogo (g.tid) — nunca mais o USA_ROSTER hardcoded.
     // Sem roster, fica vazio e o scout pede "Escalar antes de iniciar".
     var _lu=(typeof lineupFromTeam==='function')?lineupFromTeam(g.tid):[];
-    if(_lu.length){ g.lineup=_lu; if(typeof save==='function') save(); }
+    if(_lu.length) _lineupInit(g,_lu);
   }
   S={aid:gid,sp:null,sa:null,cs:g.ss.length,us:[],tm:0,rn:false,ti:null};
   tab='scout';
@@ -4514,6 +5062,8 @@ function renderTelao(){
   return h+'</div>';
 }
 function render(){if(!D)return;var a=document.getElementById("mainApp");
+// 2 aparelhos: acompanha set aberto pelo colega, nota ponto vindo de fora, volta ao jogo apos atualizar, versoes misturadas
+_sctFollowSets();_ptWatch();_sessRestore();_verPeers();_errPanelPaint(false);
 // Fase A1: marca shell mode no <body>. So o shell recebe a marca d'agua
 // global e as tabs escuras. USA/signup/landing tem cosmetica propria.
 // A landing so aparece quando (showLanding && !currentUser) — ver render() abaixo. Em sessao
@@ -5370,7 +5920,7 @@ h+='<div class="sc-pts">'+cur.u+'</div>';
 if(!locked)h+='<div class="sc-scorebtns"><button class="sc-sb sc-sb-minus" onclick="scDn(\'u\')">\u2212</button><button class="sc-sb sc-sb-plus" onclick="scUp(\'u\')">+</button></div>';
 h+='</div>';
 // X
-h+='<div class="sc-vs">\u00d7</div>';
+h+='<div class="sc-vs">\u00d7'+(gm.st==="live"?'<div class="sc-net">'+_netChip()+'</div>':'')+_errPillHTML(gm)+'</div>'; // + selo de conexao (2 aparelhos) + erros do set
 // lado adversario
 h+='<div class="sc-side">';
 var advLogoHtml='';
@@ -5401,6 +5951,8 @@ if(gm.ss&&gm.ss.length>1){
 // saque inicial do set (quem sacou primeiro) — marcacao explicita; a analise por rotacao depende disso
 if(gm.st==="live"&&!locked&&!gm.tidB&&gm.ss&&gm.ss[S.cs-1]){var _s0v=(cur.srv0==="u"||cur.srv0==="t")?cur.srv0:null;
   h+='<div class="sc-srv0"><span>Saque inicial \u00b7 set '+S.cs+'</span><button class="'+(_s0v==="u"?'on':'')+'" onclick="setSrv0(\'u\')">'+esc(nmRS||"RS")+'</button><button class="'+(_s0v==="t"?'on':'')+'" onclick="setSrv0(\'t\')">'+esc(nmAdv)+'</button>'+(_s0v?'':'<i>quem sacou primeiro?</i>')+'</div>';}
+// erros ao vivo (quadro rapido: erros por fundamento no set e no jogo)
+h+=_errStripHTML(gm);
 // controles de jogo. No modo quadra com jogo rolando, NAO renderiza aqui \u2014
 // vao pro menu "\u22EF Mais" da linha de controles da quadra (courtRenderPanel).
 var _skipArenaCtrls = gm.courtMode && gm.st!=="pending" && !locked;
@@ -6869,7 +7421,18 @@ if(!confirm("Remover jogos teste?"))return;
 if(!D.games)return;
 D.games=D.games.filter(function(g){return g.id.indexOf("gtest")!==0;});
 save();alert("Jogos teste removidos!");}
-function openG(id){var g=gF(id);if(!g)return;if(g.st==="pending"){g.act=[];g.ss=[{u:0,t:0}];_gmUpdate(g,{act:null,ss:g.ss});}if(!g.ss||!g.ss.length)g.ss=[{u:0,t:0}];if(!g.act)g.act=[];S={aid:id,sp:null,sa:null,cs:g.ss.length,us:[],tm:0,rn:false,ti:null};render();}
+// Jogo PENDENTE aberto pela lista comeca limpo. Apaga SO o que este aparelho conhece (acao por acao) e so se
+// houver o que apagar: com estado velho (o outro aparelho ja iniciou e marcou) este aparelho nao conhece acao
+// nenhuma, entao nada do colega e tocado. Antes gravava act:null + ss inteiro = apagava o jogo do outro.
+function openG(id){var g=gF(id);if(!g)return;
+  if(g.st==="pending"){
+    var _up={},_dirty=false,_A=g.act||[];
+    for(var _i=0;_i<_A.length;_i++){if(_A[_i]&&_A[_i].id){_up["act/"+_A[_i].id]=null;_dirty=true;}}
+    if(g.ss&&g.ss.length&&!_gmBlankSS(g.ss)){_up.ss=[{u:0,t:0}];_dirty=true;}
+    g.act=[];g.ss=[{u:0,t:0}];
+    if(_dirty)_gmUpdate(g,_up);
+  }
+  if(!g.ss||!g.ss.length)g.ss=[{u:0,t:0}];if(!g.act)g.act=[];S={aid:id,sp:null,sa:null,cs:g.ss.length,us:[],tm:0,rn:false,ti:null};render();}
 
 // Modal de escalação do jogo
 function openLineup(gameId){
@@ -7058,11 +7621,10 @@ function repeatLineupToOthers(gameId){
       for(var i=0;i<ids.length;i++){
         var o=gF(ids[i]); if(!o)continue; // referencia ATUAL em D.games
         o.lineup=JSON.parse(JSON.stringify(lu)); n++;
-        if(typeof saveGame==="function")proms.push(saveGame(o).catch(function(){}));
+        proms.push(_gmUpdate(o,{lineup:o.lineup})); // so a lineup: nao regrava o jogo inteiro
       }
       // fixa e grava tambem o jogo modelo (o que esta na tela)
-      var mg=gF(gameId); if(mg){ mg.lineup=JSON.parse(JSON.stringify(lu)); if(typeof saveGame==="function")proms.push(saveGame(mg).catch(function(){})); }
-      if(typeof saveGame!=="function")save(); // fallback (nao deveria cair aqui)
+      var mg=gF(gameId); if(mg){ mg.lineup=JSON.parse(JSON.stringify(lu)); proms.push(_gmUpdate(mg,{lineup:mg.lineup})); }
       closeLineup();
       toast("Escala\u00e7\u00e3o repetida em "+n+" jogo"+(n!==1?"s":""),"ok");
       if(typeof render==="function")render();
@@ -7125,7 +7687,11 @@ function closeLineup(){var m=document.getElementById("lineupModal");if(m)m.remov
 // render() no meio (rSctTablet liga courtMode) repor o estado do banco antes de gravar o st.
 // Grava ss SEMPRE: o ss pode ser um default so local (openGameDayCard/openTorneioGame criam
 // [{u:0,t:0}] na memoria sem salvar) e o listener descarta o que nao foi gravado.
-function startG(){var gm=gF(S.aid);if(!gm)return;if(!gm.ss||!gm.ss.length)gm.ss=[{u:0,t:0}];if(!gm.act)gm.act=[];gm.st="live";_gmUpdate(gm,{st:"live",ss:_gmSerialize({ss:gm.ss}).ss});render();}
+// 2 APARELHOS (build 2026-11-14a): NAO regrava o ss. increment(0) cria o contador se faltar e nao mexe no que
+// ja esta la — antes o segundo "Iniciar" (ou um aparelho com estado velho) zerava o placar/sequencia do colega.
+function startG(){var gm=gF(S.aid);if(!gm)return;if(!gm.ss||!gm.ss.length)gm.ss=[{u:0,t:0}];if(!gm.act)gm.act=[];gm.st="live";
+  var up={st:"live"};for(var i=0;i<gm.ss.length;i++){up["ss/"+i+"/u"]=_inc(0);up["ss/"+i+"/t"]=_inc(0);}
+  _gmUpdate(gm,up);render();}
 function resetG(){
   var gm=gF(S.aid);if(!gm)return;
   confirmModal({
@@ -7267,7 +7833,7 @@ function doReassign(gid){
   render();
 }
 function slA(ak){var gm=gF(S.aid);if(gm&&gm.st!=="live")return;S.sa=ak;render();}
-function tgTm(){if(S.rn){clearInterval(S.ti);S.rn=false;}else{S.ti=setInterval(function(){S.tm++;render();},1000);S.rn=true;}render();}
+function tgTm(){if(S.rn){clearInterval(S.ti);S.rn=false;}else{S.ti=setInterval(function(){S.tm++;renderSoon();},1000);S.rn=true;}render();}
 // Ponto automatico parcial: Ace/Ataque-Ponto/Bloqueio-Ponto => RS marca ponto;
 // Saque/Ataque/Bloqueio com Erro => adversario marca ponto. Outros => nada.
 function autoScoreSide(ak,oc){
@@ -7704,8 +8270,21 @@ if(gm.tidB) a.side=(S.side==="B")?"B":"A"; // minis 2 lados: de qual equipe foi 
 // Ponto automatico — registra qual lado subiu, pra o undo reverter junto
 var scSide=autoScoreSide(S.sa,oc);
 if(gm.tidB && a.side==="B" && scSide) scSide=(scSide==="u")?"t":"u"; // lado B: ss.u=casa, ss.t=B
+// PONTO DUPLICADO (2 aparelhos): outro aparelho acabou de pontuar este rally (ha <6 s)?
+var _dupS=scSide?_ptDup():0;
+if(_dupS){
+  var _ra=_pt.act;
+  if(_ra&&_ra.pid===a.pid&&_ra.ak===a.ak&&_ra.oc===a.oc){
+    // a MESMA acao ja chegou do outro aparelho: nao grava de novo (nem ponto, nem estatistica)
+    S.sa=null;
+    if(typeof toast==="function")toast("Já marcado no outro aparelho há "+_dupS+" s ("+_pt.desc+") — não gravei de novo","error");
+    showFlash("#d97706");render();return;
+  }
+  scSide=null; // acao diferente pro mesmo rally: grava a estatistica, NAO soma o ponto de novo
+  _pt.ovr=Date.now(); // o aviso manda usar o "+" se for outro ponto: o proximo "+" entra direto
+}
 // C2: escrita GRANULAR — so act/{aid}, o contador do set (increment) e a entrada nova do sq
-var up={},sqk=null;up["act/"+a.id]=a;
+var up={},sqk=null;up["act/"+a.id]=a;_gmStampDev(gm,up);
 // quem sacou primeiro no set (ss[i].srv0): se a mesa nao marcou e esta e a 1a acao do set (0-0, sem acoes),
 // saque = nos sacamos, recepcao = eles sacaram. O chip da mesa continua podendo corrigir.
 if(!gm.tidB&&gm.ss&&gm.ss[S.cs-1]){var _s0=gm.ss[S.cs-1];if(_s0.srv0!=="u"&&_s0.srv0!=="t"&&(a.ak==="saque"||a.ak==="recepcao")&&!(_s0.sq&&_s0.sq.length)&&!(gm.act||[]).some(function(x){return x&&x.set===S.cs;})){_s0.srv0=(a.ak==="saque")?"u":"t";up["ss/"+(S.cs-1)+"/srv0"]=_s0.srv0;}}
@@ -7717,7 +8296,8 @@ courtApplyPreserve(); // Frente C: pre-seleciona sacador+saque se rotacionou
 if(navigator.vibrate)navigator.vibrate(40);
 var isGood=(oc==="Ace"||oc==="Ponto"||oc==="A");var isBad=(oc==="Erro");
 try{var actx=new(window.AudioContext||window.webkitAudioContext)();var osc=actx.createOscillator();var gain=actx.createGain();osc.connect(gain);gain.connect(actx.destination);osc.frequency.value=isGood?880:isBad?330:660;gain.gain.value=0.08;osc.start();osc.stop(actx.currentTime+0.08);}catch(e){}
-showFlash(isGood?"#059669":isBad?"#dc2626":"#2563eb");
+showFlash(_dupS?"#d97706":isGood?"#059669":isBad?"#dc2626":"#2563eb");
+if(_dupS&&typeof toast==="function")toast("O outro aparelho já marcou ponto "+(_pt.side==="t"?"do adversário":"nosso")+" há "+_dupS+" s ("+_pt.desc+") — ação gravada SEM somar ponto. É outro ponto? Toque no +","error");
 _gmUpdate(gm,up);render();}
 // showFlash: efeito visual de flash de cor (definicao estava faltando — causava travamento de scUp e rcO)
 function showFlash(color){
@@ -7734,6 +8314,88 @@ function showFlash(color){
     setTimeout(function(){if(f)f.style.opacity="0";},140);
   }catch(e){}
 }
+// ===== ERROS AO VIVO — resumo rapido na mesa (build 2026-11-14a) =====
+// Pedido do Rodrigo: ver num relance, com a partida em andamento, quantos saques errados, quantos
+// erros de ataque etc. Quadro fixo na tela de marcacao (classica e tablet): erros por fundamento no
+// SET em que a mesa esta e no JOGO todo, o total e os pontos que vieram de erro do adversario.
+// Tocar abre o detalhe por atleta. "Erro" = resultado Erro do fundamento; ataque BLOQUEADO vai
+// separado (e ponto perdido, mas nao e erro de ataque). Funcao pura: errStats(gm,set).
+var ERR_F=["saque","ataque","recepcao","bloqueio","levantamento","defesa"];
+var ERR_L={saque:"SAQ",ataque:"ATQ",recepcao:"REC",bloqueio:"BLQ",levantamento:"LEV",defesa:"DEF"};
+function errStats(gm,setN){
+  var mk=function(){var o={byF:{},total:0,bloq:0,adv:0};for(var i=0;i<ERR_F.length;i++)o.byF[ERR_F[i]]=0;return o;};
+  var out={set:mk(),game:mk(),players:{}},A=(gm&&gm.act)||[];
+  for(var i=0;i<A.length;i++){
+    var a=A[i];if(!a)continue;
+    var inSet=((a.set||1)===setN);
+    if(a.ak==="erroadv"){out.game.adv++;if(inSet)out.set.adv++;continue;}
+    var blq=(a.ak==="ataque"&&a.oc==="Bloq"),err=(a.oc==="Erro"&&(a.ak in out.game.byF));
+    if(!blq&&!err)continue;
+    var pl=(a.pid!=null)?(out.players[a.pid]||(out.players[a.pid]={pid:a.pid,set:mk(),game:mk()})):null;
+    if(blq){out.game.bloq++;if(pl)pl.game.bloq++;if(inSet){out.set.bloq++;if(pl)pl.set.bloq++;}continue;}
+    out.game.byF[a.ak]++;out.game.total++;
+    if(pl){pl.game.byF[a.ak]++;pl.game.total++;}
+    if(inSet){out.set.byF[a.ak]++;out.set.total++;if(pl){pl.set.byF[a.ak]++;pl.set.total++;}}
+  }
+  return out;
+}
+// Quadro compacto (3 linhas x 9 colunas) — entra no render da mesa classica e do tablet.
+function _errStripHTML(gm){
+  if(!gm||gm.tidB||gm.st==="pending")return "";
+  var st=errStats(gm,S.cs),i;
+  var h='<div class="sc-errs" onclick="openErrPanel()"><table><tr><th class="l">Erros</th>';
+  for(i=0;i<ERR_F.length;i++)h+='<th>'+ERR_L[ERR_F[i]]+'</th>';
+  h+='<th class="t">TOT</th><th class="a">ADV</th></tr>';
+  var row=function(lbl,o,cls){
+    var r='<tr class="'+cls+'"><td class="l">'+lbl+'</td>';
+    for(var k=0;k<ERR_F.length;k++){var v=o.byF[ERR_F[k]];r+='<td class="'+(v?"e":"z")+'">'+v+'</td>';}
+    return r+'<td class="t">'+o.total+'</td><td class="a">'+o.adv+'</td></tr>';
+  };
+  h+=row("set "+S.cs,st.set,"s")+row("jogo",st.game,"g")+'</table>';
+  h+='<div class="ft">ADV = pontos em erro do adversário'+(st.game.bloq?(' · ataques bloqueados: '+st.set.bloq+' no set, '+st.game.bloq+' no jogo'):'')+' · toque: por atleta</div></div>';
+  return h;
+}
+// Atalho no centro do placar: total de erros do set (toque abre o detalhe). No modo quadra o placar e fixo.
+function _errPillHTML(gm){
+  if(!gm||gm.tidB||gm.st!=="live")return "";
+  var n=errStats(gm,S.cs).set.total;
+  return '<div class="sc-errpill'+(n?"":" z")+'" onclick="openErrPanel()" title="Erros do set — toque pra ver por fundamento e atleta">'+n+' erro'+(n===1?"":"s")+'</div>';
+}
+// Detalhe por atleta (quem errou o que). Fica aberto e se atualiza a cada marcacao (render chama _errPanelPaint).
+var _errScope="set";
+function openErrPanel(sc){if(sc)_errScope=sc;_errPanelPaint(true);}
+function closeErrPanel(){var d=document.getElementById("errPanel");if(d)d.remove();}
+function _errPanelPaint(force){
+  var d=document.getElementById("errPanel");
+  if(!d&&!force)return;
+  var gm=(S&&S.aid)?gF(S.aid):null;
+  if(!gm){closeErrPanel();return;}
+  var st=errStats(gm,S.cs),sc=(_errScope==="game")?"game":"set",T=st[sc],rows=[],k,i;
+  var nmOf=function(pid){var pf=(typeof pFind==="function")?pFind(pid,gm.id):null;return pf?(((pf.nu!=null&&pf.nu!=="")?"#"+pf.nu+" ":"")+String(pf.nm||"").split(" ")[0]):"?";};
+  for(k in st.players){if(st.players[k][sc].total>0||st.players[k][sc].bloq>0){st.players[k].nm=nmOf(st.players[k].pid);rows.push(st.players[k]);}}
+  rows.sort(function(a,b){return (b[sc].total-a[sc].total)||(b.game.total-a.game.total)||(b[sc].bloq-a[sc].bloq)||String(a.nm).localeCompare(String(b.nm));});
+  var cell=function(v,c){return '<td class="'+(v?(c||"e"):"z")+'">'+v+'</td>';};
+  var h='<div class="admin-modal" onclick="closeErrPanel()"><div class="admin-box errp" onclick="event.stopPropagation()">';
+  h+='<div class="errp-hd"><b>ERROS POR FUNDAMENTO</b><button onclick="closeErrPanel()">✕</button></div>';
+  h+='<div class="errp-tgl"><button class="'+(sc==="set"?"on":"")+'" onclick="openErrPanel(\'set\')">Set '+S.cs+'</button><button class="'+(sc==="game"?"on":"")+'" onclick="openErrPanel(\'game\')">Jogo todo</button></div>';
+  h+='<div class="errp-sc"><table class="errp-tb"><thead><tr><th class="l">Atleta</th>';
+  for(i=0;i<ERR_F.length;i++)h+='<th>'+ERR_L[ERR_F[i]]+'</th>';
+  h+='<th class="t">TOT</th><th class="bq">ATQ<br>bloq.</th></tr></thead><tbody>';
+  if(!rows.length)h+='<tr><td class="l" colspan="9" style="color:#64748b;font-weight:600">Nenhum erro registrado '+(sc==="set"?"neste set":"no jogo")+'.</td></tr>';
+  for(i=0;i<rows.length;i++){
+    var pl=rows[i];
+    h+='<tr><td class="l">'+esc(pl.nm)+'</td>';
+    for(k=0;k<ERR_F.length;k++)h+=cell(pl[sc].byF[ERR_F[k]]);
+    h+=cell(pl[sc].total,"t")+cell(pl[sc].bloq,"b")+'</tr>';
+  }
+  h+='<tr class="tot"><td class="l">TIME</td>';
+  for(k=0;k<ERR_F.length;k++)h+=cell(T.byF[ERR_F[k]]);
+  h+=cell(T.total,"t")+cell(T.bloq,"b")+'</tr></tbody></table></div>';
+  h+='<div class="errp-ft">Pontos em erro do adversário: <b>'+T.adv+'</b> · "ATQ bloq." = ataque bloqueado (não entra no total de erros)</div>';
+  h+='</div></div>';
+  if(!d){d=document.createElement("div");d.id="errPanel";document.body.appendChild(d);}
+  d.innerHTML=h;
+}
 // ===== MODO TABLET (landscape, marca em 1 toque) =====
 // Preferencia de DISPOSITIVO em localStorage (NUNCA por largura de tela: o Rodrigo
 // testa a janela pela metade e o modo nao pode sumir). Reproduz a tela do mockup
@@ -7745,7 +8407,7 @@ function toggleTabletMode(){try{localStorage.setItem("rs_scout_tablet",isTabletM
 // Sequencia de pontos do set, leve, p/ a ladder: gm.ss[i].sq=["u"|"t",...]. No banco e um
 // objeto chaveado (ss/{i}/sq/{k}); localmente sqk guarda as chaves alinhadas com sq (C2).
 // _sqPush devolve a chave nova; _sqPopSide/_sqRemoveKey devolvem a chave removida (p/ o update).
-function _sqPush(gm,side){if(!gm||!gm.ss)return null;var s=gm.ss[S.cs-1];if(!s)return null;var ks=_sqKeys(s),k=_gmSqKey();s.sq.push(side==="u"?"u":"t");ks.push(k);return k;}
+function _sqPush(gm,side){if(!gm||!gm.ss)return null;var s=gm.ss[S.cs-1];if(!s)return null;var ks=_sqKeys(s),k=_gmSqKey();s.sq.push(side==="u"?"u":"t");ks.push(k);_ptMine(k);return k;}
 function _sqPopSide(gm,setIdx,side){if(!gm||!gm.ss||!gm.ss[setIdx]||!gm.ss[setIdx].sq)return null;var s=gm.ss[setIdx],q=s.sq,ks=_sqKeys(s);for(var i=q.length-1;i>=0;i--){if(q[i]===side){q.splice(i,1);return ks.splice(i,1)[0]||null;}}return null;}
 function _sqRemoveKey(gm,setIdx,key){if(!key||!gm||!gm.ss||!gm.ss[setIdx]||!gm.ss[setIdx].sq)return null;var s=gm.ss[setIdx],ks=_sqKeys(s),i=ks.indexOf(key);if(i<0)return null;s.sq.splice(i,1);ks.splice(i,1);return key;}
 // Reconstroi as colunas da ladder do set. Usa sq; completa p/ bater com o placar
@@ -8002,7 +8664,7 @@ function rSctTablet(gm,gp,te){
   else markTxt='toque um atleta';
   var _sTo=(gm.ss&&gm.ss[S.cs-1])||{};
   var toTxt=(_sTo.toU||_sTo.toT)?'<div class="sct-to">⏱ tempos — '+esc(nmRS)+' '+(_sTo.toU||0)+' · adv '+(_sTo.toT||0)+'</div>':'';
-  h+='<div class="sct-mid"><div class="sct-sets">'+setsTxt+'</div><div class="sct-serve" style="color:'+serveCol+'">'+serveTxt+'</div><div class="sct-mark">'+markTxt+'</div>'+toTxt+'</div>';
+  h+='<div class="sct-mid"><div class="sct-sets">'+setsTxt+' '+_netChip()+'</div><div class="sct-serve" style="color:'+serveCol+'">'+serveTxt+'</div><div class="sct-mark">'+markTxt+'</div>'+toTxt+'</div>';
   h+='<div class="sct-side"><button class="sct-sb" onclick="scDn(\'t\')">−</button><span class="sct-score">'+cur.t+'</span><button class="sct-sb" onclick="scUp(\'t\')">+</button>';
   h+='<div class="sct-tn" style="text-align:right">'+esc(nmAdv)+'</div>';
   h+='<button class="sct-exit" onclick="scoutBack()" title="Voltar aos jogos">←</button></div></div>';
@@ -8010,7 +8672,7 @@ function rSctTablet(gm,gp,te){
   if(needSetup){h+='<div style="max-width:540px;margin:0 auto">'+courtRenderSetup(gm,gp)+'</div></div>';return h;}
   // BODY — 3 colunas
   h+='<div class="sct-body">';
-  h+='<div class="sct-col-l">'+sctRenderLeft(gm,gp,te,cs)+'</div>';
+  h+='<div class="sct-col-l">'+sctRenderLeft(gm,gp,te,cs)+_errStripHTML(gm)+'</div>';
   h+='<div class="sct-col-c"><div class="sct-lbl">Ação <span>— 1 toque grava</span></div><div class="sct-groups">';
   var aks=Object.keys(ACT);
   for(var gi=0;gi<aks.length;gi++){
@@ -8063,7 +8725,7 @@ function rSctTablet(gm,gp,te){
 // Quem sacou primeiro no set (ss[i].srv0 = "u"|"t"): marcacao explicita da mesa; tocar de novo desmarca.
 // E o dado que a analise por rotacao (posicao do levantador) precisa e que nao existia no banco.
 function setSrv0(side){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;side=(side==="u")?"u":"t";var si=S.cs-1,st=gm.ss[si];var v=(st.srv0===side)?null:side;if(v===null)delete st.srv0;else st.srv0=v;var up={};up["ss/"+si+"/srv0"]=v;_gmUpdate(gm,up);render();}
-function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(setIsOver(gm,S.cs)){_setEndBlock();return;}who=(who==="u")?"u":"t";var si=S.cs-1,up={};if(who==="u")gm.ss[si].u++;else gm.ss[si].t++;var sqk=_sqPush(gm,who);up["ss/"+si+"/"+who]=_inc(1);if(sqk)up["ss/"+si+"/sq/"+sqk]=who;var _snap=courtRegisterPoint(who);S.us.push({manual:true,sc:who,set:S.cs,sqk:sqk,court:_snap});courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");_gmUpdate(gm,up);render();}
+function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;if(setIsOver(gm,S.cs)){_setEndBlock();return;}if(_ptAsk())return;who=(who==="u")?"u":"t";var si=S.cs-1,up={};_gmStampDev(gm,up);if(who==="u")gm.ss[si].u++;else gm.ss[si].t++;var sqk=_sqPush(gm,who);up["ss/"+si+"/"+who]=_inc(1);if(sqk)up["ss/"+si+"/sq/"+sqk]=who;var _snap=courtRegisterPoint(who);S.us.push({manual:true,sc:who,set:S.cs,sqk:sqk,court:_snap});courtApplyPreserve();if(navigator.vibrate)navigator.vibrate(30);showFlash("#059669");_gmUpdate(gm,up);render();}
 // Ponto do NOSSO time por ERRO DO ADVERSARIO (saque na rede, ataque fora, etc). Independe de
 // marcar a acao da outra equipe: 1 toque sobe o placar (sem precisar do +/-), roda a quadra
 // (side-out) e registra na estatistica como {pid:null, ak:"erroadv"} -> conta nos "pontos
@@ -8071,8 +8733,9 @@ function scUp(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-
 function scErrAdv(){
   var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;
   if(setIsOver(gm,S.cs)){_setEndBlock();return;}
+  if(_ptAsk())return; // 2 aparelhos: o colega acabou de marcar ponto deste rally — 2o toque confirma
   var a={id:uid("a"),pid:null,ak:"erroadv",oc:"Ponto",set:S.cs,ts:S.tm,dev:_gmDev()};
-  var si=S.cs-1,up={};up["act/"+a.id]=a;
+  var si=S.cs-1,up={};up["act/"+a.id]=a;_gmStampDev(gm,up);
   gm.ss[si].u++;var sqk=_sqPush(gm,"u");up["ss/"+si+"/u"]=_inc(1);if(sqk)up["ss/"+si+"/sq/"+sqk]="u";
   var _snap=courtRegisterPoint("u");
   S.us.push({a:a,sc:"u",sqk:sqk,court:_snap});
@@ -8081,7 +8744,7 @@ function scErrAdv(){
   if(navigator.vibrate)navigator.vibrate(40);showFlash("#059669");
   _gmUpdate(gm,up);render();
 }
-function scDn(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;var si=S.cs-1,s=gm.ss[si],up={},k=null;if(who==="u"&&s.u>0){s.u--;k=_sqPopSide(gm,si,"u");up["ss/"+si+"/u"]=_inc(-1);}else if(who==="t"&&s.t>0){s.t--;k=_sqPopSide(gm,si,"t");up["ss/"+si+"/t"]=_inc(-1);}if(k)up["ss/"+si+"/sq/"+k]=null;_gmUpdate(gm,up);render();}
+function scDn(who){var gm=gF(S.aid);if(!gm||gm.st!=="live"||!gm.ss||!gm.ss[S.cs-1])return;_pt.at=0;var si=S.cs-1,s=gm.ss[si],up={},k=null;if(who==="u"&&s.u>0){s.u--;k=_sqPopSide(gm,si,"u");up["ss/"+si+"/u"]=_inc(-1);}else if(who==="t"&&s.t>0){s.t--;k=_sqPopSide(gm,si,"t");up["ss/"+si+"/t"]=_inc(-1);}if(k)up["ss/"+si+"/sq/"+k]=null;_gmUpdate(gm,up);render();}
 // Desfazer e POR APARELHO: a pilha S.us so tem o que ESTE aparelho marcou; a escrita tira so
 // act/{aid} desta acao (o que o colega marcou no outro tablet fica) e desconta o ponto com increment(-1).
 function undo(){if(!S.us.length)return;var l=S.us.pop();var gm=gF(S.aid);if(!gm)return;
@@ -8135,6 +8798,9 @@ function gameIsDecided(g){
 }
 
 function nxS(){var gm=gF(S.aid);if(!gm)return;
+  // Ja existe set depois deste (o outro aparelho abriu, ou voltei num set anterior pra remarcar): so AVANCA.
+  // Nunca cria outro por cima — era o "set fantasma" de 2 operadores (os dois tocam "Proximo set").
+  if(gm.ss&&S.cs<gm.ss.length){goSet(S.cs+1);return;}
   var lim=gameMaxSets(gm);
   if(gm.ss&&gm.ss.length>=lim){
     if(typeof toast==="function")toast("Limite de "+lim+" sets atingido","error");
@@ -8147,7 +8813,12 @@ function nxS(){var gm=gF(S.aid);if(!gm)return;
     if(typeof toast==="function")toast("O set "+gm.ss.length+" ainda está 0-0 — jogue antes de abrir outro","error");
     return;
   }
-  var go=function(){var ni=gm.ss.length;gm.ss.push({u:0,t:0});S.cs=gm.ss.length;S.tm=0;if(gm.courtMode){S.sp=null;S.sa=null;}var up={};up["ss/"+ni]={u:0,t:0};_gmUpdate(gm,up);render();};
+  var go=function(){
+    var g2=gF(S.aid)||gm; // re-le: entre abrir o modal e confirmar, o outro aparelho pode ter aberto o set
+    if(g2.ss&&S.cs<g2.ss.length){goSet(S.cs+1);return;}
+    var ni=g2.ss.length;g2.ss.push({u:0,t:0});S.cs=g2.ss.length;S.tm=0;if(g2.courtMode){S.sp=null;S.sa=null;}
+    // increment(0): cria ss/{n} sem sobrescrever — se o colega ja abriu e pontuou neste set, o placar dele fica
+    var up={};up["ss/"+ni+"/u"]=_inc(0);up["ss/"+ni+"/t"]=_inc(0);_gmUpdate(g2,up);render();};
   // partida ja decidida (ex: 3-0 em bo5): confirma antes de abrir set extra
   if(gameIsDecided(gm)&&typeof confirmModal==="function"){
     var w=setsWon(gm);
@@ -8211,6 +8882,7 @@ function _maybeSetClose(){
       body:"Fechou em <b>"+s.u+"-"+s.t+"</b>"+(tie?" (tie-break)":"")+". Iniciar o set "+(S.cs+1)+"?",
       confirmLabel:"▶ Iniciar set "+(S.cs+1),confirmStyle:"bp",onConfirm:function(){nxS();}});
   }
+  var _scm=document.getElementById("rsConfirm");if(_scm)_scm.setAttribute("data-kind","setclose");
 }
 // Operador tentou marcar ponto com o set ja encerrado: reabre o modal (nao deixa "preso" no toast) + avisa.
 function _setEndBlock(){
@@ -9528,7 +10200,8 @@ function _repCSS(){
   +'.aeg{color:var(--good-d)}.aeb{color:var(--bad)}.aez{color:var(--faint);font-weight:600}.ae .s,.tot .s{color:var(--faint);font-weight:400;margin:0 1px}'
   +'.tot{font-family:var(--fd);font-weight:800;font-size:14px}'
   +'.card-hd .tag-btn{margin-left:8px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;font-family:inherit;text-transform:none;letter-spacing:.2px;font-weight:600}.card-hd .tag-btn:hover{background:rgba(255,255,255,.2)}'
-  +'.apv{display:flex;align-items:center;gap:5px;justify-content:center;min-width:72px}.apv .mini{width:32px;height:6px;border-radius:4px;background:var(--line);overflow:hidden;flex:none}.apv .mini i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--good),var(--good-d))}.apv .pc{font-family:var(--fd);font-weight:800;font-size:13px;min-width:34px;text-align:right}.apv.low .mini i{background:linear-gradient(90deg,#e6a52a,var(--bad))}'
+  +'.apv{display:flex;align-items:center;gap:5px;justify-content:center;min-width:72px}.apv .mini{width:32px;height:6px;border-radius:4px;background:var(--line);overflow:hidden;flex:none}.apv .mini i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--good),var(--good-d))}.apv .pc{font-family:var(--fd);font-weight:800;font-size:13px;min-width:34px;text-align:right}'
+    +'.apv .sld{font-family:var(--fd);font-weight:800;font-size:14px;min-width:26px;text-align:right}.apv .sld.pos{color:var(--good-d)}.apv .sld.neg{color:var(--bad)}.apv .sld.zer{color:var(--faint)}.apv.low .mini i{background:linear-gradient(90deg,#e6a52a,var(--bad))}'
   /* tops */
   +'.tops{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}'
   +'.top-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}'
@@ -9628,6 +10301,16 @@ function toggleRepModel(){
   _repReopen(); // reabre o mesmo relatorio no outro modelo
   doc=document.getElementById("pdfOverlay-doc"); if(doc)doc.scrollTop=st;
 }
+// CLASSIFICACAO do relatorio (build 2026-11-14a) — pelo SALDO (positivas − erros): quem mais somou pro time.
+// Antes era por aproveitamento (%) com corte de 4 acoes: quem acertou 4 de 4 (100%) ficava em 1o, com
+// medalha, na frente de quem teve 41 acoes com resultado e acertou 38 (93%). Caso real (RS Masc 35+ x
+// Fluminense, 14/11/2026): o atleta com MAIS volume e maior saldo (+35) aparecia em 7o. Percentual sozinho
+// premia quem tocou pouco na bola; o saldo cresce com volume E com qualidade (90 em 100 = +80; 4 em 4 = +4).
+// Desempate: aproveitamento, depois positivas, depois volume. Medalha so com saldo positivo.
+function _repRankCmp(a,b){
+  var av=(a.aprov==null?-1:a.aprov), bv=(b.aprov==null?-1:b.aprov);
+  return (b.saldo-a.saldo) || (bv-av) || (b.pos-a.pos) || (b.n-a.n);
+}
 // ===== RELATORIO DE TIME (partida) =====
 // Miolo do relatorio de time (KPIs + tabela geral + tops + destaques + focos + metodo),
 // reusado pelo relatorio de UM jogo (reportTeamHTML) e pelo CONSOLIDADO do torneio
@@ -9635,13 +10318,7 @@ function toggleRepModel(){
 // clickable (linha do atleta abre o individual), nSets, scope ('jogo'|'torneio'), fnote}.
 function _reportCoreHTML(agg, opts){
   var players=agg.players.slice(), T=agg.team;
-  // ranking por APROVEITAMENTO (%); atletas com pouco volume (<4 acoes com resultado) nao furam o topo
-  players.sort(function(a,b){
-    var qa=(a.pos+a.err)>=4?1:0, qb=(b.pos+b.err)>=4?1:0;
-    if(qa!==qb)return qb-qa;
-    var av=(a.aprov==null?-1:a.aprov), bv=(b.aprov==null?-1:b.aprov);
-    return bv-av || b.saldo-a.saldo || b.pos-a.pos;
-  });
+  players.sort(_repRankCmp);
   var gidOf=opts.gidOf, clickable=opts.clickable, teamName=opts.teamName, nSets=opts.nSets;
   var scopeW=(opts.scope==='torneio'?'no torneio':'no jogo');
   var sgn=function(x){return (x>0?"+":"")+x;};
@@ -9663,19 +10340,19 @@ function _reportCoreHTML(agg, opts){
   var thF=function(lbl){return '<th class="f"><div class="fh">'+lbl+'</div><div class="c3 sub"><span>aç</span><span class="p">pos</span><span class="e">err</span></div></th>';};
   // botao que alterna o modelo (some no PDF: .no-print)
   var swBtn='<button type="button" class="tag tag-btn no-print" onclick="toggleRepModel()" title="Alternar o formato da tabela geral">'+(old?"ver modelo novo":"ver modelo anterior")+'</button>';
-  h+='<div class="card tcard"><div class="card-hd"><span class="h-ic">'+_ic("i-users")+'</span><h3>Tabela geral — '+esc(teamName)+'</h3><span class="tag">'+(old?"acertos / erros por fundamento":"ações · positivas · erros")+'</span>'+swBtn+'</div><div class="card-bd tb"><div class="tscroll-hint">deslize a tabela para o lado →</div><div class="tscroll"><table class="tg"><thead><tr><th class="l">Atleta</th>';
-  if(old)h+='<th>Ataque</th><th>Bloq.</th><th>Saque</th><th>Passe</th><th>Defesa</th><th>Levant.</th><th>Ações</th><th>Total</th><th>Aprov.</th>';
-  else h+=thF("Ataque")+thF("Bloq.")+thF("Saque")+thF("Passe")+thF("Defesa")+thF("Levant.")+thF("Total")+'<th class="f"><div class="fh">Aprov.</div><div class="sub">pos ÷ (pos+err)</div></th>';
+  h+='<div class="card tcard"><div class="card-hd"><span class="h-ic">'+_ic("i-users")+'</span><h3>Tabela geral — '+esc(teamName)+'</h3><span class="tag">'+(old?"acertos / erros por fundamento":"ações · positivas · erros")+' · ordem: saldo</span>'+swBtn+'</div><div class="card-bd tb"><div class="tscroll-hint">deslize a tabela para o lado →</div><div class="tscroll"><table class="tg"><thead><tr><th class="l">Atleta</th>';
+  if(old)h+='<th>Ataque</th><th>Bloq.</th><th>Saque</th><th>Passe</th><th>Defesa</th><th>Levant.</th><th>Ações</th><th>Total</th><th>Saldo · Aprov.</th>';
+  else h+=thF("Ataque")+thF("Bloq.")+thF("Saque")+thF("Passe")+thF("Defesa")+thF("Levant.")+thF("Total")+'<th class="f"><div class="fh">Saldo · Aprov.</div><div class="sub">pos − err · pos ÷ (pos+err)</div></th>';
   h+='</tr></thead><tbody>';
   var _fOrd=["ataque","bloqueio","saque","recepcao","defesa","levantamento"];
   for(var i=0;i<players.length;i++){
-    var p=players[i], medaled=(i<3&&p.pos>0);
+    var p=players[i], medaled=(i<3&&p.saldo>0);
     var rk=medaled?('<span class="medal m'+(i+1)+'">'+(i+1)+'</span>'):('<span class="pos">'+(i+1)+'</span>');
     var apLow=(p.aprov!=null&&p.aprov<70)?" low":"";
     var nm=esc(sn(p.pid));
     var cell=clickable?('<span class="rk" style="cursor:pointer" onclick="exPlayerReport(\''+gidOf(p.pid)+'\',\''+p.pid+'\')" title="Ver relatório individual">'+rk+nm+'</span>'):('<span class="rk">'+rk+nm+'</span>');
     h+='<tr class="'+(medaled?"top":"")+'"><td class="l">'+cell+'</td>';
-    var apv='<div class="apv'+apLow+'"><div class="mini"><i style="width:'+(p.aprov||0)+'%"></i></div><span class="pc">'+(p.aprov==null?"–":p.aprov+"%")+'</span></div>';
+    var apv='<div class="apv'+apLow+'"><b class="sld '+(p.saldo>0?"pos":p.saldo<0?"neg":"zer")+'">'+sgn(p.saldo)+'</b><div class="mini"><i style="width:'+(p.aprov||0)+'%"></i></div><span class="pc">'+(p.aprov==null?"–":p.aprov+"%")+'</span></div>';
     if(old){
       for(var fa=0;fa<_fOrd.length;fa++)h+='<td>'+_aeV(p.byF[_fOrd[fa]])+'</td>';
       h+='<td class="mut" style="font-weight:800">'+p.n+'</td>';
@@ -9688,7 +10365,7 @@ function _reportCoreHTML(agg, opts){
     }
   }
   h+='</tbody></table></div>';
-  if(!old)h+='<div class="tlegend"><b>aç</b> ações · <b class="p">pos</b> positivas pela régua · <b class="e">err</b> erros. A diferença são ações neutras: bola em jogo no ataque e no bloqueio, ataque bloqueado, passe/levantamento/defesa B ou C.</div>';
+  if(!old)h+='<div class="tlegend"><b>aç</b> ações · <b class="p">pos</b> positivas pela régua · <b class="e">err</b> erros. A diferença são ações neutras: bola em jogo no ataque e no bloqueio, ataque bloqueado, passe/levantamento/defesa B ou C.<br><b>Classificação pelo saldo</b> (positivas − erros): quem mais somou para o time. O aproveitamento (%) só desempata — 4 acertos em 4 dão 100% e somam +4; 90 em 100 dão 90% e somam +80.</div>';
   h+='</div></div>';
   // TOPS
   function topBy(fn){var a=[];for(var k=0;k<players.length;k++){var v=fn(players[k]);if(v>0)a.push({who:sn(players[k].pid),v:v});}a.sort(function(x,y){return y.v-x.v;});return a.slice(0,3);}
@@ -9723,7 +10400,7 @@ function _reportCoreHTML(agg, opts){
   if(!focos.length)focos.push("<b>Seguir registrando ao vivo</b> — quanto mais ações, mais preciso o retrato do time.");
   var fl="";for(var fi=0;fi<focos.length;fi++)fl+='<li><svg class="ck" viewBox="0 0 24 24"><use href="#i-check"/></svg><span>'+focos[fi]+'</span></li>';
   h+='<div class="foot2"><div class="method"><div class="m-hd"><span style="color:#7fe3a8">'+_ic("i-check")+'</span><h3>Próximos focos</h3></div><ul>'+fl+'</ul></div>';
-  h+='<div class="method"><div class="m-hd"><span style="color:#ff7ab8">'+_ic("i-eq")+'</span><h3>Como os números são calculados</h3></div><ul><li><i></i><span><b>Passe, defesa e levantamento:</b> positivo é só a ação A.</span></li><li><i></i><span><b>Ataque e bloqueio:</b> positivo é o ponto; bloqueado e erro descontam.</span></li><li><i></i><span><b>Saque:</b> positivo é não errar; o ace conta como ponto.</span></li><li><i></i><span><b>Total:</b> soma do time = soma dos atletas.</span></li></ul></div></div>';
+  h+='<div class="method"><div class="m-hd"><span style="color:#ff7ab8">'+_ic("i-eq")+'</span><h3>Como os números são calculados</h3></div><ul><li><i></i><span><b>Passe, defesa e levantamento:</b> positivo é só a ação A.</span></li><li><i></i><span><b>Ataque e bloqueio:</b> positivo é o ponto; bloqueado e erro descontam.</span></li><li><i></i><span><b>Saque:</b> positivo é não errar; o ace conta como ponto.</span></li><li><i></i><span><b>Total:</b> soma do time = soma dos atletas.</span></li><li><i></i><span><b>Classificação:</b> pelo saldo (positivas − erros); o aproveitamento só desempata. Poucas ações com 100% não lideram.</span></li></ul></div></div>';
   h+='<div class="fnote">'+opts.fnote+'</div>';
   return h;
 }
@@ -10326,8 +11003,20 @@ function renderLivePanel(){
    Fora do escopo do app principal pra nao competir com o boot. */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./sw.js').catch(function(e){ console.warn('[PWA] SW nao registrou:', e && e.message); });
+    // updateViaCache:'none' = o navegador busca o sw.js SEM cache HTTP a cada checagem
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).catch(function(e){ console.warn('[PWA] SW nao registrou:', e && e.message); });
+  });
+  // O SW novo pergunta o build de cada pagina aberta (sw.js, activate): quem responde ja e pagina
+  // nova e so confere a versao; quem nao responde e pagina antiga e o SW a recarrega uma vez.
+  navigator.serviceWorker.addEventListener('message', function(ev){
+    var d = ev && ev.data; if (!d) return;
+    if (d.type === 'rs-build?' && ev.ports && ev.ports[0]) {
+      try { ev.ports[0].postMessage({ build: (typeof APP_BUILD_ID !== 'undefined') ? APP_BUILD_ID : null }); } catch (_) {}
+    }
+    if (d.type === 'rs-sw-new' && typeof _verSoon === 'function') _verSoon(800);
   });
 }
+// Versao: confere o build do servidor logo depois de abrir (depois: ao voltar do 2o plano e a cada 5 min).
+if (typeof _verSoon === 'function') window.addEventListener('load', function(){ _verSoon(3000); });
 </script>
 </body></html>

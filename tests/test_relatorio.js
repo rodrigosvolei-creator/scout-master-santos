@@ -216,6 +216,34 @@ setTimeout(()=>{
   chk(/\.hero,\.kpi,\.card,\.top-card,\.dcard,\.method[^{]*\{break-inside:avoid;page-break-inside:avoid\}/.test(pblock),'print: cada card inteiro na pagina (nao corta card na virada)');
   chk(html.indexOf('html,body{background:#fff!important}')>=0,'print overlay: forca fundo branco (nao vaza o tema escuro do app)');
 
+  // ---- CLASSIFICACAO PELO SALDO (build 2026-11-14a) — caso real RS Masc 35+ x Fluminense, 14/11/2026:
+  // quem acertou 4 de 4 (100%) aparecia em 1o com medalha, na frente de quem teve 41 acoes com resultado e
+  // acertou 38 (93%). "Um cara que recebeu 100 bolas e rodou 90 nao pode ficar abaixo de alguem que recebeu
+  // 4 bolas e rodou as 4" (Rodrigo). Agora: ordem pelo saldo (positivas - erros); o % so desempata.
+  var ra=[]; // a1: 38 positivas + 3 erros (93%, saldo +35) | a8: 4 de 4 (100%, +4) | a3: 14 de 14 (100%, +14) | a5: 2 pos 5 err (-3)
+  pushN(ra,30,'a1','recepcao','A',1);pushN(ra,8,'a1','ataque','Ponto',1);pushN(ra,3,'a1','ataque','Erro',1);pushN(ra,6,'a1','recepcao','B',1);
+  pushN(ra,2,'a8','ataque','Ponto',1);pushN(ra,2,'a8','saque','Cont',1);
+  pushN(ra,10,'a3','levantamento','A',1);pushN(ra,4,'a3','saque','Cont',1);pushN(ra,8,'a3','levantamento','B',1);
+  pushN(ra,2,'a5','ataque','Ponto',1);pushN(ra,5,'a5','ataque','Erro',1);
+  var rg=w.repAgg(null,ra), RP={}; rg.players.forEach(function(x){RP[x.pid]=x;});
+  chk(RP.a1.aprov===93&&RP.a1.saldo===35&&RP.a8.aprov===100&&RP.a8.saldo===4&&RP.a3.aprov===100&&RP.a3.saldo===14&&RP.a5.saldo===-3,'ranking: a1 93% (+35), a8 100% (+4), a3 100% (+14), a5 (-3)');
+  var ord=rg.players.slice().sort(w._repRankCmp).map(function(x){return x.pid;}).join(',');
+  chk(ord==='a1,a3,a8,a5','ranking pelo SALDO: +35 antes de +14 antes de +4 antes de -3 — deu '+ord+' (por % daria a8/a3 na frente do a1)');
+  chk(w._repRankCmp({saldo:5,aprov:100,pos:5,n:5},{saldo:5,aprov:71,pos:6,n:9})<0,'ranking: saldo igual -> o aproveitamento desempata');
+  chk(w._repRankCmp({saldo:5,aprov:80,pos:5,n:5},{saldo:5,aprov:80,pos:8,n:12})>0,'ranking: saldo e % iguais -> quem tem mais positivas / mais volume vem antes');
+  var rh=w._reportCoreHTML(rg,{teamName:'RS',gidOf:function(){return 'g1';},clickable:false,nSets:1,scope:'jogo',fnote:'',model:'novo'});
+  var rt=rh.slice(rh.indexOf('<tbody>'),rh.indexOf('</tbody>'));
+  chk(rt.indexOf('Mikael')<rt.indexOf('Caio')&&rt.indexOf('Caio')<rt.indexOf('Igor')&&rt.indexOf('Igor')<rt.indexOf('Wash'),'relatorio: tabela na ordem do saldo (Mikael +35, Caio +14, Igor +4, Wash -3)');
+  var m1=rt.indexOf('class="medal m1"'),m2=rt.indexOf('class="medal m2"'),m3=rt.indexOf('class="medal m3"');
+  chk((rt.match(/class="medal m[123]"/g)||[]).length===3&&m1>=0&&m1<rt.indexOf('Mikael')&&rt.indexOf('Mikael')<m2&&m2<rt.indexOf('Caio')&&rt.indexOf('Caio')<m3&&m3<rt.indexOf('Igor'),'relatorio: ouro pro maior saldo (quem tem 41 acoes com resultado), prata +14, bronze +4 — nao mais ouro pro 4 de 4');
+  chk(rt.indexOf('<b class="sld pos">+35</b>')>=0&&rt.indexOf('<b class="sld pos">+4</b>')>=0&&rt.indexOf('<b class="sld neg">-3</b>')>=0,'relatorio: a ultima coluna mostra o saldo (+35 / +4 / -3) junto do %');
+  chk(rh.indexOf('Saldo · Aprov.')>=0&&rh.indexOf('ordem: saldo')>=0&&rh.indexOf('Classificação pelo saldo')>=0&&rh.indexOf('Poucas ações com 100% não lideram')>=0,'relatorio: cabecalho, legenda e metodologia explicam o criterio');
+  var rneg=w.repAgg(null,[{id:'z1',pid:'a5',ak:'ataque',oc:'Erro',set:1},{id:'z2',pid:'a5',ak:'ataque',oc:'Erro',set:1},{id:'z3',pid:'a5',ak:'ataque',oc:'Ponto',set:1}]);
+  var rnh=w._reportCoreHTML(rneg,{teamName:'RS',gidOf:function(){return 'g2';},clickable:false,nSets:1,scope:'jogo',fnote:'',model:'novo'});
+  chk(rnh.slice(rnh.indexOf('<tbody>'),rnh.indexOf('</tbody>')).indexOf('class="medal')<0,'relatorio: sem medalha pra saldo negativo/zero (mesmo sendo o 1o da lista)');
+  var rold=w._reportCoreHTML(rg,{teamName:'RS',gidOf:function(){return 'g1';},clickable:false,nSets:1,scope:'jogo',fnote:'',model:'anterior'});
+  chk(rold.indexOf('Saldo · Aprov.')>=0&&rold.indexOf('<b class="sld pos">+35</b>')>=0,'modelo anterior da tabela: mesma ordem e mesma coluna de saldo');
+
   console.log('\n=== test_relatorio: '+ok+' OK, '+ko+' FAIL ===');
   process.exit(ko>0?1:0);
  }catch(e){console.log('FAIL exception:',e.message);console.log((e.stack||'').split('\n').slice(0,6).join('\n'));process.exit(1);}

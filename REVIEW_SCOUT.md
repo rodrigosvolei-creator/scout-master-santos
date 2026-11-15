@@ -99,8 +99,11 @@ meio do jogo → não dá mais pra desfazer. **Correção:** persistir por jogo 
 **R2. Cronômetro zera ao recarregar.** `S.tm` é volátil. **Correção:** guardar `{início, elapsed}`
 no jogo.
 
-**R3. Indicador de "salvo / online / offline".** Hoje não há sinal de que a ação foi gravada. A
-correção **C** (aviso de falha) é o começo; falta o "✓ salvo" e o modo offline com fila de reenvio.
+**R3. Indicador de "salvo / online / offline".** ✅ **Feito em 14/11/2026** (build `2026-11-14a`):
+selo de conexão no placar, faixa "SEM CONEXÃO — N marcações guardadas" / "Enviando N…", reconexão
+forçada ao voltar do 2º plano e quando uma gravação fica parada (`tests/test_dois_aparelhos.js`).
+Continua faltando: fila de reenvio **persistente** (hoje é a fila em memória do SDK — fechar o app sem
+conexão perde o que não subiu).
 
 **R4. Editar uma ação lá atrás sem desfazer tudo.** Errou o atleta na ação 30 de 50 → hoje só
 desfazendo 20. **Correção:** tocar na ação no feed e editar no lugar.

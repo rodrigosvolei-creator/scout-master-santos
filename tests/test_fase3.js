@@ -3,7 +3,10 @@ const html=fs.readFileSync('index.html','utf8');
 const fakeDB={};const listeners={};
 function getAt(p){const a=p.split('/');let c=fakeDB;for(const x of a){if(c==null)return null;c=c[x];}return c===undefined?null:c;}
 function setAt(p,v){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object')c[a[i]]={};c=c[a[i]];}c[a[a.length-1]]=JSON.parse(JSON.stringify(v));}
-function makeRef(p){return{on:(e,cb)=>{listeners[p]=cb;},once:()=>Promise.resolve({val:()=>getAt(p)}),set:v=>{setAt(p,v);return Promise.resolve();},update:()=>Promise.resolve()};}
+function makeRef(p){return{on:(e,cb)=>{listeners[p]=cb;},once:()=>Promise.resolve({val:()=>getAt(p)}),set:v=>{setAt(p,v);return Promise.resolve();},update:o=>{updAt(p,o);return Promise.resolve();}};}
+// update() multi-caminho de verdade (save() grava por diferenca desde o build 2026-11-14a): null apaga (o ultimo indice de um vetor encolhe o vetor)
+function delAt(p){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c==null)return;c=c[a[i]];}if(!c)return;const k=a[a.length-1];if(Array.isArray(c)&&/^[0-9]+$/.test(k)){const i=+k;if(i===c.length-1){c.length=i;while(c.length&&c[c.length-1]==null)c.length--;}else if(i<c.length)c[i]=null;}else delete c[k];}
+function updAt(base,o){for(const k of Object.keys(o||{})){if(o[k]===null)delAt(base+'/'+k);else setAt(base+'/'+k,o[k]);}}
 global.firebaseMock={initializeApp:()=>{},database:()=>({ref:makeRef}),auth:()=>({onAuthStateChanged:cb=>setTimeout(()=>cb({uid:'tester',email:'rodrigosvolei@gmail.com',displayName:'Tester'}),0),signInWithPopup:()=>Promise.resolve(),signOut:()=>Promise.resolve()})};
 const seed={'torneio-master-santos':{
   teams:[{id:'trs_adulto',n:'RS-VOLEIBOL ADULTO MASCULINO',c:'#2563eb',roster:[{aid:'a1'},{aid:'a2'}]}],

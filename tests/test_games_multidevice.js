@@ -15,7 +15,7 @@ const listeners = []; // {path, cb, dev}
 const suspended = {}; // dev -> true (listener nao recebe nada ate resumir)
 const pendingResume = {}; // dev -> true (perdeu evento enquanto suspenso)
 function getAt(p){const a=p.split('/');let c=fakeDB;for(const k of a){if(c==null)return null;c=c[k];}return c===undefined?null:c;}
-function setAt(p,v){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object')c[a[i]]={};else if(Array.isArray(c[a[i]])&&!/^\d+$/.test(a[i+1]))c[a[i]]=Object.assign({},c[a[i]]);c=c[a[i]];}c[a[a.length-1]]=JSON.parse(JSON.stringify(v));}
+function setAt(p,v){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object')c[a[i]]=(/^[0-9]+$/.test(a[i+1])?[]:{});else if(Array.isArray(c[a[i]])&&!/^\d+$/.test(a[i+1]))c[a[i]]=Object.assign({},c[a[i]]);c=c[a[i]];}c[a[a.length-1]]=JSON.parse(JSON.stringify(v));}
 // apagar o ULTIMO indice de um array encolhe o array (como o Firebase devolve); indice do meio vira null
 function delAt(p){const a=p.split('/');let c=fakeDB;for(let i=0;i<a.length-1;i++){if(c==null)return;c=c[a[i]];}if(!c)return;const k=a[a.length-1];if(Array.isArray(c)&&/^\d+$/.test(k)){const i=+k;if(i===c.length-1){c.length=i;while(c.length&&c[c.length-1]==null)c.length--;}else if(i<c.length)c[i]=null;}else delete c[k];}
 function updAt(base,obj){
@@ -100,6 +100,10 @@ const intKeys=o=>Object.keys(o||{}).filter(k=>/^\d+$/.test(k));
   const wa=A.window, wb=B.window;
   wa.currentUser={uid:'uA',email:'rodrigosvolei@gmail.com'};
   wb.currentUser={uid:'uB',email:'rodrigosvolei@gmail.com'};
+  // TRAVA DE PONTO DUPLICADO (build 2026-11-14a): ponto que chega de outro aparelho segura por 6 s o ponto
+  // deste. Aqui os 2 "aparelhos" marcam no mesmo milissegundo, mas sao rallies DIFERENTES: zera a janela antes
+  // de cada marcacao (= o tempo passou entre um rally e outro). A trava em si: tests/test_dois_aparelhos.js.
+  [wa,wb].forEach(function(w){['rcO','scUp','scErrAdv'].forEach(function(fn){var o=w[fn];w[fn]=function(){wa._pt.at=0;wb._pt.at=0;return o.apply(w,arguments);};});});
 
   console.log('\n--- 1. leitura: formato antigo e normalizado, o app segue com arrays ---');
   var l2=wa.gF('g2');

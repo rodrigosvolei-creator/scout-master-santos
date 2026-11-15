@@ -65,7 +65,10 @@ setTimeout(function(){
   // 3) captura o onConfirm SEM confirmar; conta as gravacoes GRANULARES (games/{idx})
   var modalBody=null, pending=null;
   w.confirmModal=function(o){modalBody=o.body;pending=o.onConfirm;};
+  // build 2026-11-14a: grava SO o campo lineup de cada jogo (_gmUpdate), nao o jogo inteiro (saveGame) —
+  // o jogo modelo pode estar AO VIVO, com o outro aparelho marcando.
   var saveGameCalls=[]; var _sg=w.saveGame; w.saveGame=function(g){saveGameCalls.push(g.id);return _sg(g);};
+  var updCalls={}; var _gu=w._gmUpdate; w._gmUpdate=function(g,up){updCalls[g.id]=Object.keys(up||{}).join(',');return _gu(g,up);};
   // (o modelo esta aberto com as 3 rows marcadas = a1,a2,a3)
   w.repeatLineupToOthers('gm');
   chk(/3 atletas/.test(modalBody||''),'confirmacao mostra "3 atletas"');
@@ -86,10 +89,11 @@ setTimeout(function(){
   chk(lu('g3')===esperado,'g3 recebeu a escalacao MESMO apos re-sync (deu '+lu('g3')+')');
   chk(lu('gm')===esperado,'o modelo continua com a sua escalacao');
 
-  // 4b) gravou GRANULAR (saveGame games/{idx}) — nao o array inteiro
-  chk(saveGameCalls.indexOf('g2')>=0 && saveGameCalls.indexOf('g3')>=0,'gravou granular (saveGame) em g2 e g3 — deu ['+saveGameCalls.join(',')+']');
-  chk(saveGameCalls.indexOf('gm')>=0,'gravou tambem o jogo modelo (gm)');
-  chk(saveGameCalls.indexOf('gDone')<0 && saveGameCalls.indexOf('gLive')<0 && saveGameCalls.indexOf('gOutro')<0,'NAO gravou done/live/outro torneio');
+  // 4b) gravou GRANULAR: so o caminho "lineup" de cada jogo — nem o array inteiro, nem o jogo inteiro
+  chk(updCalls.g2==='lineup' && updCalls.g3==='lineup','gravou so a lineup em g2 e g3 — deu '+JSON.stringify(updCalls));
+  chk(updCalls.gm==='lineup','gravou tambem o jogo modelo (gm), so a lineup');
+  chk(!('gDone' in updCalls) && !('gLive' in updCalls) && !('gOutro' in updCalls),'NAO gravou done/live/outro torneio');
+  chk(saveGameCalls.length===0,'nenhum jogo regravado INTEIRO (saveGame nao e mais usado aqui) — deu ['+saveGameCalls.join(',')+']');
 
   // 5) NAO tocou nos que nao devia
   chk(lu('gDone')===doneAntes,'jogo FINALIZADO nao foi alterado');

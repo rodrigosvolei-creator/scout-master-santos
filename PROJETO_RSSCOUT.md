@@ -287,8 +287,10 @@ se atualiza a cada marcação). Ataque bloqueado é contado à parte. Motor puro
 
 ## 8. Testes
 
-68 arquivos `tests/test_*.js` (nov/2026), rodados com `node tests/test_X.js` (jsdom + mock Firebase).
-`test_cores_e2e.js` demora ~7 min (torneio inteiro); os demais são segundos.
+67 arquivos `tests/test_*.js` (nov/2026), rodados com `node tests/test_X.js` (jsdom + mock Firebase).
+Todos rodam em segundos. O antigo `test_cores_e2e.js` (torneio por cores inteiro, ~7 min) foi
+**removido em 15/11/2026 a pedido do Rodrigo**: o torneio por cores acabou há muito tempo e o teste
+travava. Não recriar nem rodar.
 Regra do projeto: **rodar a suíte inteira antes de commitar**; mudança nova precisa de teste
 novo (ou asserção nova). Cobrem: scout, autoscore, torneios, fases A/B/C/D, quadra (setup,
 líbero, rotação, saque), tablet, modo note, PDF, gate de auth, galeria-first, minis, etc.

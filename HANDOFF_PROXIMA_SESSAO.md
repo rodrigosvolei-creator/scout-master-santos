@@ -1,8 +1,11 @@
 # Handoff — próxima sessão (atualizado 2026-11-15, sessão "dois aparelhos + cache")
 
-> **Estado em 15/11/2026 (leia primeiro).** Build novo no código: **`2026-11-14a`**. No ar (Coolify)
-> ainda está o `2026-10-15a` — **o deploy é manual e depende do Rodrigo** (ver "Deploy do 2026-11-14a"
-> abaixo). Confira com `git status`/`git log` se esta sessão já foi commitada e enviada.
+> **Estado em 15/11/2026 (leia primeiro).** O build **`2026-11-14a`** (commit `5192be7`) foi enviado,
+> publicado pelo Rodrigo e conferido no ar em 15/11 (arquivos idênticos ao commit; usado em jogo real no
+> mesmo dia). Depois dele veio o **`2026-11-15a`**: só texto do painel de erros ao vivo ("erro do
+> adversário" separado de "ataque bloqueado" — o Rodrigo leu as duas notas na mesma linha como se fossem
+> a mesma coisa) e a remoção do `test_cores_e2e`. **O deploy é sempre manual** (Redeploy no Coolify):
+> confira com `git log` e com o `<meta name="rs-build">` do site qual build está de fato no ar.
 >
 > **Pedido do Rodrigo (14/11):** corrigir conexão e marcação com 2 celulares, o cache do iPhone/iPad
 > ("a página não atualiza, e isso interfere na marcação dupla"), uma classificação melhor no relatório
@@ -59,7 +62,13 @@
 > (29), mais asserções em `test_relatorio.js` (100) e `test_pwa.js` (32). Mocks de `test_excluir`,
 > `test_fase3`, `test_games_multidevice`, `test_srv0_courthist`, `test_repetir_escalacao` ajustados
 > (`update()` de verdade; `ss` criado por caminho vira vetor; janela da trava de ponto zerada entre
-> rallies). Suíte: 68 arquivos.
+> rallies). Suíte: 67 arquivos, todos rápidos.
+>
+> **`tests/test_cores_e2e.js` foi REMOVIDO em 15/11/2026 a pedido do Rodrigo** ("suma com esse teste,
+> não fazer nunca mais — torneio por cores já acabou faz muito tempo"). Ele travava na etapa dos 10
+> jogos (29 min sem terminar, sozinho). As menções a ele mais abaixo são históricas: não recriar, não
+> rodar. O módulo de cores (`cores.html`, `cores-core.js` e os outros `test_cores_*`) continua no
+> repositório, sem manutenção.
 >
 > **Validado com os dados reais (só leitura, nada gravado):** `save()` sem mudança = 0 caminhos nos 62
 > jogos / 87 atletas; mexer na escalação de um jogo ao vivo = só `games/{idx}/lineup`; reconexão

@@ -66,7 +66,11 @@ setTimeout(() => {
   chk(cells(el, 0) === 'Erros SAQ ATQ REC BLQ LEV DEF TOT ADV', 'colunas: SAQ ATQ REC BLQ LEV DEF TOT ADV');
   chk(cells(el, 1) === 'set 2 1 2 0 1 1 1 6 2', 'linha do set em que a mesa esta: ' + cells(el, 1));
   chk(cells(el, 2) === 'jogo 3 3 1 1 1 1 10 3', 'linha do jogo todo: ' + cells(el, 2));
-  chk(/ataques bloqueados: 0 no set, 1 no jogo/.test(el.textContent), 'rodape avisa os ataques bloqueados (fora do total)');
+  // build 2026-11-15a: "erro do adversario" e "ataque bloqueado" cada um na SUA linha. Na mesma linha o Rodrigo
+  // leu como se uma fosse o nome da outra ("pq o erro do adv chama ataq bloq....e erro do adv").
+  var ftl = Array.from(el.querySelectorAll('.ft > div')).map(x => x.textContent);
+  chk(ftl.length === 3 && ftl[0] === 'ADV = erros do adversário (pontos nossos)' && !/bloq/i.test(ftl[0]), 'rodape, linha 1: so a legenda do ADV (erros do adversario = pontos nossos)');
+  chk(/^Nossos ataques bloqueados: 0 no set · 1 no jogo/.test(ftl[1]) && !/advers/i.test(ftl[1]), 'rodape, linha 2: so os NOSSOS ataques bloqueados (fora do total) — "' + ftl[1] + '"');
   var pill = w.document.querySelector('#mainApp .sc-errpill');
   chk(pill && pill.textContent === '6 erros', 'atalho no centro do placar com o total do set: "' + (pill && pill.textContent) + '"');
   w.goSet(1); el = w.document.querySelector('#mainApp .sc-errs');
@@ -93,7 +97,12 @@ setTimeout(() => {
   w.openErrPanel('game');
   rows = Array.from(w.document.querySelectorAll('#errPanel tbody tr')).map(r => Array.from(r.children).map(c => c.textContent).join(' '));
   chk(rows[0] === '#3 Igor 0 3 0 0 0 0 3 1' && rows[rows.length - 1] === 'TIME 4 3 1 1 1 1 11 1', '"Jogo todo": Igor 3 erros de ataque + 1 bloqueado; TIME 11 erros');
-  chk(/Pontos em erro do advers.rio: 4/.test(w.document.getElementById('errPanel').textContent), 'rodape: pontos em erro do adversario no recorte');
+  var advBox = w.document.querySelector('#errPanel .errp-adv'), tbEl = w.document.querySelector('#errPanel .errp-tb'), ftEl = w.document.querySelector('#errPanel .errp-ft');
+  chk(advBox && /^Erros do advers.rio: 4/.test(advBox.textContent) && /pontos nossos/.test(advBox.textContent) && !/bloq/i.test(advBox.textContent), 'erros do adversario (pontos nossos) numa faixa propria: "' + (advBox && advBox.textContent) + '"');
+  chk(advBox && tbEl && !!(advBox.compareDocumentPosition(tbEl) & 4), 'a faixa do adversario vem ANTES da tabela dos nossos erros');
+  chk(/Nossos erros, por atleta/.test(w.document.getElementById('errPanel').textContent), 'a tabela e rotulada "Nossos erros, por atleta"');
+  chk(ftEl && /^ATQ bloqueado = ataque nosso que parou no bloqueio deles/.test(ftEl.textContent) && !/Erros do advers/.test(ftEl.textContent), 'a legenda do ATQ bloqueado fica sozinha embaixo (sem a contagem de erro do adversario na mesma linha)');
+  chk(/ATQ\s*bloqueado/.test(w.document.querySelector('#errPanel thead th.bq').textContent), 'ultima coluna: "ATQ bloqueado" por extenso');
   w.S.sp = 'a6'; w.S.sa = 'recepcao'; w.rcO('Erro');
   rows = Array.from(w.document.querySelectorAll('#errPanel tbody tr')).map(r => Array.from(r.children).map(c => c.textContent).join(' '));
   chk(rows.some(r => r === '#6 Andre 0 0 1 0 0 0 1 0') && rows[rows.length - 1] === 'TIME 4 3 2 1 1 1 12 1', 'com o detalhe aberto, a marcacao nova entra na hora (Andre: 1 erro de recepcao)');
